@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+  <style>
+    /* 帮助页专用：插画整页铺满 + 深色内容条 + 三列指令网格
+       （配色只引用 base.css 的 :root 令牌，不写死颜色；版式沿用 Mhydps-Plugin 规范） */
+    .help-group {
+      margin: 8px 0 6px;
+      padding: 5px 12px;
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--text);
+      background: var(--card-2);
+      border: 1px solid var(--line-soft);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+    }
+    .help-group:first-child {
+      margin-top: 0;
+    }
+    .help-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px 20px;
+      padding: 0 2px;
+    }
+    .help-entry {
+      min-width: 0;
+    }
+    .entry-cmd {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .entry-desc {
+      font-size: 17px;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+    .help-grid.cols-1 {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .help-grid.cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    /* 页脚说明（helpCfg.note）：原「米游社攻略图」的去向提示等 */
+    .help-note {
+      margin-top: 10px;
+      padding: 6px 10px;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--muted-2);
+      background: var(--card-3);
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body style="zoom:{{renderScale}}">
+  <div class="page">
+    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-help.jpg')"></div>
+    <div class="page-inner">
+      <div class="card head-card">
+        <div class="header">
+          <div class="game-name">Meta-Plugin</div>
+          <div class="title">{{if helpCfg && helpCfg.title}}{{helpCfg.title}}{{else}}#攻略帮助{{/if}}</div>
+          {{if helpCfg && helpCfg.subTitle}}
+          <div class="subtitle">{{helpCfg.subTitle}}</div>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="card body-card">
+        {{if helpGroup && helpGroup.length > 0}}
+        {{each helpGroup group}}
+        <div class="help-group">{{group.group}}</div>
+        {{if group.list && group.list.length > 0}}
+        <div class="help-grid{{if group.list.length === 1}} cols-1{{else if group.list.length === 2}} cols-2{{/if}}">
+          {{each group.list item}}
+          <div class="help-entry">
+            <div class="entry-cmd">{{item.title}}</div>
+            <div class="entry-desc">{{if item.desc}}{{item.desc}}{{else}}-{{/if}}</div>
+          </div>
+          {{/each}}
+        </div>
+        {{else}}
+        <div class="help-grid cols-1">
+          <div class="help-entry"><div class="entry-desc">该分组暂无指令</div></div>
+        </div>
+        {{/if}}
+        {{/each}}
+        {{if helpCfg && helpCfg.note}}
+        <div class="help-note">{{helpCfg.note}}</div>
+        {{/if}}
+        {{else}}
+        <div class="empty-hint">未取到帮助配置，请检查插件 help 配置项</div>
+        {{/if}}
+      </div>
+
+      <div class="card foot-card">
+        <div class="copyright">{{copyright}}</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

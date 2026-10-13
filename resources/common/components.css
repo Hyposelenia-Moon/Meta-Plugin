@@ -1,0 +1,527 @@
+/* Mhydps-Plugin 共享组件样式 — 浅色主题（白底）
+   颜色一律引用 base.css 的 :root 变量，此处不写死色值。
+   版块：页头 / 卡片 / 键值行 / 头像 / 名次徽标 / 榜单行 / 标签 / 属性网格 / 空状态 / 版权 */
+
+/* ═══════════════════════════════════════════════════════════
+   页头 — 插件名 + 主标题 + 副标题（全模板共用）
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 页头容器 .header（底部一条细描边区分正文） ===== */
+.header {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* ===== 页头插件名 .header .game-name（小号标识） ===== */
+.header .game-name {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
+/* ===== 页头主标题 .header .title ===== */
+.header .title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+/* ===== 页头副标题 .header .subtitle ===== */
+.header .subtitle {
+  margin-top: 4px;
+  font-size: 19px;
+  color: var(--muted);
+}
+
+/* ===== 页头元信息行 .page-meta（条数 / 页码 / 数据时间） ===== */
+.page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 18px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   卡片 — 白底卡面 + 细描边 + 浅阴影，标题左侧一条强调色竖线
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 通用卡片 .card ===== */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow);
+}
+
+/* ===== 卡片标题 .card-title（默认蓝色竖线） ===== */
+.card-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  padding-left: 10px;
+  border-left: 4px solid var(--accent);
+  margin-bottom: 8px;
+}
+
+/* ===== 卡片标题紫色变体 .card-title-purple ===== */
+.card-title-purple {
+  border-left-color: var(--accent-2);
+}
+
+/* ===== 卡片标题金色变体 .card-title-gold ===== */
+.card-title-gold {
+  border-left-color: var(--gold-2);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   键值行 — 左标签右取值（状态页 / 榜单副信息）
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 键值行 .kv-item（两端对齐，标签弱化） ===== */
+.kv-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 3px 0;
+  font-size: 20px;
+}
+
+/* ===== 键值行标签 .kv-label ===== */
+.kv-label {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ===== 键值行取值 .kv-value ===== */
+.kv-value {
+  color: var(--text);
+  font-weight: 600;
+  text-align: right;
+  word-break: break-all;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   数字概览 — 大字数值 + 小标签（头像缓存计数）
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 数字概览行 .num-row ===== */
+.num-row {
+  display: flex;
+  gap: 30px;
+}
+
+/* ===== 数字格子 .num-cell ===== */
+.num-cell {
+  text-align: center;
+}
+
+/* ===== 数字概览数值 .num-value ===== */
+.num-value {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 数字概览标签 .num-label ===== */
+.num-label {
+  font-size: 17px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   角色头像 — 有图用 <img>，avatar 为空时用文字占位（绝不出现裂图）
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 头像外框 .avatar（同时作为命座角标的定位基准） ===== */
+.avatar {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+/* ===== 头像图片 .avatar-img ===== */
+.avatar-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--card-2);
+  /* 站点口径：头像统一描一圈金边 */
+  border: 2px solid var(--avatar-ring);
+}
+
+/* ===== 头像文字占位 .avatar-text（avatar 字段为空时兜底） ===== */
+.avatar-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--card-2);
+  border: 2px dashed var(--avatar-ring-soft);
+  color: var(--muted);
+  /* 14px + keep-all：4 字角色名（如 那维莱特）在 64px 圆内不折行 */
+  font-size: 14px;
+  line-height: 1.15;
+  text-align: center;
+  overflow: hidden;
+  word-break: keep-all;
+}
+
+/* ===== 命座角标 .avatar-con（右上角圆形，仅数字，对齐站点） ===== */
+.avatar-con {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--avatar-ring);
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 角色位（榜单行里的 4 个角色） ── */
+
+/* ===== 角色位容器 .char-list ===== */
+.char-list {
+  display: flex;
+  gap: 8px;
+}
+
+/* ===== 单个角色位 .char-item（宽度按 4 字名字定，避免被截断） ===== */
+.char-item {
+  width: 74px;
+  text-align: center;
+}
+
+/* ===== 角色位头像居中 .char-item .avatar ===== */
+.char-item .avatar {
+  margin: 0 auto;
+}
+
+/* ===== 角色名 .char-name（超长省略，不撑破整行） ===== */
+.char-name {
+  margin-top: 3px;
+  font-size: 15px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== 元素标签 .char-elem（文字色随元素，未知元素回落默认灰） ===== */
+.char-elem {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+/* ===== 七元素配色（类名由 elementCn 直接拼出，如 elem-火） ===== */
+.elem-火 { color: var(--elem-pyro); }
+.elem-水 { color: var(--elem-hydro); }
+.elem-风 { color: var(--elem-anemo); }
+.elem-雷 { color: var(--elem-electro); }
+.elem-草 { color: var(--elem-dendro); }
+.elem-冰 { color: var(--elem-cryo); }
+.elem-岩 { color: var(--elem-geo); }
+
+/* ===== 稀有度配色（5 星金 / 4 星紫） ===== */
+.rarity-5 { color: var(--gold); }
+.rarity-4 { color: var(--accent-2); }
+
+/* ═══════════════════════════════════════════════════════════
+   榜单行 — 名次 / 阵容 / 主数值 / 金数 / 标签（rank、raid 共用骨架）
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 榜单行 .rank-row（位于内容面板内：用发丝分隔，不再各自成卡） ===== */
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line-soft);
+  border-radius: 0;
+  padding: 8px 6px;
+  box-shadow: none;
+}
+
+.rank-row:last-child {
+  border-bottom: none;
+}
+
+/* ===== 名次徽标 .rank-badge（4 名及以后为默认浅底） ===== */
+.rank-badge {
+  flex: 0 0 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--rank-bg);
+  border: 1px solid var(--rank-line);
+  color: var(--rank-text);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 第 1 名：金色高亮 .rank-badge-gold ===== */
+.rank-badge-gold {
+  background: linear-gradient(135deg, var(--rank-1-from), var(--rank-1-to));
+  border-color: var(--gold-line);
+  color: var(--rank-1-text);
+}
+
+/* ===== 第 2 名：紫色高亮 .rank-badge-purple ===== */
+.rank-badge-purple {
+  background: linear-gradient(135deg, var(--rank-2-from), var(--rank-2-to));
+  border-color: var(--purple-line);
+  color: var(--rank-2-text);
+}
+
+/* ===== 第 3 名：蓝色高亮 .rank-badge-blue ===== */
+.rank-badge-blue {
+  background: linear-gradient(135deg, var(--rank-3-from), var(--rank-3-to));
+  border-color: var(--accent-line);
+  color: var(--rank-3-text);
+}
+
+/* ===== 榜单主数值区 .rank-main（伤害 / 秒数大字） ===== */
+.rank-main {
+  flex: 0 0 220px;
+  text-align: center;
+}
+
+/* ===== 主数值 .rank-value（默认金色，金色用于 DPS 伤害） ===== */
+.rank-value {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 主数值蓝色变体 .rank-value-blue（危战秒数） ===== */
+.rank-value-blue {
+  color: var(--accent);
+}
+
+/* ===== 主数值单位/说明 .rank-unit ===== */
+.rank-unit {
+  font-size: 17px;
+  color: var(--muted);
+}
+
+/* ===== 金数区 .cost-box ===== */
+.cost-box {
+  flex: 0 0 142px;
+  text-align: center;
+}
+
+/* ===== 金数主值 .cost-value ===== */
+.cost-value {
+  font-size: 27px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 金数副标 .cost-sub（限x/常x） ===== */
+.cost-sub {
+  font-size: 18px;
+  color: var(--muted);
+}
+
+/* ===== 标签区 .rank-tags（占用剩余宽度，自动换行） ===== */
+.rank-tags {
+  flex: 1 1 auto;
+  min-width: 190px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ===== 首领名 .rank-boss（危战榜单） ===== */
+.rank-boss {
+  font-size: 20px;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   标签 — 圆角小胶囊，按语义分色
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 普通标签 .tag（蓝） ===== */
+.tag {
+  display: inline-block;
+  padding: 2px 11px;
+  border-radius: 999px;
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--accent);
+  background: var(--chip);
+  border: 1px solid var(--accent-line);
+  white-space: nowrap;
+}
+
+/* ===== 绿玩标签 .tag-clean（绿） ===== */
+.tag-clean {
+  color: var(--green);
+  background: var(--chip);
+  border-color: var(--green-line);
+}
+
+/* ===== 满级标签 .tag-lvl（金） ===== */
+.tag-lvl {
+  color: var(--gold);
+  background: var(--chip);
+  border-color: var(--gold-line);
+}
+
+/* ===== 版本标签 .tag-ver（紫） ===== */
+.tag-ver {
+  color: var(--accent-2);
+  background: var(--chip);
+  border-color: var(--purple-line);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   属性网格 — 练度查询的关键面板（三列）
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 属性网格 .stat-grid ===== */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(128px, 1fr));
+  gap: 6px;
+}
+
+/* ===== 属性格子 .stat-cell ===== */
+.stat-cell {
+  background: var(--card-2);
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+
+/* ===== 属性名 .stat-label ===== */
+.stat-label {
+  font-size: 16px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== 属性值 .stat-value ===== */
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   空状态与提示
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 空状态 .empty-hint（无数据/未公开详情） ===== */
+.empty-hint {
+  /* 直接落在插画上的提示条：底色必须是不透明的 --card，
+     卡到 --card-3（5% 白）时 --muted 文字在亮部插画上只有 1.4:1 */
+  background: var(--card);
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  padding: 18px 20px;
+  text-align: center;
+  font-size: 20px;
+  color: var(--muted);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   版权 — 全模板统一页脚
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 版权栏 .copyright ===== */
+.copyright {
+  margin-top: 14px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+  text-align: center;
+  font-size: 18px;
+  color: var(--muted-2);
+  line-height: 1.7;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   内容条变体 — 深色主题下所有文字都落在这些条上
+   ═══════════════════════════════════════════════════════════ */
+
+/* ===== 页头条 .head-card（标题 + 元信息） ===== */
+.head-card {
+  padding: 10px 12px 6px;
+  margin-bottom: 8px;
+}
+
+.head-card .header {
+  border-bottom: none;
+  margin-bottom: 5px;
+  padding-bottom: 0;
+}
+
+.head-card .page-meta {
+  margin-bottom: 0;
+}
+
+/* ===== 正文面板 .body-card（榜单行 / 分组内容） ===== */
+.body-card {
+  padding: 6px 8px;
+}
+
+/* ===== 页脚条 .foot-card（版权行） ===== */
+.foot-card {
+  padding: 3px 10px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.foot-card .copyright {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}

@@ -1,0 +1,170 @@
+/* Meta-Plugin 基础样式 — 深色插画主题
+ *
+ * 来源：自 Mhydps-Plugin 迁入（2026-10-13，合并 Mhydps 的第一步），此后在本插件内维护；
+ *       `font/` 与 `bg-*.jpg` 由阶段 4 迁入（在此之前 @font-face 与插画底会 404，页面回落系统字体与 --bg 底色，不影响出图）。
+ *
+ * 配色全部收敛到 :root 的 CSS 变量：
+ *   组件样式（components.css）与各模板行内 <style> 只引用 var(--x)，不写死颜色值。
+ *
+ * 主题结构（对齐参考样式「插画满强度 + 深色内容条 + 浅色文字」）：
+ *   插画铺满整页 → --scrim 整体压暗 → 文字一律落在 --card 深色条上（不落在裸插画上）
+ *   这样浅色小字的对比度以「深色条」为基准，插画也不必为了迁就文字而洗淡。
+ */
+
+/* ===== 字体：原神字体随插件分发（resources/common/font/），不联网下载 =====
+   YS     汉仪文黑-65W        原神标准中文（正文主字体）
+   Number tttgbnumber（提瓦特数字）含全部阿拉伯数字，故排在字体栈最前：
+          数字自动命中它，其余字符回落 YS 与系统字体
+   src 用相对本文件的路径，模板与组件无需感知资源前缀。 */
+@font-face {
+  font-family: 'YS';
+  src: url("./font/HYWH-65W.woff") format('woff');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Number';
+  src: url("./font/tttgbnumber.woff") format('woff'),
+       url("./font/tttgbnumber.ttf") format('truetype');
+  font-display: swap;
+}
+
+:root {
+  /* ===== 底色与整页插画 ===== */
+  --bg: #101219;                      /* 兜底底色（插画之下的深色） */
+  --scrim: rgba(8, 10, 18, 0.46);     /* 整页插画压暗：插画仍清晰，文字底更稳 */
+  --bg-blur: 0px;                     /* 插画默认不模糊（内容条已解决可读性） */
+  --radius: 12px;
+
+  /* ===== 内容条（所有文字都必须落在它上面） ===== */
+  --card: rgba(10, 12, 20, 0.72);
+  --card-2: rgba(255, 255, 255, 0.08);
+  --card-3: rgba(255, 255, 255, 0.05);
+
+  /* ===== 描边 ===== */
+  --line: rgba(255, 255, 255, 0.16);
+  --line-soft: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.24);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+
+  /* ===== 文字（深色底上取亮色） ===== */
+  --text: #f4f6fb;
+  --text-2: #d9dee9;
+  --muted: #aab2c2;
+  --muted-2: #9aa2b2;
+
+  /* ===== 强调色 ===== */
+  --accent: #7cb7ff;
+  --accent-2: #c8a6ff;
+  --gold: #ffd479;
+  --gold-2: #e0b45e;
+  --green: #6fe0b0;
+  --red: #ff9d9d;
+
+  /* ===== 低透明底与描边（胶囊标签、属性格） ===== */
+  --accent-soft: rgba(124, 183, 255, 0.16);
+  --accent-line: rgba(124, 183, 255, 0.40);
+  --purple-soft: rgba(200, 166, 255, 0.16);
+  --purple-line: rgba(200, 166, 255, 0.38);
+  --gold-soft: rgba(255, 212, 121, 0.16);
+  --gold-line: rgba(255, 212, 121, 0.40);
+  --green-soft: rgba(111, 224, 176, 0.14);
+  --green-line: rgba(111, 224, 176, 0.38);
+  --red-soft: rgba(255, 157, 157, 0.14);
+  --red-line: rgba(255, 157, 157, 0.36);
+  --tint: rgba(255, 255, 255, 0.07);
+  /* 标签 chip 底色：比内容条更暗，保证同色系彩色文字也能达 AA */
+  --chip: rgba(0, 0, 0, 0.34);
+  --tint-line: rgba(255, 255, 255, 0.14);
+
+  /* ===== 角色头像金色圆环 ===== */
+  --avatar-ring: rgba(255, 212, 121, 0.75);
+  --avatar-ring-soft: rgba(255, 212, 121, 0.35);
+
+  /* ===== 名次徽标（4 名及以后 / 前三名渐变） ===== */
+  --rank-bg: rgba(255, 255, 255, 0.10);
+  --rank-line: rgba(255, 255, 255, 0.18);
+  --rank-text: #e6ebf5;
+  --rank-1-from: #ffdf7a;
+  --rank-1-to: #f0b400;
+  --rank-1-text: #3a2a00;
+  --rank-2-from: #a97ff0;
+  --rank-2-to: #7c4dcc;
+  --rank-2-text: #ffffff;
+  --rank-3-from: #518fdc;
+  --rank-3-to: #2a6fc4;
+  --rank-3-text: #ffffff;
+
+  /* ===== 七元素配色（深色底上取亮色，用于练度页） ===== */
+  --elem-pyro: #ff8a6a;
+  --elem-hydro: #7fd0ff;
+  --elem-anemo: #7fe3c4;
+  --elem-electro: #c9a6ff;
+  --elem-dendro: #a8d96a;
+  --elem-cryo: #8fe0f0;
+  --elem-geo: #ffd479;
+}
+
+/* ===== 全局重置：清掉默认内外边距，统一盒模型 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===== 页面基础：深色底、宽度随内容自适应；字体为原神字体栈 ===== */
+body {
+  font-family: 'Number', 'YS', '汉仪文黑-65W', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  font-size: 20px;
+  line-height: 1.55;
+  color: var(--text);
+  background-color: var(--bg);
+  /* 宽度自适应内容：只给上下限，不写死 1920px 之类的固定宽度 */
+  width: fit-content;
+  min-width: 780px;
+  max-width: 1400px;
+  padding: 8px 10px 10px;
+}
+
+/* ===== 整页插画层（各模板复用这三个类） ===== */
+.page {
+  position: relative;
+}
+
+.page-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  filter: blur(var(--bg-blur));
+  transform: scale(1.02);
+  transform-origin: center top;
+}
+
+.page-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+}
+
+.page-inner {
+  position: relative;
+  padding: 8px 10px 10px;
+}
+
+/* ===== 图片默认无边框（头像/图标样式由组件类控制） ===== */
+img {
+  border: 0;
+}
+
+/* ===== 弱化文本 .dim：次级说明文字统一使用 ===== */
+.dim {
+  color: var(--muted);
+}
+
+/* ===== 等宽数字 .num：榜单/面板数值对齐更整齐 ===== */
+.num {
+  font-variant-numeric: tabular-nums;
+}
