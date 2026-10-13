@@ -53,6 +53,9 @@ export class MiaoRes {
     artifact: new Map()
   }
 
+  /** 角色 `data.json` 缓存（元素、`talentCons` 等） */
+  private dataCache = new Map<string, Record<string, unknown> | null>()
+
   /** 别名表缓存（键为 kind） */
   private aliasCache = new Map<MiaoKind, Record<string, string>>()
 
@@ -120,6 +123,63 @@ export class MiaoRes {
   invalidate (): void {
     this.index = { character: new Map(), weapon: new Map(), artifact: new Map() }
     this.aliasCache.clear()
+    this.dataCache.clear()
+  }
+
+  // ---------------- 角色数据 ----------------
+
+  /** 角色 `data.json`（惰性读取并缓存；失败返回 null） */
+  characterData (name: string): Record<string, unknown> | null {
+    const key = String(name ?? '').trim()
+    if (!key) return null
+    if (this.dataCache.has(key)) return this.dataCache.get(key) ?? null
+    let data: Record<string, unknown> | null = null
+    try {
+      const raw = fs.readFileSync(path.join(this.root, 'meta-gs/character', key, 'data.json'), 'utf8')
+      data = JSON.parse(raw.replace(/^\uFEFF/, '')) as Record<string, unknown>
+    } catch {
+      data = null
+    }
+    this.dataCache.set(key, data)
+    return data
+  }
+
+  /**
+   * 角色元素（`data.json.elem`，如 `pyro` / `hydro`）
+   *
+   * 攻略页把它交给 miao 的布局（`elemLayout` 会拼成 `elem-pyro` 之类），
+   * 从而套用**对应该元素**的底图与天赋底纹 —— 不传则框架默认 `hydro`（会与角色元素不符）。
+   */
+  characterElement (name: string): string | null {
+    const elem = this.characterData(name)?.elem
+    const text = String(elem ?? '').trim().toLowerCase()
+    return text || null
+  }
+
+  /**
+   * 天赋图标（`A`/`E`/`Q`）
+   *
+   * 与 miao 的 `models/character/CharImg.js` 同逻辑：
+   *   1. 先看 `icons/talent-<a|e|q>.webp`（**小写**）；
+   *   2. 没有则看 `data.json.talentCons[letter]`：>0 时用 `icons/cons-<n>.webp` 顶替
+   *      （胡桃的 `{a:0,e:3,q:5}` 就是这种情况：E/Q 用命座图标，A 无图）；
+   *   3. 都没有 → null（模板回落纯文字）。
+   */
+  talentIcon (name: string, letter: string): string | null {
+    const key = String(name ?? '').trim()
+    const l = String(letter ?? '').trim().toLowerCase()
+    if (!key || !/^[aeq]$/.test(l)) return null
+
+    const direct = `meta-gs/character/${key}/icons/talent-${l}.webp`
+    if (this.has(direct)) return direct
+
+    const cons = this.characterData(key)?.talentCons
+    const n = cons && typeof cons === 'object' ? Number((cons as Record<string, unknown>)[l]) : NaN
+    if (Number.isInteger(n) && n > 0 && n <= 6) {
+      const rel = `meta-gs/character/${key}/icons/cons-${n}.webp`
+      if (this.has(rel)) return rel
+    }
+    return null
   }
 
   // ---------------- 图标 ----------------

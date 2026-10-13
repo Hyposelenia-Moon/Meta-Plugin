@@ -70,6 +70,9 @@ const usedStatic = new Set()
 for (const m of tpl.matchAll(/class="([^"]*)"/g)) {
   for (const token of m[1].split(/\s+/)) {
     if (!token || token.includes('{{') || token.includes('}}')) continue
+    // `{{if row.kind === 'stats'}} codex-stats-row{{/if}}` 这类内联条件里的中间片段
+    // （`row.kind`、`===`）不是类名 —— 只接受合法的类名字符集
+    if (!/^[A-Za-z_][\w-]*$/.test(token)) continue
     usedStatic.add(token)
   }
 }
@@ -102,6 +105,8 @@ if (fs.existsSync(subViewsFile)) {
   const LOCAL = new Set(['if', 'else', 'each', 'set', 'block', 'extend', 'true', 'false', 'null', 'undefined', 'length', 'index'])
   const LOOP = new Set(['section', 'row', 'item', 'team', 'member'])
   const SETVARS = new Set(['emptyText', 'refineHint'])
+  // 模板里 `{{set NAME = …}}` 声明的局部变量（如行类名 rowCls）不算页级字段
+  for (const m of tpl.matchAll(/\{\{\s*set\s+([A-Za-z_$][\w$]*)/g)) SETVARS.add(m[1])
   const INJECTED = new Set(['_res_path', '_miao_path', '_data_path', '_tpl_path', 'defaultLayout', 'elemLayout', 'sys', 'copyright', 'pluResPath', 'tplFile', 'saveId', 'imgType', '$index', '$value'])
   const missing = []
   const seen = new Set()

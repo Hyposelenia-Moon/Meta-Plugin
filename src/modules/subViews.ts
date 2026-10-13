@@ -95,6 +95,13 @@ export interface PageOptions {
   portrait?: string
   /** 页头副标题（默认「角色攻略」） */
   subTitle?: string
+  /**
+   * 角色元素（miao 的 `data.json.elem`，如 `pyro`）
+   *
+   * 交给 miao 的布局（`elemLayout` 把它拼成 `elem-pyro` 之类），用于套用**对应元素**的底图与底纹；
+   * 不传时布局默认 `hydro`（会与角色元素不符，背景偏蓝）。
+   */
+  element?: string
 }
 
 /** 模板数据（`resources/codex/codex.html` 的数据契约；字段名改动必须同步模板与套件） */
@@ -103,6 +110,7 @@ export interface CodexPageData extends CodexView {
   renderScale: number
   portrait: string
   subTitle: string
+  element: string
 }
 
 /** 视图 → 模板数据（模板只读这里给出的字段） */
@@ -112,7 +120,8 @@ export function toPageData (view: CodexView, opts: PageOptions = {}): CodexPageD
     copyright: opts.copyright ?? '',
     renderScale: opts.renderScale ?? 1,
     portrait: opts.portrait ?? '',
-    subTitle: opts.subTitle ?? '角色攻略'
+    subTitle: opts.subTitle ?? '角色攻略',
+    element: opts.element ?? ''
   }
 }
 

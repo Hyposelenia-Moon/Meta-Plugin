@@ -66,6 +66,16 @@ export function consIcon (character: string, index: number): ResolvedIcon | null
   return resolveWith(() => miaoRes.consIcon(character, index), 'constellation', `${character}:${index}`)
 }
 
+/**
+ * 天赋图标（`A` / `E` / `Q`；需要角色名做上下文）
+ *
+ * miao 只有 18/128 的角色带 `icons/talent-*.webp`，其余靠 `data.json.talentCons`
+ * 回落到命座图标（胡桃的 E/Q 就是这样）——回落逻辑在 `MiaoRes.talentIcon()` 里。
+ */
+export function talentIcon (character: string, letter: string): ResolvedIcon | null {
+  return resolveWith(() => miaoRes.talentIcon(character, letter), 'talent', `${character}:${letter}`)
+}
+
 /** 角色天赋被动图标 */
 export function passiveIcon (character: string, index: number): ResolvedIcon | null {
   return resolveWith(() => miaoRes.passiveIcon(character, index), 'passive', `${character}:${index}`)
@@ -106,6 +116,11 @@ export function iconForRef (ref: string, ctx: { character?: string } = {}): Reso
       if (!character) return null
       const n = Number(name)
       return Number.isInteger(n) ? consIcon(character, n) : null
+    }
+    case 'talent': {
+      const character = String(ctx.character ?? '').trim()
+      if (!character) return null
+      return /^[aeqAEQ]$/.test(name) ? talentIcon(character, name) : null
     }
     default:
       return null

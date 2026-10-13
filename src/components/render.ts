@@ -14,8 +14,9 @@
  *   路径按"运行时刻在 `lib/` 下"来写。
  * 这两条由 `test/framework-path.test.mjs` 持续守着。
  */
+import fs from 'node:fs'
 import path from 'node:path'
-import { pluginRoot } from '../dir.js'
+import { botRoot, pluginRoot, resourcesDir } from '../dir.js'
 import { COPYRIGHT } from './constants.js'
 import { getRenderScale } from './config.js'
 
@@ -24,6 +25,9 @@ import puppeteer from '../../../../lib/puppeteer/puppeteer.js'
 
 /** 插件目录名（渲染资源路径与框架临时 HTML 路径都按它拼） */
 export const PLUGIN_NAME = path.basename(pluginRoot)
+
+/** miao 的布局文件（框架 runtime.js 注入的 `elemLayout` 就是它；缺失只丢样式，不影响出图） */
+const MIAO_LAYOUT = path.join(botRoot, 'plugins', 'miao-plugin', 'resources', 'common', 'layout', 'elem.html')
 
 /**
  * 渲染 HTML 距 bot 根的层级：
@@ -103,10 +107,24 @@ export async function renderPage (
     return false
   }
 
+  // ⚠ 先自己检查模板是否存在：框架的 runtime.render 在「加载 html 错误」时**仍然返回 true**，
+  // 只看返回值无法判断成败，于是"模板路径写错"会表现为**什么都不发**（连文本回落都不触发）。
+  const tplFile = path.join(resourcesDir, app, `${tpl}.html`)
+  if (!fs.existsSync(tplFile)) {
+    logger?.error?.(`[Meta] 攻略页模板不存在：${tplFile}（app=${app}, tpl=${tpl}）`)
+    return false
+  }
+
+  // miao 只在缺失时告警：页面会失去样式（`{{extend elemLayout}}` 指不到布局），但不影响出图
+  if (!fs.existsSync(MIAO_LAYOUT)) {
+    logger?.warn?.(`[Meta] 未找到 miao 布局（${MIAO_LAYOUT}）：攻略页会缺少样式，请确认 miao-plugin 已安装`)
+  }
+
   return await runtime.render(PLUGIN_NAME, `${app}/${tpl}`, {
     ...params,
-    copyright: opts.copyright ?? COPYRIGHT,
-    // 缩放走本插件配置（框架 data 里的 `sys` 会被这里的同名键覆盖）
-    sys: { scale: getRenderScale() }
+    copyright: opts.copyright ?? COPYRIGHT
+    // ⚠ 不覆盖 `sys`：miao 的布局把 `{{sys.scale}}` 直接插在 `<body …>` 上（期望一个属性串），
+    // 我们传数字会变成无效属性；页面缩放实际由 miao 的 CSS（`body{transform:scale(1.4)}`）决定。
+    // 本插件的 `renderScale` 配置只作用于我们自己的模板（如帮助页 `style="zoom:{{renderScale}}"`）。
   } as Record<string, unknown>)
 }

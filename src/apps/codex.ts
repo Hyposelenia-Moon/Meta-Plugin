@@ -173,10 +173,12 @@ export class MetaCodex extends plugin {
   /** 出攻略图；失败回落同源文本 */
   private async replyPage (e: YunzaiEvent, view: CodexView, notes: string[]): Promise<boolean> {
     try {
-      const sent = await renderPage(e, 'codex/codex', toPageData(view, {
+      const sent = await renderPage(e, 'codex', toPageData(view, {
         copyright: COPYRIGHT,
         renderScale: getRenderScale(),
         portrait: portraitOf(view.name) ?? '',
+        // 元素决定 miao 布局套哪张底图（`elem-pyro` 等）；取不到就交给布局默认
+        element: miaoRes.characterElement(view.name) ?? '',
         subTitle: notes.length ? notes.join(' · ') : '角色攻略'
       }))
       // 框架的 runtime.render 默认自己把图发出去并返回 true（retType=default）
