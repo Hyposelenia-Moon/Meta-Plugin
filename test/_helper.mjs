@@ -11,6 +11,17 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+/**
+ * 框架把 `logger` / `segment` 挂在全局；套件在纯 node 下跑，这里补一个静默替身，
+ * 让被测模块能安全走 catch 分支（例如坏 YAML 的回落），而不是炸在 "logger is not defined"。
+ */
+if (!globalThis.logger) {
+  globalThis.logger = { info () {}, warn () {}, error () {}, mark () {}, debug () {} }
+}
+if (!globalThis.segment) {
+  globalThis.segment = { image: (file) => ({ type: 'image', file }) }
+}
+
 export const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 export const srcDir = path.join(pluginRoot, 'src')
 export const libDir = path.join(pluginRoot, 'lib')
@@ -54,11 +65,25 @@ export function skip (why) {
   console.log(`跳过：${why}`)
 }
 
+/** 键序无关的稳定序列化：对象按键名排序，数组保持原序（用于断言比较） */
+export function stableStringify (value) {
+  const walk = (v) => {
+    if (Array.isArray(v)) return v.map(walk)
+    if (v && typeof v === 'object') {
+      const out = {}
+      for (const key of Object.keys(v).sort()) out[key] = walk(v[key])
+      return out
+    }
+    return v
+  }
+  return JSON.stringify(walk(value))
+}
+
 /** 断言收集器：`report()` 返回失败条数并打印汇总 */
 export function createChecks (title) {
   const checks = []
   const push = (what, got, want) => {
-    checks.push({ what, got, want, ok: JSON.stringify(got) === JSON.stringify(want) })
+    checks.push({ what, got, want, ok: stableStringify(got) === stableStringify(want) })
   }
   const ok = (what, pass) => checks.push({ what, got: !!pass, want: true, ok: !!pass })
   const report = () => {

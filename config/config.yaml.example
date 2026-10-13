@@ -1,0 +1,47 @@
+# Meta-Plugin 运行时配置（参考默认值）
+# 首次启动若没有 config/config.yaml，会自动复制本文件；锅巴保存会按 defSet/config.yaml 模板重写它
+# 键的含义见 defSet/config.yaml 的注释；本文件的值必须与 src/components/config.ts 的 defaultConfig 一致
+# （test/config.test.mjs 会逐字段核对）
+
+# 常规查询命令的优先级（数字越小越先执行）
+# ⚠ 攻略模块的「抢占用」优先级写死为 -100000，不在此处暴露
+priority: 8000
+
+# 渲染缩放比例
+renderScale: 1.5
+
+# 联网总开关：默认关闭（榜单 / 危战 / 练度 不发请求；攻略查询完全离线）
+networkEnabled: false
+
+# 抓取 mhydps.cn 的代理，留空 = 直连
+proxy: ""
+
+# 榜单单次请求超时（毫秒）
+dpsTimeoutMs: 30000
+
+# 榜单数据缓存有效期（分钟）
+dpsCacheTtlMinutes: 30
+
+# 榜单每页条数
+dpsPageSize: 10
+
+# 是否缓存并渲染角色立绘
+dpsAvatarEnabled: true
+
+# 启用练度查询
+akashaEnabled: true
+
+# 默认 UID：命令里不写 UID 时用它
+akashaDefaultUid: ""
+
+# akasha 的代理，留空 = 直连
+akashaProxy: ""
+
+# akasha 单次请求超时（毫秒）
+akashaTimeoutMs: 60000
+
+# akasha 练度数据缓存有效期（分钟）
+akashaCacheTtlMinutes: 30
+
+# 一次练度查询最多列几个角色
+akashaMaxChars: 12

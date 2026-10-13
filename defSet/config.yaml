@@ -1,0 +1,50 @@
+# Meta-Plugin 配置模板
+# 锅巴保存时读取本文件，把 ${变量} 替换为表单值后写入 config/config.yaml
+# 不用锅巴也可以：首次启动会自动从 config/config.yaml.example 复制一份运行时配置
+
+# 常规查询命令的优先级（数字越小越先执行，默认 8000）
+# ⚠ 攻略模块的「抢占用」优先级写死在代码里（-100000，早于 Atlas 快捷入口），不在此处暴露
+priority: ${meta_priority}
+
+# 渲染缩放比例（越大越清晰、渲染越慢）
+renderScale: ${meta_renderScale}
+
+# ---------- 联网总开关 ----------
+# 关闭（默认）后：榜单 / 危战 / 练度 一律不发请求；攻略查询完全离线，不受影响
+networkEnabled: ${meta_networkEnabled}
+
+# ---------- 数据源一 · mhydps.cn（DPS榜 / 危战榜） ----------
+# 抓取 mhydps.cn 使用的代理，留空 = 直连
+# 实测国内直连 www.mhydps.cn 会被重置（TLS 握手阶段 RST），通常需要本地代理
+proxy: "${meta_proxy}"
+
+# 榜单单次请求超时（毫秒）
+dpsTimeoutMs: ${meta_dpsTimeoutMs}
+
+# 榜单数据缓存有效期（分钟）
+dpsCacheTtlMinutes: ${meta_dpsCacheTtlMinutes}
+
+# 榜单每页条数
+dpsPageSize: ${meta_dpsPageSize}
+
+# 是否缓存并渲染角色立绘
+dpsAvatarEnabled: ${meta_dpsAvatarEnabled}
+
+# ---------- 数据源二 · akasha.cv（练度查询） ----------
+# 启用练度查询（练度数据来自 akasha.cv，mhydps.cn 没有练度排名）
+akashaEnabled: ${meta_akashaEnabled}
+
+# 默认 UID：命令里不写 UID 时用它
+akashaDefaultUid: "${meta_akashaDefaultUid}"
+
+# akasha 的代理，留空 = 直连（akasha 通常可直连）
+akashaProxy: "${meta_akashaProxy}"
+
+# akasha 单次请求超时（毫秒；需要浏览器会话时会明显偏慢）
+akashaTimeoutMs: ${meta_akashaTimeoutMs}
+
+# akasha 练度数据缓存有效期（分钟）
+akashaCacheTtlMinutes: ${meta_akashaCacheTtlMinutes}
+
+# 一次练度查询最多列几个角色
+akashaMaxChars: ${meta_akashaMaxChars}
