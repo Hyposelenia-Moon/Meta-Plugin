@@ -202,7 +202,7 @@ interface AkashaBuild {
 }
 
 /** akasha `stats` 的形态：`{ [英文属性名]: { value: number } }` */
-type AkashaStats = Record<string, { value?: number | null } | undefined>
+export type AkashaStats = Record<string, { value?: number | null } | undefined>
 
 /** 从 akasha 的 build 对象拼出 miao Avatar 需要的 `ds`（形状与 miao 的 `EnkaData` 一致） */
 export async function buildAkashaAvatar (charId: string | number, build: AkashaBuild = {}): Promise<MiaoAvatar | null> {

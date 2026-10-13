@@ -193,11 +193,20 @@ export function agoText (ms: unknown): string {
 }
 
 /**
+ * 本插件的自称（用户可见的自指文案统一取这里）
+ *
+ * ⚠ **暂时保留合并前的 `Mhydps-Plugin`**：阶段 4 的验收要求「`#DPS…` 的输出与合并前逐字等价」，
+ *   自指文案属于输出的一部分，改名会让逐字比对失真。改名统一放到**阶段 6 收尾**一次做完
+ *   （改这一个常量即可生效；另需同步 `MhydpsClient` 的报错文案与框架 `name` 字段）。
+ */
+export const PLUGIN_SIGN = 'Mhydps-Plugin'
+
+/**
  * 榜单 / 危战 / 练度页的页脚版权行（模板统一使用）
  *
  * 与攻略页的 `COPYRIGHT` 分开：两个数据源不同，文案必须各自标注来源。
  */
-export const DPS_COPYRIGHT = 'Data from mhydps.cn · Created By TRSS-yunzai & Mhydps-Plugin'
+export const DPS_COPYRIGHT = `Data from mhydps.cn · Created By TRSS-yunzai & ${PLUGIN_SIGN}`
 
 /* ---------- Enka 字段映射（练度查询用） ---------- */
 

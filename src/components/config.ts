@@ -181,6 +181,16 @@ export function getPageSize (): number {
   return Math.floor(value)
 }
 
+/** 练度查询开关（锅巴 → 数据源二 · akasha.cv） */
+export function getAkashaEnabled (): boolean {
+  return loadConfig().akashaEnabled !== false
+}
+
+/** 榜单 / 危战请求代理（不填则直连） */
+export function getProxy (): string {
+  return String(loadConfig().proxy ?? '')
+}
+
 /**
  * 完整配置对象（查询层用）
  *
