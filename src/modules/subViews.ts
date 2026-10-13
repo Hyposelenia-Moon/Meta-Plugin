@@ -12,8 +12,7 @@ import type { Guide } from '../model/CodexStore.js'
 import {
   EMPTY_TEXT,
   WEAPON_REFINE_HINT,
-  normalizeGuideSections,
-  v2ToSections,
+  buildV2Sections,
   type DisplaySection
 } from '../model/markup.js'
 
@@ -70,7 +69,7 @@ export function buildCodexView (guide: Guide | null, opts: BuildViewOptions = {}
     .map(([label, value]) => ({ label, value: String(value ?? '').trim() }))
     .filter(row => row.value.length > 0)
 
-  const sections = normalizeGuideSections(v2ToSections(guide.v2 ?? {}), {
+  const sections = buildV2Sections(guide, {
     signature: opts.signature ?? null,
     weaponTags: opts.weaponTags ?? {}
   })

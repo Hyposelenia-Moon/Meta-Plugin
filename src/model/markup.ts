@@ -12,7 +12,7 @@
  * 路径说明：`../../scripts/lib/…` 从 `src/model/`（源码）与 `lib/model/`（产物）解析结果**一致**
  * —— 两者都在插件根下一层，所以这里的相对路径编译后依旧成立。
  */
-import type { GuideV2 } from './CodexStore.js'
+import type { Guide } from './CodexStore.js'
 
 /** 归一前 / 归一后的条目（维护者区用普通对象，这里只声明插件会读的字段） */
 export interface DisplayItem {
@@ -71,17 +71,23 @@ export interface NormalizeGuideOptions {
 }
 
 // @ts-expect-error 维护者区是 ESM JS，没有类型声明（下面用窄类型断言后导出）
-import { v2ToSections as rawV2ToSections } from '../../scripts/lib/guide-model.mjs'
+import { buildV2Sections as rawBuildV2Sections } from '../../scripts/lib/v2-sections.mjs'
 // @ts-expect-error 同上（必须写成单行：`@ts-expect-error` 只压紧随的那一行，多行 import 的报错会落在 `} from …` 上）
-import { normalizeGuideSections as rawNormalizeGuideSections, tierLabelClass as rawTierLabelClass, EMPTY_TEXT as rawEmptyText, WEAPON_REFINE_HINT as rawRefineHint } from '../../scripts/lib/guide-display.mjs'
+import { tierLabelClass as rawTierLabelClass, EMPTY_TEXT as rawEmptyText, WEAPON_REFINE_HINT as rawRefineHint } from '../../scripts/lib/guide-display.mjs'
 
-/** `v2`（结构化六模块）→ 归一前的 sections */
-export const v2ToSections = rawV2ToSections as (v2: GuideV2 | undefined) => DisplaySection[]
-
-/** 归一：档位词、分隔符、专武标色、活动标签、空模块「暂无」等全在这里完成 */
-export const normalizeGuideSections = rawNormalizeGuideSections as (
-  sections: DisplaySection[],
-  opts?: NormalizeGuideOptions
+/**
+ * v2 → 显示级 sections（**忠实的行构造器**，已含显示级归一）
+ *
+ * 实现见 `scripts/lib/v2-sections.mjs`（移植自 Atlas 的 `codexIndex/parse.js`）：
+ * 档位词、`＞`、2+2 整体保留、皇冠并入天赋、命座「命之座X」、空模块「暂无」都在里面完成。
+ * 实测与 Atlas 输出**全库 131/131 角色逐字段一致**（`test/codex-parity.test.mjs` 守着）。
+ *
+ * ⚠ 不要改用 `guide-model.mjs` 的 `v2ToSections`：那是两个维护者脚本用的简化测试模型，
+ * 会丢 `kind`/`sets`/`talentLevel`/`crown`，导致天赋等级与 2+2 组合出错（见 1.2c 记录）。
+ */
+export const buildV2Sections = rawBuildV2Sections as (
+  data: Guide,
+  opts?: { signature?: Record<string, unknown> | null, weaponTags?: Record<string, unknown> | null }
 ) => DisplaySection[]
 
 /** 档位标签的 CSS 类名（`推荐` → `label-推荐`，非档位词返回空串） */

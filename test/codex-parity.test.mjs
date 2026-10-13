@@ -107,23 +107,11 @@ for (const name of sampled) {
 
 ok(`已对照角色数 = 抽样数（${compared}）`, compared === sampled.length)
 
-/**
- * ⚠ 已知差异（阶段 1.2c 待修）：插件当前的 v2 → sections 用的是维护者区的**简化测试模型**
- * `v2ToSections`（原 `localModel`），它把 v2 拍平时丢掉 `kind`/`sets`/`talentLevel`/`crown` 等元信息，
- * 于是「天赋等级与皇冠」「圣遗物 2+2 组合」等信息与 Atlas 的输出不一致（全库 131/131 有差异）。
- * 修法见交接文档 1.2c：把忠实的 v2 构造器移植进维护者区，插件改用它。
- *
- * 在修好之前，本套件默认**只告警不判红**（`META_PARITY_STRICT=1` 可强制判红），
- * 这样 `pnpm test` 不会长期处于红色，而差异数量始终打印出来可见。
- */
-const strict = process.env.META_PARITY_STRICT === '1'
-if (diffs.length && !strict) {
-  console.log(`⚠ 已知差异 ${diffs.length}/${compared} 个角色（1.2c 待修）；前 5 条：`)
+if (diffs.length) {
+  console.log(`✗ 与 Atlas 不一致 ${diffs.length}/${compared} 个角色；前 5 条：`)
   for (const d of diffs.slice(0, 5)) console.log(`   - ${d}`)
-  console.log('   （设 META_PARITY_STRICT=1 可强制判红）')
-} else {
-  push('六模块投影逐字段一致', diffs, [])
 }
+push('六模块投影逐字段一致', diffs, [])
 
 const bad = report()
 process.exit(bad ? 1 : 0)
