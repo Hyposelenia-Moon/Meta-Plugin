@@ -38,6 +38,8 @@ data/_parse-report.json
 汉仪文黑-85W.ttf
 *.ttf
 *.otf
+# ⚠ 例外：榜单/危战/状态页的页脚数字字体（合并自 Mhydps，仅 19.6 KB，页面 @font-face 依赖它，必须入库）
+!resources/common/font/*.ttf
 
 # 回归套件临时产物
 test/.test-tmp/

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+  <style>
+    /* 状态页专用：插画整页铺满，卡片 = 深色内容条 */
+    .status-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .status-card {
+      flex: 0 0 auto;
+      min-width: 340px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      box-shadow: var(--shadow);
+    }
+    .status-card-wide {
+      flex: 1 1 100%;
+    }
+    .status-note {
+      font-size: 18px;
+      color: var(--muted);
+      padding: 4px 0;
+    }
+  </style>
+</head>
+<body style="zoom:{{renderScale}}">
+  <div class="page">
+    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-status.jpg')"></div>
+    <div class="page-inner">
+      <div class="card head-card">
+        <div class="header">
+          <div class="game-name">Mhydps-Plugin</div>
+          <div class="title">{{if title}}{{title}}{{else}}数据状态{{/if}}</div>
+          {{if dataTime}}
+          <div class="subtitle">数据时间：{{dataTime}}</div>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="status-grid">
+        <!-- 缓存概览：数据时间 / 缓存年龄 / TTL / 代理 -->
+        <div class="status-card">
+          <div class="card-title">缓存概览</div>
+          <div class="kv-item">
+            <span class="kv-label">数据时间</span>
+            <span class="kv-value">{{if dataTime}}{{dataTime}}{{else}}未知{{/if}}</span>
+          </div>
+          <div class="kv-item">
+            <span class="kv-label">缓存年龄</span>
+            <span class="kv-value">{{if ageText}}{{ageText}}{{else}}未知{{/if}}</span>
+          </div>
+          <div class="kv-item">
+            <span class="kv-label">缓存 TTL</span>
+            <span class="kv-value">{{if ttlText}}{{ttlText}}{{else}}未知{{/if}}</span>
+          </div>
+          <div class="kv-item">
+            <span class="kv-label">网络代理</span>
+            <span class="kv-value">{{if proxy}}{{proxy}}{{else}}直连{{/if}}</span>
+          </div>
+        </div>
+
+        <!-- 头像缓存：总数 / 已缓存 -->
+        <div class="status-card">
+          <div class="card-title card-title-purple">头像缓存</div>
+          {{if avatar && avatar.total > 0}}
+          <div class="num-row">
+            <div class="num-cell">
+              <div class="num-value">{{avatar.total}}</div>
+              <div class="num-label">总计</div>
+            </div>
+            <div class="num-cell">
+              <div class="num-value">{{avatar.cached}}</div>
+              <div class="num-label">已缓存</div>
+            </div>
+          </div>
+          {{else}}
+          <div class="status-note">暂无头像缓存记录</div>
+          {{/if}}
+        </div>
+
+        <!-- 版本信息：插件 / Yunzai -->
+        <div class="status-card">
+          <div class="card-title card-title-gold">版本信息</div>
+          <div class="kv-item">
+            <span class="kv-label">Mhydps-Plugin</span>
+            <span class="kv-value">{{if pluginVersion}}{{pluginVersion}}{{else}}未知{{/if}}</span>
+          </div>
+          <div class="kv-item">
+            <span class="kv-label">TRSS-Yunzai</span>
+            <span class="kv-value">{{if yunzaiVersion}}{{yunzaiVersion}}{{else}}未知{{/if}}</span>
+          </div>
+        </div>
+
+        <!-- 数据源：名称 + 条数 -->
+        <div class="status-card status-card-wide">
+          <div class="card-title">数据源</div>
+          {{if sources && sources.length > 0}}
+          {{each sources src}}
+          <div class="kv-item">
+            <span class="kv-label">{{if src.name}}{{src.name}}{{else}}未命名数据源{{/if}}</span>
+            <span class="kv-value">{{if src.count || src.count === 0}}{{src.count}} 条{{else}}—{{/if}}</span>
+          </div>
+          {{/each}}
+          {{else}}
+          <div class="status-note">暂无数据源记录</div>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="card foot-card">
+        <div class="copyright">{{copyright}}</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

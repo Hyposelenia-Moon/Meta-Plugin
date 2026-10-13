@@ -1,7 +1,7 @@
 /* Meta-Plugin 基础样式 — 深色插画主题
  *
  * 来源：自 Mhydps-Plugin 迁入（2026-10-13，合并 Mhydps 的第一步），此后在本插件内维护；
- *       `font/` 与 `bg-*.jpg` 由阶段 4 迁入（在此之前 @font-face 与插画底会 404，页面回落系统字体与 --bg 底色，不影响出图）。
+ *       `font/` 与 `bg-*.jpg` 已随阶段 4.6 迁入；与 Mhydps 现版的 **CSS 规则逐字一致**（仅本注释不同）。
  *
  * 配色全部收敛到 :root 的 CSS 变量：
  *   组件样式（components.css）与各模板行内 <style> 只引用 var(--x)，不写死颜色值。

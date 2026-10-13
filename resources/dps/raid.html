@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+  <style>
+    /* 危战榜页专用：插画整页铺满，文字全部落在深色内容条上 */
+    .rank-row .char-list {
+      flex: 0 0 320px;
+    }
+    .rank-row .rank-main {
+      flex: 0 0 165px;
+    }
+    .raid-boss {
+      font-size: 20px;
+      color: var(--text);
+      line-height: 1.35;
+    }
+    .char-missing {
+      font-size: 18px;
+      color: var(--muted-2);
+    }
+    .rank-empty {
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body style="zoom:{{renderScale}}">
+  <div class="page">
+    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-raid.jpg')"></div>
+    <div class="page-inner">
+      <div class="card head-card">
+        <div class="header">
+          <div class="game-name">Mhydps-Plugin · 危战</div>
+          <div class="title">{{if title}}{{title}}{{else}}危战榜单{{/if}}</div>
+          {{if subtitle}}
+          <div class="subtitle">{{subtitle}}</div>
+          {{/if}}
+        </div>
+        <div class="page-meta">
+          {{if total || total === 0}}<span>共 {{total}} 条</span>{{/if}}
+          {{if totalPages && totalPages > 1}}<span>第 {{page}} / {{totalPages}} 页</span>{{/if}}
+          {{if pageSize}}<span>每页 {{pageSize}} 条</span>{{/if}}
+          {{if fetchedAt}}<span>数据时间：{{fetchedAt}}</span>{{/if}}
+        </div>
+      </div>
+
+      <div class="card body-card">
+        {{if rows && rows.length > 0}}
+        {{each rows row}}
+        <div class="rank-row">
+          <div class="rank-badge{{if row.rank === 1}} rank-badge-gold{{else if row.rank === 2}} rank-badge-purple{{else if row.rank === 3}} rank-badge-blue{{/if}}">{{if row.rank || row.rank === 0}}{{row.rank}}{{else}}—{{/if}}</div>
+
+          {{if row.chars && row.chars.length > 0}}
+          <div class="char-list">
+            {{each row.chars c}}
+            <div class="char-item">
+              <div class="avatar">
+                {{if c.avatar}}
+                <img class="avatar-img" src="{{_data_path}}/avatar/{{c.avatar}}.webp"/>
+                {{else}}
+                <div class="avatar-text">{{if c.name}}{{c.name}}{{else}}?{{/if}}</div>
+                {{/if}}
+                {{if c.constellation}}<span class="avatar-con">{{c.constellation}}</span>{{/if}}
+              </div>
+              <div class="char-name">{{if c.name}}{{c.name}}{{else}}未知{{/if}}</div>
+            </div>
+            {{/each}}
+          </div>
+          {{else}}
+          <div class="char-list"><span class="char-missing">阵容缺失</span></div>
+          {{/if}}
+
+          <!-- 用时：秒数大字 -->
+          <div class="rank-main">
+            <div class="rank-value rank-value-blue num">{{if row.speed || row.speed === 0}}{{row.speed}}{{else}}—{{/if}}</div>
+            <div class="rank-unit">秒</div>
+          </div>
+
+          <!-- 金数 -->
+          <div class="cost-box">
+            <div class="cost-value">{{if row.cost || row.cost === 0}}{{row.cost}}{{else}}—{{/if}}</div>
+            <div class="cost-sub">限{{if row.limitcost || row.limitcost === 0}}{{row.limitcost}}{{else}}0{{/if}}/常{{if row.normalcost || row.normalcost === 0}}{{row.normalcost}}{{else}}0{{/if}}</div>
+          </div>
+
+          <!-- 首领 + 版本 + 标签 -->
+          <div class="rank-tags">
+            <span class="raid-boss">{{if row.bossName}}{{row.bossName}}{{else}}首领未知{{/if}}</span>
+            {{if row.ver}}<span class="tag tag-ver">v{{row.ver}}</span>{{/if}}
+            {{if row.clean}}<span class="tag tag-clean">绿玩</span>{{/if}}
+            {{if row.lvl}}<span class="tag tag-lvl">满级</span>{{/if}}
+          </div>
+        </div>
+        {{/each}}
+        {{else}}
+        <div class="empty-hint rank-empty">没有查询到危战数据，请调整筛选条件或稍后重试</div>
+        {{/if}}
+      </div>
+
+      <div class="card foot-card">
+        <div class="copyright">{{copyright}}</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
