@@ -173,3 +173,21 @@ export function getAkashaMaxChars (): number {
   if (!Number.isFinite(value) || value < 1) return defaultConfig.akashaMaxChars
   return Math.floor(value)
 }
+
+/** 榜单每页条数（夹取 1 ~ `MAX_PAGE_SIZE`，避免用户把图撑爆） */
+export function getPageSize (): number {
+  const value = Number(loadConfig().dpsPageSize)
+  if (!Number.isFinite(value) || value < 1) return defaultConfig.dpsPageSize
+  return Math.floor(value)
+}
+
+/**
+ * 完整配置对象（查询层用）
+ *
+ * 合并自 `Mhydps-Plugin/components/config.js` 的 `getPluginConfig()`。
+ * ⚠ 键名已按设计文档 §14.8 改名：`avatarEnabled` → **`dpsAvatarEnabled`**、
+ *   `pageSize` → `dpsPageSize`、`cacheTtlMinutes` → `dpsCacheTtlMinutes`、`timeoutMs` → `dpsTimeoutMs`。
+ */
+export function getPluginConfig (): MetaConfig {
+  return loadConfig()
+}
