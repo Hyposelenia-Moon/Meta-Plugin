@@ -1,0 +1,21 @@
+{
+  "name": "meta-plugin",
+  "version": "0.1.0",
+  "description": "TRSS-Yunzai v3 插件：原神攻略 · 强度榜单 · 练度查询",
+  "type": "module",
+  "main": "index.js",
+  "author": "Hyposelenia",
+  "license": "GPL-3.0-only",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc --noEmit",
+    "test": "node test/run.mjs"
+  },
+  "dependencies": {
+    "yaml": "^2.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2"
+  }
+}
