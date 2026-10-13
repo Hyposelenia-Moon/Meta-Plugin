@@ -1,0 +1,116 @@
+[
+  {
+    "id": "t-001",
+    "members": [
+      { "charId": "玛薇卡", "constellation": 6 },
+      { "charId": "茜特菈莉", "constellation": 6 },
+      { "charId": "希诺宁", "constellation": 6 },
+      { "charId": "尼可", "constellation": 6 }
+    ],
+    "damage": 3230000,
+    "cost": 48,
+    "limitcost": 48,
+    "normalcost": 0,
+    "clean": false,
+    "lvl": true,
+    "confirm": true,
+    "tags": ["宏"],
+    "video_url": "https://www.bilibili.com/video/BV1jaK36kE7s",
+    "info": "苍耀"
+  },
+  {
+    "id": "t-002",
+    "members": [
+      { "charId": "胡桃", "constellation": 0 },
+      { "charId": "行秋", "constellation": 6 },
+      { "charId": "夜兰", "constellation": 0 },
+      { "charId": "钟离", "constellation": 0 }
+    ],
+    "damage": 1018058,
+    "cost": 15,
+    "limitcost": 15,
+    "normalcost": 0,
+    "clean": true,
+    "lvl": true,
+    "confirm": true,
+    "tags": [],
+    "video_url": "",
+    "info": ""
+  },
+  {
+    "id": "t-003",
+    "members": [
+      { "charId": "火神", "constellation": 6 },
+      { "charId": "班尼特", "constellation": 6 },
+      { "charId": "砂糖", "constellation": 6 },
+      { "charId": "希诺宁", "constellation": 0 }
+    ],
+    "damage": 962167,
+    "cost": 14,
+    "limitcost": 14,
+    "normalcost": 0,
+    "clean": true,
+    "lvl": false,
+    "confirm": true,
+    "tags": ["总伤杯S3.N"],
+    "video_url": "https://www.bilibili.com/video/BV1xx",
+    "info": ""
+  },
+  {
+    "id": "t-004",
+    "members": [
+      { "charId": "爷", "constellation": 0 },
+      { "charId": "安柏", "constellation": 0 },
+      { "charId": "凯亚", "constellation": 0 },
+      { "charId": "丽莎", "constellation": 0 }
+    ],
+    "damage": 500000,
+    "cost": 4,
+    "limitcost": 3,
+    "normalcost": 1,
+    "clean": true,
+    "lvl": false,
+    "confirm": true,
+    "tags": [],
+    "video_url": "",
+    "info": ""
+  },
+  {
+    "id": "t-005",
+    "members": [
+      { "charId": "那维莱特", "constellation": 1 },
+      { "charId": "芙宁娜", "constellation": 0 },
+      { "charId": "枫原万叶", "constellation": 0 },
+      { "charId": "钟离", "constellation": 0 }
+    ],
+    "damage": 950000,
+    "cost": 12,
+    "limitcost": 12,
+    "normalcost": 0,
+    "clean": false,
+    "lvl": false,
+    "confirm": false,
+    "tags": ["宏"],
+    "video_url": "https://www.bilibili.com/video/BV1yy",
+    "info": ""
+  },
+  {
+    "id": "t-006",
+    "members": [
+      { "charId": "玛薇卡", "constellation": 0 },
+      { "charId": "香菱", "constellation": 6 },
+      { "charId": "班尼特", "constellation": 6 },
+      { "charId": "行秋", "constellation": 6 }
+    ],
+    "damage": 700000,
+    "cost": 8,
+    "limitcost": 8,
+    "normalcost": 0,
+    "clean": true,
+    "lvl": true,
+    "confirm": true,
+    "tags": [],
+    "video_url": "",
+    "info": ""
+  }
+]

@@ -1,0 +1,78 @@
+[
+  {
+    "id": "r-001",
+    "members": [
+      { "charId": "旅行者", "constellation": 0 },
+      { "charId": "安柏", "constellation": 0 },
+      { "charId": "爷", "constellation": 0 },
+      { "charId": "爷", "constellation": 0 }
+    ],
+    "cost": 0,
+    "limitcost": 0,
+    "normalcost": 0,
+    "clean": true,
+    "lvl": false,
+    "confirm": true,
+    "video_url": "https://www.bilibili.com/video/BV1iKvzBsEEb",
+    "speed": 24,
+    "ver": "7.1",
+    "boss": 711
+  },
+  {
+    "id": "r-002",
+    "members": [
+      { "charId": "嘉明", "constellation": 6 },
+      { "charId": "罗莎莉亚", "constellation": 6 },
+      { "charId": "伊安珊", "constellation": 6 },
+      { "charId": "夏沃蕾", "constellation": 6 }
+    ],
+    "cost": 4,
+    "limitcost": 4,
+    "normalcost": 0,
+    "clean": false,
+    "lvl": true,
+    "confirm": true,
+    "video_url": "https://www.bilibili.com/video/BV1R1B2BQEZ9",
+    "speed": 99,
+    "ver": "7.1",
+    "boss": 712
+  },
+  {
+    "id": "r-003",
+    "members": [
+      { "charId": "旅行者", "constellation": 4 },
+      { "charId": "布伦妮", "constellation": 6 },
+      { "charId": "阿罗夏", "constellation": 6 },
+      { "charId": "迪奥娜", "constellation": 6 }
+    ],
+    "cost": 12,
+    "limitcost": 10,
+    "normalcost": 2,
+    "clean": true,
+    "lvl": false,
+    "confirm": true,
+    "video_url": "",
+    "speed": 110,
+    "ver": "7.1",
+    "boss": 713
+  },
+  {
+    "id": "r-004",
+    "members": [
+      { "charId": "玛薇卡", "constellation": 6 },
+      { "charId": "希诺宁", "constellation": 6 },
+      { "charId": "茜特菈莉", "constellation": 6 },
+      { "charId": "尼可", "constellation": 6 }
+    ],
+    "cost": 48,
+    "limitcost": 48,
+    "normalcost": 0,
+    "clean": false,
+    "lvl": true,
+    "confirm": true,
+    "video_url": "https://www.bilibili.com/video/BV1jaK36kE7s",
+    "speed": 4,
+    "ver": "7.0",
+    "boss": 703
+  }
+]

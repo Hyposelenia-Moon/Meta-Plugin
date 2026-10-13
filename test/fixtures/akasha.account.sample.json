@@ -1,0 +1,86 @@
+{
+  "ttl": 0,
+  "bindTTL": 0,
+  "secret": null,
+  "data": {
+    "account": {
+      "_id": "6a17a556e1993193c423e858",
+      "uid": "100000000",
+      "achievements": [
+        {
+          "id": 2,
+          "score": 100,
+          "type": "artifact",
+          "name": "The grind begins",
+          "description": "For 40cv+ artifacts",
+          "count": 12
+        },
+        {
+          "id": 5,
+          "score": 250,
+          "type": "artifact",
+          "name": "Healthy body, healthy mind",
+          "description": "Achieve 25% or more HP% substat on a single artifact",
+          "count": 2
+        }
+      ],
+      "lastProfileUpdate": 1790948290544,
+      "locked": false,
+      "ownedCharacters": [
+        10000046,
+        10000089,
+        10000107,
+        10000125,
+        10000114,
+        10000112
+      ],
+      "patreon": {},
+      "playerInfo": {
+        "nickname": "测试玩家",
+        "level": 60.0000006639,
+        "signature": "签名已脱敏",
+        "worldLevel": 9,
+        "nameCardId": {
+          "name": null,
+          "id": 210285,
+          "assets": {
+            "icon": "UI_NameCardIcon_Moon",
+            "picPath": [
+              "UI_NameCardPic_Moon_Alpha",
+              "UI_NameCardPic_Moon_P"
+            ]
+          }
+        },
+        "finishAchievementNum": 1791.0000006639,
+        "towerFloorIndex": 12,
+        "towerLevelIndex": 3,
+        "towerStarIndex": 36,
+        "theater": {
+          "act": 10,
+          "modeIndex": 124,
+          "mode": "",
+          "stars": 12
+        },
+        "stygianIndex": 6,
+        "stygianSeconds": 298,
+        "stygianScore": 6702.0000006639,
+        "maxFriendshipCount": 32,
+        "profilePicture": {
+          "characterId": 0,
+          "id": 2901,
+          "assets": {
+            "icon": "UI_AvatarIcon_HutaoCostumeWinter_Circle",
+            "oldIcon": "UI_AvatarIcon_HutaoCostumeWinter"
+          },
+          "name": null
+        },
+        "region": "CN",
+        "inGameUID": "210057692",
+        "friendCount": 0
+      },
+      "susLevel": 0,
+      "profilePictureLink": "https://enka.network/ui/UI_AvatarIcon_HutaoCostumeWinter.png",
+      "nameCardLink": "https://enka.network/ui/UI_NameCardPic_Moon_P.png"
+    }
+  }
+}

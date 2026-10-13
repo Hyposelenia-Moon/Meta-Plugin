@@ -1,0 +1,169 @@
+{
+  "ttl": 0,
+  "data": [
+    {
+      "_id": "6a17a554e1993193c423e7f7",
+      "uid": "100000000",
+      "type": "current",
+      "characterId": 10000046,
+      "artifactSets": {
+        "Gladiator's Finale": {
+          "icon": "UI_RelicIcon_15001_4",
+          "count": 1
+        },
+        "Marechaussee Hunter": {
+          "icon": "UI_RelicIcon_15031_2",
+          "count": 4
+        }
+      },
+      "calculations": {
+        "fit": {
+          "md5": "md5-fit",
+          "calculationId": "1000004611",
+          "short": "COMBO",
+          "name": "Furina Variant Combo, Avg DMG",
+          "details": "Average DMG for 11N1CD + Q combo in double hydro team with Furina. 4p SR burst uptime 1/3, other sets: 2/3. Marechaussee Hunter set to max stack. Yelan A4 at 8s. Furina's Fanfare Stacks set to 400. Team is adjusted due to Ballad of the Fjords passive. Jean does NOT shred pyro. ",
+          "weapon": {
+            "name": "Ballad of the Fjords",
+            "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Shanty_Awaken.png",
+            "substat": "CRIT Rate",
+            "type": "Polearm",
+            "rarity": 4,
+            "weaponId": "13424",
+            "refinement": 5
+          },
+          "result": 1158161.0557480252,
+          "stats": null,
+          "ranking": 8205,
+          "outOf": 1035102,
+          "priority": 1,
+          "type": "current"
+        }
+      },
+      "constellation": 1,
+      "lastBuildUpdate": 1790948289214,
+      "md5": "98e6b4eba07264fe28c3d3c344181fd5",
+      "name": "Hu Tao",
+      "stats": null,
+      "weapon": {
+        "weaponId": 13505,
+        "weaponInfo": {
+          "level": 90,
+          "promoteLevel": 6,
+          "refinementLevel": {
+            "value": 0
+          }
+        },
+        "flat": {
+          "nameTextMapHash": "1997709467",
+          "stars": 5,
+          "weaponStats": [
+            {
+              "stat": "FIGHT_PROP_BASE_ATTACK",
+              "statValue": 674
+            },
+            {
+              "stat": "FIGHT_PROP_CRITICAL",
+              "statValue": 22.1
+            }
+          ],
+          "itemType": "ITEM_WEAPON",
+          "icon": {
+            "value": "UI_EquipIcon_Pole_Morax",
+            "toLink": null
+          },
+          "name": null
+        },
+        "name": "Primordial Jade Winged-Spear",
+        "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Morax_Awaken.png"
+      },
+      "icon": "https://enka.network/ui/UI_AvatarIcon_Hutao.png"
+    },
+    {
+      "_id": "6a41e8b3310bd460972a773b",
+      "characterId": 10000048,
+      "type": "current",
+      "uid": "100000000",
+      "artifactSets": {
+        "Finale of the Deep Galleries": {
+          "icon": "UI_RelicIcon_15040_4",
+          "count": 1
+        },
+        "Crimson Witch of Flames": {
+          "icon": "UI_RelicIcon_15006_2",
+          "count": 2
+        },
+        "Celestial Gift": {
+          "icon": "UI_RelicIcon_15045_5",
+          "count": 1
+        },
+        "Marechaussee Hunter": {
+          "icon": "UI_RelicIcon_15031_1",
+          "count": 1
+        }
+      },
+      "calculations": {
+        "fit": {
+          "md5": "md5-fit",
+          "calculationId": "1000004801",
+          "short": "VAPE",
+          "name": "Vape Combo, Avg DMG",
+          "details": "E + Q + 3N2C + N2E + N1C. All CAs at 4 scarlet seal stacks. C2 critrate kicks in after first N2C. All teammate buffs are 100% uptime for simplicity. 4p Shimenawa does additional N2C instead of bursting and CAs are at only 2 scarlet seal stacks. (if you have any ideas how to better deal with this set on Yanfei please tell me on Discord). Lost Prayers set at 1 stack for entire duration - more accurate assumption would need to wait for a leaderboards code rewrite",
+          "weapon": {
+            "name": "Lost Prayer to the Sacred Winds",
+            "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Fourwinds_Awaken.png",
+            "substat": "CRIT Rate",
+            "type": "Catalyst",
+            "rarity": 5,
+            "weaponId": "14502",
+            "refinement": 1
+          },
+          "result": 672945.4908953103,
+          "stats": null,
+          "ranking": 68274,
+          "outOf": 173119,
+          "priority": 1,
+          "type": "current"
+        }
+      },
+      "constellation": 0,
+      "lastBuildUpdate": 1782704307891,
+      "md5": "2f05fed8428c182d7cee65d1a718cfa5",
+      "name": "Yanfei",
+      "stats": null,
+      "weapon": {
+        "weaponId": 14405,
+        "weaponInfo": {
+          "level": 70,
+          "promoteLevel": 4,
+          "refinementLevel": {
+            "value": 0
+          }
+        },
+        "flat": {
+          "nameTextMapHash": "37146739",
+          "stars": 4,
+          "weaponStats": [
+            {
+              "stat": "FIGHT_PROP_BASE_ATTACK",
+              "statValue": 388
+            },
+            {
+              "stat": "FIGHT_PROP_CRITICAL",
+              "statValue": 22.7
+            }
+          ],
+          "itemType": "ITEM_WEAPON",
+          "icon": {
+            "value": "UI_EquipIcon_Catalyst_Resurrection",
+            "toLink": null
+          },
+          "name": null
+        },
+        "name": "Solar Pearl",
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Resurrection_Awaken.png"
+      },
+      "icon": "https://enka.network/ui/UI_AvatarIcon_Feiyan.png"
+    }
+  ]
+}
