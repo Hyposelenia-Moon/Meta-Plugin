@@ -1,0 +1,413 @@
+{
+  "note": "合并前 Mhydps-Plugin 的常量真值（冻结快照，来源 components/constants.js 与各 apps/*.js 的就地正则）",
+  "scalars": {
+    "SITE_NAME": "原神DPS数据库",
+    "SITE_ORIGIN": "https://www.mhydps.cn",
+    "SITE_HOST": "www.mhydps.cn",
+    "AKASHA_NAME": "akasha.cv",
+    "AKASHA_BASE": "https://akasha.cv",
+    "AKASHA_API": "https://akasha.cv/api",
+    "AKASHA_LANG": "zh-CN",
+    "AKASHA_CACHE_DIR": "akasha",
+    "SITE_REFERER": "https://www.mhydps.cn/",
+    "SITE_USER_AGENT": "MHYDPS-CN/1.0",
+    "AVATAR_DIR": "avatar",
+    "MAX_PAGE_SIZE": 20,
+    "COPYRIGHT": "Data from mhydps.cn · Created By TRSS-yunzai & Mhydps-Plugin"
+  },
+  "objects": {
+    "API_PATH": {
+      "teams": "/api/teams",
+      "teams2": "/api/teams2"
+    },
+    "CACHE_FILE": {
+      "teams": "teams.json",
+      "teams2": "teams2.json",
+      "meta": "meta.json"
+    },
+    "ELEMENT_CN": {
+      "Cryo": "冰",
+      "Pyro": "火",
+      "Hydro": "水",
+      "Electro": "雷",
+      "Anemo": "风",
+      "Geo": "岩",
+      "Dendro": "草"
+    },
+    "ENKA_PROP_CN": {
+      "FIGHT_PROP_HP": "生命值",
+      "FIGHT_PROP_HP_PERCENT": "生命值",
+      "FIGHT_PROP_ATTACK": "攻击力",
+      "FIGHT_PROP_ATTACK_PERCENT": "攻击力",
+      "FIGHT_PROP_DEFENSE": "防御力",
+      "FIGHT_PROP_DEFENSE_PERCENT": "防御力",
+      "FIGHT_PROP_ELEMENT_MASTERY": "元素精通",
+      "FIGHT_PROP_CHARGE_EFFICIENCY": "元素充能效率",
+      "FIGHT_PROP_CRITICAL": "暴击率",
+      "FIGHT_PROP_CRITICAL_HURT": "暴击伤害",
+      "FIGHT_PROP_HEAL_ADD": "治疗加成",
+      "FIGHT_PROP_PHYSICAL_ADD_HURT": "物理伤害加成",
+      "FIGHT_PROP_FIRE_ADD_HURT": "火元素伤害加成",
+      "FIGHT_PROP_ELEC_ADD_HURT": "雷元素伤害加成",
+      "FIGHT_PROP_WATER_ADD_HURT": "水元素伤害加成",
+      "FIGHT_PROP_GRASS_ADD_HURT": "草元素伤害加成",
+      "FIGHT_PROP_WIND_ADD_HURT": "风元素伤害加成",
+      "FIGHT_PROP_ROCK_ADD_HURT": "岩元素伤害加成",
+      "FIGHT_PROP_ICE_ADD_HURT": "冰元素伤害加成"
+    },
+    "EQUIP_SLOT_CN": {
+      "EQUIP_BRACER": "生之花",
+      "EQUIP_NECKLACE": "死之羽",
+      "EQUIP_SHOES": "时之沙",
+      "EQUIP_RING": "空之杯",
+      "EQUIP_DRESS": "理之冠"
+    },
+    "EQUIP_SLOT_ORDER": [
+      "EQUIP_BRACER",
+      "EQUIP_NECKLACE",
+      "EQUIP_SHOES",
+      "EQUIP_RING",
+      "EQUIP_DRESS"
+    ],
+    "PANEL_PROPS": [
+      {
+        "key": "2000",
+        "label": "生命值",
+        "percent": false
+      },
+      {
+        "key": "2001",
+        "label": "攻击力",
+        "percent": false
+      },
+      {
+        "key": "2002",
+        "label": "防御力",
+        "percent": false
+      },
+      {
+        "key": "28",
+        "label": "元素精通",
+        "percent": false
+      },
+      {
+        "key": "20",
+        "label": "暴击率",
+        "percent": true
+      },
+      {
+        "key": "22",
+        "label": "暴击伤害",
+        "percent": true
+      },
+      {
+        "key": "23",
+        "label": "元素充能效率",
+        "percent": true
+      }
+    ],
+    "TALENT_POSITION_CN": {
+      "1": "普攻",
+      "2": "战技",
+      "3": "爆发"
+    }
+  },
+  "samples": {
+    "damageText": [
+      [
+        0,
+        "0"
+      ],
+      [
+        1,
+        "1"
+      ],
+      [
+        999,
+        "999"
+      ],
+      [
+        1000,
+        "1000"
+      ],
+      [
+        9999,
+        "9999"
+      ],
+      [
+        10000,
+        "1.0 万"
+      ],
+      [
+        3230000,
+        "323.0 万"
+      ],
+      [
+        99999999,
+        "10000.0 万"
+      ],
+      [
+        100000000,
+        "1.00 亿"
+      ],
+      [
+        123456789,
+        "1.23 亿"
+      ],
+      [
+        "abc",
+        "-"
+      ],
+      [
+        null,
+        "0"
+      ]
+    ],
+    "speedText": [
+      [
+        0,
+        "0s"
+      ],
+      [
+        1.5,
+        "1.5s"
+      ],
+      [
+        12,
+        "12s"
+      ],
+      [
+        99,
+        "99s"
+      ],
+      [
+        "abc",
+        "-"
+      ],
+      [
+        null,
+        "0s"
+      ]
+    ],
+    "formatTime": [
+      [
+        0,
+        "1970-01-01 08:00"
+      ],
+      [
+        1700000000000,
+        "2023-11-15 06:13"
+      ],
+      [
+        "2026-10-13T08:30:00",
+        "2026-10-13 08:30"
+      ],
+      [
+        "bad",
+        "-"
+      ]
+    ],
+    "agoText": [
+      [
+        -1,
+        "-"
+      ],
+      [
+        0,
+        "刚刚"
+      ],
+      [
+        30000,
+        "刚刚"
+      ],
+      [
+        60000,
+        "1 分钟前"
+      ],
+      [
+        3600000,
+        "1 小时前"
+      ],
+      [
+        90000000,
+        "1 天前"
+      ]
+    ],
+    "avatarUrl": [
+      [
+        10000002,
+        "https://www.mhydps.cn/charactor/10000002.webp"
+      ],
+      [
+        "10000046",
+        "https://www.mhydps.cn/charactor/10000046.webp"
+      ]
+    ],
+    "isPercentProp": [
+      [
+        "FIGHT_PROP_HP",
+        false
+      ],
+      [
+        "FIGHT_PROP_HP_PERCENT",
+        true
+      ],
+      [
+        "FIGHT_PROP_CRITICAL",
+        true
+      ],
+      [
+        "FIGHT_PROP_FIRE_ADD_HURT",
+        true
+      ],
+      [
+        "FIGHT_PROP_CHARGE_EFFICIENCY",
+        true
+      ],
+      [
+        "FIGHT_PROP_HEAL_ADD",
+        true
+      ],
+      [
+        "FIGHT_PROP_ATTACK",
+        false
+      ],
+      [
+        "",
+        false
+      ]
+    ]
+  },
+  "rules": {
+    "admin": "/^#?(?:dps|DPS)(?:强制更新|更新|刷新)$/",
+    "build": "/^#?(?:dps|DPS)练度查询\\s*([\\s\\S]*)$/",
+    "help": "/^#?(?:dps|DPS)帮助$/",
+    "raid": "/^#?(?:dps|DPS)危战榜?(?!视频)\\s*([\\s\\S]*)$/",
+    "rank": "/^#?(?:dps|DPS)榜?(?!视频|帮助|状态|更新|刷新|练度|危战)\\s*([\\s\\S]*)$/",
+    "status": "/^#?(?:dps|DPS)状态$/",
+    "video": "/^#?(?:dps|DPS)视频\\s*([\\s\\S]*)$/",
+    "raidVideo": "/^#?(?:dps|DPS)危战视频\\s*([\\s\\S]*)$/"
+  },
+  "routing": [
+    {
+      "msg": "#DPS榜",
+      "key": "rank",
+      "args": ""
+    },
+    {
+      "msg": "#DPS榜 胡桃",
+      "key": "rank",
+      "args": "胡桃"
+    },
+    {
+      "msg": "#dps榜 胡桃 3",
+      "key": "rank",
+      "args": "胡桃 3"
+    },
+    {
+      "msg": "#DPS榜 胡桃 绿玩 页2",
+      "key": "rank",
+      "args": "胡桃 绿玩 页2"
+    },
+    {
+      "msg": "#DPS榜视频 3",
+      "key": "rank",
+      "args": "榜视频 3"
+    },
+    {
+      "msg": "#DPS危战榜",
+      "key": "raid",
+      "args": ""
+    },
+    {
+      "msg": "#DPS危战榜 5.2 深渊",
+      "key": "raid",
+      "args": "5.2 深渊"
+    },
+    {
+      "msg": "#DPS危战视频 2",
+      "key": "raidVideo",
+      "args": "2"
+    },
+    {
+      "msg": "#DPS帮助",
+      "key": "help",
+      "args": null
+    },
+    {
+      "msg": "#DPS状态",
+      "key": "status",
+      "args": null
+    },
+    {
+      "msg": "#DPS练度查询",
+      "key": "build",
+      "args": ""
+    },
+    {
+      "msg": "#DPS练度查询 胡桃 100000001",
+      "key": "build",
+      "args": "胡桃 100000001"
+    },
+    {
+      "msg": "#DPS更新",
+      "key": "admin",
+      "args": null
+    },
+    {
+      "msg": "#DPS强制更新",
+      "key": "admin",
+      "args": null
+    },
+    {
+      "msg": "#DPS刷新",
+      "key": "admin",
+      "args": null
+    },
+    {
+      "msg": "#DPS",
+      "key": "rank",
+      "args": ""
+    },
+    {
+      "msg": "#DPS练度",
+      "key": null,
+      "args": null
+    },
+    {
+      "msg": "#dps危战榜 页2",
+      "key": "raid",
+      "args": "页2"
+    },
+    {
+      "msg": "#攻略",
+      "key": null,
+      "args": null
+    },
+    {
+      "msg": "#胡桃攻略",
+      "key": null,
+      "args": null
+    },
+    {
+      "msg": "#攻略帮助",
+      "key": null,
+      "args": null
+    },
+    {
+      "msg": "#设置默认攻略2",
+      "key": null,
+      "args": null
+    },
+    {
+      "msg": "",
+      "key": null,
+      "args": null
+    },
+    {
+      "msg": "#DPS榜视频",
+      "key": "rank",
+      "args": "榜视频"
+    }
+  ]
+}
