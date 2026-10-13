@@ -27,6 +27,8 @@ export interface CodexView {
   name: string
   /** 建议等级 / 定位 / 100级提升 …（原样透传，模板决定怎么展示） */
   meta: Record<string, unknown>
+  /** 面向模板的 meta 行：**只保留有值的项**（空串不进模板，避免出现"定位："这种空行） */
+  metaRows: Array<{ label: string, value: string }>
   /** 归一后的六个模块（顺序固定：武器 → 圣遗物 → 天赋 → 面板 → 命座 → 配队） */
   sections: DisplaySection[]
   /**
@@ -64,6 +66,10 @@ export function buildCodexView (guide: Guide | null, opts: BuildViewOptions = {}
     ? guide.meta as Record<string, unknown>
     : {}
 
+  const metaRows = Object.entries(meta)
+    .map(([label, value]) => ({ label, value: String(value ?? '').trim() }))
+    .filter(row => row.value.length > 0)
+
   const sections = normalizeGuideSections(v2ToSections(guide.v2 ?? {}), {
     signature: opts.signature ?? null,
     weaponTags: opts.weaponTags ?? {}
@@ -72,9 +78,41 @@ export function buildCodexView (guide: Guide | null, opts: BuildViewOptions = {}
   return {
     name: String(guide.name ?? ''),
     meta,
+    metaRows,
     sections,
-    hasContent: Object.values(meta).some(v => String(v ?? '').trim().length > 0),
+    hasContent: metaRows.length > 0,
     hints: { empty: EMPTY_TEXT, refine: WEAPON_REFINE_HINT }
+  }
+}
+
+/** 模板数据的可选页头/页脚字段 */
+export interface PageOptions {
+  /** 页脚版权行（`components/constants.ts` 的 COPYRIGHT） */
+  copyright?: string
+  /** 渲染缩放（`components/render.ts` 会塞进模板数据） */
+  renderScale?: number
+  /** 角色立绘（阶段 2 接 miao 资源后传入；缺省则模板不画立绘） */
+  portrait?: string
+  /** 页头副标题（默认「角色攻略」） */
+  subTitle?: string
+}
+
+/** 模板数据（`resources/codex/codex.html` 的数据契约；字段名改动必须同步模板与套件） */
+export interface CodexPageData extends CodexView {
+  copyright: string
+  renderScale: number
+  portrait: string
+  subTitle: string
+}
+
+/** 视图 → 模板数据（模板只读这里给出的字段） */
+export function toPageData (view: CodexView, opts: PageOptions = {}): CodexPageData {
+  return {
+    ...view,
+    copyright: opts.copyright ?? '',
+    renderScale: opts.renderScale ?? 1,
+    portrait: opts.portrait ?? '',
+    subTitle: opts.subTitle ?? '角色攻略'
   }
 }
 

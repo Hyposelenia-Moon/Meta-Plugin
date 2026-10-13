@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+  <style>
+    /* 攻略页专用版式
+       信息架构参考 miao-plugin 的角色图鉴：页头（立绘 + 名字 + 属性行）→ 分块内容 → 版权；
+       类名与配色走本项目自己的规范（components.css 的 card/card-title/kv-item + base.css 的 :root 令牌），
+       不沿用 miao 的类名与样式文件。 */
+    .codex-head { display: flex; gap: 14px; align-items: flex-start; }
+    .codex-portrait {
+      flex: 0 0 auto;
+      width: 148px;
+      height: 148px;
+      border-radius: 12px;
+      border: 1px solid var(--line-soft);
+      background: var(--card-2) center top / cover no-repeat;
+    }
+    .codex-head-main { flex: 1 1 auto; min-width: 0; }
+    .codex-name { font-size: 30px; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .codex-name .codex-name-sub { margin-left: 8px; font-size: 17px; font-weight: 400; color: var(--muted); }
+    .codex-desc { margin-top: 4px; font-size: 18px; color: var(--muted); }
+    .codex-meta { margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 3px 20px; }
+
+    .codex-section { margin-top: 10px; }
+    .codex-section:first-child { margin-top: 0; }
+    .codex-row { display: flex; gap: 10px; align-items: baseline; padding: 3px 0; }
+    .codex-row + .codex-row { border-top: 1px dashed var(--line-soft); }
+    .codex-row-label { flex: 0 0 auto; min-width: 72px; font-size: 17px; font-weight: 700; color: var(--muted); }
+    .codex-row-items { flex: 1 1 auto; min-width: 0; font-size: 19px; line-height: 1.5; color: var(--text); }
+    .codex-tier { font-weight: 700; }
+    .codex-tier.label-推荐 { color: var(--gold); }
+    .codex-tier.label-可选 { color: var(--accent); }
+    .codex-tier.label-过渡 { color: var(--muted); }
+
+    .codex-item { white-space: nowrap; }
+    .codex-item-text { color: var(--text); }
+    /* 专武标色：严格专武红、实际专属绿（`_signature.json` 的 专武 / 实际） */
+    .codex-item.sig-strict .codex-item-text { color: var(--red); font-weight: 700; }
+    .codex-item.sig-alt .codex-item-text { color: var(--green); font-weight: 700; }
+    .codex-note-inline { margin-left: 2px; font-size: 16px; color: var(--muted-2); }
+    .codex-sep { margin: 0 4px; color: var(--muted-2); font-size: 16px; }
+    .codex-empty { font-size: 18px; color: var(--muted-2); }
+    .codex-hint { margin-top: 4px; font-size: 16px; color: var(--muted-2); }
+
+    .codex-teams { display: flex; flex-direction: column; gap: 3px; }
+    .codex-team { font-size: 19px; color: var(--text); }
+    .codex-team-tag { font-weight: 700; margin-right: 6px; }
+    .codex-team-tag.label-推荐 { color: var(--gold); }
+    .codex-team-tag.label-可选 { color: var(--accent); }
+    .codex-team-tag.label-过渡 { color: var(--muted); }
+    .codex-team-note { font-size: 16px; color: var(--muted-2); }
+  </style>
+</head>
+<body style="zoom:{{renderScale}}">
+  {{set emptyText = hints.empty}}
+  {{set refineHint = hints.refine}}
+  <div class="page">
+    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-rank.jpg')"></div>
+    <div class="page-inner">
+      <div class="card head-card">
+        <div class="codex-head">
+          {{if portrait}}
+          <div class="codex-portrait" style="background-image: url('{{portrait}}')"></div>
+          {{/if}}
+          <div class="codex-head-main">
+            <div class="codex-name">{{name}}<span class="codex-name-sub">{{subTitle}}</span></div>
+            {{if meta['定位']}}
+            <div class="codex-desc">{{meta['定位']}}</div>
+            {{/if}}
+            {{if metaRows.length > 0}}
+            <div class="codex-meta">
+              {{each metaRows row}}
+              <div class="kv-item"><span class="kv-label">{{row.label}}</span><span class="kv-value">{{row.value}}</span></div>
+              {{/each}}
+            </div>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+
+      <div class="card body-card">
+        {{each sections section}}
+        <div class="codex-section">
+          <div class="card-title">{{section.title}}</div>
+
+          {{if section.empty}}
+          <div class="codex-empty">{{emptyText}}</div>
+
+          {{else if section.kind === 'teams'}}
+          <div class="codex-teams">
+            {{each section.teams team}}
+            <div class="codex-team">
+              {{if team.tag}}<span class="codex-team-tag {{team.tagClass}}">{{team.tag}}</span>{{/if}}
+              {{each team.members member}}{{member.name}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}
+              {{if team.text}}<span class="codex-team-note">{{team.text}}</span>{{/if}}
+            </div>
+            {{/each}}
+          </div>
+
+          {{else}}
+          {{each section.rows row}}
+          <div class="codex-row">
+            {{if row.label}}<div class="codex-row-label"><span class="codex-tier {{row.labelClass}}">{{row.label}}</span></div>{{/if}}
+            <div class="codex-row-items">
+              {{each row.items item}}
+              <span class="codex-item{{if item.sig}} sig-strict{{/if}}{{if item.sigAlt}} sig-alt{{/if}}"><span class="codex-item-text">{{item.text}}</span>{{if item.note}}<span class="codex-note-inline">{{item.note}}</span>{{/if}}</span>{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}
+              {{/each}}
+            </div>
+          </div>
+          {{/each}}
+          {{/if}}
+
+          {{if section.title === '武器'}}<div class="codex-hint">{{refineHint}}</div>{{/if}}
+        </div>
+        {{/each}}
+      </div>
+
+      <div class="card foot-card">
+        <div class="copyright">{{copyright}}</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
