@@ -73,7 +73,7 @@ export interface NormalizeGuideOptions {
 // @ts-expect-error 维护者区是 ESM JS，没有类型声明（下面用窄类型断言后导出）
 import { buildV2Sections as rawBuildV2Sections } from '../../scripts/lib/v2-sections.mjs'
 // @ts-expect-error 同上（必须写成单行：`@ts-expect-error` 只压紧随的那一行，多行 import 的报错会落在 `} from …` 上）
-import { tierLabelClass as rawTierLabelClass, EMPTY_TEXT as rawEmptyText, WEAPON_REFINE_HINT as rawRefineHint } from '../../scripts/lib/guide-display.mjs'
+import { displayLabel as rawDisplayLabel, tierLabelClass as rawTierLabelClass, EMPTY_TEXT as rawEmptyText, WEAPON_REFINE_HINT as rawRefineHint } from '../../scripts/lib/guide-display.mjs'
 
 /**
  * v2 → 显示级 sections（**忠实的行构造器**，已含显示级归一）
@@ -92,6 +92,9 @@ export const buildV2Sections = rawBuildV2Sections as (
 
 /** 档位标签的 CSS 类名（`推荐` → `label-推荐`，非档位词返回空串） */
 export const tierLabelClass = rawTierLabelClass as (label: unknown) => string
+
+/** 档位 / 标签的显示词（自定义档位词优先，`tier` 序号兜底；与出图同一口径） */
+export const displayLabel = rawDisplayLabel as (label: unknown, tier?: unknown) => string
 
 /** 空模块文案（`暂无`） */
 export const EMPTY_TEXT = rawEmptyText as string

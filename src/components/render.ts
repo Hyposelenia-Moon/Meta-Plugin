@@ -88,7 +88,7 @@ export async function render (
 export async function renderPage (
   e: YunzaiEvent,
   tpl: string,
-  params: Record<string, unknown> = {},
+  params: object = {},
   opts: { app?: string, copyright?: string } = {}
 ): Promise<unknown | false> {
   const app = opts.app || 'codex'
@@ -108,5 +108,5 @@ export async function renderPage (
     copyright: opts.copyright ?? COPYRIGHT,
     // 缩放走本插件配置（框架 data 里的 `sys` 会被这里的同名键覆盖）
     sys: { scale: getRenderScale() }
-  })
+  } as Record<string, unknown>)
 }

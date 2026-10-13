@@ -9,6 +9,7 @@
  * 空模块「暂无」）**全部由维护者区负责**，本模块不重复实现、也不改写结果。
  */
 import type { Guide } from '../model/CodexStore.js'
+import { characterSplash, iconForRef } from '../model/IconResolver.js'
 import {
   EMPTY_TEXT,
   WEAPON_REFINE_HINT,
@@ -132,4 +133,85 @@ export function narrowToSubView (view: CodexView, key: string): CodexView | null
   const section = pickSection(view, key)
   if (!section) return null
   return { ...view, sections: [section] }
+}
+
+/**
+ * 给视图条目挂图标
+ *
+ * 图标是**相对 miao resources 的路径**（模板里配 `{{_miao_path}}`）：
+ * miao 优先、Atlas 兜底、都没有就不挂（模板回落纯文字，不出现破图）。
+ * 命座图标需要角色上下文（`constellation:N` 的 ref 只有序号）。
+ */
+export function withIcons (view: CodexView, ctx: { character: string }): CodexView {
+  const sections = view.sections.map(section => {
+    const next: DisplaySection = { ...section }
+
+    if (Array.isArray(section.rows)) {
+      next.rows = section.rows.map(row => ({
+        ...row,
+        items: (row.items ?? []).map(item => {
+          const icon = iconForRef(String(item.ref ?? ''), { character: ctx.character })
+          return icon ? { ...item, icon: icon.rel, iconSource: icon.source } : item
+        })
+      }))
+    }
+
+    if (Array.isArray(section.teams)) {
+      next.teams = section.teams.map(team => ({
+        ...team,
+        members: (team.members ?? []).map(member => {
+          const icon = iconForRef(String(member.ref ?? ''), { character: ctx.character })
+          return icon ? { ...member, icon: icon.rel } : member
+        })
+      }))
+    }
+
+    return next
+  })
+
+  return { ...view, sections }
+}
+
+/** 页头立绘（相对 miao resources 的路径；取不到返回 null，模板不画立绘） */
+export function portraitOf (character: string): string | null {
+  try {
+    return characterSplash(character)?.rel ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 视图 → 纯文本（渲染失败时回落，内容与出图同源）
+ *
+ * 与帮助页同一策略：出图挂了就发文本版，而不是"图挂了就没内容"。
+ */
+export function viewToText (view: CodexView): string {
+  const lines: string[] = [`${view.name} · ${view.hints.empty === EMPTY_TEXT ? '攻略' : '攻略'}`]
+
+  for (const row of view.metaRows) lines.push(`${row.label}：${row.value}`)
+
+  for (const section of view.sections) {
+    lines.push('', `【${section.title}】`)
+    if (section.empty) {
+      lines.push(view.hints.empty)
+      continue
+    }
+    if (section.kind === 'teams') {
+      for (const team of section.teams ?? []) {
+        const members = (team.members ?? []).map(m => `${m.name ?? ''}${m.note ? `（${m.note}）` : ''}`).join(' + ')
+        lines.push(`· ${team.tag ? `${team.tag}：` : ''}${members}${team.text ? `${team.text}` : ''}`)
+      }
+      continue
+    }
+    for (const row of section.rows ?? []) {
+      const items = (row.items ?? [])
+        .map(item => `${item.text ?? ''}${item.note ? `（${item.note}）` : ''}`)
+        .join(' ')
+      lines.push(`· ${row.label ? `${row.label}：` : ''}${items}`)
+    }
+    if (section.title === '武器') lines.push(view.hints.refine)
+  }
+
+  return lines.join('\n')
 }

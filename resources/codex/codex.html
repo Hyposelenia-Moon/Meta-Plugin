@@ -25,13 +25,16 @@
   .codex-hint { margin-top: 2px; font-size: .86em; opacity: .7; }
   .codex-team .team-tag { font-weight: 700; margin-right: 6px; }
   .codex-team .team-note { font-size: .86em; opacity: .75; }
+  /* 图标：路径由视图层给出（相对 miao 的 resources），这里只控制尺寸与圆角 */
+  .codex-icon { display: inline-block; width: 1.15em; height: 1.15em; margin-right: 4px; vertical-align: -0.2em; border-radius: 4px; background-size: cover; background-position: center; }
+  .codex-face { display: inline-block; width: 1.2em; height: 1.2em; margin-right: 3px; vertical-align: -0.25em; border-radius: 50%; background-size: cover; background-position: center top; }
 </style>
 {{/block}}
 
 {{block 'main'}}
 <div class="basic">
   {{if portrait}}
-  <div class="main-pic" style="background-image:url({{portrait}})"></div>
+  <div class="main-pic" style="background-image:url({{_miao_path}}{{portrait}})"></div>
   {{/if}}
   <div class="detail">
     <div class="char-title">
@@ -66,7 +69,7 @@
     {{each section.teams team}}
     <div class="codex-row codex-team">
       {{if team.tag}}<span class="team-tag">{{team.tag}}</span>{{/if}}
-      <span>{{each team.members member}}{{member.name}}{{if member.note}}<span class="codex-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}</span>
+      <span>{{each team.members member}}{{if member.icon}}<span class="codex-face" style="background-image:url({{_miao_path}}{{member.icon}})"></span>{{/if}}{{member.name}}{{if member.note}}<span class="codex-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}</span>
       {{if team.text}}<span class="team-note">{{team.text}}</span>{{/if}}
     </div>
     {{/each}}
@@ -77,7 +80,7 @@
       {{if row.label}}<span class="row-label">{{row.label}}</span>{{/if}}
       <span>
         {{each row.items item}}
-        <span class="codex-item{{if item.sig}} sig-strict{{/if}}{{if item.sigAlt}} sig-alt{{/if}}">{{item.text}}{{if item.note}}<span class="codex-note">{{item.note}}</span>{{/if}}</span>{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}
+        <span class="codex-item{{if item.sig}} sig-strict{{/if}}{{if item.sigAlt}} sig-alt{{/if}}">{{if item.icon}}<span class="codex-icon" style="background-image:url({{_miao_path}}{{item.icon}})"></span>{{/if}}{{item.text}}{{if item.note}}<span class="codex-note">{{item.note}}</span>{{/if}}</span>{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}
         {{/each}}
       </span>
     </div>
