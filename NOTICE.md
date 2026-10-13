@@ -1,0 +1,46 @@
+# 第三方组件与许可（NOTICE）
+
+本仓库（Meta-Plugin）在实现中复用/移植了以下第三方组件。按各自许可保留声明。
+**本文件是人读的说明性文档**；实际代码里也有对应的文件头注释与出处标注。
+
+---
+
+## 1. miao-plugin —— 攻略页版式、字体与图标资源
+
+- **用途**：`resources/codex/codex.html`（原神攻略页）**沿用 miao 的角色图鉴页版式与类名**，
+  并通过框架注入的 `{{_miao_path}}` / `{{extend elemLayout}}` 在**运行时**引用 miao 的
+  样式（`common/tpl.css`、`character/profile-detail.css`、`wiki/character-wiki.css`）、
+  字体与图标资源；本仓库**不复制也不再分发** miao 的 CSS 与字体资产。
+- **许可**：MIT License，Copyright (c) 2023 Yoimiya（上游 [yoimiya-kokomi/miao-plugin](https://github.com/yoimiya-kokomi/miao-plugin)）。
+  本机部署的是 **AxiuCN 维护的 fork 改版**（其 README 首段声明）。
+- **依赖关系**：miao-plugin 是本插件的**必需依赖**（另见角色立绘 / 别名解析）。缺失时攻略页会失去样式，
+  但插件不会报错（状态页会显示资源来源）。
+
+## 2. Atlas-Plugin —— v2 行构造器（移植）
+
+- **用途**：`scripts/lib/v2-sections.mjs` 的 v2 → sections 行构造器
+  （`v2WeaponRows` / `v2ArtifactRows` / `v2TalentRows` / `v2PanelRows` / `v2ConstellationRows` / `v2TeamRows`
+  及 `gapSeps` / `rankItem` / `inlineLabel` / `splitTop` / `isBlankText` 等辅助）
+  **移植自** `Atlas-Plugin` 的 `model/codexIndex/parse.js`。
+- **许可与授权**：Atlas-Plugin 作者 AxiuCN；经作者同意复用其插件内部模块（其口径：给出必要理由即可导出/适配）。
+- **验证**：`test/codex-parity.test.mjs` 会对抽样角色与 Atlas 同名实现逐字段对照
+  （开发机存在 Atlas 时全库 131/131 一致）。
+
+## 3. Mhydps-Plugin —— 基础样式与组件（迁移，非第三方）
+
+- **用途**：`resources/common/base.css`、`resources/common/components.css`（配色令牌、字体声明、卡片/网格组件）
+  自 Mhydps-Plugin 迁入；该类文件作者即本仓库维护者（Hyposelenia），随本次合并一并迁入。
+
+## 4. 字体
+
+- 攻略页与帮助页使用的字体文件（汉仪文黑等）**不随本仓库分发**：
+  攻略页在运行时引用 miao-plugin 的字体资源；帮助页在缺少字体时回落系统字体。
+  本仓库 `.gitignore` 明确排除 `*.ttf` / `*.otf`。
+
+---
+
+## 与其他文档的关系
+
+- 设计文档（工作区外，`D:\Downloads\设计草案-新插件（待与阿修确认）.md`）§6 / §8 记录了
+  「攻略页与 miao 图鉴一致」这一决策及其许可约束。
+- 交接文档（工作区外，`D:\Downloads\Meta-Plugin-交接文档.md`）的 1.3c 记录了落地步骤与验收。
