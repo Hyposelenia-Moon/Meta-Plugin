@@ -13,6 +13,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import YAML from 'yaml'
 import { configDir } from '../dir.js'
+import { MAX_PAGE_SIZE } from './constants.js'
 
 /** 运行时配置的形状（新增键时：同轮同步 defSet 模板、example、guoba 的 TEMPLATE_VARS/DEFAULTS） */
 export interface MetaConfig {
@@ -119,9 +120,22 @@ export function loadConfig (): MetaConfig {
   }
 }
 
+/**
+ * 渲染缩放的夹取（0.5 ~ 3）
+ *
+ * 合并自 `Mhydps-Plugin/components/config.js` 的 `clampRenderScale()`：
+ *   `null` / `undefined` / 空串视为「没配」→ 回落默认值（`Number(null)` 是 0，不特判会被夹成 0.5）。
+ */
+export function clampRenderScale (value: unknown): number {
+  if (value === null || value === undefined || value === '') return defaultConfig.renderScale
+  const num = Number(value)
+  if (!Number.isFinite(num)) return defaultConfig.renderScale
+  return Math.min(3, Math.max(0.5, num))
+}
+
 /** 渲染缩放（渲染模块用） */
 export function getRenderScale (): number {
-  return loadConfig().renderScale
+  return clampRenderScale(loadConfig().renderScale)
 }
 
 /**
@@ -148,16 +162,21 @@ export function getDpsTimeoutMs (): number {
   return Math.min(120000, Math.max(3000, Math.floor(value)))
 }
 
-/** 练度查询（akasha）代理：不填则直连（akasha 自己不在墙内） */
+/** 练度查询（akasha）代理：不填则直连（akasha 自己不在墙内）；首尾空白会被修剪 */
 export function getAkashaProxy (): string {
-  return String(loadConfig().akashaProxy ?? '')
+  return String(loadConfig().akashaProxy ?? '').trim()
 }
 
-/** 练度查询超时（毫秒；夹取到 3s ~ 120s，与榜单同一口径） */
+/**
+ * 练度查询超时（毫秒）
+ *
+ * 合并自 `Mhydps-Plugin/components/config.js` 的 `getAkashaTimeoutMs()`：夹取 **5s ~ 180s**
+ * （akasha 走浏览器会话，单次比榜单慢，上下限都比 `dpsTimeoutMs` 宽）。
+ */
 export function getAkashaTimeoutMs (): number {
   const value = Number(loadConfig().akashaTimeoutMs)
   if (!Number.isFinite(value)) return defaultConfig.akashaTimeoutMs
-  return Math.min(120000, Math.max(3000, Math.floor(value)))
+  return Math.min(180000, Math.max(5000, Math.floor(value)))
 }
 
 /** 练度缓存 TTL（分钟；非法值回落默认、最小 1） */
@@ -167,18 +186,18 @@ export function getAkashaCacheTtlMinutes (): number {
   return Math.floor(value)
 }
 
-/** 单次最多展示的角色数（练度查询） */
+/** 单次最多展示的角色数（练度查询；夹取 1 ~ 30） */
 export function getAkashaMaxChars (): number {
   const value = Number(loadConfig().akashaMaxChars)
   if (!Number.isFinite(value) || value < 1) return defaultConfig.akashaMaxChars
-  return Math.floor(value)
+  return Math.min(30, Math.floor(value))
 }
 
 /** 榜单每页条数（夹取 1 ~ `MAX_PAGE_SIZE`，避免用户把图撑爆） */
 export function getPageSize (): number {
   const value = Number(loadConfig().dpsPageSize)
   if (!Number.isFinite(value) || value < 1) return defaultConfig.dpsPageSize
-  return Math.floor(value)
+  return Math.min(MAX_PAGE_SIZE, Math.floor(value))
 }
 
 /** 练度查询开关（锅巴 → 数据源二 · akasha.cv） */
@@ -186,9 +205,9 @@ export function getAkashaEnabled (): boolean {
   return loadConfig().akashaEnabled !== false
 }
 
-/** 榜单 / 危战请求代理（不填则直连） */
+/** 榜单 / 危战请求代理（不填则直连）；首尾空白会被修剪 */
 export function getProxy (): string {
-  return String(loadConfig().proxy ?? '')
+  return String(loadConfig().proxy ?? '').trim()
 }
 
 /**
