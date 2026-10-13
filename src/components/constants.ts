@@ -309,3 +309,46 @@ export function matchDpsCommand (msg: string): { key: DpsRuleKey, match: RegExpM
   }
   return null
 }
+
+/* ---------- `#DPS…` 各 app 的命令元数据（名称 / 帮助文案 / 权限 / 优先级偏移） ---------- */
+
+/**
+ * 一条 `#DPS…` 命令的元数据
+ *
+ * 这些值原先写在各 `apps/*.js` 的 `class` 里（`name` / `dsc` / `permission` / `priority`）；
+ * 提到常量层是为了：① 4.5 的 app 只剩薄壳；② 帮助页与状态页有唯一的数据源；
+ * ③ 套件能断言「文案里写的命令，其正则真的命中」。
+ */
+export interface DpsCommandMeta {
+  /** 归属的规则键（一个 app 可能有多条规则，如视频 app） */
+  rules: DpsRuleKey[]
+  /** 插件名（框架日志里的 `NameXX`） */
+  name: string
+  /** 帮助文案 */
+  dsc: string
+  /** 权限（`master` = 仅主人可用） */
+  permission: 'master' | 'all'
+  /** 相对 `config.priority` 的偏移（合并前各 app 的写法，负值 = 更早判定） */
+  priorityOffset: number
+}
+
+/**
+ * `#DPS…` 命令元数据表（顺序 = 帮助页展示顺序）
+ *
+ * ⚠ **视频命令的文案已按用户 2026-10-13 的决定修正**：合并前 `apps/video.js` 的
+ *   `dsc` 写的是 `#DPS榜视频`，而正则其实是 `#DPS视频`（`RANK_VIDEO_RE`），
+ *   导致按文案输入 `#DPS榜视频 3` 会被榜单规则吃成「榜单 + 参数『榜视频 3』」。
+ *   裁定：**正则保持逐字不变（`#DPS视频`）**，只把文案改成与之一致 →
+ *   `#DPS视频 <名次>` / `#DPS危战视频 <名次>`。
+ *   `test/dps-commands.test.mjs` 有一条门禁：文案里出现的每个命令都必须被该 app 的正则命中。
+ */
+export const DPS_COMMANDS: ReadonlyArray<DpsCommandMeta> = [
+  { rules: ['rank'], name: 'MhydpsDPS榜', dsc: '#DPS榜 [角色] [金数] [标签] [主C] [绿玩] [页N]', permission: 'all', priorityOffset: 0 },
+  { rules: ['raid'], name: 'Mhydps危战榜', dsc: '#DPS危战榜 [版本] [首领] [角色] [金数] [页N]', permission: 'all', priorityOffset: -20 },
+  { rules: ['build'], name: 'Mhydps练度查询', dsc: '#DPS练度查询 [角色] [UID]', permission: 'all', priorityOffset: -50 },
+  { rules: ['status'], name: 'Mhydps状态', dsc: '#DPS状态', permission: 'all', priorityOffset: -10 },
+  // 文案已修正（原为 `#DPS榜视频`，与正则不符）
+  { rules: ['video', 'raidVideo'], name: 'Mhydps视频查询', dsc: '#DPS视频 <名次> / #DPS危战视频 <名次>', permission: 'all', priorityOffset: -100 },
+  { rules: ['help'], name: 'Mhydps帮助', dsc: '#DPS帮助', permission: 'all', priorityOffset: -10 },
+  { rules: ['admin'], name: 'Mhydps数据管理', dsc: '#DPS更新 / #DPS强制更新 / #DPS刷新', permission: 'master', priorityOffset: -10 }
+]
