@@ -24,6 +24,9 @@ if (!fs.existsSync(snapFile)) {
   process.exit(1)
 }
 const snap = JSON.parse(readText(snapFile))
+// 快照那一侧也把 video 抹空（理由见 strip 上方注释），这样新实现的修复不会把"等价"判红
+snap.rank = snap.rank.map(blankVideo)
+snap.raid = snap.raid.map(blankVideo)
 
 // ---------- 环境：把抽样缓存当作运行时缓存 ----------
 const tmp = ensureTmp()
@@ -60,8 +63,18 @@ const DQ = await load('modules/raidQuery.js')
 const FT = await load('modules/formatText.js')
 const QA = await load('modules/queryArgs.js')
 
-/** 去掉随运行时间变化的字段（快照里也没有它） */
-const strip = (r) => JSON.parse(JSON.stringify(r, (k, v) => (k === 'ageMs' ? undefined : v)))
+/**
+ * 去掉随运行时间变化的字段（`ageMs`），并把 `video` 归一为 `''`
+ *
+ * 为什么抹掉 video：旧实现读**磁盘缓存**时只认 API 字段 `video_url`，而缓存里存的是归一化后的
+ * `video` —— 于是"从缓存重载"会丢掉全部视频链接（上游缺陷）。P1 已修为两个字段都认
+ * （`TeamStore.normalizeTeams` / `normalizeTeams2`）。本套件比的是"与合并前逐字一致"，
+ * 因此该字段按"两边都空"比对；**视频是否真的保留由 `test/char-dps.test.mjs` 专门钉住**。
+ */
+function blankVideo (v) {
+  return JSON.parse(JSON.stringify(v, (k, val) => (k === 'video' ? '' : val)))
+}
+const strip = (r) => blankVideo(JSON.parse(JSON.stringify(r, (k, v) => (k === 'ageMs' ? undefined : v))))
 
 // ---------- 1. DPS 榜查询 ----------
 {

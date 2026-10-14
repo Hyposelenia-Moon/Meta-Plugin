@@ -25,7 +25,9 @@ const TEMPLATES = {
   rank: { app: 'rank', bg: 'bg-rank.jpg' },
   raid: { app: 'raid', bg: 'bg-raid.jpg' },
   status: { app: 'status', bg: 'bg-status.jpg' },
-  help: { app: 'help', bg: 'bg-help.jpg' }
+  help: { app: 'help', bg: 'bg-help.jpg' },
+  'char-dps': { app: 'char-dps', bg: 'bg-rank.jpg' },
+  tiers: { app: 'tiers', bg: 'bg-raid.jpg' }
 }
 
 // ---------- 1. 模板与背景图 ----------
@@ -41,7 +43,7 @@ for (const [tpl, meta] of Object.entries(TEMPLATES)) {
 }
 
 // 榜单/危战页引用头像缓存（练度/状态页不需要）
-for (const tpl of ['rank', 'raid']) {
+for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   ok(`${tpl}: 引用 out/ 下的头像缓存路径`, readText(path.join(tplDir, `${tpl}.html`)).includes('{{_data_path}}/avatar/'))
 }
 
@@ -69,6 +71,8 @@ for (const tpl of ['rank', 'raid']) {
   const APP_DATA = {
     rank: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'page', 'totalPages', 'pageSize', 'rows'],
     raid: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'page', 'totalPages', 'rows'],
+  'char-dps': ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tierCount', 'tiers'],
+  tiers: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tiers'],
     status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
   }
   const LOOP = new Set(['row', 'rows', 'c', 'item', 's', 'r', '$data', 'member', 'team'])

@@ -36,6 +36,9 @@
   - 代码（TS 端口化）：`src/model/{TeamStore,MhydpsClient,AvatarStore,CharacterIndex,AkashaClient,AkashaBrowser,MiaoPanel}`、
     `src/modules/{queryArgs,teamView,rankQuery,raidQuery,akashaQuery,formatText,respond}`、
     `src/apps/{rank,raid,status,video,admin,build}`、`src/components/{config,constants,pluginVersion,render}` 的相关部分
+  - **v3 P1 新增**（2026-10-14，仍属本插件自研）：`src/modules/{charDpsQuery,raidTiersQuery}.ts`
+    （`#xx dps` 的金档分组、`#危战` 的 n6/n7 分档）、`src/apps/{charDps,raidTiers}.ts`、
+    `resources/dps/{char-dps,tiers}.html`（复用已有 4 张底图）、`test/{char-dps,raid-tiers}.test.mjs`
   - 资源：`resources/dps/*.html`（榜单 / 危战 / 状态 / 帮助模板）、`resources/common/bg-*.jpg`（4 张插画底）、
     `resources/common/font/*`、`resources/common/{base,components}.css`、`resources/data/{characters,bosses}.json`
   - 测试：16 个套件迁入本仓库（`test/*.test.mjs`），并冻结了与合并前**逐字等价**的快照

@@ -50,7 +50,7 @@ check('命令条目不重复', new Set(titles).size === titles.length, titles.fi
 
 // ---- 覆盖率：合并后的帮助页要同时覆盖**攻略侧**与**榜单侧**（阶段 5 合并）----
 //   #练度查询 这种 v3 新入口还没实现，等实现后再加进本表
-const needCover = ['#DPS榜', '#DPS危战榜', '#DPS练度查询', '#DPS视频', '#DPS状态', '#DPS帮助', '#DPS更新', '#胡桃攻略', '#攻略 胡桃', '#攻略帮助']
+const needCover = ['#胡桃dps', '#危战', '#DPS榜', '#DPS危战榜', '#DPS练度查询', '#DPS视频', '#DPS状态', '#DPS帮助', '#DPS更新', '#胡桃攻略', '#攻略 胡桃', '#攻略帮助']
 // 规范写法放 title，其余等价写法写在 desc 里（本套件一贯的「其余写法并进说明」）→ 两处都算覆盖
 const combined = items.map(i => [i.title, i.desc].join(' '))
 const missing = needCover.filter(k => !combined.some(t => t.includes(k)))

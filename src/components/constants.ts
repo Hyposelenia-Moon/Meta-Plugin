@@ -319,6 +319,64 @@ export function matchDpsCommand (msg: string): { key: DpsRuleKey, match: RegExpM
   return null
 }
 
+/* ---------- v3 新入口（P1，2026-10-13）：`#xx dps` 与 `#危战` ----------
+ *
+ * ⚠ 与上面的 `DPS_RULES` **分开维护**：那一份是合并前 `Mhydps-Plugin` 的冻结面
+ *   （`test/constants-parity.test.mjs` 逐字对照快照），新入口不混进去。
+ */
+
+export const ENTRY_RULES = {
+  /**
+   * `#胡桃dps` / `#胡桃 dps 12金` —— 该角色**各金档**的最高伤害队伍
+   *
+   * 前导角色名至少一个非 `#`/空白字符；因此 `#DPS榜` / `#DPS状态` 这类**不会**被本规则吞掉
+   * （`dps` 之前没有角色名），仍由 `DPS_RULES` 的旧命令接管。
+   */
+  charDps: /^#?([^#\s]\S{0,10}?)\s*[dD][pP][sS](?:\s+([\s\S]+))?$/,
+  /** `#危战` / `#危战 7.1` / `#危战 矮灵雕刻师` —— 危战 n6 / n7 两档 */
+  raidTiers: /^#?危战(?:\s+([\s\S]+))?$/
+} as const
+
+export type EntryRuleKey = keyof typeof ENTRY_RULES
+
+/** 消息命中的 v3 新入口（`raidTiers` 在前：`#危战` 更具体） */
+export function matchEntryCommand (msg: string): { key: EntryRuleKey, match: RegExpMatchArray } | null {
+  const text = String(msg ?? '')
+  const order: EntryRuleKey[] = ['raidTiers', 'charDps']
+  for (const key of order) {
+    const match = text.match(ENTRY_RULES[key])
+    if (match) return { key, match }
+  }
+  return null
+}
+
+/** v3 新入口的命令元数据（形状与 `DPS_COMMANDS` 一致，供 app 与套件共用） */
+export const ENTRY_COMMANDS: ReadonlyArray<{
+  key: string
+  rules: EntryRuleKey[]
+  name: string
+  dsc: string
+  permission: 'master' | 'all'
+  priorityOffset: number
+}> = [
+  {
+    key: 'charDps',
+    rules: ['charDps'],
+    name: 'Meta角色DPS档位',
+    dsc: '#胡桃dps [金数] — 该角色各金档的最高伤害队伍（含视频）',
+    permission: 'all',
+    priorityOffset: -5
+  },
+  {
+    key: 'raidTiers',
+    rules: ['raidTiers'],
+    name: 'Meta危战档位',
+    dsc: '#危战 [版本/首领/角色] — 幽境危战 n6 / n7 两档',
+    permission: 'all',
+    priorityOffset: -5
+  }
+]
+
 /* ---------- `#DPS…` 各 app 的命令元数据（名称 / 帮助文案 / 权限 / 优先级偏移） ---------- */
 
 /**

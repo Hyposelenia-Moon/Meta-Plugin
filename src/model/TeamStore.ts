@@ -201,7 +201,9 @@ export function normalizeTeams (raw: unknown): TeamRecord[] {
       lvl: t.lvl === true,
       confirm: t.confirm !== false,
       tags: Array.isArray(t.tags) ? (t.tags as unknown[]).filter(Boolean).map(v => String(v)) : [],
-      video: String(t.video_url || ''),
+      // 站点 API 给 `video_url`；但**磁盘缓存里存的是归一化后的 `video`** —— 两个都要认，
+      // 否则从缓存重载（重启 bot / 未联网）会丢掉全部视频链接（P1 实测踩到）。
+      video: String(t.video_url || t.video || ''),
       info: String(t.info || ''),
       members: membersOf(t.members)
     }))
@@ -225,7 +227,8 @@ export function normalizeTeams2 (raw: unknown): RaidRecord[] {
       clean: t.clean === true,
       lvl: t.lvl === true,
       confirm: t.confirm !== false,
-      video: String(t.video_url || ''),
+      // 同 normalizeTeams：API 是 `video_url`，缓存里是 `video`，两个都认
+      video: String(t.video_url || t.video || ''),
       members: membersOf(t.members)
     }))
 }

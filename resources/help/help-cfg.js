@@ -36,6 +36,7 @@ export const helpList = [
   {
     group: 'DPS 榜单',
     list: [
+      { title: '#胡桃dps', desc: '该角色各金档的最高伤害队伍（每档最多 2 条，带视频标记）' },
       { title: '#DPS榜', desc: 'DPS 配队总榜；「榜」字可省，如 #DPS' },
       { title: '#DPS榜 胡桃', desc: '只看含该角色的配队，支持别名（火神 / 桃 / 爷）' },
       { title: '#DPS榜 金≤12', desc: '金数筛选：金≥8 / 8-12金 亦可；可加 主C / 绿玩 / -p2' }
@@ -44,6 +45,8 @@ export const helpList = [
   {
     group: '危战榜单',
     list: [
+      { title: '#危战', desc: 'n6 / n7 两档：n7 = 70s 内，n6 看越近 120s 的' },
+      { title: '#危战 7.1', desc: '按版本或首领筛；#危战 矮灵雕刻师 亦可' },
       { title: '#DPS危战榜', desc: '幽境危战收录：金数升序，同金数比耗时' },
       { title: '#DPS危战榜 7.1', desc: '按版本或首领筛（首领可只写简称，如 矮灵雕刻师）' }
     ]

@@ -9,6 +9,7 @@
 import { DPS_COPYRIGHT, SITE_NAME, formatTime } from '../components/constants.js'
 import { bigNumText } from './akashaQuery.js'
 import type { AkashaView } from './akashaQuery.js'
+import type { MemberView } from './teamView.js'
 
 /** 榜单记录的一行视图（`rankQuery.buildRows` / `raidQuery.buildRows` 的产物） */
 export interface ViewRow {
@@ -20,10 +21,18 @@ export interface ViewRow {
   clean?: boolean
   lvl?: boolean
   video?: string
-  chars: Array<{ name: string, cText: string }>
-  /** DPS 榜专有 */
+  /**
+   * 配队成员（`teamView.memberViews` 的产物，含命座与本地立绘 id）
+   *
+   * ⚠ 原先只写了 `{ name, cText }`，与运行时不符：模板一直用着 `avatar` / `constellation`；
+   *    P1 的文本回退也要用 `constellation`，故补全为 `MemberView`。
+   */
+  chars: MemberView[]
+  /** DPS 榜专有：期望 DPS 原始值（展示用 `damageText`） */
+  damage?: number
   damageText?: string
-  /** 危战榜专有 */
+  /** 危战榜专有：耗时秒数（展示用 `speedText`） */
+  speed?: number
   speedText?: string
   ver?: string
   bossName?: string
