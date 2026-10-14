@@ -76,7 +76,7 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   'char-dps': ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tierCount', 'tiers'],
   tiers: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tiers'],
   grade: ['title', 'subtitle', 'uid', 'ranks', 'total', 'panelTier', 'dims', 'rows', 'groups', 'suggestions', 'notes'],
-  'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes'],
+  'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes', 'referenceDps', 'referenceTotal', 'window', 'axisLabel', 'axisManual', 'patchLabel', 'contributions'],
     status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
   }
   const LOOP = new Set(['row', 'rows', 'c', 'item', 's', 'r', '$data', 'member', 'team'])

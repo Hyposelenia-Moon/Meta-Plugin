@@ -399,7 +399,7 @@ export const ENTRY_COMMANDS: ReadonlyArray<{
     key: 'teamDamage',
     rules: ['teamDamage'],
     name: 'Meta队伍伤害',
-    dsc: '#队伍伤害 胡桃 行秋 夜兰 钟离 — 整队关键伤害 + 同阵容参考',
+    dsc: '#队伍伤害 胡桃 行秋 夜兰 钟离 [轴:重击×8@21s] [词条:暴击率+20] — 整队关键伤害 + 参考 DPS + 同阵容参考',
     permission: 'all',
     priorityOffset: -5
   }

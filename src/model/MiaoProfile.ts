@@ -13,6 +13,7 @@
 import { ENKA_PROP_CN } from '../components/constants.js'
 import { miaoPluginDir } from './MiaoPanel.js'
 import type { BuildArtifact, BuildSnapshot } from '../modules/grade.js'
+import { applyStatPatch } from '../modules/statPatch.js'
 
 /** Enka/miao 的圣遗物顺序（`EnkaData.artisIdxMap` 与面板渲染都按这个次序） */
 const SLOTS = ['生之花', '死之羽', '时之沙', '空之杯', '理之冠']
@@ -243,11 +244,18 @@ function damageRowsOf (raw: unknown): Array<{ title: string, value: number }> {
  *     "组团伤害"（跨角色 buff 叠加）由 miao 的系统配置 `teamCalc` 决定，本插件**不擅自改用户配置**：
  *     没开时提示"在 miao 侧开启组团伤害可让数值更贴近实战"。
  */
+export interface TeamDamageOptions {
+  /** 可调节词条：临时改面板属性后重算（不改用户 miao 配置） */
+  patch?: { items: Array<{ attrKey: string, delta: number, name: string }>, invalid?: string[] }
+}
+
 export async function readTeamDamage (
   e: YunzaiEvent,
   names: string[],
-  explicitUid = ''
+  explicitUid = '',
+  opts: TeamDamageOptions = {}
 ): Promise<TeamDamageResult | ProfileFailure> {
+  const patch = opts.patch?.items?.length ? opts.patch : null
   if (!miaoPluginDir()) {
     return { ok: false, error: '未找到 miao-plugin（必需依赖）：请确认它已安装在 bot 的 plugins 目录' }
   }
@@ -301,7 +309,22 @@ export async function readTeamDamage (
       } catch { /* 拿不到就不标注 */ }
 
       let dmgRaw: unknown = []
-      if (typeof avatar.calcDmg === 'function') {
+      if (patch) {
+        // 有词条：按 miao `Avatar.calcDmg` 的同一份构造方式重建 ProfileDmg，只把 attr 换掉
+        try {
+          const ProfileDmg = models.ProfileDmg || (await import(miaoUrl('models/ProfileDmg.js'))).default
+          const ds = avatar.getData('id,level,elem,attr,cons,artis:artis.sets,trees,uid') as Record<string, unknown>
+          ds.talent = Object.fromEntries(Object.entries((avatar.talent || {}) as Record<string, unknown>)
+            .map(([k, v]) => [k, Number((v as Record<string, unknown>)?.level) || 0]))
+          ds.weapon = { name: avatar.weapon?.name, affix: avatar.weapon?.affix, level: avatar.weapon?.level }
+          ds.attr = applyStatPatch((avatar.attr || {}) as Record<string, number>, patch as never)
+          const dmg = new ProfileDmg(ds, 'gs')
+          dmgRaw = await dmg.calcData({ enemyLv: 103, mode: 'profile' })
+        } catch (err) {
+          notes.push(`${local.name}：词条重算失败，已回退到原面板（${(err as Error)?.message || err}）`)
+          if (typeof avatar.calcDmg === 'function') dmgRaw = await avatar.calcDmg({ enemyLv: 103, mode: 'profile' })
+        }
+      } else if (typeof avatar.calcDmg === 'function') {
         dmgRaw = await avatar.calcDmg({ enemyLv: 103, mode: 'profile' })
       }
 
@@ -335,5 +358,6 @@ export async function readTeamDamage (
   if (members.some(m => m.ruleBy && m.ruleBy !== '组团伤害')) {
     notes.push('队伍 buff：部分角色用的是 miao 的单人规则；在 miao 侧开启「组团伤害」（系统配置 teamCalc）后数值会更贴近实战')
   }
+  if (patch) notes.push('本次伤害按你给的词条临时重算（未改动 miao 面板里的任何数据）')
   return { ok: true, uid: resolved.uid, members, notes }
 }

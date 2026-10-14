@@ -77,6 +77,25 @@
         </div>
       </div>
 
+      <!-- 参考 DPS（P4）：轴 + 窗口 + 各队员贡献 -->
+      <div class="card body-card">
+        <div class="card-title">参考 DPS{{if !axisManual}}（默认轴）{{/if}}</div>
+        <div class="tm-hero">
+          <div class="tm-cost num">{{referenceDps}}</div>
+          <div class="tm-cost-note">窗口 {{window}}s｜窗口内总伤 {{referenceTotal}}</div>
+        </div>
+        <div class="dmg-row">
+          <div class="dmg-title">{{axisLabel}}</div>
+        </div>
+        {{if patchLabel}}<div class="dmg-row"><div class="dmg-title">可调节词条：{{patchLabel}}</div></div>{{/if}}
+        {{each contributions c}}
+        <div class="dmg-row">
+          <div class="dmg-title">{{c.charName}}</div>
+          <div class="dmg-value num">{{c.damageText}}</div>
+        </div>
+        {{/each}}
+      </div>
+
       <!-- 每个队员：关键伤害 -->
       {{each members m}}
       <div class="card body-card tm-card">

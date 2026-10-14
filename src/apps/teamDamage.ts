@@ -1,22 +1,26 @@
 /**
- * `#队伍伤害` —— 整队配装的关键伤害 + 同阵容参考（v3 P3 v1）
+ * `#队伍伤害` —— 整队配装的关键伤害 + 参考 DPS + 同阵容参考（v3 P3 v1 / P4 v2）
  *
- * 例：`#队伍伤害 胡桃 行秋 夜兰 钟离`（四人名；账号走 miao 的米游社绑定，可另附 10 位 UID）
+ * 例：
+ *   `#队伍伤害 胡桃 行秋 夜兰 钟离`                        ← 默认轴
+ *   `#队伍伤害 胡桃 行秋 夜兰 钟离 轴:重击×8@21s`          ← 手动轴
+ *   `#队伍伤害 胡桃 行秋 夜兰 钟离 词条:暴击率+20,暴击伤害+40` ← 可调节词条
+ *   （可另附 10 位 UID；账号默认走 miao 的米游社绑定）
  *
- * v1 口径（与 v3 方案 §5.5 对齐，差异见页面脚注）：
- *   - 每人关键伤害 = miao 的 `avatar.calcDmg()`（与 miao 面板同一套算法），并标注该角色用的是
- *     哪份伤害规则（喵喵 / 组团伤害 / 自定义伤害）；
- *   - **跨角色 buff 叠加（组团伤害）由 miao 的系统配置 `teamCalc` 决定**，本插件不擅自改配置，
- *     没开时在页面上提示；
- *   - 参考区列出 **mhydps 同阵容**记录（按"金数最接近"再按伤害降序），金数为**估算**（页面写"约 N 金"）。
- *   - v2 才做"简化轴 → 队伍参考 DPS"与可调节词条。
+ * 口径：
+ *   - 每人关键伤害 = miao 的 `avatar.calcDmg()`（与 miao 面板同一套算法），并标注伤害规则来源；
+ *   - **参考 DPS** = 轴下各队员伤害之和 ÷ 窗口（默认轴：每人最高单次 ×1／20s，只作横向比较）；
+ *   - **词条**是"临时改面板属性后重算"，**不改动** miao 面板里的任何数据；
+ *   - 跨角色 buff 叠加（miao 的「组团伤害」）由 miao 系统配置 `teamCalc` 决定，本插件不擅自改配置。
  *
  * ⚠ 本文件只导出插件类：`src/index.ts` 的加载器取「模块首个导出」当插件类。
  */
 import { getPluginConfig, getProxy } from '../components/config.js'
 import { COPYRIGHT, ENTRY_COMMANDS, ENTRY_RULES } from '../components/constants.js'
-import { buildTeamDamageView } from '../modules/teamDamage.js'
+import { buildTeamDamageView, parseTeamArgs } from '../modules/teamDamage.js'
 import type { TeamDamageView } from '../modules/teamDamage.js'
+import { defaultAxis, parseAxis, teamDps } from '../modules/rotation.js'
+import { parseStatPatch, patchLabel } from '../modules/statPatch.js'
 import { readTeamDamage } from '../model/MiaoProfile.js'
 import type { TeamMemberDamage } from '../model/MiaoProfile.js'
 import { respond } from '../modules/respond.js'
@@ -27,32 +31,24 @@ import plugin from '../../../../lib/plugins/plugin.js'
 /** 本 app 的命令元数据（见 components/constants.ts 的 ENTRY_COMMANDS） */
 const META = ENTRY_COMMANDS.find(c => c.rules.includes('teamDamage'))!
 
-/** 把参数拆成「四人名 + 可选 UID」（支持空格 / 顿号 / 逗号分隔） */
-export function parseTeamArgs (raw: string): { names: string[], uid: string } {
-  const parts = String(raw || '')
-    .split(/[\s、,，/|]+/)
-    .map(s => s.trim())
-    .filter(Boolean)
-  let uid = ''
-  const names: string[] = []
-  for (const p of parts) {
-    if (/^[1-9]\d{8}$/.test(p) && !uid) {
-      uid = p
-      continue
-    }
-    names.push(p)
-  }
-  return { names, uid }
-}
-
-/** 文本回退：队员伤害 + 参考 */
-export function teamDamageText (members: TeamMemberDamage[], view: TeamDamageView, uid: string): string {
+/** 文本回退：队员伤害 + 参考 DPS + 同阵容参考 */
+export function teamDamageText (
+  members: TeamMemberDamage[],
+  view: TeamDamageView,
+  uid: string,
+  dps: { total: number, dps: number, window: number, axis: { label: string }, members: Array<{ charName: string, damage: number }> },
+  patchText: string
+): string {
   const lines = [`【队伍伤害】约 ${view.approxCost} 金（${view.costNote}）　UID ${uid}`, '']
   for (const m of members) {
     lines.push(`· ${m.charName} C${m.cons}｜${m.weapon?.name || '无武器'}${m.weapon?.affix ? ` 精${m.weapon.affix}` : ''}｜天赋 A${m.talent.A}/E${m.talent.E}/Q${m.talent.Q}${m.ruleBy ? `｜规则：${m.ruleBy}` : ''}`)
     for (const row of m.rows.slice(0, 4)) lines.push(`    ${row.title}：${Math.round(row.value).toLocaleString('en-US')}`)
     if (!m.rows.length) lines.push('    （没有取到伤害行）')
   }
+  lines.push('', `参考 DPS：${Math.round(dps.dps).toLocaleString('en-US')}（窗口 ${dps.window}s，总伤 ${Math.round(dps.total).toLocaleString('en-US')}）`)
+  lines.push(`  ${dps.axis.label}`)
+  if (patchText) lines.push(`  词条：${patchText}`)
+  for (const c of dps.members) lines.push(`  · ${c.charName}：${Math.round(c.damage).toLocaleString('en-US')}`)
   lines.push('', `同阵容参考（共 ${view.refTotal} 条，按金数最接近排序）：`)
   if (!view.refs.length) lines.push('  （暂无）')
   for (const r of view.refs) {
@@ -78,36 +74,48 @@ export class MetaTeamDamage extends plugin {
   }
 
   /**
-   * `#队伍伤害 胡桃 行秋 夜兰 钟离 [UID]`
+   * `#队伍伤害 胡桃 行秋 夜兰 钟离 [轴:…] [词条:…] [UID]`
    */
   async handleTeamDamage (e: YunzaiEvent): Promise<boolean> {
     const match = String(e.msg).match(ENTRY_RULES.teamDamage) || []
-    const { names, uid } = parseTeamArgs(match[1] || '')
+    const { names, uid, axisText, patchText } = parseTeamArgs(match[1] || '')
 
     if (names.length !== 4) {
-      await e.reply('[Meta] 用法：#队伍伤害 胡桃 行秋 夜兰 钟离（四个角色名；账号走 miao 的米游社绑定，可另附 10 位 UID）')
+      await e.reply('[Meta] 用法：#队伍伤害 胡桃 行秋 夜兰 钟离 [轴:重击×8@21s] [词条:暴击率+20]（四个角色名；账号走 miao 的米游社绑定，可另附 10 位 UID）')
       return true
     }
 
-    const result = await readTeamDamage(e, names, uid)
+    const patch = parseStatPatch(patchText)
+    const axis = axisText ? parseAxis(axisText) : defaultAxis()
+    const result = await readTeamDamage(e, names, uid, { patch: patch.items.length ? patch : undefined })
     if (!result.ok) {
       if (!result.prompted) await e.reply(`[Meta] ${result.error}`)
       return true
     }
 
     // 同阵容参考：用榜单缓存（与 `#DPS榜` 同一份；联网开关与代理同口径）
-    let teams: TeamRecordLike[] = []
+    let teams: unknown[] = []
     try {
       const { ensureFresh, getSnapshot } = await import('../model/TeamStore.js')
       await ensureFresh({ proxy: getProxy() })
-      teams = getSnapshot().teams as unknown as TeamRecordLike[]
-    } catch { /* 取不到就不给参考区，伤害部分照常出 */ }
+      teams = getSnapshot().teams as unknown[]
+    } catch { /* 取不到就不给参考区，伤害与 DPS 照常出 */ }
 
     const view = buildTeamDamageView(result.members, teams as never)
+    const dps = teamDps(result.members.map(m => ({ charName: m.charName, rows: m.rows })), axis)
+
     const data = {
       title: '队伍伤害',
-      subtitle: `约 ${view.approxCost} 金（${view.costNote}）｜同阵容参考 ${view.refTotal} 条`,
+      subtitle: `约 ${view.approxCost} 金（${view.costNote}）｜参考 DPS ${Math.round(dps.dps).toLocaleString('en-US')}｜同阵容参考 ${view.refTotal} 条`,
       uid: result.uid,
+      referenceDps: Math.round(dps.dps).toLocaleString('en-US'),
+      referenceTotal: Math.round(dps.total).toLocaleString('en-US'),
+      window: dps.window,
+      axisLabel: dps.axis.label,
+      axisManual: dps.axis.manual,
+      patchLabel: patchLabel(patch),
+      patchInvalid: patch.invalid,
+      contributions: dps.members.map(c => ({ charName: c.charName, damageText: Math.round(c.damage).toLocaleString('en-US') })),
       members: result.members.map(m => ({
         ...m,
         weaponText: m.weapon?.name ? `${m.weapon.name}${m.weapon.affix ? ` 精${m.weapon.affix}` : ''}` : '—',
@@ -120,13 +128,10 @@ export class MetaTeamDamage extends plugin {
       })),
       refTotal: view.refTotal,
       approxCost: view.approxCost,
-      notes: [...result.notes, ...view.notes],
+      notes: [...result.notes, ...view.notes, ...dps.notes],
       copyright: COPYRIGHT
     }
 
-    return await respond(e, 'team-damage', data, () => teamDamageText(result.members, view, result.uid))
+    return await respond(e, 'team-damage', data, () => teamDamageText(result.members, view, result.uid, dps, patchLabel(patch)))
   }
 }
-
-/** 只为类型标注用（避免在 app 里直接 import 榜单记录类型） */
-type TeamRecordLike = Parameters<typeof buildTeamDamageView>[1] extends Array<infer T> ? T : never

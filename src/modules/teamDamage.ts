@@ -136,3 +136,36 @@ export function buildTeamDamageView (
     notes
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * 参数解析（从 app 里挪出来：纯函数才能离线单测）
+ * ------------------------------------------------------------------ */
+
+/** 从参数里分离出「轴:」「词条:」两个特殊项（其余才是角色名 / UID） */
+export function splitTeamTokens (raw: string): { rest: string, axisText: string, patchText: string } {
+  let text = String(raw || '')
+  let axisText = ''
+  let patchText = ''
+  text = text.replace(/轴[:：]\s*(\S+)/g, (_m, v: string) => { axisText = v; return ' ' })
+  text = text.replace(/词条[:：]\s*(\S+)/g, (_m, v: string) => { patchText = v; return ' ' })
+  return { rest: text, axisText, patchText }
+}
+
+/** 把参数拆成「四人名 + 可选 UID + 轴 + 词条」（支持空格 / 顿号 / 逗号分隔） */
+export function parseTeamArgs (raw: string): { names: string[], uid: string, axisText: string, patchText: string } {
+  const { rest, axisText, patchText } = splitTeamTokens(raw)
+  const parts = rest
+    .split(/[\s、,，/|]+/)
+    .map(t => t.trim())
+    .filter(Boolean)
+  let uid = ''
+  const names: string[] = []
+  for (const p of parts) {
+    if (/^[1-9]\d{8}$/.test(p) && !uid) {
+      uid = p
+      continue
+    }
+    names.push(p)
+  }
+  return { names, uid, axisText, patchText }
+}

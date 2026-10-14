@@ -55,7 +55,9 @@ export const helpList = [
     group: '练度查询',
     list: [
       { title: '#练度查询 胡桃', desc: '攻略目标 × 当前配装 → 总体练度 + 面板档 + 提升建议' },
-      { title: '#队伍伤害 胡桃 行秋 夜兰 钟离', desc: '整队关键伤害 + mhydps 同阵容参考（约 N 金）' },
+      { title: '#队伍伤害 胡桃 行秋 夜兰 钟离', desc: '整队关键伤害 + 参考 DPS + mhydps 同阵容参考（约 N 金）' },
+      { title: '#队伍伤害 … 轴:重击×8@21s', desc: '手动轴：行名×次数@窗口s，多段用 + 连；不写则每人最高单次×1／20s' },
+      { title: '#队伍伤害 … 词条:暴击率+20', desc: '临时改面板属性重算（暴击率等按百分点，生命值等按数值；不写入 miao 面板）' },
       { title: '#DPS练度查询 <UID>', desc: 'akasha 练度面板（名次 / top% / 伤害 / 武器）' },
       { title: '#DPS练度查询 胡桃', desc: '只看指定角色；UID 取配置 defaultUid' }
     ]
