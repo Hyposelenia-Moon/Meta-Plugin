@@ -48,6 +48,9 @@
   - **v3 P4 新增**（2026-10-14，本插件自研）：`src/modules/rotation.ts`（简化轴与队伍 DPS）、
     `src/modules/statPatch.ts`（可调节词条）、桥的"按词条临时重算"分支（重建 `ProfileDmg`，不写用户面板）、
     `test/team-dps.test.mjs`
+  - **v3 P5 新增**（2026-10-14，本插件自研）：`src/modules/akashaBoard.ts`（阿卡莎榜条目归一化）、
+    `src/model/AkashaBoard.ts`（取数：浏览器会话 + textmap 翻译 + 重试）、`src/apps/akashaBuild.ts`、
+    `resources/dps/akasha-build.html`、`test/fixtures/akasha-board.sample.json`（真实样本夹具）
   - **复用 miao 的伤害引擎**：`models/ProfileDmg.js` + `resources/meta-gs/character/<名>/calc.js`
     （129 个角色），通过 `avatar.calcDmg({ enemyLv: 103, mode: 'profile' })` 调用；本插件不复制其规则文件
   - 资源：`resources/dps/*.html`（榜单 / 危战 / 状态 / 帮助模板）、`resources/common/bg-*.jpg`（4 张插画底）、

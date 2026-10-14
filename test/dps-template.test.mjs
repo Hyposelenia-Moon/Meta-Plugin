@@ -29,7 +29,8 @@ const TEMPLATES = {
   'char-dps': { app: 'char-dps', bg: 'bg-rank.jpg' },
   tiers: { app: 'tiers', bg: 'bg-raid.jpg' },
   grade: { app: 'grade', bg: 'bg-rank.jpg' },
-  'team-damage': { app: 'team-damage', bg: 'bg-rank.jpg' }
+  'team-damage': { app: 'team-damage', bg: 'bg-rank.jpg' },
+  'akasha-build': { app: 'akasha-build', bg: 'bg-rank.jpg' }
 }
 
 // ---------- 1. 模板与背景图 ----------
@@ -77,6 +78,7 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   tiers: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tiers'],
   grade: ['title', 'subtitle', 'uid', 'ranks', 'total', 'panelTier', 'dims', 'rows', 'groups', 'suggestions', 'notes'],
   'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes', 'referenceDps', 'referenceTotal', 'window', 'axisLabel', 'axisManual', 'patchLabel', 'contributions'],
+  'akasha-build': ['title', 'subtitle', 'charName', 'rank', 'uid', 'nickname', 'cons', 'damageText', 'critValueText', 'talent', 'weapon', 'artis', 'sets', 'panel'],
     status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
   }
   const LOOP = new Set(['row', 'rows', 'c', 'item', 's', 'r', '$data', 'member', 'team'])

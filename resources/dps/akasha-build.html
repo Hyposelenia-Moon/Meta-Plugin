@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+  <style>
+    /* 榜上配装页：名次卡 + 面板 + 武器 / 圣遗物 / 天赋 */
+    .bd-hero { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+    .bd-rank { font-size: 46px; font-weight: 800; color: var(--accent, #ffd479); line-height: 1; }
+    .bd-name { font-size: 30px; font-weight: 700; }
+    .bd-sub { font-size: 17px; color: var(--muted-2, #999); }
+    .kv-row { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 18px; }
+    .kv-row:last-child { border-bottom: none; }
+    .kv-k { flex: 0 0 130px; color: var(--muted-2, #999); }
+    .kv-v { flex: 1 1 auto; }
+    .tag { display: inline-block; margin-right: 6px; }
+  </style>
+</head>
+<body style="zoom:{{renderScale}}">
+  <div class="page">
+    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-rank.jpg')"></div>
+    <div class="page-inner">
+      <div class="card head-card">
+        <div class="header">
+          <div class="game-name">Meta-Plugin · 榜上配装（阿卡莎）</div>
+          <div class="title">{{title}}</div>
+          {{if subtitle}}<div class="subtitle">{{subtitle}}</div>{{/if}}
+        </div>
+        <div class="page-meta">
+          <div class="bd-hero">
+            <div class="bd-rank">#{{rank}}</div>
+            <div class="bd-name">{{charName}} C{{cons}}</div>
+            <div class="bd-sub">uid {{uid}}{{if nickname}}（{{nickname}}）{{/if}}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card body-card">
+        <div class="card-title">伤害与评分</div>
+        <div class="kv-row"><div class="kv-k">伤害</div><div class="kv-v num">{{damageText}}</div></div>
+        <div class="kv-row"><div class="kv-k">双爆分</div><div class="kv-v num">{{critValueText}}</div></div>
+        <div class="kv-row"><div class="kv-k">天赋</div><div class="kv-v">A{{talent.A}} / E{{talent.E}} / Q{{talent.Q}}</div></div>
+        <div class="kv-row"><div class="kv-k">武器</div><div class="kv-v">{{if weapon}}{{weapon.text}}{{else}}—{{/if}}</div></div>
+      </div>
+
+      {{if panel && panel.length > 0}}
+      <div class="card body-card">
+        <div class="card-title">面板</div>
+        {{each panel p}}
+        <div class="kv-row"><div class="kv-k">{{p.label}}</div><div class="kv-v num">{{p.value}}</div></div>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      {{if artis && artis.length > 0}}
+      <div class="card body-card">
+        <div class="card-title">圣遗物主词条</div>
+        {{each artis a}}
+        <div class="kv-row"><div class="kv-k">{{a.slotCn}}</div><div class="kv-v">{{a.mainCn}}</div></div>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      {{if sets && sets.length > 0}}
+      <div class="card body-card">
+        <div class="card-title">套装</div>
+        {{each sets s}}
+        <div class="kv-row"><div class="kv-k">{{s.nameCn}}</div><div class="kv-v">{{s.count}} 件</div></div>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      <div class="card foot-card">
+        <div class="copyright">{{copyright}}</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

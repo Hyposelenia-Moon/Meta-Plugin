@@ -69,5 +69,40 @@ const { entries, total } = AB.normalizeBoard(raw, textmap)
   ok('夹具标注了来源与抓取日期', typeof fixture.source === 'string' && /leaderboards/.test(fixture.source) && !!fixture.capturedAt)
 }
 
-const bad = report()
-process.exit(bad ? 1 : 0)
+// ---------- 5. 接线：id 换算 / 路由 / app 与模板 ----------
+{
+  const fs = await import('node:fs')
+  const ABc = await load('model/AkashaBoard.js')
+  const C = await load('components/constants.js')
+
+  ok('角色名 → 官方角色 id（走本地 characters.json）', ABc.officialIdOf('法尔伽') === 10000128, String(ABc.officialIdOf('法尔伽')))
+  ok('别名也认（神里绫华 / ayaka）', ABc.officialIdOf('ayaka') === 10000002 && ABc.officialIdOf('神里绫华') === 10000002)
+  ok('数字 id 直接透传', ABc.officialIdOf(10000128) === 10000128)
+  ok('取不到的角色返回 0', ABc.officialIdOf('不存在的角色') === 0)
+  ok('题目 id 换算：官方 id × 100（实测 10000128 → 1000012800）', ABc.calculationIdOf(10000128) === '1000012800')
+  ok('榜单接口 URL 与页面 URL 形态正确',
+    /calculationId=1000012800/.test(ABc.boardApiUrl('1000012800')) &&
+    ABc.boardPageUrl('1000012800') === 'https://akasha.cv/leaderboards/1000012800/')
+  ok('textmap URL 会把词小写并去重',
+    /words\[\]=varka/.test(ABc.textmapUrl(['Varka', 'varka', 'Crit DMG'])))
+
+  ok('`#配装 胡桃` 命中新入口', C.matchEntryCommand('#配装 胡桃')?.key === 'akashaBuild')
+  ok('参数进捕获组（含名次）', C.matchEntryCommand('#配装 胡桃 3')?.match[1] === '胡桃 3')
+  const legacy = ['#DPS榜', '#练度查询 胡桃', '#队伍伤害 胡桃 行秋 夜兰 钟离', '#危战', '#攻略 胡桃']
+  push('不吞其它入口', legacy.filter(t => C.matchEntryCommand(t)?.key === 'akashaBuild'), [])
+  ok('ENTRY_COMMANDS 登记了 akashaBuild', C.ENTRY_COMMANDS.some(c => c.rules.includes('akashaBuild')))
+
+  const app = readText(path.join(pluginRoot, 'src', 'apps', 'akashaBuild.ts'))
+  ok('app 用 ENTRY_RULES.akashaBuild 注册', app.includes('reg: ENTRY_RULES.akashaBuild'))
+  ok('app 首个导出是插件类', /^export class \w+ extends plugin/m.test(app))
+  ok('app 走取数层与归一化（不自己解析）', app.includes("from '../model/AkashaBoard.js'") && app.includes("from '../modules/akashaBoard.js'"))
+  ok('app 对名次越界给可读提示', app.includes('这个榜单只有'))
+  ok('app 产物存在', fs.existsSync(path.join(libDir, 'apps', 'akashaBuild.js')))
+  ok('模板已就位并引用公共样式',
+    fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'akasha-build.html')) &&
+    readText(path.join(pluginRoot, 'resources', 'dps', 'akasha-build.html')).includes('{{_res_path}}/common/base.css'))
+  ok('帮助页收录 #配装', /#配装 胡桃 3/.test(readText(path.join(pluginRoot, 'resources', 'help', 'help-cfg.js'))))
+}
+
+const bad2 = report()
+process.exit(bad2 ? 1 : 0)

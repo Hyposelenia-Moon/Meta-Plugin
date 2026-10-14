@@ -153,7 +153,7 @@ function touchIdleTimer (): void {
  */
 export async function akashaBrowserTransport (
   url: string,
-  opts: { timeoutMs?: number, headers?: Record<string, string>, proxy?: string } = {}
+  opts: { timeoutMs?: number, headers?: Record<string, string>, proxy?: string, pageUrl?: string } = {}
 ): Promise<{ status: number, text: string }> {
   // 联网总开关：关闭时不启动浏览器
   if (!loadConfig().networkEnabled) {
@@ -164,10 +164,13 @@ export async function akashaBrowserTransport (
   const parsed = new URL(url)
   const pathname = parsed.pathname
   // 页面加载个人页时自己会请求这几个接口 → 可拦截（实测 200）
-  const interceptable = INTERCEPTABLE_PREFIXES.some(prefix => pathname.startsWith(prefix))
+  // ⚠ P5：榜条目 / 角色筛选 / 赛道分类 这几条只会在**对应页面**上被页面自身请求（页面里自己 fetch 会被 CF 403），
+  //    所以这里的可拦截判断要认它们；页面地址由 opts.pageUrl 指定（默认仍是个人页 / 首页）
+  const interceptable = INTERCEPTABLE_PREFIXES.some(prefix => pathname.startsWith(prefix)) ||
+    /^\/api\/(leaderboards|filters|v2\/leaderboards)/.test(pathname)
   const uidMatch = pathname.match(/\/(?:user|getCalculationsForUser)\/(\d{9,10})/)
   const uid = uidMatch?.[1] || ''
-  const pageUrl = uid ? `https://akasha.cv/profile/${uid}` : 'https://akasha.cv/'
+  const pageUrl = opts.pageUrl || (uid ? `https://akasha.cv/profile/${uid}` : 'https://akasha.cv/')
 
   const { browser } = await getBrowser()
   touchIdleTimer()

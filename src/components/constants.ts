@@ -346,7 +346,9 @@ export const ENTRY_RULES = {
    *
    * v1 要求**四个角色名**（"只给主C是否自动补队"待维护者确认，本插件不擅自决定）。
    */
-  teamDamage: /^#?队伍伤害(?:\s+([\s\S]+))?$/
+  teamDamage: /^#?队伍伤害(?:\s+([\s\S]+))?$/,
+  /** `#配装 胡桃 [名次]` —— 阿卡莎角色榜上榜者配装（v3 P5） */
+  akashaBuild: /^#?配装(?:\s+([\s\S]+))?$/
 } as const
 
 export type EntryRuleKey = keyof typeof ENTRY_RULES
@@ -354,7 +356,7 @@ export type EntryRuleKey = keyof typeof ENTRY_RULES
 /** 消息命中的 v3 新入口（`raidTiers` 在前：`#危战` 更具体） */
 export function matchEntryCommand (msg: string): { key: EntryRuleKey, match: RegExpMatchArray } | null {
   const text = String(msg ?? '')
-  const order: EntryRuleKey[] = ['raidTiers', 'grade', 'teamDamage', 'charDps']
+  const order: EntryRuleKey[] = ['raidTiers', 'grade', 'teamDamage', 'akashaBuild', 'charDps']
   for (const key of order) {
     const match = text.match(ENTRY_RULES[key])
     if (match) return { key, match }
@@ -400,6 +402,14 @@ export const ENTRY_COMMANDS: ReadonlyArray<{
     rules: ['teamDamage'],
     name: 'Meta队伍伤害',
     dsc: '#队伍伤害 胡桃 行秋 夜兰 钟离 [轴:重击×8@21s] [词条:暴击率+20] — 整队关键伤害 + 参考 DPS + 同阵容参考',
+    permission: 'all',
+    priorityOffset: -5
+  },
+  {
+    key: 'akashaBuild',
+    rules: ['akashaBuild'],
+    name: 'Meta榜上配装',
+    dsc: '#配装 胡桃 [名次] — 阿卡莎角色榜上榜者的配装（浏览器会话，需联网与代理）',
     permission: 'all',
     priorityOffset: -5
   }
