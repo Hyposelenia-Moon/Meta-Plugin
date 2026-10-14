@@ -30,6 +30,9 @@ const TEMPLATE_VARS: Record<keyof MetaConfig, string> = {
   dpsCacheTtlMinutes: 'meta_dpsCacheTtlMinutes',
   dpsPageSize: 'meta_dpsPageSize',
   dpsAvatarEnabled: 'meta_dpsAvatarEnabled',
+  gradeWeights: 'meta_gradeWeights',
+  gradePanelTiers: 'meta_gradePanelTiers',
+  gradeRankThresholds: 'meta_gradeRankThresholds',
   akashaEnabled: 'meta_akashaEnabled',
   akashaDefaultUid: 'meta_akashaDefaultUid',
   akashaProxy: 'meta_akashaProxy',
@@ -218,6 +221,36 @@ export function supportGuoba (): Record<string, unknown> {
           component: 'InputNumber',
           required: true,
           componentProps: { min: 1, max: 30, defaultValue: 12 }
+        },
+
+        // ==================== 练度评分（v3 P2） ====================
+        { label: '练度评分 · 权重与档位', component: 'SOFT_GROUP_BEGIN' },
+        {
+          field: 'gradeWeights',
+          label: '练度评分权重',
+          helpMessage: '面板 / 武器 / 圣遗物 / 天赋 的权重',
+          bottomHelpMessage: '写法 panel:30,weapon:20,artifact:35,talent:15；只对攻略里有目标的维度加权（改权重不用改代码）',
+          component: 'Input',
+          required: false,
+          componentProps: { placeholder: 'panel:30,weapon:20,artifact:35,talent:15' }
+        },
+        {
+          field: 'gradePanelTiers',
+          label: '面板三档阈值',
+          helpMessage: '大毕业 / 毕业 / 小毕业 的分界（面板目标平均达成度）',
+          bottomHelpMessage: '写法 big:0.9,normal:0.6,small:0.3',
+          component: 'Input',
+          required: false,
+          componentProps: { placeholder: 'big:0.9,normal:0.6,small:0.3' }
+        },
+        {
+          field: 'gradeRankThresholds',
+          label: '总体练度九档阈值',
+          helpMessage: 'MAX…C 的分界，低于最后一项记 D',
+          bottomHelpMessage: '写法 MAX:95,ACE:88,SSS:80,SS:72,S:64,A:55,B:45,C:30',
+          component: 'Input',
+          required: false,
+          componentProps: { placeholder: 'MAX:95,ACE:88,SSS:80,SS:72,S:64,A:55,B:45,C:30' }
         }
       ],
 

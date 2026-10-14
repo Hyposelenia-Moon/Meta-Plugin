@@ -48,3 +48,12 @@ akashaCacheTtlMinutes: ${meta_akashaCacheTtlMinutes}
 
 # 一次练度查询最多列几个角色
 akashaMaxChars: ${meta_akashaMaxChars}
+
+# 练度评分权重（面板/武器/圣遗物/天赋；只对攻略里有目标的维度加权）
+gradeWeights: "${meta_gradeWeights}"
+
+# 面板三档阈值：大毕业 / 毕业 / 小毕业（按面板目标平均达成度）
+gradePanelTiers: "${meta_gradePanelTiers}"
+
+# 总体练度九档阈值（MAX/ACE/SSS/SS/S/A/B/C，低于最后一项记 D）
+gradeRankThresholds: "${meta_gradeRankThresholds}"

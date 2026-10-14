@@ -45,3 +45,12 @@ akashaCacheTtlMinutes: 30
 
 # 一次练度查询最多列几个角色
 akashaMaxChars: 12
+
+# 练度评分权重（面板/武器/圣遗物/天赋；只对攻略里有目标的维度加权）
+gradeWeights: "panel:30,weapon:20,artifact:35,talent:15"
+
+# 面板三档阈值：大毕业 / 毕业 / 小毕业（按面板目标平均达成度）
+gradePanelTiers: "big:0.9,normal:0.6,small:0.3"
+
+# 总体练度九档阈值（MAX/ACE/SSS/SS/S/A/B/C，低于最后一项记 D）
+gradeRankThresholds: "MAX:95,ACE:88,SSS:80,SS:72,S:64,A:55,B:45,C:30"

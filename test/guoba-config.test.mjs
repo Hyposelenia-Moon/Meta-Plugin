@@ -78,7 +78,11 @@ const submitted = {
   akashaProxy: 'http://proxy.example:1080',
   akashaTimeoutMs: 45000,
   akashaCacheTtlMinutes: 90,
-  akashaMaxChars: 20
+  akashaMaxChars: 20,
+  // v3 P2 新增三项（评分权重与档位阈值；同为"可存可读"的普通字段）
+  gradeWeights: 'panel:40,weapon:10,artifact:30,talent:20',
+  gradePanelTiers: 'big:0.95,normal:0.5,small:0.2',
+  gradeRankThresholds: 'MAX:90,ACE:80,SSS:70,SS:60,S:50,A:40,B:30,C:20'
 }
 
 const saved = await configInfo.setConfigData(submitted, { Result })

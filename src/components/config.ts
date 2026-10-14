@@ -45,6 +45,16 @@ export interface MetaConfig {
   akashaCacheTtlMinutes: number
   /** akasha 单次最多展示的角色数 */
   akashaMaxChars: number
+  /**
+   * 练度评分权重（紧凑写法 `panel:30,weapon:20,artifact:35,talent:15`）
+   *
+   * 只对"攻略里有目标"的维度加权，其余维度不计入分母（见 modules/grade.ts）。
+   */
+  gradeWeights: string
+  /** 面板三档阈值（`big:0.9,normal:0.6,small:0.3`） */
+  gradePanelTiers: string
+  /** 总体练度九档阈值（`MAX:95,ACE:88,…`，低于最后一项记 D） */
+  gradeRankThresholds: string
 }
 
 /** 默认配置（与 `config/config.yaml.example` 保持一致） */
@@ -62,7 +72,10 @@ export const defaultConfig: MetaConfig = {
   akashaProxy: '',
   akashaTimeoutMs: 60000,
   akashaCacheTtlMinutes: 30,
-  akashaMaxChars: 12
+  akashaMaxChars: 12,
+  gradeWeights: 'panel:30,weapon:20,artifact:35,talent:15',
+  gradePanelTiers: 'big:0.9,normal:0.6,small:0.3',
+  gradeRankThresholds: 'MAX:95,ACE:88,SSS:80,SS:72,S:64,A:55,B:45,C:30'
 }
 
 /** 运行时配置文件路径（`META_CONFIG_FILE` 优先） */
@@ -219,4 +232,54 @@ export function getProxy (): string {
  */
 export function getPluginConfig (): MetaConfig {
   return loadConfig()
+}
+
+/* ---------- 练度评分（v3 P2） ---------- */
+
+/**
+ * 评分权重
+ *
+ * 目前暂按「面板 30 / 武器 20 / 圣遗物 35 / 天赋 15」；用户 2026-10-13 说明权重**后续与另一位开发者探讨**，
+ * 因此做成配置项：改权重不需要改代码（非法项忽略，缺失项用默认值）。
+ */
+export function getGradeWeights (): Record<string, number> {
+  return { panel: 30, weapon: 20, artifact: 35, talent: 15, ...parseSpecSafe(loadConfig().gradeWeights) }
+}
+
+/** 面板三档阈值（大毕业 / 毕业 / 小毕业） */
+export function getGradePanelTiers (): { big: number, normal: number, small: number } {
+  const parsed = parseSpecSafe(loadConfig().gradePanelTiers)
+  const pick = (k: string, def: number) => {
+    const v = Number(parsed[k])
+    return Number.isFinite(v) && v > 0 && v <= 1 ? v : def
+  }
+  return { big: pick('big', 0.9), normal: pick('normal', 0.6), small: pick('small', 0.3) }
+}
+
+/** 总体练度九档阈值（写法 `MAX:95,ACE:88,…`；解析失败回落默认） */
+export function getGradeRankThresholds (): Array<[string, number]> {
+  return parseRankThresholdsSafe(loadConfig().gradeRankThresholds)
+}
+
+/** 紧凑写法解析（本文件内部用；评分模块另有一份带默认值的实现供离线单测） */
+function parseSpecSafe (spec: unknown): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const part of String(spec || '').split(/[,，;；\s]+/)) {
+    const [k, v] = part.split(/[:：=]/)
+    const key = String(k || '').trim()
+    const value = Number(String(v || '').trim())
+    if (!key || !Number.isFinite(value)) continue
+    out[key] = value
+  }
+  return out
+}
+
+const RANK_ORDER: Array<[string, number]> = [
+  ['MAX', 95], ['ACE', 88], ['SSS', 80], ['SS', 72], ['S', 64], ['A', 55], ['B', 45], ['C', 30]
+]
+
+function parseRankThresholdsSafe (spec: unknown): Array<[string, number]> {
+  const parsed = parseSpecSafe(spec)
+  if (!Object.keys(parsed).length) return RANK_ORDER
+  return RANK_ORDER.map(([name, def]) => [name, Number.isFinite(parsed[name]) ? parsed[name] : def])
 }

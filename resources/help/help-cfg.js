@@ -54,6 +54,7 @@ export const helpList = [
   {
     group: '练度查询',
     list: [
+      { title: '#练度查询 胡桃', desc: '攻略目标 × 当前配装 → 总体练度 + 面板档 + 提升建议' },
       { title: '#DPS练度查询 <UID>', desc: 'akasha 练度面板（名次 / top% / 伤害 / 武器）' },
       { title: '#DPS练度查询 胡桃', desc: '只看指定角色；UID 取配置 defaultUid' }
     ]

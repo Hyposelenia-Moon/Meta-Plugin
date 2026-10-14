@@ -334,7 +334,13 @@ export const ENTRY_RULES = {
    */
   charDps: /^#?([^#\s]\S{0,10}?)\s*[dD][pP][sS](?:\s+([\s\S]+))?$/,
   /** `#危战` / `#危战 7.1` / `#危战 矮灵雕刻师` —— 危战 n6 / n7 两档 */
-  raidTiers: /^#?危战(?:\s+([\s\S]+))?$/
+  raidTiers: /^#?危战(?:\s+([\s\S]+))?$/,
+  /**
+   * `#练度查询 胡桃 [UID]` —— 攻略目标 × 当前配装（v3 P2）
+   *
+   * UID 可省略：账号默认走 miao 的米游社绑定；`#DPS练度查询`（akasha 名次面板）是另一条命令，不受影响。
+   */
+  grade: /^#?练度查询(?:\s+([\s\S]+))?$/
 } as const
 
 export type EntryRuleKey = keyof typeof ENTRY_RULES
@@ -342,7 +348,7 @@ export type EntryRuleKey = keyof typeof ENTRY_RULES
 /** 消息命中的 v3 新入口（`raidTiers` 在前：`#危战` 更具体） */
 export function matchEntryCommand (msg: string): { key: EntryRuleKey, match: RegExpMatchArray } | null {
   const text = String(msg ?? '')
-  const order: EntryRuleKey[] = ['raidTiers', 'charDps']
+  const order: EntryRuleKey[] = ['raidTiers', 'grade', 'charDps']
   for (const key of order) {
     const match = text.match(ENTRY_RULES[key])
     if (match) return { key, match }
@@ -372,6 +378,14 @@ export const ENTRY_COMMANDS: ReadonlyArray<{
     rules: ['raidTiers'],
     name: 'Meta危战档位',
     dsc: '#危战 [版本/首领/角色] — 幽境危战 n6 / n7 两档',
+    permission: 'all',
+    priorityOffset: -5
+  },
+  {
+    key: 'grade',
+    rules: ['grade'],
+    name: 'Meta练度提升指南',
+    dsc: '#练度查询 胡桃 — 攻略目标 × 当前配装 → 总体练度 + 面板档 + 提升建议',
     permission: 'all',
     priorityOffset: -5
   }
