@@ -8,7 +8,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 | 区 | 目录 | 说明 |
 |---|---|---|
 | **插件区**（TS 工程） | `src/` → `tsc` → `lib/`（**`lib/` 入库**） | 框架实际加载 `lib/`；入口 `index.js` → `lib/index.js` |
-| **维护者区**（ESM JS，不参与编译） | `data/`、`scripts/`、`templates/`、`resources/` | 攻略数据本体与产出流水线、页面模板与前端资源 |
+| **维护者区**（ESM JS，不参与编译） | `data/`、`scripts/`、`templates/`、`resources/`、`tool/` | 攻略数据本体与产出流水线、页面模板与前端资源、背景图与对比度工具 |
 
 - **必需依赖：miao-plugin**（图鉴版式 / 字体 / 图标 / 别名 / 面板数据；优先复用而不复制其资产）
 - **可选补充：Atlas-Plugin**（缺失不影响出图；其 codex（攻略）模块将剥离，本插件不再依赖）
@@ -32,13 +32,18 @@ pnpm build && pnpm test     # 36 个套件；任意 cwd 可跑、不发真实网
 - **与合并前逐字等价**的门禁：`test/mhydps-parity.test.mjs`
   （冻结快照 + 抽样缓存夹具，`Mhydps-Plugin` 删除后依然有效）
 - 运行时硬规则：**只允许写**未跟踪的 `out/`（缓存）与 `config/`（配置）；
-  **绝不写** `data/`、`lib/`、`resources/`、`scripts/` —— 否则会挡住 bot 侧的 `#更新`
+  **绝不写** `data/`、`lib/`、`resources/`、`scripts/`、`tool/` —— 否则会挡住 bot 侧的 `#更新`
 
 ---
 
 ## 维护者区：攻略数据的产出与传播
 
 > 下面这一节是**攻略数据流水线**的说明（改数据时必读），与插件代码无关。
+
+- **背景图与对比度**（随合并迁自 `Mhydps-Plugin`）：见 `tool/background/README.md` —— 换
+  `resources/common/bg-*.jpg` 时用 `crop-background.ps1` 按出图宽高比裁、再用 `fullpage-contrast.ps1`
+  对**真实底图**复核对比度；只改配色不必跑它们，`test/contrast.test.mjs`（随 `pnpm test`）已从
+  `base.css` 现算令牌对比度。
 
 ---
 

@@ -39,6 +39,7 @@
   - 资源：`resources/dps/*.html`（榜单 / 危战 / 状态 / 帮助模板）、`resources/common/bg-*.jpg`（4 张插画底）、
     `resources/common/font/*`、`resources/common/{base,components}.css`、`resources/data/{characters,bosses}.json`
   - 测试：16 个套件迁入本仓库（`test/*.test.mjs`），并冻结了与合并前**逐字等价**的快照
+  - 工具：`tool/background/`（`crop-background.ps1` 按出图宽高比裁底图、`fullpage-contrast.ps1` 对真实底图复核对比度、说明文档）
 - **作者与许可**：作者即本仓库维护者（Hyposelenia），随本次合并一并迁入，非第三方代码。
 - **上游**：`Mhydps-Plugin` 仓库在合并完成后废弃（工作区副本 / bot 侧目录 / GitHub 远端三处）。
 
@@ -59,6 +60,9 @@
 
 ## 与其他文档的关系
 
-- 设计文档（工作区外，`D:\Downloads\设计草案-新插件（待与阿修确认）.md`）§6 / §8 记录了
+- **现行设计文档**（工作区外）：`D:\Downloads\设计草案-Meta-Plugin-v3（角色方案中心·待与阿修确认）.md`
+  —— v3 的四个入口、评分体系与 P1–P5 分期。
+- **v2 设计文档**（工作区外）：`D:\Downloads\设计草案-新插件（待与阿修确认）.md`，§6 / §8 记录了
   「攻略页与 miao 图鉴一致」这一决策及其许可约束。
-- 交接文档（工作区外，`D:\Downloads\Meta-Plugin-交接文档.md`）的 1.3c 记录了落地步骤与验收。
+- v2 的交接文档（`D:\Downloads\Meta-Plugin-交接文档.md`）在 v2 收尾后按约定删除；其中的口径已并入
+  本文件、`README.md` 与上面两份设计文档。
