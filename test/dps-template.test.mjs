@@ -69,7 +69,7 @@ for (const tpl of ['rank', 'raid']) {
   const APP_DATA = {
     rank: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'page', 'totalPages', 'pageSize', 'rows'],
     raid: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'page', 'totalPages', 'rows'],
-    status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
+    status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
   }
   const LOOP = new Set(['row', 'rows', 'c', 'item', 's', 'r', '$data', 'member', 'team'])
 

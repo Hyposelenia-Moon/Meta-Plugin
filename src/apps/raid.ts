@@ -46,7 +46,7 @@ export class MetaRaid extends plugin {
     const result = await queryRaid(args, { proxy: getProxy() })
 
     if (!result.ok) {
-      await e.reply(`[Mhydps] ${result.error}${suggestLine(result.suggestions)}`)
+      await e.reply(`[Meta] ${result.error}${suggestLine(result.suggestions)}`)
       return true
     }
 

@@ -34,18 +34,18 @@ export class MetaAdmin extends plugin {
    * `#DPS更新` — 手动刷新榜单缓存
    */
   async handleUpdate (e: YunzaiEvent): Promise<boolean> {
-    await e.reply('[Mhydps] 正在从 mhydps.cn 拉取榜单数据...', true)
+    await e.reply('[Meta] 正在从 mhydps.cn 拉取榜单数据...', true)
 
     const ret = await refresh({ proxy: getProxy() })
 
     if (!ret.ok) {
-      await e.reply(`[Mhydps] 更新失败：${ret.error}`, true)
+      await e.reply(`[Meta] 更新失败：${ret.error}`, true)
       return true
     }
 
     const sec = ((ret.ms || 0) / 1000).toFixed(1)
     await e.reply(
-      '[Mhydps] 更新完成\n' +
+      '[Meta] 更新完成\n' +
       `DPS榜 ${ret.counts?.teams} 条 · 危战榜 ${ret.counts?.teams2} 条\n` +
       `耗时 ${sec}s · 数据时间 ${formatTime(ret.fetchedAt)}`,
       true

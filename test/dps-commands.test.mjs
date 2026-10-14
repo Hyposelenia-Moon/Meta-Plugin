@@ -56,17 +56,22 @@ const { DPS_COMMANDS, DPS_RULES, matchDpsCommand } = C
   ok('#DPS榜视频 仍按合并前行为落到榜单（修正文案没有改动行为）', matchDpsCommand('#DPS榜视频 3')?.key === 'rank')
 }
 
-// ---------- 4. 元数据与合并前一致（名称 / 权限 / 偏移） ----------
+// ---------- 4. 元数据口径（阶段 6 后：name 已改名为 Meta*；权限/偏移仍与合并前一致） ----------
 {
-  /** 合并前 `apps/*.js` 的实际取值（从部署副本与工作区副本核对过，两份哈希一致） */
+  /**
+   * 合并前 `apps/*.js` 的实际取值（从部署副本与工作区副本核对过，两份哈希一致）。
+   *
+   * ⚠ 阶段 6 收尾把框架 `name` 由 `Mhydps*` 改为 `Meta*`（用户 2026-10-13 定，属唯一允许的用户可见改名）；
+   *    `permission` 与 `priorityOffset` **必须与合并前逐条一致** —— 它们是路由行为的一部分。
+   */
   const before = {
-    rank: { name: 'MhydpsDPS榜', permission: 'all', priorityOffset: 0 },
-    raid: { name: 'Mhydps危战榜', permission: 'all', priorityOffset: -20 },
-    build: { name: 'Mhydps练度查询', permission: 'all', priorityOffset: -50 },
-    status: { name: 'Mhydps状态', permission: 'all', priorityOffset: -10 },
-    video: { name: 'Mhydps视频查询', permission: 'all', priorityOffset: -100 },
-    help: { name: 'Mhydps帮助', permission: 'all', priorityOffset: -10 },
-    admin: { name: 'Mhydps数据管理', permission: 'master', priorityOffset: -10 }
+    rank: { name: 'MetaDPS榜', permission: 'all', priorityOffset: 0 },
+    raid: { name: 'Meta危战榜', permission: 'all', priorityOffset: -20 },
+    build: { name: 'Meta练度查询', permission: 'all', priorityOffset: -50 },
+    status: { name: 'Meta状态', permission: 'all', priorityOffset: -10 },
+    video: { name: 'Meta视频查询', permission: 'all', priorityOffset: -100 },
+    help: { name: 'Meta帮助', permission: 'all', priorityOffset: -10 },
+    admin: { name: 'Meta数据管理', permission: 'master', priorityOffset: -10 }
   }
   const bad = []
   for (const [key, expected] of Object.entries(before)) {
@@ -76,7 +81,7 @@ const { DPS_COMMANDS, DPS_RULES, matchDpsCommand } = C
     if (cmd.permission !== expected.permission) bad.push(`${key}.permission: 期望 ${expected.permission}，实际 ${cmd.permission}`)
     if (cmd.priorityOffset !== expected.priorityOffset) bad.push(`${key}.priorityOffset: 期望 ${expected.priorityOffset}，实际 ${cmd.priorityOffset}`)
   }
-  push('名称 / 权限 / 优先级偏移与合并前一致', bad, [])
+  push('名称（Meta*）/ 权限 / 优先级偏移与既定口径一致', bad, [])
   // 合并前的判定顺序 = 按 priorityOffset 升序（video 最优先，rank 兜底）
   const order = [...DPS_COMMANDS].flatMap(c => c.rules.map(r => [r, c.priorityOffset]))
     .sort((a, b) => a[1] - b[1]).map(x => x[0])

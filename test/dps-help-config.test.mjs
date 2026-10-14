@@ -23,7 +23,7 @@ if (!helpCfgSrc.includes('#DPS')) {
 const { helpCfg, helpList } = await import(mod('resources/help/help-cfg.js'))
 
 // ---- 页头 ----
-check('helpCfg 有标题', typeof helpCfg.title === 'string' && helpCfg.title.includes('#DPS'))
+check('helpCfg 有标题（阶段 5 合并页：攻略 + 榜单统一标题）', typeof helpCfg.title === 'string' && helpCfg.title.length > 0 && helpCfg.title.includes('帮助'))
 check('helpCfg 有副标题', typeof helpCfg.subTitle === 'string' && helpCfg.subTitle.length > 0)
 
 // ---- 分组与条目 ----
@@ -48,13 +48,16 @@ check('每组条目 ≤ 8 条', helpList.every(g => g.list.length <= 8), helpLis
 const titles = items.map(i => i.title)
 check('命令条目不重复', new Set(titles).size === titles.length, titles.filter((t, idx) => titles.indexOf(t) !== idx).join(','))
 
-// ---- 覆盖率：插件现有命令都要在帮助里出现 ----
-const commands = ['#DPS榜', '#DPS危战榜', '#DPS练度查询', '#练度查询', '#DPS状态', '#DPS帮助', '#DPS更新']
-const missing = commands.filter(cmd => !titles.some(t => t.startsWith(cmd)))
-check('覆盖全部插件命令（简化后的写法）', ['#DPS榜', '#DPS危战榜', '#DPS练度', '#DPS视频', '#DPS状态', '#DPS帮助', '#DPS更新'].every(k => titles.some(t => t.includes(k))), missing.join(','))
+// ---- 覆盖率：合并后的帮助页要同时覆盖**攻略侧**与**榜单侧**（阶段 5 合并）----
+//   #练度查询 这种 v3 新入口还没实现，等实现后再加进本表
+const needCover = ['#DPS榜', '#DPS危战榜', '#DPS练度查询', '#DPS视频', '#DPS状态', '#DPS帮助', '#DPS更新', '#胡桃攻略', '#攻略 胡桃', '#攻略帮助']
+// 规范写法放 title，其余等价写法写在 desc 里（本套件一贯的「其余写法并进说明」）→ 两处都算覆盖
+const combined = items.map(i => [i.title, i.desc].join(' '))
+const missing = needCover.filter(k => !combined.some(t => t.includes(k)))
+check('覆盖攻略侧与榜单侧的全部入口', missing.length === 0, missing.join(','))
 
 // ---- 权限分组 ----
-check('主人指令在「其它」组里并标注仅主人', items.some(i => i.title.includes('#DPS更新') && i.desc.includes('仅主人')))
+check('主人指令标注「仅主人」（合并后归入「列表与维护」组）', items.some(i => i.title.includes('#DPS更新') && i.desc.includes('仅主人')))
 check('简化后不再有分组级 auth（权限由 apps 层管）', helpList.every(g => !g.auth))
 
 // ---- 常用写法要有具体示例条目（截图风格的「命令 + 用法」） ----

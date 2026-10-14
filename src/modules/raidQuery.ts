@@ -106,7 +106,6 @@ export function buildRows (teams: RaidRecord[] | undefined, startRank = 1): View
     limitcost: team.limitcost,
     normalcost: team.normalcost,
     ver: team.ver,
-    boss: team.boss,
     bossName: bossById(team.boss)?.name || (team.boss ? `首领#${team.boss}` : '-'),
     tags: tagViews(team),
     clean: team.clean,

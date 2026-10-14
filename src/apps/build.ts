@@ -60,7 +60,7 @@ export class MetaBuild extends plugin {
     const uid = args.uid || String(getPluginConfig()?.akashaDefaultUid || '').trim()
 
     if (!getAkashaEnabled()) {
-      await e.reply('[Mhydps] 练度查询已关闭（锅巴 → 数据源二 · akasha.cv → 启用练度查询）')
+      await e.reply('[Meta] 练度查询已关闭（锅巴 → 数据源二 · akasha.cv → 启用练度查询）')
       return true
     }
     if (!uid) {
@@ -68,7 +68,7 @@ export class MetaBuild extends plugin {
       return true
     }
     if (!/^\d{9}$/.test(uid)) {
-      await e.reply(`[Mhydps] UID 需要是 9 位数字，收到的是「${uid}」`)
+      await e.reply(`[Meta] UID 需要是 9 位数字，收到的是「${uid}」`)
       return true
     }
 
@@ -81,9 +81,9 @@ export class MetaBuild extends plugin {
       setTransport(akashaBrowserTransport)
       profile = await fetchAkashaProfile(uid)
     } catch (err) {
-      logger?.error?.(`[Mhydps] akasha 练度查询失败：${(err as Error)?.message || String(err)}`)
+      logger?.error?.(`[Meta] akasha 练度查询失败：${(err as Error)?.message || String(err)}`)
       await e.reply([
-        `[Mhydps] 练度查询失败：${(err as Error)?.message || String(err)}`,
+        `[Meta] 练度查询失败：${(err as Error)?.message || String(err)}`,
         `数据源：${AKASHA_NAME}（该站 /api/ 在 Cloudflare 后面，需要本机有可用浏览器）`
       ].join('\n'))
       return true
@@ -93,7 +93,7 @@ export class MetaBuild extends plugin {
     try {
       translations = await fetchAkashaTranslations(collectNameWords(profile.calculations))
     } catch (err) {
-      logger?.warn?.(`[Mhydps] akasha 名字中文化失败（保留英文）：${(err as Error)?.message || String(err)}`)
+      logger?.warn?.(`[Meta] akasha 名字中文化失败（保留英文）：${(err as Error)?.message || String(err)}`)
     }
 
     const view = buildAkashaView(profile, { translations })
@@ -132,7 +132,7 @@ export class MetaBuild extends plugin {
           }
         }
       } catch (err) {
-        logger?.error?.(`[Mhydps] miao 面板渲染失败：${(err as Error)?.message || String(err)}`)
+        logger?.error?.(`[Meta] miao 面板渲染失败：${(err as Error)?.message || String(err)}`)
       }
     }
 

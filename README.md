@@ -1,7 +1,44 @@
-# Character-Codex-Data
+# Meta-Plugin
 
-角色攻略数据仓库。数据为纯 JSON，供 **Atlas-Plugin**（TRSS-Yunzai 图鉴插件）的 `#角色攻略` / `#角色指南` 页面读取；
-仓库根目录的 `guide.html` 是由 JSON 生成的网页版，`guide.md` 是由同一份数据生成的文档版文本。
+TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
+（原数据仓库 `Character-Codex-Data`；2026-10 改造为独立插件，并合并 `Mhydps-Plugin` —— 后者已废弃。）
+
+## 这是什么
+
+| 区 | 目录 | 说明 |
+|---|---|---|
+| **插件区**（TS 工程） | `src/` → `tsc` → `lib/`（**`lib/` 入库**） | 框架实际加载 `lib/`；入口 `index.js` → `lib/index.js` |
+| **维护者区**（ESM JS，不参与编译） | `data/`、`scripts/`、`templates/`、`resources/` | 攻略数据本体与产出流水线、页面模板与前端资源 |
+
+- **必需依赖：miao-plugin**（图鉴版式 / 字体 / 图标 / 别名 / 面板数据；优先复用而不复制其资产）
+- **可选补充：Atlas-Plugin**（缺失不影响出图；其 codex（攻略）模块将剥离，本插件不再依赖）
+- **安装**：本目录放进 bot 的 `plugins/Meta-Plugin` → `#更新Meta-Plugin`（简写 `#更新Meta`）。
+  ⚠ 部署副本里一旦有本地改动，普通 `#更新` 会被 git 拒绝，**用 `#强制更新Meta`**。
+- **配置**：首次启动从 `config/config.yaml.example` 生成 `config/config.yaml`（未跟踪）。
+  `networkEnabled` **默认关**（需要榜单 / 危战 / 练度联网时手动开启）；`proxy` 供 mhydps.cn 使用
+  （国内直连会在 TLS 握手阶段失败）；`akashaEnabled` 供练度侧。
+- **命令总览**：bot 里发 `#攻略帮助`（`#DPS帮助` 同一页）。常用：
+  `#胡桃攻略`、`#攻略 胡桃 武器`、`#DPS榜 胡桃 金≤12`、`#DPS危战榜 7.1`、
+  `#DPS练度查询 胡桃`、`#DPS视频 3`、`#DPS状态`、`#DPS更新`（仅主人）
+
+## 回归套件
+
+```bash
+pnpm build && pnpm test     # 36 个套件；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+```
+
+- 开发工作区没有 bot 时：渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR`
+  指向真实资源目录可启用更严的断言
+- **与合并前逐字等价**的门禁：`test/mhydps-parity.test.mjs`
+  （冻结快照 + 抽样缓存夹具，`Mhydps-Plugin` 删除后依然有效）
+- 运行时硬规则：**只允许写**未跟踪的 `out/`（缓存）与 `config/`（配置）；
+  **绝不写** `data/`、`lib/`、`resources/`、`scripts/` —— 否则会挡住 bot 侧的 `#更新`
+
+---
+
+## 维护者区：攻略数据的产出与传播
+
+> 下面这一节是**攻略数据流水线**的说明（改数据时必读），与插件代码无关。
 
 ---
 
@@ -20,7 +57,7 @@
 | 4 | `guide.html` | `node scripts/build-html.mjs` | 卡片数 129（131 个角色文件里 2 个空档不进页）+ `audit-guide-html` 通过（与现算结果逐字节一致、残留旧写法 0） |
 | 5 | `guide.md` | `node scripts/build-doc.mjs`（**选 A 口径**：只过滤占位符，**文档词汇不变**） | `___`=0 + 文档词汇计数 + 新旧字节/行数 |
 | 6 | **编辑器**（表单文案 + `/api/preview` 预览） | `resources/editor/app.js`（文案 / 下拉 / **标签与档位联动** / **删行墓碑** / **面板一行两个控件** / **chip 宽度自适应与「放得下几把」** / **左栏未填与旅行者·奇偶豁免**）＋ `scripts/editor.mjs`（保存协议：删行墓碑、清空＝显式 `null`；**写请求带跨站防护**）；**改完必须重启编辑器进程**（长驻进程会缓存旧模块） | `/api/preview` html 与 `guide.html` **逐字节一致** ＋ `scripts/editor-selftest.mjs` **241/241**（含**编辑器待保存状态 / 在途改动 / 段落正文历史写法已停用 / 武器等价候选**这些新增断言块）。⚠ 下列为**维护者本地脚本**：它们都在 `.dsh/` 下，而 `.dsh/` 已被 `.gitignore` 忽略、**不入库**，本仓库里**没有** `.dsh/` 目录，其他协作者**无法复现**，**不能当作可验收证据** —— `verify-editor-rt.mjs`（129 角色「打开→原样保存」逐字节不变 + 预览逐字节一致）、`verify-editor-click.mjs`（行尾图标按钮：点按钮 / `<svg>` / `<path>` 三种点法都要能删行）、`verify-panel-editor.mjs`（面板行新增 / 带标签 / 删行 / 说明行，端到端）、`probe-editor-ui.mjs`（离线表单：占位截断 / 字号 / 溢出）、`probe-editor-live.mjs` / `audit-editor-ui-live.mjs`（**真实编辑器**里量同一批指标 + 武器行提示，`--zoom=2` 出放大截图） |
-| 7 | **插件面板** | `model/codexIndex/display.js`（**与 `scripts/lib/guide-display.mjs` 逐字节一致**）、`parse.js`、`resources/atlas/codex.html`、`codex.css`（武器段小字说明 = 共享的 `WEAPON_REFINE_HINT` → `.codex-hint`） | `node scripts/check-display-sync.mjs` + `audit-web-vs-panel`（含「武器段说明 **131/131**」）+ `test/codex-template.test.mjs`（说明落在标题与正文之间） |
+| 7 | **插件面板（历史项）** | ⚠ **阶段 6 起本项已不适用**：本插件不再与 Atlas 的 codex 显示层保持同步（阿修将剥离 Atlas 的 codex 模块，攻略显示层由本仓库独立维护）。下表为历史记录，仅供追溯。 | 无（已退役） |
 | 8 | `README` 与 `templates/` | 改受影响的说明、词汇表、符号语义、期望值 | 本节表格与预期计数 |
 | 9 | **审计脚本的期望值** | `audit-*` / `display-*` / `check-display-sync` 的断言与合法集 | 每个审计 `exit=0` |
 | 10 | 离线脚手架（**维护者本地，不入库**） | `.dsh/` 已被 `.gitignore` 忽略，**本仓库里没有这个目录**；若在本地重建，脚手架**不得再读陈旧副本**：优先用 `CODEX_DIR` / `CODEX_DOCX` 环境变量、缺省读**主仓库** | 离线渲染输出能反映主仓库最新数据（其他协作者无法复现，**不作为验收证据**） |

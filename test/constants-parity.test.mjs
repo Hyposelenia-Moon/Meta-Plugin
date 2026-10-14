@@ -31,9 +31,12 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
     // 合并前叫 COPYRIGHT，合并后必须让位给攻略页的 COPYRIGHT → 重命名为 DPS_COPYRIGHT
     const actualKey = key === 'COPYRIGHT' ? 'DPS_COPYRIGHT' : key
     const actual = C[actualKey]
-    if (actual !== expected) bad.push(`${key}: 期望 ${JSON.stringify(expected)}，实际 ${JSON.stringify(actual)}`)
+    // ⚠ **唯一**允许的用户可见差异（阶段 6 收尾改名，用户 2026-10-13 定）：
+    //   自指文案里的插件名 `Mhydps-Plugin` → `Meta-Plugin`；其余字符必须逐字一致。
+    const normalized = typeof actual === 'string' ? actual.replace('Meta-Plugin', 'Mhydps-Plugin') : actual
+    if (normalized !== expected) bad.push(`${key}: 期望 ${JSON.stringify(expected)}，实际 ${JSON.stringify(actual)}`)
   }
-  push('标量常量与合并前逐字一致', bad, [])
+  push('标量常量与合并前逐字一致（仅允许自指插件名改名）', bad, [])
 }
 
 // ---------- 2. 对象 / 数组 ----------

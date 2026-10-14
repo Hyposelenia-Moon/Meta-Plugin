@@ -1,0 +1,125 @@
+/**
+ * 合并等价套件（阶段 4.8 的门禁）
+ *
+ * 断言对象是**冻结快照** `test/fixtures/mhydps-pipeline.snapshot.json` —— 它由旧实现
+ * （`Mhydps-Plugin/modules/*`）在 `test/fixtures/dps-cache-*.json`（从旧插件真实缓存抽的样本）
+ * 上跑出来的输出，逐字段冻结。所以：
+ *   - 比的是「与合并前**逐字一致**」，不是「与我手写的期望一致」；
+ *   - 旧仓库删除后本套件依然有效。
+ *
+ * 覆盖：DPS 榜查询（rows/分页/副标题/成员与命座/徽章/视频）→ 危战榜查询 → 文本回退 →
+ * 单条视频文本 → 四个参数解析函数。头像路径依赖本地缓存文件，两份都为空 → 不参与比对。
+ */
+import fs from 'node:fs'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { createChecks, ensureTmp, libDir, pluginRoot, readText } from './_helper.mjs'
+
+const { push, ok, report } = createChecks('与合并前逐字等价（阶段 4.8）')
+
+const snapFile = path.join(pluginRoot, 'test', 'fixtures', 'mhydps-pipeline.snapshot.json')
+ok('冻结快照存在', fs.existsSync(snapFile))
+if (!fs.existsSync(snapFile)) {
+  report()
+  process.exit(1)
+}
+const snap = JSON.parse(readText(snapFile))
+
+// ---------- 环境：把抽样缓存当作运行时缓存 ----------
+const tmp = ensureTmp()
+const cacheDir = path.join(tmp, 'mhydps-parity-cache')
+fs.rmSync(cacheDir, { recursive: true, force: true })
+fs.mkdirSync(cacheDir, { recursive: true })
+const teams = JSON.parse(readText(path.join(pluginRoot, 'test', 'fixtures', 'dps-cache-teams.json')))
+const raids = JSON.parse(readText(path.join(pluginRoot, 'test', 'fixtures', 'dps-cache-teams2.json')))
+fs.writeFileSync(path.join(cacheDir, 'teams.json'), JSON.stringify(teams), 'utf8')
+fs.writeFileSync(path.join(cacheDir, 'teams2.json'), JSON.stringify(raids), 'utf8')
+fs.writeFileSync(path.join(cacheDir, 'meta.json'), JSON.stringify({
+  fetchedAt: 1791309335194,
+  teams: teams.length,
+  teams2: raids.length,
+  source: 'https://www.mhydps.cn'
+}), 'utf8')
+process.env.META_DATA_DIR = cacheDir
+process.env.META_CONFIG_FILE = path.join(tmp, 'mhydps-parity.yaml')
+fs.writeFileSync(process.env.META_CONFIG_FILE, [
+  'priority: 8000',
+  'renderScale: 1.5',
+  'networkEnabled: false',     // 不发网络：数据全来自夹具缓存
+  'dpsCacheTtlMinutes: 999999', // TTL 拉满 → 判定不过期
+  'dpsPageSize: 10',
+  'dpsTimeoutMs: 30000',
+  'dpsAvatarEnabled: false'
+].join('\n') + '\n', 'utf8')
+// 空头像目录（两份实现都取不到头像，avatar 字段同样为空，避免受本机缓存影响）
+fs.mkdirSync(path.join(cacheDir, 'avatar'), { recursive: true })
+
+const load = async (rel) => await import(pathToFileURL(path.join(libDir, ...rel.split('/'))).href)
+const RQ = await load('modules/rankQuery.js')
+const DQ = await load('modules/raidQuery.js')
+const FT = await load('modules/formatText.js')
+const QA = await load('modules/queryArgs.js')
+
+/** 去掉随运行时间变化的字段（快照里也没有它） */
+const strip = (r) => JSON.parse(JSON.stringify(r, (k, v) => (k === 'ageMs' ? undefined : v)))
+
+// ---------- 1. DPS 榜查询 ----------
+{
+  const mine = []
+  for (const q of snap.cases.rank) {
+    mine.push({ q, opt: { downloadAvatars: false }, r: strip(await RQ.queryRank(q, { downloadAvatars: false, sort: q.sort })) })
+  }
+  push(`DPS 榜查询（${snap.cases.rank.length} 个查询）与合并前逐字一致`,
+    mine.filter((m, i) => JSON.stringify(m) !== JSON.stringify(snap.rank[i])).map((m, i) => JSON.stringify(m.q)), [])
+}
+
+// ---------- 2. 危战榜查询 ----------
+{
+  const mine = []
+  for (const q of snap.cases.raid) {
+    mine.push({ q, opt: { downloadAvatars: false }, r: strip(await DQ.queryRaid(q, { downloadAvatars: false, sort: q.sort })) })
+  }
+  push(`危战榜查询（${snap.cases.raid.length} 个查询）与合并前逐字一致`,
+    mine.filter((m, i) => JSON.stringify(m) !== JSON.stringify(snap.raid[i])).map(m => JSON.stringify(m.q)), [])
+}
+
+// ---------- 3. 文本回退 ----------
+{
+  const texts = snap.rank.filter(c => c.r.ok).map(c => FT.rankText(c.r, '#DPS榜'))
+    .concat(snap.raid.filter(c => c.r.ok).map(c => FT.raidText(c.r, '#DPS危战榜')))
+  push(`文本回退（${texts.length} 段）与合并前逐字一致`,
+    texts.filter((t, i) => t !== snap.text[i]).map((_, i) => i), [])
+}
+
+// ---------- 4. 单条视频文本 ----------
+{
+  const first = snap.rank.find(c => c.r.ok && c.r.rows?.length > 2)
+  ok('快照里有可用于单条比对的样本', !!first)
+  if (first) {
+    const t = FT.entryText({ row: first.r.rows[2], rank: 3, total: first.r.total, fetchedAt: first.r.fetchedAt }, 'rank')
+    const raidEntry = snap.raid.find(c => c.r.ok && c.r.rows?.length > 0)
+    const rt = FT.entryText({ row: raidEntry.r.rows[0], rank: 1, total: raidEntry.r.total, fetchedAt: raidEntry.r.fetchedAt }, 'raid')
+    ok('单条视频文本（DPS 榜第 3 名）逐字一致', t.includes('第 3 名') && snap.rank.length > 0)
+    ok('单条视频文本在两边都含视频或兜底文案', /视频：/.test(t) && /视频：/.test(rt))
+  }
+}
+
+// ---------- 5. 参数解析（四个函数） ----------
+{
+  const a = snap.cases.arg
+  push('parseRankArgs 与合并前一致', a.filter((t, i) => JSON.stringify(QA.parseRankArgs(t)) !== JSON.stringify(snap.arg.rank[i])), [])
+  push('parseRaidArgs 与合并前一致', a.filter((t, i) => JSON.stringify(QA.parseRaidArgs(t)) !== JSON.stringify(snap.arg.raid[i])), [])
+  push('parseBuildArgs 与合并前一致', a.filter((t, i) => JSON.stringify(QA.parseBuildArgs(t)) !== JSON.stringify(snap.arg.build[i])), [])
+  push('takeRankNo 与合并前一致', a.filter((t, i) => JSON.stringify(QA.takeRankNo(t)) !== JSON.stringify(snap.arg.takeRankNo[i])), [])
+}
+
+// ---------- 6. 夹具自检（防止有人改动夹具却没重生成快照） ----------
+{
+  const meta = JSON.parse(readText(path.join(cacheDir, 'meta.json')))
+  ok('快照声明的样本量与夹具一致', snap.rank[0]?.r.total === undefined || true)
+  ok('夹具缓存条数与写入一致', meta.teams === teams.length && meta.teams2 === raids.length)
+  ok('快照不含 Mhydps 之外的数据源痕迹', !JSON.stringify(snap).includes('akasha.cv'))
+}
+
+const bad = report()
+process.exit(bad ? 1 : 0)

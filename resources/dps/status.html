@@ -37,7 +37,7 @@
     <div class="page-inner">
       <div class="card head-card">
         <div class="header">
-          <div class="game-name">Mhydps-Plugin</div>
+          <div class="game-name">Meta-Plugin</div>
           <div class="title">{{if title}}{{title}}{{else}}数据状态{{/if}}</div>
           {{if dataTime}}
           <div class="subtitle">数据时间：{{dataTime}}</div>
@@ -64,6 +64,9 @@
           <div class="kv-item">
             <span class="kv-label">网络代理</span>
             <span class="kv-value">{{if proxy}}{{proxy}}{{else}}直连{{/if}}</span>
+          </div>          <div class="kv-item">
+            <span class="kv-label">联网开关</span>
+            <span class="kv-value">{{if networkEnabled}}已开启{{else}}已关闭（不联网）{{/if}}</span>
           </div>
         </div>
 
@@ -85,17 +88,43 @@
           <div class="status-note">暂无头像缓存记录</div>
           {{/if}}
         </div>
+        <!-- 攻略数据：有内容的角色数 / 收录总数（阶段 5 合并进来，状态页一次覆盖两侧） -->
+        <div class="status-card">
+          <div class="card-title">攻略数据</div>
+          <div class="num-row">
+            <div class="num-cell">
+              <div class="num-value">{{codexFilled}}</div>
+              <div class="num-label">有内容</div>
+            </div>
+            <div class="num-cell">
+              <div class="num-value">{{codexTotal}}</div>
+              <div class="num-label">收录总数</div>
+            </div>
+          </div>
+        </div>
 
         <!-- 版本信息：插件 / Yunzai -->
         <div class="status-card">
           <div class="card-title card-title-gold">版本信息</div>
           <div class="kv-item">
-            <span class="kv-label">Mhydps-Plugin</span>
+            <span class="kv-label">Meta-Plugin</span>
             <span class="kv-value">{{if pluginVersion}}{{pluginVersion}}{{else}}未知{{/if}}</span>
           </div>
           <div class="kv-item">
             <span class="kv-label">TRSS-Yunzai</span>
             <span class="kv-value">{{if yunzaiVersion}}{{yunzaiVersion}}{{else}}未知{{/if}}</span>
+          </div>
+        </div>
+        <!-- 资源来源：必需依赖与可选补充 -->
+        <div class="status-card status-card-wide">
+          <div class="card-title">资源来源</div>
+          <div class="kv-item">
+            <span class="kv-label">miao-plugin</span>
+            <span class="kv-value">{{if miaoOk}}已安装{{else}}未找到（必需依赖）{{/if}}</span>
+          </div>
+          <div class="kv-item">
+            <span class="kv-label">Atlas-Plugin</span>
+            <span class="kv-value">{{if atlasOk}}已安装（可选）{{else}}未安装（不影响出图）{{/if}}</span>
           </div>
         </div>
 

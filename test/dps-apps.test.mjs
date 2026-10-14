@@ -63,14 +63,16 @@ for (const name of APPS) {
   push('除 help（阶段 5）外，所有规则都有 app', allRules.filter(k => k !== 'help' && !covered.includes(k)), [])
 }
 
-// ---------- 3. 逐字等价门禁：用户可见文案仍用合并前的自称 ----------
+// ---------- 3. 阶段 6 改名门禁：用户可见文案统一用 Meta ----------
 {
   const sign = C.PLUGIN_SIGN
-  ok('PLUGIN_SIGN 暂时保留合并前的自称（改名留阶段 6）', sign === 'Mhydps-Plugin')
-  ok('页脚版权行由它拼出（值未变）',
+  ok('PLUGIN_SIGN 已改为 Meta-Plugin（阶段 6 收尾改名）', sign === 'Meta-Plugin')
+  ok('页脚版权行由它拼出',
     C.DPS_COPYRIGHT === `Data from mhydps.cn · Created By TRSS-yunzai & ${sign}`)
-  const prefixed = APPS.filter(name => readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`)).includes('[Mhydps]'))
-  ok('除 build 之外的 app 都带合并前的回复前缀', prefixed.length >= 4)
+  const prefixed = APPS.filter(name => readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`)).includes('[Meta]'))
+  ok('各 app 的回复前缀统一为 [Meta]', prefixed.length === APPS.length)
+  const stale = APPS.filter(name => readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`)).includes('[Mhydps]'))
+  push('已无任何 app 残留 [Mhydps] 前缀', stale, [])
 }
 
 // ---------- 4. pluginVersion / 配置取值 ----------

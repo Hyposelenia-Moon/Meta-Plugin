@@ -15,7 +15,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { resourcesDir } from '../dir.js'
 import { render } from '../components/render.js'
-import { COPYRIGHT, HELP_RULE, PREEMPT_PRIORITY, isHelpCommand } from '../components/constants.js'
+import { COPYRIGHT, DPS_RULES, HELP_RULE, PREEMPT_PRIORITY, isHelpCommand } from '../components/constants.js'
 
 // @ts-expect-error 框架文件不在 tsc 解析范围，运行时相对 lib/ 解析（见 components/render.ts 文件头 T1 / T2）
 import plugin from '../../../../lib/plugins/plugin.js'
@@ -87,12 +87,14 @@ export class MetaHelp extends plugin {
   constructor () {
     super({
       name: 'Meta攻略帮助',
-      dsc: '#攻略帮助 / #攻略 / #攻略说明',
+      dsc: '#攻略帮助 / #攻略 / #攻略说明 / #DPS帮助',
       event: 'message',
       // 抢占优先级：早于 Atlas 快捷入口(-99999) 与 genshin「米游社攻略」(50)；写死不可配置
       priority: PREEMPT_PRIORITY,
       rule: [
-        { reg: HELP_RULE, fnc: 'handleHelp', permission: 'all' }
+        { reg: HELP_RULE, fnc: 'handleHelp', permission: 'all' },
+        // 阶段 5 合并：原 Mhydps 的 `#DPS帮助` 并入同一份帮助页（不再有两套帮助图）
+        { reg: DPS_RULES.help, fnc: 'handleHelp', permission: 'all' }
       ]
     })
   }
