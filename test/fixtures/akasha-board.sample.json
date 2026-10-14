@@ -1,0 +1,4406 @@
+{
+ "note": "阿卡莎角色榜条目样本（2026-10-14 经代理用无头 Edge「导航+捕获响应」抓到；只留前 3 条，供 P5 离线单测）",
+ "source": "https://akasha.cv/api/leaderboards?sort=calculation.result&order=-1&size=20&page=1&filter=&uids=&p=&fromId=&li=&calculationId=1000012800",
+ "capturedAt": "2026-10-14",
+ "topKeys": [
+  "ttl",
+  "data",
+  "totalRowsHash"
+ ],
+ "rows": [
+  {
+   "_id": "6ace380e5bac635969492fc0",
+   "md5": "b9e73d45083cecdc035d004382217991",
+   "uid": "173418499",
+   "calculation": {
+    "id": "1000012800",
+    "result": 3547977.8157628356,
+    "additional": [
+     {
+      "name": "Skill Avg DMG (TTDS & VV up)",
+      "value": 125626.06726707255,
+      "quantity": null,
+      "type": "E0"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS & VV up)",
+      "value": 83536.13678152746,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS & VV up)",
+      "value": 137914.60347187336,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 93860.40884952313,
+      "quantity": null,
+      "type": "N2-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 36693.704096855836,
+      "quantity": null,
+      "type": "N2"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 126914.48415348945,
+      "quantity": null,
+      "type": "N3-Infused"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 49615.80112620714,
+      "quantity": null,
+      "type": "N3"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS & VV up)",
+      "value": 116786.63226109631,
+      "quantity": null,
+      "type": "N4-Infused"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS & VV up)",
+      "value": 45656.3428240259,
+      "quantity": null,
+      "type": "N4"
+     },
+     {
+      "name": "Sturm und Drang 5-Hit Avg DMG (TTDS & VV up)",
+      "value": 146952.76057402583,
+      "quantity": null,
+      "type": "N5-Infused"
+     },
+     {
+      "name": "Sturm und Drang 5-Hit Avg DMG (TTDS & VV up)",
+      "value": 57449.288517670735,
+      "quantity": null,
+      "type": "N5"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS & VV up)",
+      "value": 83536.13678152746,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS & VV up)",
+      "value": 269753.1779333751,
+      "quantity": null,
+      "type": "E1-Infused"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS & VV up)",
+      "value": 105456.79185321703,
+      "quantity": null,
+      "type": "E1"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS & VV up)",
+      "value": 137914.60347187336,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 93860.40884952313,
+      "quantity": null,
+      "type": "N2-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 36693.704096855836,
+      "quantity": null,
+      "type": "N2"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 126914.48415348945,
+      "quantity": null,
+      "type": "N3-Infused"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 49615.80112620714,
+      "quantity": null,
+      "type": "N3"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS up)",
+      "value": 83536.13678152746,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS up)",
+      "value": 99158.46135376101,
+      "quantity": null,
+      "type": "N4-Infused"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS up)",
+      "value": 45656.3428240259,
+      "quantity": null,
+      "type": "N4"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS up)",
+      "value": 229035.717113243,
+      "quantity": null,
+      "type": "E1-Infused"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS up)",
+      "value": 105456.79185321703,
+      "quantity": null,
+      "type": "E1"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS up)",
+      "value": 117097.30483460944,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG (TTDS up)",
+      "value": 153194.34970319102,
+      "quantity": null,
+      "type": "CA-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG (TTDS up)",
+      "value": 70536.67250241328,
+      "quantity": null,
+      "type": "CA"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS up)",
+      "value": 83536.13678152746,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS up)",
+      "value": 117097.30483460944,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 138204.9720979281,
+      "quantity": null,
+      "type": "CA-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 63634.976576904766,
+      "quantity": null,
+      "type": "CA"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG",
+      "value": 105639.86060037228,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 138204.9720979281,
+      "quantity": null,
+      "type": "CA-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 63634.976576904766,
+      "quantity": null,
+      "type": "CA"
+     },
+     {
+      "name": "Swirl DMG (VV up)",
+      "value": 1466.5116864136298,
+      "quantity": 4,
+      "type": "?"
+     },
+     {
+      "name": "Swirl DMG",
+      "value": 1245.1514318606291,
+      "quantity": 3,
+      "type": "?"
+     }
+    ]
+   },
+   "artifactObjects": {
+    "EQUIP_SHOES": {
+     "mainStatKey": "ATK%"
+    },
+    "EQUIP_RING": {
+     "mainStatKey": "Pyro DMG Bonus"
+    },
+    "EQUIP_DRESS": {
+     "mainStatKey": "Crit DMG"
+    }
+   },
+   "artifactSets": {
+    "A Day Carved From Rising Winds": {
+     "icon": "https://enka.network/ui/UI_RelicIcon_15044_4.png",
+     "count": 4
+    },
+    "Marechaussee Hunter": {
+     "icon": "https://enka.network/ui/UI_RelicIcon_15031_4.png",
+     "count": 1
+    }
+   },
+   "characterId": 10000128,
+   "constellation": 1,
+   "costumeId": "",
+   "critValue": 251.89999598825972,
+   "lastBuildUpdate": 1789158916764,
+   "name": "Varka",
+   "owner": {
+    "nickname": "包萤的",
+    "adventureRank": 60.0000001983,
+    "profilePicture": {
+     "characterId": 0,
+     "id": 100020,
+     "assets": {
+      "icon": "UI_AvatarIcon_72158_Circle",
+      "oldIcon": "UI_AvatarIcon_72158_Circle"
+     },
+     "name": null
+    },
+    "nameCard": "UI_NameCardPic_Bartender_P",
+    "patreon": {},
+    "region": "CN",
+    "enkaOwner": {}
+   },
+   "propMap": {
+    "ascension": {
+     "val": "6"
+    },
+    "level": {
+     "val": "90"
+    }
+   },
+   "proudSkillExtraLevelMap": {},
+   "sortableType": "varka",
+   "stats": {
+    "maxHp": {
+     "value": 17662.168089649116
+    },
+    "atk": {
+     "value": 2383.7934078751755
+    },
+    "def": {
+     "value": 813.9737741557637
+    },
+    "baseAtk": {
+     "value": 960.8627127
+    },
+    "elementalMastery": {
+     "value": 34.97000015065449
+    },
+    "energyRecharge": {
+     "value": 1
+    },
+    "healingBonus": {
+     "value": 0
+    },
+    "critRate": {
+     "value": 0.7933000120326369
+    },
+    "critDamage": {
+     "value": 2.578399993385324
+    },
+    "pyroDamageBonus": {
+     "value": 0.46600000046
+    }
+   },
+   "talentsLevelMap": {
+    "normalAttacks": {
+     "icon": "https://enka.network/ui/Skill_A_04.png",
+     "level": 1,
+     "rawLevel": 1,
+     "id": 11281,
+     "boosted": false
+    },
+    "elementalSkill": {
+     "icon": "https://enka.network/ui/Skill_S_Varka_01.png",
+     "level": 10,
+     "rawLevel": 10,
+     "id": 11282,
+     "boosted": false
+    },
+    "elementalBurst": {
+     "icon": "https://enka.network/ui/Skill_E_Varka_01.png",
+     "level": 6,
+     "rawLevel": 6,
+     "id": 11285,
+     "boosted": false
+    }
+   },
+   "type": "current",
+   "weapon": {
+    "weaponId": 12515,
+    "weaponInfo": {
+     "level": 90,
+     "promoteLevel": 6,
+     "refinementLevel": {
+      "value": 0
+     }
+    },
+    "flat": {
+     "icon": {
+      "value": "UI_EquipIcon_Claymore_EnsisAquilonis"
+     }
+    },
+    "name": "Gest of the Mighty Wolf",
+    "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_EnsisAquilonis_Awaken.png"
+   },
+   "weaponSkinId": "",
+   "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+   "index": 1,
+   "nameCardLink": "https://enka.network/ui/UI_NameCardPic_Bartender_P.png",
+   "profilePictureLink": "https://enka.network/ui/UI_AvatarIcon_72158_Circle.png",
+   "characterMetadata": {
+    "element": "Anemo"
+   }
+  },
+  {
+   "_id": "6ace381b5bac6359694a409b",
+   "md5": "86c9f202d570aab7cec707974fe77cd6",
+   "uid": "602968660",
+   "calculation": {
+    "id": "1000012800",
+    "result": 3536900.3980728025,
+    "additional": [
+     {
+      "name": "Skill Avg DMG (TTDS & VV up)",
+      "value": 125122.20098797325,
+      "quantity": null,
+      "type": "E0"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS & VV up)",
+      "value": 84107.61520056761,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS & VV up)",
+      "value": 137361.44982605186,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 93483.94960556788,
+      "quantity": null,
+      "type": "N2-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 36546.53145544578,
+      "quantity": null,
+      "type": "N2"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 126405.45024518858,
+      "quantity": null,
+      "type": "N3-Infused"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 49416.79999816223,
+      "quantity": null,
+      "type": "N3"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS & VV up)",
+      "value": 116318.21956373018,
+      "quantity": null,
+      "type": "N4-Infused"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS & VV up)",
+      "value": 45473.22245676075,
+      "quantity": null,
+      "type": "N4"
+     },
+     {
+      "name": "Sturm und Drang 5-Hit Avg DMG (TTDS & VV up)",
+      "value": 146363.35631059963,
+      "quantity": null,
+      "type": "N5-Infused"
+     },
+     {
+      "name": "Sturm und Drang 5-Hit Avg DMG (TTDS & VV up)",
+      "value": 57218.86851112257,
+      "quantity": null,
+      "type": "N5"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS & VV up)",
+      "value": 84107.61520056761,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS & VV up)",
+      "value": 268671.2406323973,
+      "quantity": null,
+      "type": "E1-Infused"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS & VV up)",
+      "value": 105033.82134659546,
+      "quantity": null,
+      "type": "E1"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS & VV up)",
+      "value": 137361.44982605186,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 93483.94960556788,
+      "quantity": null,
+      "type": "N2-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 36546.53145544578,
+      "quantity": null,
+      "type": "N2"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 126405.45024518858,
+      "quantity": null,
+      "type": "N3-Infused"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 49416.79999816223,
+      "quantity": null,
+      "type": "N3"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS up)",
+      "value": 84107.61520056761,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS up)",
+      "value": 98760.75245977091,
+      "quantity": null,
+      "type": "N4-Infused"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS up)",
+      "value": 45473.22245676075,
+      "quantity": null,
+      "type": "N4"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS up)",
+      "value": 228117.09110297885,
+      "quantity": null,
+      "type": "E1-Infused"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS up)",
+      "value": 105033.82134659546,
+      "quantity": null,
+      "type": "E1"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS up)",
+      "value": 116627.64607872328,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG (TTDS up)",
+      "value": 152579.9114136675,
+      "quantity": null,
+      "type": "CA-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG (TTDS up)",
+      "value": 70253.76106940408,
+      "quantity": null,
+      "type": "CA"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS up)",
+      "value": 84107.61520056761,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS up)",
+      "value": 116627.64607872328,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 137365.3104635499,
+      "quantity": null,
+      "type": "CA-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 63248.363504203066,
+      "quantity": null,
+      "type": "CA"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG",
+      "value": 104998.04767091887,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 137365.3104635499,
+      "quantity": null,
+      "type": "CA-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 63248.363504203066,
+      "quantity": null,
+      "type": "CA"
+     },
+     {
+      "name": "Swirl DMG (VV up)",
+      "value": 1548.9742712853197,
+      "quantity": 4,
+      "type": "?"
+     },
+     {
+      "name": "Swirl DMG",
+      "value": 1315.1668341101772,
+      "quantity": 3,
+      "type": "?"
+     }
+    ]
+   },
+   "artifactObjects": {
+    "EQUIP_SHOES": {
+     "mainStatKey": "ATK%"
+    },
+    "EQUIP_RING": {
+     "mainStatKey": "Pyro DMG Bonus"
+    },
+    "EQUIP_DRESS": {
+     "mainStatKey": "Crit DMG"
+    }
+   },
+   "artifactSets": {
+    "Thundering Fury": {
+     "icon": "https://enka.network/ui/UI_RelicIcon_15005_4.png",
+     "count": 1
+    },
+    "A Day Carved From Rising Winds": {
+     "icon": "https://enka.network/ui/UI_RelicIcon_15044_4.png",
+     "count": 4
+    }
+   },
+   "characterId": 10000128,
+   "constellation": 0,
+   "costumeId": "",
+   "critValue": 257.28999679491153,
+   "lastBuildUpdate": 1775238414858,
+   "name": "Varka",
+   "owner": {
+    "nickname": "Daimu",
+    "adventureRank": 60.0000002766,
+    "profilePicture": {
+     "characterId": 10000057,
+     "id": "",
+     "assets": {
+      "icon": "UI_AvatarIcon_Itto",
+      "sideIcon": "UI_AvatarIcon_Side_Itto",
+      "gachaIcon": "UI_Gacha_AvatarImg_Itto",
+      "constellations": [
+       "UI_Talent_S_Itto_01",
+       "UI_Talent_S_Itto_02",
+       "UI_Talent_U_Itto_01",
+       "UI_Talent_S_Itto_03",
+       "UI_Talent_U_Itto_02",
+       "UI_Talent_S_Itto_04"
+      ],
+      "talents": {
+       "normalAttack": "Skill_A_04",
+       "elementalSkill": "Skill_S_Itto_01",
+       "elementalBurst": "Skill_E_Itto_01"
+      },
+      "costumes": []
+     },
+     "name": null
+    },
+    "nameCard": "UI_NameCardPic_Ysxf5_P",
+    "patreon": {},
+    "region": "NA",
+    "enkaOwner": {}
+   },
+   "propMap": {
+    "ascension": {
+     "val": "6"
+    },
+    "level": {
+     "val": "90"
+    }
+   },
+   "proudSkillExtraLevelMap": {},
+   "sortableType": "varka",
+   "stats": {
+    "maxHp": {
+     "value": 17602.418090449315
+    },
+    "atk": {
+     "value": 2295.3900138881104
+    },
+    "def": {
+     "value": 892.792353284059
+    },
+    "baseAtk": {
+     "value": 960.8627127
+    },
+    "elementalMastery": {
+     "value": 44.29000081977871
+    },
+    "energyRecharge": {
+     "value": 1
+    },
+    "healingBonus": {
+     "value": 0
+    },
+    "critRate": {
+     "value": 0.8009000214087223
+    },
+    "critDamage": {
+     "value": 2.6170999927716707
+    },
+    "pyroDamageBonus": {
+     "value": 0.46600000064
+    }
+   },
+   "talentsLevelMap": {
+    "normalAttacks": {
+     "icon": "https://enka.network/ui/Skill_A_04.png",
+     "level": 10,
+     "rawLevel": 10,
+     "id": 11281,
+     "boosted": false
+    },
+    "elementalSkill": {
+     "icon": "https://enka.network/ui/Skill_S_Varka_01.png",
+     "level": 10,
+     "rawLevel": 10,
+     "id": 11282,
+     "boosted": false
+    },
+    "elementalBurst": {
+     "icon": "https://enka.network/ui/Skill_E_Varka_01.png",
+     "level": 10,
+     "rawLevel": 10,
+     "id": 11285,
+     "boosted": false
+    }
+   },
+   "type": "current",
+   "weapon": {
+    "weaponId": 12515,
+    "weaponInfo": {
+     "level": 90,
+     "promoteLevel": 6,
+     "refinementLevel": {
+      "value": 0
+     }
+    },
+    "flat": {
+     "icon": {
+      "value": "UI_EquipIcon_Claymore_EnsisAquilonis"
+     }
+    },
+    "name": "Gest of the Mighty Wolf",
+    "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_EnsisAquilonis_Awaken.png"
+   },
+   "weaponSkinId": "",
+   "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+   "index": 2,
+   "nameCardLink": "https://enka.network/ui/UI_NameCardPic_Ysxf5_P.png",
+   "profilePictureLink": "https://enka.network/ui/UI_AvatarIcon_Itto.png",
+   "characterMetadata": {
+    "element": "Anemo"
+   }
+  },
+  {
+   "_id": "6ace382d5bac6359694c102d",
+   "calculation": {
+    "id": "1000012800",
+    "result": 3526374.7590838983,
+    "additional": [
+     {
+      "name": "Skill Avg DMG (TTDS & VV up)",
+      "value": 124664.51105775428,
+      "quantity": null,
+      "type": "E0"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS & VV up)",
+      "value": 84778.64675080605,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS & VV up)",
+      "value": 136858.98976216948,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 93141.99084384636,
+      "quantity": null,
+      "type": "N2-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 36412.846311646266,
+      "quantity": null,
+      "type": "N2"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 125943.06658015221,
+      "quantity": null,
+      "type": "N3-Infused"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 49236.036140395874,
+      "quantity": null,
+      "type": "N3"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS & VV up)",
+      "value": 115892.73439225968,
+      "quantity": null,
+      "type": "N4-Infused"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS & VV up)",
+      "value": 45306.88398246339,
+      "quantity": null,
+      "type": "N4"
+     },
+     {
+      "name": "Sturm und Drang 5-Hit Avg DMG (TTDS & VV up)",
+      "value": 145827.96780490907,
+      "quantity": null,
+      "type": "N5-Infused"
+     },
+     {
+      "name": "Sturm und Drang 5-Hit Avg DMG (TTDS & VV up)",
+      "value": 57009.565128275426,
+      "quantity": null,
+      "type": "N5"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS & VV up)",
+      "value": 84778.64675080605,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS & VV up)",
+      "value": 267688.4571156067,
+      "quantity": null,
+      "type": "E1-Infused"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS & VV up)",
+      "value": 104649.61357225031,
+      "quantity": null,
+      "type": "E1"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS & VV up)",
+      "value": 136858.98976216948,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 93141.99084384636,
+      "quantity": null,
+      "type": "N2-Infused"
+     },
+     {
+      "name": "Sturm und Drang 2-Hit Avg DMG (TTDS & VV up)",
+      "value": 36412.846311646266,
+      "quantity": null,
+      "type": "N2"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 125943.06658015221,
+      "quantity": null,
+      "type": "N3-Infused"
+     },
+     {
+      "name": "Sturm und Drang 3-Hit Avg DMG (TTDS & VV up)",
+      "value": 49236.036140395874,
+      "quantity": null,
+      "type": "N3"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS up)",
+      "value": 84778.64675080605,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS up)",
+      "value": 98399.49146512614,
+      "quantity": null,
+      "type": "N4-Infused"
+     },
+     {
+      "name": "Sturm und Drang 4-Hit Avg DMG (TTDS up)",
+      "value": 45306.88398246339,
+      "quantity": null,
+      "type": "N4"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS up)",
+      "value": 227282.65226796793,
+      "quantity": null,
+      "type": "E1-Infused"
+     },
+     {
+      "name": "Four Winds' Ascension Avg DMG (TTDS up)",
+      "value": 104649.61357225031,
+      "quantity": null,
+      "type": "E1"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS up)",
+      "value": 116201.02904335145,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG (TTDS up)",
+      "value": 152021.78311687705,
+      "quantity": null,
+      "type": "CA-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG (TTDS up)",
+      "value": 69996.77678725767,
+      "quantity": null,
+      "type": "CA"
+     },
+     {
+      "name": "Arcane Projection Avg DMG (TTDS up)",
+      "value": 84778.64675080605,
+      "quantity": null,
+      "type": "A"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG (TTDS up)",
+      "value": 116201.02904335145,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 136554.7782821783,
+      "quantity": null,
+      "type": "CA-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 62875.16261602083,
+      "quantity": null,
+      "type": "CA"
+     },
+     {
+      "name": "Sturm und Drang 1-Hit Avg DMG",
+      "value": 104378.50044803362,
+      "quantity": null,
+      "type": "N1-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 136554.7782821783,
+      "quantity": null,
+      "type": "CA-Infused"
+     },
+     {
+      "name": "Sturm und Drang Charged Attack Avg DMG",
+      "value": 62875.16261602083,
+      "quantity": null,
+      "type": "CA"
+     },
+     {
+      "name": "Swirl DMG (VV up)",
+      "value": 1487.1980578266762,
+      "quantity": 4,
+      "type": "?"
+     },
+     {
+      "name": "Swirl DMG",
+      "value": 1262.7153321169892,
+      "quantity": 3,
+      "type": "?"
+     }
+    ]
+   },
+   "uid": "704368538",
+   "md5": "0378e2892251d2652d871322be22c203",
+   "artifactObjects": {
+    "EQUIP_SHOES": {
+     "mainStatKey": "ATK%"
+    },
+    "EQUIP_RING": {
+     "mainStatKey": "Pyro DMG Bonus"
+    },
+    "EQUIP_DRESS": {
+     "mainStatKey": "Crit DMG"
+    }
+   },
+   "artifactSets": {
+    "A Day Carved From Rising Winds": {
+     "icon": "https://enka.network/ui/UI_RelicIcon_15044_4.png",
+     "count": 4
+    },
+    "Lavawalker": {
+     "icon": "https://enka.network/ui/UI_RelicIcon_14003_4.png",
+     "count": 1
+    }
+   },
+   "characterId": 10000128,
+   "constellation": 2,
+   "costumeId": "",
+   "critValue": 264.28999626745576,
+   "lastBuildUpdate": 1791601620342,
+   "name": "Varka",
+   "owner": {
+    "nickname": "iQudx",
+    "adventureRank": 60.0000004796,
+    "profilePicture": {
+     "characterId": 0,
+     "id": 11100,
+     "assets": {
+      "icon": "UI_AvatarIcon_Varka_Circle",
+      "oldIcon": "UI_AvatarIcon_Varka"
+     },
+     "name": null
+    },
+    "nameCard": "UI_NameCardPic_Varka_P",
+    "patreon": {},
+    "region": "EU",
+    "enkaOwner": {}
+   },
+   "propMap": {
+    "ascension": {
+     "val": "6"
+    },
+    "level": {
+     "val": "100"
+    }
+   },
+   "proudSkillExtraLevelMap": {},
+   "sortableType": "varka",
+   "stats": {
+    "maxHp": {
+     "value": 17901.168090706913
+    },
+    "atk": {
+     "value": 2203.2675311165503
+    },
+    "def": {
+     "value": 916.0173133995968
+    },
+    "baseAtk": {
+     "value": 960.8627127
+    },
+    "elementalMastery": {
+     "value": 37.29999949116055
+    },
+    "energyRecharge": {
+     "value": 1.05180000263163
+    },
+    "healingBonus": {
+     "value": 0
+    },
+    "critRate": {
+     "value": 0.7932000170428003
+    },
+    "critDamage": {
+     "value": 2.7024999867159574
+    },
+    "pyroDamageBonus": {
+     "value": 0.46600000876900005
+    }
+   },
+   "talentsLevelMap": {
+    "normalAttacks": {
+     "icon": "https://enka.network/ui/Skill_A_04.png",
+     "level": 1,
+     "rawLevel": 1,
+     "id": 11281,
+     "boosted": false
+    },
+    "elementalSkill": {
+     "icon": "https://enka.network/ui/Skill_S_Varka_01.png",
+     "level": 10,
+     "rawLevel": 10,
+     "id": 11282,
+     "boosted": false
+    },
+    "elementalBurst": {
+     "icon": "https://enka.network/ui/Skill_E_Varka_01.png",
+     "level": 10,
+     "rawLevel": 10,
+     "id": 11285,
+     "boosted": false
+    }
+   },
+   "type": "current",
+   "weapon": {
+    "weaponId": 12515,
+    "weaponInfo": {
+     "level": 90,
+     "promoteLevel": 6,
+     "refinementLevel": {
+      "value": 0
+     }
+    },
+    "flat": {
+     "icon": {
+      "value": "UI_EquipIcon_Claymore_EnsisAquilonis"
+     }
+    },
+    "name": "Gest of the Mighty Wolf",
+    "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_EnsisAquilonis_Awaken.png"
+   },
+   "weaponSkinId": "",
+   "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+   "index": 3,
+   "nameCardLink": "https://enka.network/ui/UI_NameCardPic_Varka_P.png",
+   "profilePictureLink": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+   "characterMetadata": {
+    "element": "Anemo"
+   }
+  }
+ ],
+ "filters": {
+  "data": [
+   {
+    "fieldName": "Other",
+    "fieldKey": "all",
+    "options": [
+     {
+      "name": "Allow multiple builds per UID",
+      "value": "1"
+     }
+    ]
+   },
+   {
+    "fieldName": "Region",
+    "fieldKey": "region",
+    "options": [
+     {
+      "name": "America (NA)",
+      "value": "NA"
+     },
+     {
+      "name": "Europe (EU)",
+      "value": "EU"
+     },
+     {
+      "name": "Asia (Asia, Australia)",
+      "value": "ASIA"
+     },
+     {
+      "name": "TW, HK, MO (SAR)",
+      "value": "TW"
+     },
+     {
+      "name": "China (CN, Celestia)",
+      "value": "CN"
+     },
+     {
+      "name": "Bilibili China (CN, Irminsul)",
+      "value": "B"
+     }
+    ]
+   },
+   {
+    "fieldName": "Other",
+    "fieldKey": "owner.patreon.active",
+    "options": [
+     {
+      "name": "Show Patreons only",
+      "value": "1"
+     }
+    ]
+   },
+   {
+    "fieldName": "Sands of Eon",
+    "fieldKey": "artifactObjects.EQUIP_SHOES.mainStatKey",
+    "options": [
+     {
+      "name": "ATK% - Sands of Eon",
+      "value": "ATK%"
+     },
+     {
+      "name": "HP% - Sands of Eon",
+      "value": "HP%"
+     },
+     {
+      "name": "DEF% - Sands of Eon",
+      "value": "DEF%"
+     },
+     {
+      "name": "Energy Recharge - Sands of Eon",
+      "value": "Energy Recharge"
+     },
+     {
+      "name": "Elemental Mastery - Sands of Eon",
+      "value": "Elemental Mastery"
+     }
+    ]
+   },
+   {
+    "fieldName": "Goblet of Eonothem",
+    "fieldKey": "artifactObjects.EQUIP_RING.mainStatKey",
+    "options": [
+     {
+      "name": "ATK% - Goblet of Eonothem",
+      "value": "ATK%"
+     },
+     {
+      "name": "HP% - Goblet of Eonothem",
+      "value": "HP%"
+     },
+     {
+      "name": "DEF% - Goblet of Eonothem",
+      "value": "DEF%"
+     },
+     {
+      "name": "Elemental Mastery - Goblet of Eonothem",
+      "value": "Elemental Mastery"
+     },
+     {
+      "name": "Anemo DMG Bonus - Goblet of Eonothem",
+      "value": "Anemo DMG Bonus"
+     },
+     {
+      "name": "Cryo DMG Bonus - Goblet of Eonothem",
+      "value": "Cryo DMG Bonus"
+     },
+     {
+      "name": "Dendro DMG Bonus - Goblet of Eonothem",
+      "value": "Dendro DMG Bonus"
+     },
+     {
+      "name": "Electro DMG Bonus - Goblet of Eonothem",
+      "value": "Electro DMG Bonus"
+     },
+     {
+      "name": "Geo DMG Bonus - Goblet of Eonothem",
+      "value": "Geo DMG Bonus"
+     },
+     {
+      "name": "Hydro DMG Bonus - Goblet of Eonothem",
+      "value": "Hydro DMG Bonus"
+     },
+     {
+      "name": "Pyro DMG Bonus - Goblet of Eonothem",
+      "value": "Pyro DMG Bonus"
+     },
+     {
+      "name": "Physical DMG Bonus - Goblet of Eonothem",
+      "value": "Physical DMG Bonus"
+     }
+    ]
+   },
+   {
+    "fieldName": "Circlet of Logos",
+    "fieldKey": "artifactObjects.EQUIP_DRESS.mainStatKey",
+    "options": [
+     {
+      "name": "Crit RATE - Circlet of Logos",
+      "value": "Crit RATE"
+     },
+     {
+      "name": "Crit DMG - Circlet of Logos",
+      "value": "Crit DMG"
+     },
+     {
+      "name": "ATK% - Circlet of Logos",
+      "value": "ATK%"
+     },
+     {
+      "name": "HP% - Circlet of Logos",
+      "value": "HP%"
+     },
+     {
+      "name": "DEF% - Circlet of Logos",
+      "value": "DEF%"
+     },
+     {
+      "name": "Elemental Mastery - Circlet of Logos",
+      "value": "Elemental Mastery"
+     },
+     {
+      "name": "Healing Bonus - Circlet of Logos",
+      "value": "Healing Bonus"
+     }
+    ]
+   },
+   {
+    "fieldName": "Weapon",
+    "fieldKey": "weapon.name",
+    "options": [
+     {
+      "name": "Absolution",
+      "value": "Absolution",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Estoc_Awaken.png"
+     },
+     {
+      "name": "Akuoumaru",
+      "value": "Akuoumaru",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Maria_Awaken.png"
+     },
+     {
+      "name": "Alley Hunter",
+      "value": "Alley Hunter",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Outlaw_Awaken.png"
+     },
+     {
+      "name": "Amenoma Kageuchi",
+      "value": "Amenoma Kageuchi",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Bakufu_Awaken.png"
+     },
+     {
+      "name": "Amos' Bow",
+      "value": "Amos' Bow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Amos_Awaken.png"
+     },
+     {
+      "name": "Angelos' Heptades",
+      "value": "Angelos' Heptades",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_FairyGarden_Awaken.png"
+     },
+     {
+      "name": "Apprentice's Notes",
+      "value": "Apprentice's Notes",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Apprentice_Awaken.png"
+     },
+     {
+      "name": "Aqua Simulacra",
+      "value": "Aqua Simulacra",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Kirin_Awaken.png"
+     },
+     {
+      "name": "Aquila Favonia",
+      "value": "Aquila Favonia",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Falcon_Awaken.png"
+     },
+     {
+      "name": "Ash-Graven Drinking Horn",
+      "value": "Ash-Graven Drinking Horn",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_ConchSprayer_Awaken.png"
+     },
+     {
+      "name": "Astral Vulture's Crimson Plumage",
+      "value": "Astral Vulture's Crimson Plumage",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Qoyllorsnova_Awaken.png"
+     },
+     {
+      "name": "A Teaspoon of Transcendence",
+      "value": "A Teaspoon of Transcendence",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_CrystallineSword_Awaken.png"
+     },
+     {
+      "name": "Athame Artis",
+      "value": "Athame Artis",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Motsognir_Awaken.png"
+     },
+     {
+      "name": "A Thousand Blazing Suns",
+      "value": "A Thousand Blazing Suns",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_RadianceSword_Awaken.png"
+     },
+     {
+      "name": "A Thousand Floating Dreams",
+      "value": "A Thousand Floating Dreams",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Ayus_Awaken.png"
+     },
+     {
+      "name": "Azurelight",
+      "value": "Azurelight",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_OuterSword_Awaken.png"
+     },
+     {
+      "name": "Ballad of the Boundless Blue",
+      "value": "Ballad of the Boundless Blue",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_DandelionPoem_Awaken.png"
+     },
+     {
+      "name": "Ballad of the Fjords",
+      "value": "Ballad of the Fjords",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Shanty_Awaken.png"
+     },
+     {
+      "name": "Beacon of the Reed Sea",
+      "value": "Beacon of the Reed Sea",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Deshret_Awaken.png"
+     },
+     {
+      "name": "Beginner's Protector",
+      "value": "Beginner's Protector",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Gewalt_Awaken.png"
+     },
+     {
+      "name": "Beyond the Chrysalis",
+      "value": "Beyond the Chrysalis",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Samosvist_Awaken.png"
+     },
+     {
+      "name": "Blackcliff Agate",
+      "value": "Blackcliff Agate",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Blackrock_Awaken.png"
+     },
+     {
+      "name": "Blackcliff Longsword",
+      "value": "Blackcliff Longsword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Blackrock_Awaken.png"
+     },
+     {
+      "name": "Blackcliff Pole",
+      "value": "Blackcliff Pole",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Blackrock_Awaken.png"
+     },
+     {
+      "name": "Blackcliff Slasher",
+      "value": "Blackcliff Slasher",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Blackrock_Awaken.png"
+     },
+     {
+      "name": "Blackcliff Warbow",
+      "value": "Blackcliff Warbow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Blackrock_Awaken.png"
+     },
+     {
+      "name": "Blackmarrow Lantern",
+      "value": "Blackmarrow Lantern",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Ilmarinen_Awaken.png"
+     },
+     {
+      "name": "Black Tassel",
+      "value": "Black Tassel",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Noire_Awaken.png"
+     },
+     {
+      "name": "Blade of Atonement",
+      "value": "Blade of Atonement",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_GlintstoneClaymore_Awaken.png"
+     },
+     {
+      "name": "Bloodsoaked Ruins",
+      "value": "Bloodsoaked Ruins",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_TummaLyhty_Awaken.png"
+     },
+     {
+      "name": "Bloodtainted Greatsword",
+      "value": "Bloodtainted Greatsword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Siegfry_Awaken.png"
+     },
+     {
+      "name": "Breezeborne Refrain",
+      "value": "Breezeborne Refrain",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Windtalker_Awaken.png"
+     },
+     {
+      "name": "Calamity of Eshu",
+      "value": "Calamity of Eshu",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_SacrificialNgombe_Awaken.png"
+     },
+     {
+      "name": "Calamity Queller",
+      "value": "Calamity Queller",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Santika_Awaken.png"
+     },
+     {
+      "name": "Cashflow Supervision",
+      "value": "Cashflow Supervision",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Wheatley_Awaken.png"
+     },
+     {
+      "name": "Chain Breaker",
+      "value": "Chain Breaker",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Isikhulu_Awaken.png"
+     },
+     {
+      "name": "Cinnabar Spindle",
+      "value": "Cinnabar Spindle",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Opus_Awaken.png"
+     },
+     {
+      "name": "Clash of Kings",
+      "value": "Clash of Kings",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_SandMemoria_Awaken.png"
+     },
+     {
+      "name": "Cloudforged",
+      "value": "Cloudforged",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Ultimatum_Awaken.png"
+     },
+     {
+      "name": "Compound Bow",
+      "value": "Compound Bow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Exotic_Awaken.png"
+     },
+     {
+      "name": "Cool Steel",
+      "value": "Cool Steel",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Steel_Awaken.png"
+     },
+     {
+      "name": "Covenant of Frost and Snow",
+      "value": "Covenant of Frost and Snow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_GlintstoneBow_Awaken.png"
+     },
+     {
+      "name": "Crane's Echoing Call",
+      "value": "Crane's Echoing Call",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_MountainGale_Awaken.png"
+     },
+     {
+      "name": "Crescent Pike",
+      "value": "Crescent Pike",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Exotic_Awaken.png"
+     },
+     {
+      "name": "Crimson Moon's Semblance",
+      "value": "Crimson Moon's Semblance",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_BloodMoon_Awaken.png"
+     },
+     {
+      "name": "Dark Iron Sword",
+      "value": "Dark Iron Sword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Darker_Awaken.png"
+     },
+     {
+      "name": "Dawning Frost",
+      "value": "Dawning Frost",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Ziedas_Awaken.png"
+     },
+     {
+      "name": "Deathmatch",
+      "value": "Deathmatch",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Gladiator_Awaken.png"
+     },
+     {
+      "name": "Debate Club",
+      "value": "Debate Club",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Reasoning_Awaken.png"
+     },
+     {
+      "name": "Dialogues of the Desert Sages",
+      "value": "Dialogues of the Desert Sages",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Caduceus_Awaken.png"
+     },
+     {
+      "name": "Disaster and Remorse",
+      "value": "Disaster and Remorse",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Carbine_Awaken.png"
+     },
+     {
+      "name": "Dodoco Tales",
+      "value": "Dodoco Tales",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Ludiharpastum_Awaken.png"
+     },
+     {
+      "name": "Dragon's Bane",
+      "value": "Dragon's Bane",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Stardust_Awaken.png"
+     },
+     {
+      "name": "Dragonspine Spear",
+      "value": "Dragonspine Spear",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Everfrost_Awaken.png"
+     },
+     {
+      "name": "Dull Blade",
+      "value": "Dull Blade",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Blunt_Awaken.png"
+     },
+     {
+      "name": "Earth Shaker",
+      "value": "Earth Shaker",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Isikhulu_Awaken.png"
+     },
+     {
+      "name": "Echoes of the Heart",
+      "value": "Echoes of the Heart",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_GlintstoneCatalyst_Awaken.png"
+     },
+     {
+      "name": "Elegy for the End",
+      "value": "Elegy for the End",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Widsith_Awaken.png"
+     },
+     {
+      "name": "Emberwell",
+      "value": "Emberwell",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_GlintstoneSword_Awaken.png"
+     },
+     {
+      "name": "Emerald Orb",
+      "value": "Emerald Orb",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Jade_Awaken.png"
+     },
+     {
+      "name": "End of the Line",
+      "value": "End of the Line",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Fin_Awaken.png"
+     },
+     {
+      "name": "Engulfing Lightning",
+      "value": "Engulfing Lightning",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Narukami_Awaken.png"
+     },
+     {
+      "name": "Etherlight Spindlelute",
+      "value": "Etherlight Spindlelute",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_SeeliesLute_Awaken.png"
+     },
+     {
+      "name": "Everlasting Moonglow",
+      "value": "Everlasting Moonglow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Kaleido_Awaken.png"
+     },
+     {
+      "name": "Exaiphanes Blade",
+      "value": "Exaiphanes Blade",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_WeaponQuestSnezhnaya.png"
+     },
+     {
+      "name": "Eye of Perception",
+      "value": "Eye of Perception",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Truelens_Awaken.png"
+     },
+     {
+      "name": "Fading Twilight",
+      "value": "Fading Twilight",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Fallensun_Awaken.png"
+     },
+     {
+      "name": "Fang of the Mountain King",
+      "value": "Fang of the Mountain King",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_EmeraldSword_Awaken.png"
+     },
+     {
+      "name": "Favonius Codex",
+      "value": "Favonius Codex",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Zephyrus_Awaken.png"
+     },
+     {
+      "name": "Favonius Greatsword",
+      "value": "Favonius Greatsword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Zephyrus_Awaken.png"
+     },
+     {
+      "name": "Favonius Lance",
+      "value": "Favonius Lance",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Zephyrus_Awaken.png"
+     },
+     {
+      "name": "Favonius Sword",
+      "value": "Favonius Sword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Zephyrus_Awaken.png"
+     },
+     {
+      "name": "Favonius Warbow",
+      "value": "Favonius Warbow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Zephyrus_Awaken.png"
+     },
+     {
+      "name": "Ferrous Shadow",
+      "value": "Ferrous Shadow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Glaive_Awaken.png"
+     },
+     {
+      "name": "Festering Desire",
+      "value": "Festering Desire",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Magnum_Awaken.png"
+     },
+     {
+      "name": "Fillet Blade",
+      "value": "Fillet Blade",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Sashimi_Awaken.png"
+     },
+     {
+      "name": "Finale of the Deep",
+      "value": "Finale of the Deep",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Vorpal_Awaken.png"
+     },
+     {
+      "name": "Flame-Forged Insight",
+      "value": "Flame-Forged Insight",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Polilith_Awaken.png"
+     },
+     {
+      "name": "Fleuve Cendre Ferryman",
+      "value": "Fleuve Cendre Ferryman",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Machination_Awaken.png"
+     },
+     {
+      "name": "Flower-Wreathed Feathers",
+      "value": "Flower-Wreathed Feathers",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Umpakati_Awaken.png"
+     },
+     {
+      "name": "Flowing Purity",
+      "value": "Flowing Purity",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Vorpal_Awaken.png"
+     },
+     {
+      "name": "Flute of Ezpitzal",
+      "value": "Flute of Ezpitzal",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Isikhulu_Awaken.png"
+     },
+     {
+      "name": "Footprint of the Rainbow",
+      "value": "Footprint of the Rainbow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Isikhulu_Awaken.png"
+     },
+     {
+      "name": "Forest Regalia",
+      "value": "Forest Regalia",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Arakalari_Awaken.png"
+     },
+     {
+      "name": "Forged by the Golden Melody",
+      "value": "Forged by the Golden Melody",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_EscapeWheel_Awaken.png"
+     },
+     {
+      "name": "Fractured Halo",
+      "value": "Fractured Halo",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Perdix_Awaken.png"
+     },
+     {
+      "name": "Freedom-Sworn",
+      "value": "Freedom-Sworn",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Widsith_Awaken.png"
+     },
+     {
+      "name": "Frostbearer",
+      "value": "Frostbearer",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Everfrost_Awaken.png"
+     },
+     {
+      "name": "Frostbreath",
+      "value": "Frostbreath",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_FaesCrystalle_Awaken.png"
+     },
+     {
+      "name": "Fruitful Hook",
+      "value": "Fruitful Hook",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Umpakati_Awaken.png"
+     },
+     {
+      "name": "Fruit of Fulfillment",
+      "value": "Fruit of Fulfillment",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Arakalari_Awaken.png"
+     },
+     {
+      "name": "Gest of the Mighty Wolf",
+      "value": "Gest of the Mighty Wolf",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_EnsisAquilonis_Awaken.png"
+     },
+     {
+      "name": "Golden Frostbound Oath",
+      "value": "Golden Frostbound Oath",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Alkonost_Awaken.png"
+     },
+     {
+      "name": "Hakushin Ring",
+      "value": "Hakushin Ring",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Bakufu_Awaken.png"
+     },
+     {
+      "name": "Halberd",
+      "value": "Halberd",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Halberd_Awaken.png"
+     },
+     {
+      "name": "Hamayumi",
+      "value": "Hamayumi",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Bakufu_Awaken.png"
+     },
+     {
+      "name": "Haran Geppaku Futsu",
+      "value": "Haran Geppaku Futsu",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Amenoma_Awaken.png"
+     },
+     {
+      "name": "Harbinger of Dawn",
+      "value": "Harbinger of Dawn",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Dawn_Awaken.png"
+     },
+     {
+      "name": "Heretic's Molten Blade",
+      "value": "Heretic's Molten Blade",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_SerpentTooth_Awaken.png"
+     },
+     {
+      "name": "Hunter's Bow",
+      "value": "Hunter's Bow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Hunters_Awaken.png"
+     },
+     {
+      "name": "Hunter's Path",
+      "value": "Hunter's Path",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Ayus_Awaken.png"
+     },
+     {
+      "name": "Hymn of the Maelstrom",
+      "value": "Hymn of the Maelstrom",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Bludnye_Awaken.png"
+     },
+     {
+      "name": "Ibis Piercer",
+      "value": "Ibis Piercer",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Ibis_Awaken.png"
+     },
+     {
+      "name": "Iron Point",
+      "value": "Iron Point",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Rod_Awaken.png"
+     },
+     {
+      "name": "Iron Sting",
+      "value": "Iron Sting",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Exotic_Awaken.png"
+     },
+     {
+      "name": "Jadefall's Splendor",
+      "value": "Jadefall's Splendor",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Morax_Awaken.png"
+     },
+     {
+      "name": "Jade Vista",
+      "value": "Jade Vista",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_ShatteredMirror_Awaken.png"
+     },
+     {
+      "name": "Kagotsurube Isshin",
+      "value": "Kagotsurube Isshin",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Youtou_Awaken.png"
+     },
+     {
+      "name": "Kagura's Verity",
+      "value": "Kagura's Verity",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Narukami_Awaken.png"
+     },
+     {
+      "name": "Katsuragikiri Nagamasa",
+      "value": "Katsuragikiri Nagamasa",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Bakufu_Awaken.png"
+     },
+     {
+      "name": "Key of Khaj-Nisut",
+      "value": "Key of Khaj-Nisut",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Deshret_Awaken.png"
+     },
+     {
+      "name": "King's Squire",
+      "value": "King's Squire",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Arakalari_Awaken.png"
+     },
+     {
+      "name": "Kitain Cross Spear",
+      "value": "Kitain Cross Spear",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Bakufu_Awaken.png"
+     },
+     {
+      "name": "Lightbearing Moonshard",
+      "value": "Lightbearing Moonshard",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_SilverwareSaw_Awaken.png"
+     },
+     {
+      "name": "Light of Foliar Incision",
+      "value": "Light of Foliar Incision",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Ayus_Awaken.png"
+     },
+     {
+      "name": "Lion's Roar",
+      "value": "Lion's Roar",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Rockkiller_Awaken.png"
+     },
+     {
+      "name": "Lithic Blade",
+      "value": "Lithic Blade",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Lapis_Awaken.png"
+     },
+     {
+      "name": "Lithic Spear",
+      "value": "Lithic Spear",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Lapis_Awaken.png"
+     },
+     {
+      "name": "Lost Prayer to the Sacred Winds",
+      "value": "Lost Prayer to the Sacred Winds",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Fourwinds_Awaken.png"
+     },
+     {
+      "name": "Lumidouce Elegy",
+      "value": "Lumidouce Elegy",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Muguet_Awaken.png"
+     },
+     {
+      "name": "Luxurious Sea-Lord",
+      "value": "Luxurious Sea-Lord",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_MillenniaTuna_Awaken.png"
+     },
+     {
+      "name": "Magic Guide",
+      "value": "Magic Guide",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Intro_Awaken.png"
+     },
+     {
+      "name": "Mailed Flower",
+      "value": "Mailed Flower",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Fleurfair_Awaken.png"
+     },
+     {
+      "name": "Makhaira Aquamarine",
+      "value": "Makhaira Aquamarine",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Pleroma_Awaken.png"
+     },
+     {
+      "name": "Mappa Mare",
+      "value": "Mappa Mare",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Exotic_Awaken.png"
+     },
+     {
+      "name": "Master Key",
+      "value": "Master Key",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Ilmarinen_Awaken.png"
+     },
+     {
+      "name": "Memory of Dust",
+      "value": "Memory of Dust",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Kunwu_Awaken.png"
+     },
+     {
+      "name": "Messenger",
+      "value": "Messenger",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Msg_Awaken.png"
+     },
+     {
+      "name": "Missive Windspear",
+      "value": "Missive Windspear",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Windvane_Awaken.png"
+     },
+     {
+      "name": "Mistsplitter Reforged",
+      "value": "Mistsplitter Reforged",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Narukami_Awaken.png"
+     },
+     {
+      "name": "Mitternachts Waltz",
+      "value": "Mitternachts Waltz",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Nachtblind_Awaken.png"
+     },
+     {
+      "name": "Moonpiercer",
+      "value": "Moonpiercer",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Arakalari_Awaken.png"
+     },
+     {
+      "name": "Moonweaver's Dawn",
+      "value": "Moonweaver's Dawn",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Miekka_Awaken.png"
+     },
+     {
+      "name": "Mountain-Bracing Bolt",
+      "value": "Mountain-Bracing Bolt",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Umpakati_Awaken.png"
+     },
+     {
+      "name": "Mouun's Moon",
+      "value": "Mouun's Moon",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Maria_Awaken.png"
+     },
+     {
+      "name": "New Bough",
+      "value": "New Bough",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_SpikedStake_Awaken.png"
+     },
+     {
+      "name": "Nightweaver's Looking Glass",
+      "value": "Nightweaver's Looking Glass",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_MenulisRing_Awaken.png"
+     },
+     {
+      "name": "Nocturne's Curtain Call",
+      "value": "Nocturne's Curtain Call",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Brisingamen_Awaken.png"
+     },
+     {
+      "name": "Oathsworn Eye",
+      "value": "Oathsworn Eye",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Jyanome_Awaken.png"
+     },
+     {
+      "name": "Old Merc's Pal",
+      "value": "Old Merc's Pal",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Oyaji_Awaken.png"
+     },
+     {
+      "name": "Otherworldly Story",
+      "value": "Otherworldly Story",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Lightnov_Awaken.png"
+     },
+     {
+      "name": "Peak Patrol Song",
+      "value": "Peak Patrol Song",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_XochitlsTube_Awaken.png"
+     },
+     {
+      "name": "Pocket Grimoire",
+      "value": "Pocket Grimoire",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pocket_Awaken.png"
+     },
+     {
+      "name": "Polar Star",
+      "value": "Polar Star",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Worldbane_Awaken.png"
+     },
+     {
+      "name": "Portable Power Saw",
+      "value": "Portable Power Saw",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Mechanic_Awaken.png"
+     },
+     {
+      "name": "Predator",
+      "value": "Predator",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Predator_Awaken.png"
+     },
+     {
+      "name": "Primordial Jade Cutter",
+      "value": "Primordial Jade Cutter",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Morax_Awaken.png"
+     },
+     {
+      "name": "Primordial Jade Winged-Spear",
+      "value": "Primordial Jade Winged-Spear",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Morax_Awaken.png"
+     },
+     {
+      "name": "Prospector's Drill",
+      "value": "Prospector's Drill",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Mechanic_Awaken.png"
+     },
+     {
+      "name": "Prospector's Shovel",
+      "value": "Prospector's Shovel",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Ilmarinen_Awaken.png"
+     },
+     {
+      "name": "Prototype Amber",
+      "value": "Prototype Amber",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Proto_Awaken.png"
+     },
+     {
+      "name": "Prototype Archaic",
+      "value": "Prototype Archaic",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Proto_Awaken.png"
+     },
+     {
+      "name": "Prototype Crescent",
+      "value": "Prototype Crescent",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Proto_Awaken.png"
+     },
+     {
+      "name": "Prototype Rancour",
+      "value": "Prototype Rancour",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Proto_Awaken.png"
+     },
+     {
+      "name": "Prototype Starglitter",
+      "value": "Prototype Starglitter",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Proto_Awaken.png"
+     },
+     {
+      "name": "Rainbow Serpent's Rain Bow",
+      "value": "Rainbow Serpent's Rain Bow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_ElegguaBow_Awaken.png"
+     },
+     {
+      "name": "Rainslasher",
+      "value": "Rainslasher",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Perdue_Awaken.png"
+     },
+     {
+      "name": "Range Gauge",
+      "value": "Range Gauge",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Mechanic_Awaken.png"
+     },
+     {
+      "name": "Raven Bow",
+      "value": "Raven Bow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Crowfeather_Awaken.png"
+     },
+     {
+      "name": "Recurve Bow",
+      "value": "Recurve Bow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Curve_Awaken.png"
+     },
+     {
+      "name": "Redhorn Stonethresher",
+      "value": "Redhorn Stonethresher",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Itadorimaru_Awaken.png"
+     },
+     {
+      "name": "Reliquary of Truth",
+      "value": "Reliquary of Truth",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Sistrum_Awaken.png"
+     },
+     {
+      "name": "Rightful Reward",
+      "value": "Rightful Reward",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Vorpal_Awaken.png"
+     },
+     {
+      "name": "Ring of Yaxche",
+      "value": "Ring of Yaxche",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Isikhulu_Awaken.png"
+     },
+     {
+      "name": "Royal Bow",
+      "value": "Royal Bow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Theocrat_Awaken.png"
+     },
+     {
+      "name": "Royal Greatsword",
+      "value": "Royal Greatsword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Theocrat_Awaken.png"
+     },
+     {
+      "name": "Royal Grimoire",
+      "value": "Royal Grimoire",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Theocrat_Awaken.png"
+     },
+     {
+      "name": "Royal Longsword",
+      "value": "Royal Longsword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Theocrat_Awaken.png"
+     },
+     {
+      "name": "Royal Spear",
+      "value": "Royal Spear",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Theocrat_Awaken.png"
+     },
+     {
+      "name": "Rust",
+      "value": "Rust",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Recluse_Awaken.png"
+     },
+     {
+      "name": "Sacrificer's Staff",
+      "value": "Sacrificer's Staff",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Krivule_Awaken.png"
+     },
+     {
+      "name": "Sacrificial Bow",
+      "value": "Sacrificial Bow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Fossil_Awaken.png"
+     },
+     {
+      "name": "Sacrificial Fragments",
+      "value": "Sacrificial Fragments",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Fossil_Awaken.png"
+     },
+     {
+      "name": "Sacrificial Greatsword",
+      "value": "Sacrificial Greatsword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Fossil_Awaken.png"
+     },
+     {
+      "name": "Sacrificial Jade",
+      "value": "Sacrificial Jade",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Yue_Awaken.png"
+     },
+     {
+      "name": "Sacrificial Sword",
+      "value": "Sacrificial Sword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Fossil_Awaken.png"
+     },
+     {
+      "name": "Sapwood Blade",
+      "value": "Sapwood Blade",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Arakalari_Awaken.png"
+     },
+     {
+      "name": "Scion of the Blazing Sun",
+      "value": "Scion of the Blazing Sun",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Gurabad_Awaken.png"
+     },
+     {
+      "name": "Seasoned Hunter's Bow",
+      "value": "Seasoned Hunter's Bow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Old_Awaken.png"
+     },
+     {
+      "name": "Sequence of Solitude",
+      "value": "Sequence of Solitude",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Stinger_Awaken.png"
+     },
+     {
+      "name": "Serenity's Call",
+      "value": "Serenity's Call",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Ilmarinen_Awaken.png"
+     },
+     {
+      "name": "Serpent Spine",
+      "value": "Serpent Spine",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Kione_Awaken.png"
+     },
+     {
+      "name": "Sharpshooter's Oath",
+      "value": "Sharpshooter's Oath",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Arjuna_Awaken.png"
+     },
+     {
+      "name": "Silver Light",
+      "value": "Silver Light",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Fajian_Awaken.png"
+     },
+     {
+      "name": "Silvershower Heartstrings",
+      "value": "Silvershower Heartstrings",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Arcdange_Awaken.png"
+     },
+     {
+      "name": "Silver Sword",
+      "value": "Silver Sword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Silver_Awaken.png"
+     },
+     {
+      "name": "Skyrider Greatsword",
+      "value": "Skyrider Greatsword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Mitsurugi_Awaken.png"
+     },
+     {
+      "name": "Skyrider Sword",
+      "value": "Skyrider Sword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Mitsurugi_Awaken.png"
+     },
+     {
+      "name": "Skyward Atlas",
+      "value": "Skyward Atlas",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Dvalin_Awaken.png"
+     },
+     {
+      "name": "Skyward Blade",
+      "value": "Skyward Blade",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Dvalin_Awaken.png"
+     },
+     {
+      "name": "Skyward Harp",
+      "value": "Skyward Harp",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Dvalin_Awaken.png"
+     },
+     {
+      "name": "Skyward Pride",
+      "value": "Skyward Pride",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Dvalin_Awaken.png"
+     },
+     {
+      "name": "Skyward Spine",
+      "value": "Skyward Spine",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Dvalin_Awaken.png"
+     },
+     {
+      "name": "Slingshot",
+      "value": "Slingshot",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Sling_Awaken.png"
+     },
+     {
+      "name": "Snare Hook",
+      "value": "Snare Hook",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Ilmarinen_Awaken.png"
+     },
+     {
+      "name": "Snow-Tombed Starsilver",
+      "value": "Snow-Tombed Starsilver",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Dragonfell_Awaken.png"
+     },
+     {
+      "name": "Solar Pearl",
+      "value": "Solar Pearl",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Resurrection_Awaken.png"
+     },
+     {
+      "name": "Song of Broken Pines",
+      "value": "Song of Broken Pines",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Widsith_Awaken.png"
+     },
+     {
+      "name": "Song of Stillness",
+      "value": "Song of Stillness",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Vorpal_Awaken.png"
+     },
+     {
+      "name": "Song of the Vigil",
+      "value": "Song of the Vigil",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_GlintstonePolearm_Awaken.png"
+     },
+     {
+      "name": "Splendor of Tranquil Waters",
+      "value": "Splendor of Tranquil Waters",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Regalis_Awaken.png"
+     },
+     {
+      "name": "Staff of Homa",
+      "value": "Staff of Homa",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Homa_Awaken.png"
+     },
+     {
+      "name": "Staff of the Scarlet Sands",
+      "value": "Staff of the Scarlet Sands",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Deshret_Awaken.png"
+     },
+     {
+      "name": "Starcaller's Watch",
+      "value": "Starcaller's Watch",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Figurines_Awaken.png"
+     },
+     {
+      "name": "Sturdy Bone",
+      "value": "Sturdy Bone",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Umpakati_Awaken.png"
+     },
+     {
+      "name": "Summit Shaper",
+      "value": "Summit Shaper",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Kunwu_Awaken.png"
+     },
+     {
+      "name": "Sunny Morning Sleep-In",
+      "value": "Sunny Morning Sleep-In",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_SakuraFan_Awaken.png"
+     },
+     {
+      "name": "Surf's Up",
+      "value": "Surf's Up",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_MechaPufferfish_Awaken.png"
+     },
+     {
+      "name": "Sword of Descension",
+      "value": "Sword of Descension",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Psalmus_Awaken.png"
+     },
+     {
+      "name": "Sword of Narzissenkreuz",
+      "value": "Sword of Narzissenkreuz",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Purewill_Awaken.png"
+     },
+     {
+      "name": "Symphonist of Scents",
+      "value": "Symphonist of Scents",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Trident_Awaken.png"
+     },
+     {
+      "name": "Talking Stick",
+      "value": "Talking Stick",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_BeastTamer_Awaken.png"
+     },
+     {
+      "name": "Tamayuratei no Ohanashi",
+      "value": "Tamayuratei no Ohanashi",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Aoandon_Awaken.png"
+     },
+     {
+      "name": "The Alley Flash",
+      "value": "The Alley Flash",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Outlaw_Awaken.png"
+     },
+     {
+      "name": "The Bell",
+      "value": "The Bell",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Troupe_Awaken.png"
+     },
+     {
+      "name": "The Black Sword",
+      "value": "The Black Sword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Bloodstained_Awaken.png"
+     },
+     {
+      "name": "\"The Catch\"",
+      "value": "\"The Catch\"",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Mori_Awaken.png"
+     },
+     {
+      "name": "The Daybreak Chronicles",
+      "value": "The Daybreak Chronicles",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Arianna_Awaken.png"
+     },
+     {
+      "name": "The Dockhand's Assistant",
+      "value": "The Dockhand's Assistant",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Mechanic_Awaken.png"
+     },
+     {
+      "name": "The First Great Magic",
+      "value": "The First Great Magic",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Pledge_Awaken.png"
+     },
+     {
+      "name": "The Flute",
+      "value": "The Flute",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Troupe_Awaken.png"
+     },
+     {
+      "name": "The Stringless",
+      "value": "The Stringless",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Troupe_Awaken.png"
+     },
+     {
+      "name": "The Unforged",
+      "value": "The Unforged",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Kunwu_Awaken.png"
+     },
+     {
+      "name": "The Viridescent Hunt",
+      "value": "The Viridescent Hunt",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Viridescent_Awaken.png"
+     },
+     {
+      "name": "The Widsith",
+      "value": "The Widsith",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Troupe_Awaken.png"
+     },
+     {
+      "name": "Thrilling Tales of Dragon Slayers",
+      "value": "Thrilling Tales of Dragon Slayers",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png"
+     },
+     {
+      "name": "Thundering Pulse",
+      "value": "Thundering Pulse",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Narukami_Awaken.png"
+     },
+     {
+      "name": "Tidal Shadow",
+      "value": "Tidal Shadow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Vorpal_Awaken.png"
+     },
+     {
+      "name": "Tome of the Eternal Flow",
+      "value": "Tome of the Eternal Flow",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Iudex_Awaken.png"
+     },
+     {
+      "name": "Toukabou Shigure",
+      "value": "Toukabou Shigure",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Kasabouzu_Awaken.png"
+     },
+     {
+      "name": "Traveler's Handy Sword",
+      "value": "Traveler's Handy Sword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Traveler_Awaken.png"
+     },
+     {
+      "name": "Tulaytullah's Remembrance",
+      "value": "Tulaytullah's Remembrance",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Alaya_Awaken.png"
+     },
+     {
+      "name": "Twin Nephrite",
+      "value": "Twin Nephrite",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Phoney_Awaken.png"
+     },
+     {
+      "name": "\"Ultimate Overlord's Mega Magic Sword\"",
+      "value": "\"Ultimate Overlord's Mega Magic Sword\"",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Champion_Awaken.png"
+     },
+     {
+      "name": "Uraku Misugiri",
+      "value": "Uraku Misugiri",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Needle_Awaken.png"
+     },
+     {
+      "name": "Verdict",
+      "value": "Verdict",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_GoldenVerdict_Awaken.png"
+     },
+     {
+      "name": "Vivid Notions",
+      "value": "Vivid Notions",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_VaresaTransformer_Awaken.png"
+     },
+     {
+      "name": "Vortex Vanquisher",
+      "value": "Vortex Vanquisher",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Kunwu_Awaken.png"
+     },
+     {
+      "name": "Wandering Evenstar",
+      "value": "Wandering Evenstar",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pleroma_Awaken.png"
+     },
+     {
+      "name": "Waster Greatsword",
+      "value": "Waster Greatsword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Aniki_Awaken.png"
+     },
+     {
+      "name": "Wavebreaker's Fin",
+      "value": "Wavebreaker's Fin",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Maria_Awaken.png"
+     },
+     {
+      "name": "Waveriding Whirl",
+      "value": "Waveriding Whirl",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Umpakati_Awaken.png"
+     },
+     {
+      "name": "Whiteblind",
+      "value": "Whiteblind",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Exotic_Awaken.png"
+     },
+     {
+      "name": "White Iron Greatsword",
+      "value": "White Iron Greatsword",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Tin_Awaken.png"
+     },
+     {
+      "name": "Whitelake Frostfeather",
+      "value": "Whitelake Frostfeather",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Swanlake_Awaken.png"
+     },
+     {
+      "name": "White Tassel",
+      "value": "White Tassel",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Pole_Ruby_Awaken.png"
+     },
+     {
+      "name": "Windblume Ode",
+      "value": "Windblume Ode",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Bow_Fleurfair_Awaken.png"
+     },
+     {
+      "name": "Wine and Song",
+      "value": "Wine and Song",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Outlaw_Awaken.png"
+     },
+     {
+      "name": "Winter's Heavy Heart",
+      "value": "Winter's Heavy Heart",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_FrostScepter_Awaken.png"
+     },
+     {
+      "name": "Wolf-Fang",
+      "value": "Wolf-Fang",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Boreas_Awaken.png"
+     },
+     {
+      "name": "Wolf's Gravestone",
+      "value": "Wolf's Gravestone",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Wolfmound_Awaken.png"
+     },
+     {
+      "name": "Xiphos' Moonlight",
+      "value": "Xiphos' Moonlight",
+      "icon": "https://enka.network/ui/UI_EquipIcon_Sword_Pleroma_Awaken.png"
+     }
+    ]
+   },
+   {
+    "fieldName": "1-piece Set",
+    "fieldKey": "artifactSets.$1",
+    "options": [
+     {
+      "name": "Prayers for Destiny",
+      "value": "Prayers for Destiny",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15010_3.png"
+     },
+     {
+      "name": "Prayers for Illumination",
+      "value": "Prayers for Illumination",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15009_3.png"
+     },
+     {
+      "name": "Prayers for Wisdom",
+      "value": "Prayers for Wisdom",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15011_3.png"
+     },
+     {
+      "name": "Prayers to Springtime",
+      "value": "Prayers to Springtime",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15013_3.png"
+     }
+    ]
+   },
+   {
+    "fieldName": "2-piece Set",
+    "fieldKey": "artifactSets.$2",
+    "options": [
+     {
+      "name": "A Day Carved From Rising Winds",
+      "value": "A Day Carved From Rising Winds",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15044_4.png"
+     },
+     {
+      "name": "Adventurer",
+      "value": "Adventurer",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10010_4.png"
+     },
+     {
+      "name": "Archaic Petra",
+      "value": "Archaic Petra",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15014_4.png"
+     },
+     {
+      "name": "Aubade of Morningstar and Moon",
+      "value": "Aubade of Morningstar and Moon",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15043_4.png"
+     },
+     {
+      "name": "Berserker",
+      "value": "Berserker",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10005_4.png"
+     },
+     {
+      "name": "Blizzard Strayer",
+      "value": "Blizzard Strayer",
+      "icon": "https://enka.network/ui/UI_RelicIcon_14001_4.png"
+     },
+     {
+      "name": "Bloodstained Chivalry",
+      "value": "Bloodstained Chivalry",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15008_4.png"
+     },
+     {
+      "name": "Brave Heart",
+      "value": "Brave Heart",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10002_4.png"
+     },
+     {
+      "name": "Celestial Gift",
+      "value": "Celestial Gift",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+     },
+     {
+      "name": "Crimson Witch of Flames",
+      "value": "Crimson Witch of Flames",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15006_4.png"
+     },
+     {
+      "name": "Deepwood Memories",
+      "value": "Deepwood Memories",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15025_4.png"
+     },
+     {
+      "name": "Defender's Will",
+      "value": "Defender's Will",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10003_4.png"
+     },
+     {
+      "name": "Desert Pavilion Chronicle",
+      "value": "Desert Pavilion Chronicle",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15027_4.png"
+     },
+     {
+      "name": "Disenchantment in Deep Shadow",
+      "value": "Disenchantment in Deep Shadow",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15046_4.png"
+     },
+     {
+      "name": "Echoes of an Offering",
+      "value": "Echoes of an Offering",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15024_4.png"
+     },
+     {
+      "name": "Emblem of Severed Fate",
+      "value": "Emblem of Severed Fate",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15020_4.png"
+     },
+     {
+      "name": "Finale of the Deep Galleries",
+      "value": "Finale of the Deep Galleries",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15040_4.png"
+     },
+     {
+      "name": "Flower of Paradise Lost",
+      "value": "Flower of Paradise Lost",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15028_4.png"
+     },
+     {
+      "name": "Fragment of Harmonic Whimsy",
+      "value": "Fragment of Harmonic Whimsy",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15035_4.png"
+     },
+     {
+      "name": "Gambler",
+      "value": "Gambler",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10008_4.png"
+     },
+     {
+      "name": "Gilded Dreams",
+      "value": "Gilded Dreams",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15026_4.png"
+     },
+     {
+      "name": "Gladiator's Finale",
+      "value": "Gladiator's Finale",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15001_4.png"
+     },
+     {
+      "name": "Golden Troupe",
+      "value": "Golden Troupe",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15032_4.png"
+     },
+     {
+      "name": "Heart of Depth",
+      "value": "Heart of Depth",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15016_4.png"
+     },
+     {
+      "name": "Heart of the Furnace",
+      "value": "Heart of the Furnace",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15048_4.png"
+     },
+     {
+      "name": "Husk of Opulent Dreams",
+      "value": "Husk of Opulent Dreams",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15021_4.png"
+     },
+     {
+      "name": "Instructor",
+      "value": "Instructor",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10007_4.png"
+     },
+     {
+      "name": "Lavawalker",
+      "value": "Lavawalker",
+      "icon": "https://enka.network/ui/UI_RelicIcon_14003_4.png"
+     },
+     {
+      "name": "Long Night's Oath",
+      "value": "Long Night's Oath",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15039_4.png"
+     },
+     {
+      "name": "Lucky Dog",
+      "value": "Lucky Dog",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10011_4.png"
+     },
+     {
+      "name": "Maiden Beloved",
+      "value": "Maiden Beloved",
+      "icon": "https://enka.network/ui/UI_RelicIcon_14004_4.png"
+     },
+     {
+      "name": "Marechaussee Hunter",
+      "value": "Marechaussee Hunter",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15031_4.png"
+     },
+     {
+      "name": "Martial Artist",
+      "value": "Martial Artist",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10006_4.png"
+     },
+     {
+      "name": "Night of the Sky's Unveiling",
+      "value": "Night of the Sky's Unveiling",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15041_4.png"
+     },
+     {
+      "name": "Nighttime Whispers in the Echoing Woods",
+      "value": "Nighttime Whispers in the Echoing Woods",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15034_4.png"
+     },
+     {
+      "name": "Noblesse Oblige",
+      "value": "Noblesse Oblige",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15007_4.png"
+     },
+     {
+      "name": "Nymph's Dream",
+      "value": "Nymph's Dream",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15029_4.png"
+     },
+     {
+      "name": "Obsidian Codex",
+      "value": "Obsidian Codex",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15038_4.png"
+     },
+     {
+      "name": "Ocean-Hued Clam",
+      "value": "Ocean-Hued Clam",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15022_4.png"
+     },
+     {
+      "name": "Pale Flame",
+      "value": "Pale Flame",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15018_4.png"
+     },
+     {
+      "name": "Resolution of Sojourner",
+      "value": "Resolution of Sojourner",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10001_4.png"
+     },
+     {
+      "name": "Retracing Bolide",
+      "value": "Retracing Bolide",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15015_4.png"
+     },
+     {
+      "name": "Scarlet Proof",
+      "value": "Scarlet Proof",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15047_4.png"
+     },
+     {
+      "name": "Scholar",
+      "value": "Scholar",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10012_4.png"
+     },
+     {
+      "name": "Scroll of the Hero of Cinder City",
+      "value": "Scroll of the Hero of Cinder City",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15037_4.png"
+     },
+     {
+      "name": "Shimenawa's Reminiscence",
+      "value": "Shimenawa's Reminiscence",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15019_4.png"
+     },
+     {
+      "name": "Silken Moon's Serenade",
+      "value": "Silken Moon's Serenade",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15042_4.png"
+     },
+     {
+      "name": "Song of Days Past",
+      "value": "Song of Days Past",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15033_4.png"
+     },
+     {
+      "name": "Tenacity of the Millelith",
+      "value": "Tenacity of the Millelith",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15017_4.png"
+     },
+     {
+      "name": "The Exile",
+      "value": "The Exile",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10009_4.png"
+     },
+     {
+      "name": "Thundering Fury",
+      "value": "Thundering Fury",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15005_4.png"
+     },
+     {
+      "name": "Thundersoother",
+      "value": "Thundersoother",
+      "icon": "https://enka.network/ui/UI_RelicIcon_14002_4.png"
+     },
+     {
+      "name": "Tiny Miracle",
+      "value": "Tiny Miracle",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10004_4.png"
+     },
+     {
+      "name": "Traveling Doctor",
+      "value": "Traveling Doctor",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10013_4.png"
+     },
+     {
+      "name": "Unfinished Reverie",
+      "value": "Unfinished Reverie",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15036_4.png"
+     },
+     {
+      "name": "Vermillion Hereafter",
+      "value": "Vermillion Hereafter",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15023_4.png"
+     },
+     {
+      "name": "Viridescent Venerer",
+      "value": "Viridescent Venerer",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+     },
+     {
+      "name": "Vourukasha's Glow",
+      "value": "Vourukasha's Glow",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15030_4.png"
+     },
+     {
+      "name": "Wanderer's Troupe",
+      "value": "Wanderer's Troupe",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15003_4.png"
+     }
+    ]
+   },
+   {
+    "fieldName": "4-piece Set",
+    "fieldKey": "artifactSets.$4",
+    "options": [
+     {
+      "name": "A Day Carved From Rising Winds",
+      "value": "A Day Carved From Rising Winds",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15044_4.png"
+     },
+     {
+      "name": "Adventurer",
+      "value": "Adventurer",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10010_4.png"
+     },
+     {
+      "name": "Archaic Petra",
+      "value": "Archaic Petra",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15014_4.png"
+     },
+     {
+      "name": "Aubade of Morningstar and Moon",
+      "value": "Aubade of Morningstar and Moon",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15043_4.png"
+     },
+     {
+      "name": "Berserker",
+      "value": "Berserker",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10005_4.png"
+     },
+     {
+      "name": "Blizzard Strayer",
+      "value": "Blizzard Strayer",
+      "icon": "https://enka.network/ui/UI_RelicIcon_14001_4.png"
+     },
+     {
+      "name": "Bloodstained Chivalry",
+      "value": "Bloodstained Chivalry",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15008_4.png"
+     },
+     {
+      "name": "Brave Heart",
+      "value": "Brave Heart",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10002_4.png"
+     },
+     {
+      "name": "Celestial Gift",
+      "value": "Celestial Gift",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+     },
+     {
+      "name": "Crimson Witch of Flames",
+      "value": "Crimson Witch of Flames",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15006_4.png"
+     },
+     {
+      "name": "Deepwood Memories",
+      "value": "Deepwood Memories",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15025_4.png"
+     },
+     {
+      "name": "Defender's Will",
+      "value": "Defender's Will",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10003_4.png"
+     },
+     {
+      "name": "Desert Pavilion Chronicle",
+      "value": "Desert Pavilion Chronicle",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15027_4.png"
+     },
+     {
+      "name": "Disenchantment in Deep Shadow",
+      "value": "Disenchantment in Deep Shadow",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15046_4.png"
+     },
+     {
+      "name": "Echoes of an Offering",
+      "value": "Echoes of an Offering",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15024_4.png"
+     },
+     {
+      "name": "Emblem of Severed Fate",
+      "value": "Emblem of Severed Fate",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15020_4.png"
+     },
+     {
+      "name": "Finale of the Deep Galleries",
+      "value": "Finale of the Deep Galleries",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15040_4.png"
+     },
+     {
+      "name": "Flower of Paradise Lost",
+      "value": "Flower of Paradise Lost",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15028_4.png"
+     },
+     {
+      "name": "Fragment of Harmonic Whimsy",
+      "value": "Fragment of Harmonic Whimsy",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15035_4.png"
+     },
+     {
+      "name": "Gambler",
+      "value": "Gambler",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10008_4.png"
+     },
+     {
+      "name": "Gilded Dreams",
+      "value": "Gilded Dreams",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15026_4.png"
+     },
+     {
+      "name": "Gladiator's Finale",
+      "value": "Gladiator's Finale",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15001_4.png"
+     },
+     {
+      "name": "Golden Troupe",
+      "value": "Golden Troupe",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15032_4.png"
+     },
+     {
+      "name": "Heart of Depth",
+      "value": "Heart of Depth",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15016_4.png"
+     },
+     {
+      "name": "Heart of the Furnace",
+      "value": "Heart of the Furnace",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15048_4.png"
+     },
+     {
+      "name": "Husk of Opulent Dreams",
+      "value": "Husk of Opulent Dreams",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15021_4.png"
+     },
+     {
+      "name": "Instructor",
+      "value": "Instructor",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10007_4.png"
+     },
+     {
+      "name": "Lavawalker",
+      "value": "Lavawalker",
+      "icon": "https://enka.network/ui/UI_RelicIcon_14003_4.png"
+     },
+     {
+      "name": "Long Night's Oath",
+      "value": "Long Night's Oath",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15039_4.png"
+     },
+     {
+      "name": "Lucky Dog",
+      "value": "Lucky Dog",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10011_4.png"
+     },
+     {
+      "name": "Maiden Beloved",
+      "value": "Maiden Beloved",
+      "icon": "https://enka.network/ui/UI_RelicIcon_14004_4.png"
+     },
+     {
+      "name": "Marechaussee Hunter",
+      "value": "Marechaussee Hunter",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15031_4.png"
+     },
+     {
+      "name": "Martial Artist",
+      "value": "Martial Artist",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10006_4.png"
+     },
+     {
+      "name": "Night of the Sky's Unveiling",
+      "value": "Night of the Sky's Unveiling",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15041_4.png"
+     },
+     {
+      "name": "Nighttime Whispers in the Echoing Woods",
+      "value": "Nighttime Whispers in the Echoing Woods",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15034_4.png"
+     },
+     {
+      "name": "Noblesse Oblige",
+      "value": "Noblesse Oblige",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15007_4.png"
+     },
+     {
+      "name": "Nymph's Dream",
+      "value": "Nymph's Dream",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15029_4.png"
+     },
+     {
+      "name": "Obsidian Codex",
+      "value": "Obsidian Codex",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15038_4.png"
+     },
+     {
+      "name": "Ocean-Hued Clam",
+      "value": "Ocean-Hued Clam",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15022_4.png"
+     },
+     {
+      "name": "Pale Flame",
+      "value": "Pale Flame",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15018_4.png"
+     },
+     {
+      "name": "Resolution of Sojourner",
+      "value": "Resolution of Sojourner",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10001_4.png"
+     },
+     {
+      "name": "Retracing Bolide",
+      "value": "Retracing Bolide",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15015_4.png"
+     },
+     {
+      "name": "Scarlet Proof",
+      "value": "Scarlet Proof",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15047_4.png"
+     },
+     {
+      "name": "Scholar",
+      "value": "Scholar",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10012_4.png"
+     },
+     {
+      "name": "Scroll of the Hero of Cinder City",
+      "value": "Scroll of the Hero of Cinder City",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15037_4.png"
+     },
+     {
+      "name": "Shimenawa's Reminiscence",
+      "value": "Shimenawa's Reminiscence",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15019_4.png"
+     },
+     {
+      "name": "Silken Moon's Serenade",
+      "value": "Silken Moon's Serenade",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15042_4.png"
+     },
+     {
+      "name": "Song of Days Past",
+      "value": "Song of Days Past",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15033_4.png"
+     },
+     {
+      "name": "Tenacity of the Millelith",
+      "value": "Tenacity of the Millelith",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15017_4.png"
+     },
+     {
+      "name": "The Exile",
+      "value": "The Exile",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10009_4.png"
+     },
+     {
+      "name": "Thundering Fury",
+      "value": "Thundering Fury",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15005_4.png"
+     },
+     {
+      "name": "Thundersoother",
+      "value": "Thundersoother",
+      "icon": "https://enka.network/ui/UI_RelicIcon_14002_4.png"
+     },
+     {
+      "name": "Tiny Miracle",
+      "value": "Tiny Miracle",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10004_4.png"
+     },
+     {
+      "name": "Traveling Doctor",
+      "value": "Traveling Doctor",
+      "icon": "https://enka.network/ui/UI_RelicIcon_10013_4.png"
+     },
+     {
+      "name": "Unfinished Reverie",
+      "value": "Unfinished Reverie",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15036_4.png"
+     },
+     {
+      "name": "Vermillion Hereafter",
+      "value": "Vermillion Hereafter",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15023_4.png"
+     },
+     {
+      "name": "Viridescent Venerer",
+      "value": "Viridescent Venerer",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+     },
+     {
+      "name": "Vourukasha's Glow",
+      "value": "Vourukasha's Glow",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15030_4.png"
+     },
+     {
+      "name": "Wanderer's Troupe",
+      "value": "Wanderer's Troupe",
+      "icon": "https://enka.network/ui/UI_RelicIcon_15003_4.png"
+     }
+    ]
+   },
+   {
+    "fieldName": "Character Constellation",
+    "fieldKey": "constellation",
+    "options": [
+     {
+      "name": "C0",
+      "value": "0"
+     },
+     {
+      "name": "C1",
+      "value": "1"
+     },
+     {
+      "name": "C2",
+      "value": "2"
+     },
+     {
+      "name": "C3",
+      "value": "3"
+     },
+     {
+      "name": "C4",
+      "value": "4"
+     },
+     {
+      "name": "C5",
+      "value": "5"
+     },
+     {
+      "name": "C6",
+      "value": "6"
+     }
+    ]
+   },
+   {
+    "fieldName": "Weapon Refinement",
+    "fieldKey": "weapon.weaponInfo.refinementLevel.value",
+    "options": [
+     {
+      "name": "R5",
+      "value": "4"
+     },
+     {
+      "name": "R4",
+      "value": "3"
+     },
+     {
+      "name": "R3",
+      "value": "2"
+     },
+     {
+      "name": "R2",
+      "value": "1"
+     },
+     {
+      "name": "R1",
+      "value": "0"
+     }
+    ]
+   }
+  ]
+ },
+ "categories": [
+  {
+   "_id": "6acf513d5bac63596964850a",
+   "addDate": 1791842400000,
+   "c6": "",
+   "characterId": 10000128,
+   "characterName": "Varka",
+   "count": 160117,
+   "details": "C0 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N5sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. ",
+   "element": "Anemo",
+   "hidden": false,
+   "name": "Double Pyro, Avg DMG",
+   "new": 1,
+   "rarity": 5,
+   "short": "PYRO",
+   "weapons": [
+    {
+     "name": "Gest of the Mighty Wolf",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_EnsisAquilonis_Awaken.png",
+     "substat": "CRIT Rate",
+     "type": "Claymore",
+     "rarity": 5,
+     "weaponId": "12515",
+     "refinement": 1,
+     "defaultVariant": null,
+     "calculationId": "1000012800",
+     "filters": null,
+     "details": "C0 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N5sE N4sE N1CW N1CW N1C. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. Weapon at max stacks. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 0
+       },
+       "weapon": {
+        "name": "Gest of the Mighty Wolf",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_EnsisAquilonis_Awaken.png",
+        "refinement": 1,
+        "weaponId": "12515"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "PYRO",
+     "hidden": false
+    },
+    {
+     "name": "Wolf's Gravestone",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Wolfmound_Awaken.png",
+     "substat": "ATK",
+     "type": "Claymore",
+     "rarity": 5,
+     "weaponId": "12502",
+     "refinement": 1,
+     "defaultVariant": null,
+     "calculationId": "1000012801",
+     "filters": null,
+     "details": "C0 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N5sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 0
+       },
+       "weapon": {
+        "name": "Wolf's Gravestone",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Wolfmound_Awaken.png",
+        "refinement": 1,
+        "weaponId": "12502"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "PYRO",
+     "hidden": false
+    },
+    {
+     "name": "A Thousand Blazing Suns",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_RadianceSword_Awaken.png",
+     "substat": "CRIT Rate",
+     "type": "Claymore",
+     "rarity": 5,
+     "weaponId": "12514",
+     "refinement": 1,
+     "defaultVariant": null,
+     "calculationId": "1000012802",
+     "filters": null,
+     "details": "C0 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N5sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 0
+       },
+       "weapon": {
+        "name": "A Thousand Blazing Suns",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_RadianceSword_Awaken.png",
+        "refinement": 1,
+        "weaponId": "12514"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "PYRO",
+     "hidden": false
+    },
+    {
+     "name": "Serpent Spine",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Kione_Awaken.png",
+     "substat": "CRIT Rate",
+     "type": "Claymore",
+     "rarity": 4,
+     "weaponId": "12409",
+     "refinement": 5,
+     "defaultVariant": null,
+     "calculationId": "1000012803",
+     "filters": null,
+     "details": "C0 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N5sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. Weapon at max stacks. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 0
+       },
+       "weapon": {
+        "name": "Serpent Spine",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Kione_Awaken.png",
+        "refinement": 5,
+        "weaponId": "12409"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "PYRO",
+     "hidden": false
+    },
+    {
+     "name": "Tidal Shadow",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Vorpal_Awaken.png",
+     "substat": "ATK",
+     "type": "Claymore",
+     "rarity": 4,
+     "weaponId": "12425",
+     "refinement": 5,
+     "defaultVariant": null,
+     "calculationId": "1000012804",
+     "filters": null,
+     "details": "C0 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N5sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 0
+       },
+       "weapon": {
+        "name": "Tidal Shadow",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Vorpal_Awaken.png",
+        "refinement": 5,
+        "weaponId": "12425"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "PYRO",
+     "hidden": false
+    },
+    {
+     "name": "Redhorn Stonethresher",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Itadorimaru_Awaken.png",
+     "substat": "CRIT DMG",
+     "type": "Claymore",
+     "rarity": 5,
+     "weaponId": "12510",
+     "refinement": 1,
+     "defaultVariant": null,
+     "calculationId": "1000012805",
+     "filters": null,
+     "details": "C0 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N5sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 0
+       },
+       "weapon": {
+        "name": "Redhorn Stonethresher",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Itadorimaru_Awaken.png",
+        "refinement": 1,
+        "weaponId": "12510"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "PYRO",
+     "hidden": false
+    }
+   ],
+   "weaponsCount": 6,
+   "characterIcon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+   "index": 1
+  },
+  {
+   "_id": "6acf513d5bac63596964850b",
+   "addDate": 1791842400000,
+   "c6": "",
+   "characterId": 10000128,
+   "characterName": "Varka",
+   "count": 160117,
+   "details": "C2 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N1sE N4sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. ",
+   "element": "Anemo",
+   "hidden": false,
+   "name": "C2 Double Pyro, Avg DMG",
+   "new": 1,
+   "rarity": 5,
+   "short": "C2 PYRO",
+   "weapons": [
+    {
+     "name": "Gest of the Mighty Wolf",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_EnsisAquilonis_Awaken.png",
+     "substat": "CRIT Rate",
+     "type": "Claymore",
+     "rarity": 5,
+     "weaponId": "12515",
+     "refinement": 1,
+     "defaultVariant": "c2",
+     "calculationId": "1000012806",
+     "filters": [
+      {
+       "name": "c2",
+       "displayName": "✓ C2",
+       "displayGroup": "C2",
+       "query": {
+        "operator": "$gte",
+        "field": "constellation",
+        "value": 2
+       }
+      }
+     ],
+     "details": "C2 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N1sE N4sE N4sE N1CW N1CW N1C. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. Weapon at max stacks. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 2
+       },
+       "weapon": {
+        "name": "Gest of the Mighty Wolf",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_EnsisAquilonis_Awaken.png",
+        "refinement": 1,
+        "weaponId": "12515"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "C2 PYRO",
+     "hidden": false
+    },
+    {
+     "name": "Wolf's Gravestone",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Wolfmound_Awaken.png",
+     "substat": "ATK",
+     "type": "Claymore",
+     "rarity": 5,
+     "weaponId": "12502",
+     "refinement": 1,
+     "defaultVariant": "c2",
+     "calculationId": "1000012807",
+     "filters": [
+      {
+       "name": "c2",
+       "displayName": "✓ C2",
+       "displayGroup": "C2",
+       "query": {
+        "operator": "$gte",
+        "field": "constellation",
+        "value": 2
+       }
+      }
+     ],
+     "details": "C2 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N1sE N4sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 2
+       },
+       "weapon": {
+        "name": "Wolf's Gravestone",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Wolfmound_Awaken.png",
+        "refinement": 1,
+        "weaponId": "12502"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "C2 PYRO",
+     "hidden": false
+    },
+    {
+     "name": "A Thousand Blazing Suns",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_RadianceSword_Awaken.png",
+     "substat": "CRIT Rate",
+     "type": "Claymore",
+     "rarity": 5,
+     "weaponId": "12514",
+     "refinement": 1,
+     "defaultVariant": "c2",
+     "calculationId": "1000012808",
+     "filters": [
+      {
+       "name": "c2",
+       "displayName": "✓ C2",
+       "displayGroup": "C2",
+       "query": {
+        "operator": "$gte",
+        "field": "constellation",
+        "value": 2
+       }
+      }
+     ],
+     "details": "C2 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N1sE N4sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 2
+       },
+       "weapon": {
+        "name": "A Thousand Blazing Suns",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_RadianceSword_Awaken.png",
+        "refinement": 1,
+        "weaponId": "12514"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "C2 PYRO",
+     "hidden": false
+    },
+    {
+     "name": "Serpent Spine",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Kione_Awaken.png",
+     "substat": "CRIT Rate",
+     "type": "Claymore",
+     "rarity": 4,
+     "weaponId": "12409",
+     "refinement": 5,
+     "defaultVariant": "c2",
+     "calculationId": "1000012809",
+     "filters": [
+      {
+       "name": "c2",
+       "displayName": "✓ C2",
+       "displayGroup": "C2",
+       "query": {
+        "operator": "$gte",
+        "field": "constellation",
+        "value": 2
+       }
+      }
+     ],
+     "details": "C2 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N1sE N4sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. Weapon at max stacks. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 2
+       },
+       "weapon": {
+        "name": "Serpent Spine",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Kione_Awaken.png",
+        "refinement": 5,
+        "weaponId": "12409"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "C2 PYRO",
+     "hidden": false
+    },
+    {
+     "name": "Tidal Shadow",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Vorpal_Awaken.png",
+     "substat": "ATK",
+     "type": "Claymore",
+     "rarity": 4,
+     "weaponId": "12425",
+     "refinement": 5,
+     "defaultVariant": "c2",
+     "calculationId": "1000012810",
+     "filters": [
+      {
+       "name": "c2",
+       "displayName": "✓ C2",
+       "displayGroup": "C2",
+       "query": {
+        "operator": "$gte",
+        "field": "constellation",
+        "value": 2
+       }
+      }
+     ],
+     "details": "C2 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N1sE N4sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 2
+       },
+       "weapon": {
+        "name": "Tidal Shadow",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Vorpal_Awaken.png",
+        "refinement": 5,
+        "weaponId": "12425"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "C2 PYRO",
+     "hidden": false
+    },
+    {
+     "name": "Redhorn Stonethresher",
+     "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Itadorimaru_Awaken.png",
+     "substat": "CRIT DMG",
+     "type": "Claymore",
+     "rarity": 5,
+     "weaponId": "12510",
+     "refinement": 1,
+     "defaultVariant": "c2",
+     "calculationId": "1000012811",
+     "filters": [
+      {
+       "name": "c2",
+       "displayName": "✓ C2",
+       "displayGroup": "C2",
+       "query": {
+        "operator": "$gte",
+        "field": "constellation",
+        "value": 2
+       }
+      }
+     ],
+     "details": "C2 Varka + VV C6 Prune @ 4000+ ATK + C0 Durin + TTDS Celestial Gift C0 Nicole @ 3000 ATK. 21s rotation: N1sE N4sE N4sE N1CW N1CW N1. Max A4 stacks. See Damage Distribution for Prune's VV and Nicole's TTDS buff uptimes. ",
+     "teammates": [
+      {
+       "character": {
+        "name": "Varka",
+        "element": "Anemo",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+        "constellation": 2
+       },
+       "weapon": {
+        "name": "Redhorn Stonethresher",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Claymore_Itadorimaru_Awaken.png",
+        "refinement": 1,
+        "weaponId": "12510"
+       }
+      },
+      {
+       "character": {
+        "name": "Prune",
+        "element": "Anemo",
+        "rarity": 4,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Prune.png",
+        "constellation": 6,
+        "artifactSet": "4x Viridescent Venerer",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15002_4.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Durin",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Durin.png",
+        "constellation": null,
+        "artifactSet": null,
+        "artifactSetIcon": "https://enka.network/ui/undefined.png"
+       }
+      },
+      {
+       "character": {
+        "name": "Nicole",
+        "element": "Pyro",
+        "rarity": 5,
+        "icon": "https://enka.network/ui/UI_AvatarIcon_Nicole.png",
+        "constellation": null,
+        "artifactSet": "4x Celestial Gift",
+        "artifactSetIcon": "https://enka.network/ui/UI_RelicIcon_15045_4.png"
+       },
+       "weapon": {
+        "name": "Thrilling Tales of Dragon Slayers",
+        "rarity": 3,
+        "icon": "https://enka.network/ui/UI_EquipIcon_Catalyst_Pulpfic_Awaken.png",
+        "refinement": 5,
+        "weaponId": 14302
+       }
+      }
+     ],
+     "short": "C2 PYRO",
+     "hidden": false
+    }
+   ],
+   "weaponsCount": 6,
+   "characterIcon": "https://enka.network/ui/UI_AvatarIcon_Varka.png",
+   "index": 2
+  }
+ ],
+ "textmapSample": {
+  "translation": {
+   "varka": "法尔伽",
+   "gest of the mighty wolf": "狼的武功歌",
+   "durin": "杜林",
+   "crit rate": "暴击率",
+   "crit dmg": "暴击伤害",
+   "max hp": "生命值上限",
+   "atk": "攻击力",
+   "def": "防御力",
+   "elemental mastery": "元素精通",
+   "energy recharge": "元素充能效率",
+   "atk%": "攻击力%",
+   "sands of eon": "时之沙",
+   "hp%": "生命值%",
+   "def%": "防御力%",
+   "goblet of eonothem": "空之杯",
+   "anemo dmg bonus": "风元素伤害加成",
+   "cryo dmg bonus": "冰元素伤害加成",
+   "dendro dmg bonus": "草元素伤害加成",
+   "electro dmg bonus": "雷元素伤害加成",
+   "geo dmg bonus": "岩元素伤害加成",
+   "hydro dmg bonus": "水元素伤害加成",
+   "pyro dmg bonus": "火元素伤害加成",
+   "physical dmg bonus": "物理伤害加成",
+   "circlet of logos": "理之冠",
+   "healing bonus": "治疗加成",
+   "absolution": "赦罪",
+   "akuoumaru": "恶王丸",
+   "alley hunter": "暗巷猎手",
+   "amenoma kageuchi": "天目影打刀",
+   "amos' bow": "阿莫斯之弓",
+   "angelos' heptades": "尘光七谕",
+   "apprentice's notes": "学徒笔记",
+   "aqua simulacra": "若水",
+   "aquila favonia": "风鹰剑",
+   "ash-graven drinking horn": "苍纹角杯",
+   "astral vulture's crimson plumage": "星鹫赤羽",
+   "a teaspoon of transcendence": "超越之匙",
+   "athame artis": "黑蚀",
+   "a thousand blazing suns": "焚曜千阳",
+   "a thousand floating dreams": "千夜浮梦",
+   "azurelight": "苍耀",
+   "ballad of the boundless blue": "无垠蔚蓝之歌",
+   "ballad of the fjords": "峡湾长歌",
+   "beacon of the reed sea": "苇海信标",
+   "beginner's protector": "新手长枪",
+   "beyond the chrysalis": "蝶变",
+   "blackcliff agate": "黑岩绯玉",
+   "blackcliff longsword": "黑岩长剑",
+   "blackcliff pole": "黑岩刺枪",
+   "blackcliff slasher": "黑岩斩刀",
+   "blackcliff warbow": "黑岩战弓",
+   "blackmarrow lantern": "乌髓孑灯",
+   "black tassel": "黑缨枪",
+   "blade of atonement": "救赎之斩",
+   "bloodsoaked ruins": "血染荒城",
+   "bloodtainted greatsword": "沐浴龙血的剑",
+   "breezeborne refrain": "柔风游弦",
+   "calamity of eshu": "厄水之祸",
+   "calamity queller": "息灾",
+   "cashflow supervision": "金流监督",
+   "chain breaker": "碎链",
+   "cinnabar spindle": "辰砂之纺锤",
+   "clash of kings": "群王局戏",
+   "cloudforged": "筑云",
+   "compound bow": "钢轮弓",
+   "cool steel": "冷刃",
+   "covenant of frost and snow": "霜雪誓约",
+   "crane's echoing call": "鹤鸣余音",
+   "crescent pike": "流月针",
+   "crimson moon's semblance": "赤月之形",
+   "dark iron sword": "暗铁剑",
+   "dawning frost": "霜辰",
+   "deathmatch": "决斗之枪",
+   "debate club": "以理服人",
+   "dialogues of the desert sages": "沙中伟贤的对答",
+   "disaster and remorse": "灾悔",
+   "dodoco tales": "嘟嘟可故事集",
+   "dragon's bane": "匣里灭辰",
+   "dragonspine spear": "龙脊长枪",
+   "dull blade": "无锋剑",
+   "earth shaker": "撼地者",
+   "echoes of the heart": "寸心余响",
+   "elegy for the end": "终末嗟叹之诗",
+   "emberwell": "引火之源",
+   "emerald orb": "翡玉法球",
+   "end of the line": "竭泽",
+   "engulfing lightning": "薙草之稻光",
+   "etherlight spindlelute": "天光的纺琴",
+   "everlasting moonglow": "不灭月华",
+   "exaiphanes blade": "星锋剑",
+   "eye of perception": "昭心",
+   "fading twilight": "落霞",
+   "fang of the mountain king": "山王长牙",
+   "favonius codex": "西风秘典",
+   "favonius greatsword": "西风大剑",
+   "favonius lance": "西风长枪",
+   "favonius sword": "西风剑",
+   "favonius warbow": "西风猎弓",
+   "ferrous shadow": "铁影阔剑",
+   "festering desire": "腐殖之剑",
+   "fillet blade": "吃虎鱼刀",
+   "finale of the deep": "海渊终曲",
+   "flame-forged insight": "拾慧铸熔",
+   "fleuve cendre ferryman": "灰河渡手",
+   "flower-wreathed feathers": "缀花之翎",
+   "flowing purity": "纯水流华",
+   "flute of ezpitzal": "息燧之笛",
+   "footprint of the rainbow": "虹的行迹",
+   "forest regalia": "森林王器",
+   "forged by the golden melody": "金律铸影",
+   "fractured halo": "支离轮光",
+   "freedom-sworn": "苍古自由之誓",
+   "frostbearer": "忍冬之果",
+   "frostbreath": "寒息",
+   "fruitful hook": "硕果钩",
+   "fruit of fulfillment": "盈满之实",
+   "golden frostbound oath": "霜结的誓金枝",
+   "hakushin ring": "白辰之环",
+   "halberd": "钺矛",
+   "hamayumi": "破魔之弓",
+   "haran geppaku futsu": "波乱月白经津",
+   "harbinger of dawn": "黎明神剑",
+   "heretic's molten blade": "熔猎异端之刃",
+   "hunter's bow": "猎弓",
+   "hunter's path": "猎人之径",
+   "hymn of the maelstrom": "漩流颂歌",
+   "ibis piercer": "鹮穿之喙",
+   "iron point": "铁尖枪",
+   "iron sting": "铁蜂刺",
+   "jadefall's splendor": "碧落之珑",
+   "jade vista": "悬黎千钧",
+   "kagotsurube isshin": "笼钓瓶一心",
+   "kagura's verity": "神乐之真意",
+   "katsuragikiri nagamasa": "桂木斩长正",
+   "key of khaj-nisut": "圣显之钥",
+   "king's squire": "王下近侍",
+   "kitain cross spear": "喜多院十文字",
+   "lightbearing moonshard": "朏魄含光",
+   "light of foliar incision": "裁叶萃光",
+   "lion's roar": "匣里龙吟",
+   "lithic blade": "千岩古剑",
+   "lithic spear": "千岩长枪",
+   "lost prayer to the sacred winds": "四风原典",
+   "lumidouce elegy": "柔灯挽歌",
+   "luxurious sea-lord": "衔珠海皇",
+   "magic guide": "魔导绪论",
+   "mailed flower": "饰铁之花",
+   "makhaira aquamarine": "玛海菈的水色",
+   "mappa mare": "万国诸海图谱",
+   "master key": "万能钥匙",
+   "memory of dust": "尘世之锁",
+   "messenger": "信使",
+   "missive windspear": "风信之锋",
+   "mistsplitter reforged": "雾切之回光",
+   "mitternachts waltz": "幽夜华尔兹",
+   "moonpiercer": "贯月矢",
+   "moonweaver's dawn": "织月者的曙色",
+   "mountain-bracing bolt": "镇山之钉",
+   "mouun's moon": "曚云之月",
+   "new bough": "新枝",
+   "nightweaver's looking glass": "纺夜天镜",
+   "nocturne's curtain call": "帷间夜曲",
+   "oathsworn eye": "证誓之明瞳",
+   "old merc's pal": "佣兵重剑",
+   "otherworldly story": "异世界行记",
+   "peak patrol song": "岩峰巡歌",
+   "pocket grimoire": "口袋魔导书",
+   "polar star": "冬极白星",
+   "portable power saw": "便携动力锯",
+   "predator": "掠食者",
+   "primordial jade cutter": "磐岩结绿",
+   "primordial jade winged-spear": "和璞鸢",
+   "prospector's drill": "勘探钻机",
+   "prospector's shovel": "掘金之锹",
+   "prototype amber": "试作金珀",
+   "prototype archaic": "试作古华",
+   "prototype crescent": "试作澹月",
+   "prototype rancour": "试作斩岩",
+   "prototype starglitter": "试作星镰",
+   "rainbow serpent's rain bow": "虹蛇的雨弦",
+   "rainslasher": "雨裁",
+   "range gauge": "测距规",
+   "raven bow": "鸦羽弓"
+  }
+ }
+}
