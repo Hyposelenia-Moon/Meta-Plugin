@@ -160,9 +160,13 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
     const player = typeof Player.get === 'function'
       ? Player.get(resolved.uid)
       : Player.create({ uid: resolved.uid })
-    // miao 的刷新/取数流程会通过 `player.e` 回消息（miao 自己的命令里 player 就是 `Player.create(e)`），
-    // 缺了它会出现 `e.reply is not a function` —— 这里把本次命令的事件挂上去（2026-10-15）
-    if (player && !(player as any).e) (player as any).e = e
+    // miao 的刷新/取数流程靠 `player.e` 取数并回消息（miao 自己的命令里 player 就是 `Player.create(e)`）。
+    // ⚠ 必须**无条件**覆盖：`Player.create({ uid })` 内部已经执行过 `player.e = e`（`models/Player.js`），
+    //   把 e 设成了 `{ uid }` 这个普通对象 —— 它没有 `runtime`，miao `MysApi.init` 的首个判断
+    //   `if (!e.runtime) return false` 会立即返回 false，随后 `ProfileReq.requestProfile` 抛
+    //   `mys.getCharacter is not a function`（米游社通道必然 1ms 失败）；它也没有 `reply`，
+    //   慢请求（>2s）时 miao 的定时器会抛 `this.e.reply is not a function`（2026-10-15 定位）
+    if (player) (player as any).e = e
     if (!player) return { ok: false, error: `无法载入玩家 ${resolved.uid}` }
 
     /**
@@ -375,9 +379,9 @@ export async function readTeamDamage (
 
   try {
     const player = typeof Player.get === 'function' ? Player.get(resolved.uid) : Player.create({ uid: resolved.uid })
-    // miao 的刷新/取数流程会通过 `player.e` 回消息（miao 自己的命令里 player 就是 `Player.create(e)`），
-    // 缺了它会出现 `e.reply is not a function` —— 这里把本次命令的事件挂上去（2026-10-15）
-    if (player && !(player as any).e) (player as any).e = e
+    // 同 readProfile：必须**无条件**覆盖 `player.e` —— `Player.create({ uid })` 已把它设成 `{ uid }`
+    // 这个普通对象（无 `runtime`/无 `reply`），会让 miao 的米游社通道直接失败（2026-10-15 定位）
+    if (player) (player as any).e = e
     if (!player) return { ok: false, error: `无法载入玩家 ${resolved.uid}` }
 
     for (const raw of names) {
