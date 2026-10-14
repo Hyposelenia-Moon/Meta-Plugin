@@ -15,13 +15,12 @@ import {
   loadFixture,
   mod,
   pluginRoot,
-  requireRenderEnv,
+  requireRenderEnv, renderEnvIssues, recordSkip,
   appRoot,
   ensureTmpDir
 } from './_helper.mjs'
 
 installFrameworkStubs({ echoError: true })
-requireRenderEnv()
 
 // 渲染时模板按固定相对路径找 `plugins/Meta-Plugin/out/`（头像缓存），故本套件不改数据目录
 delete process.env.META_DATA_DIR
@@ -30,8 +29,6 @@ const { renderDps } = await import(mod('components/render.js'))
 const { normalizeTeams, normalizeTeams2 } = await import(mod('model/TeamStore.js'))
 const { buildRows } = await import(mod('modules/rankQuery.js'))
 const { buildRows: buildRaidRows } = await import(mod('modules/raidQuery.js'))
-const { buildCharView } = await import(mod('modules/buildQuery.js'))
-const { readPlayer } = await import(mod('model/EnkaClient.js'))
 const { cacheInfo, getCounts } = await import(mod('model/TeamStore.js'))
 const { avatarStats } = await import(mod('model/AvatarStore.js'))
 const { helpCfg, helpList } = await import(mod('resources/help/help-cfg.js'))
@@ -39,7 +36,22 @@ const { versions } = await import(mod('model/CharacterIndex.js'))
 const { COPYRIGHT, SITE_NAME, formatTime, agoText } = await import(mod('components/constants.js'))
 const { pluginVersion, yunzaiVersion, versionText } = await import(mod('components/pluginVersion.js'))
 
+// 前置检查放在 import **之后**：普通环境也会真正执行上面的 import（残留的失效模块会立刻报错，不再被"跳过"掩盖）
+
 const { check, finish } = checker()
+
+/**
+ * 2026-10-15 审核 P2 #14：前置检查**不再静默退出** —— 记录一次"部分跳过"并按
+ * 通过/失败/跳过三段打印汇总；静态契约检查由 `render-static.test.mjs` 在普通环境照常运行。
+ */
+{
+  const problems = renderEnvIssues()
+  if (problems.length) {
+    recordSkip(`实际截图部分：${problems.join('；')}`)
+    finish()
+  }
+}
+
 
 /** 1×1 webp：给模板一张真实存在的立绘，验证 _data_path 能解析到文件 */
 const FAKE_AVATAR = Buffer.from('UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==', 'base64')

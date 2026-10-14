@@ -65,6 +65,31 @@ export function skip (why) {
   console.log(`跳过：${why}`)
 }
 
+/** 本次套件内"部分跳过"的条数（供汇总分别统计通过/失败/跳过） */
+let skipCount = 0
+
+/** 记录一次**部分跳过**（不退出）：汇总里单独统计（2026-10-15 审核 P2 #14） */
+export function recordSkip (why) {
+  skipCount++
+  console.log(`跳过：${why}`)
+}
+
+/** 汇总后缀：有跳过时补 ` / 跳过 Z` */
+function skipSuffix () {
+  return skipCount ? ` / 跳过 ${skipCount}` : ''
+}
+
+/** 渲染环境缺失项（**不退出**，返回原因数组）—— 让静态契约检查能在普通环境照常运行 */
+export function renderEnvIssues () {
+  const issues = []
+  if (!hasBotRenderer()) issues.push('不在 bot 环境中（插件根上两级没有 lib/puppeteer/puppeteer.js）')
+  const installed = path.join(appRoot, 'plugins', path.basename(pluginRoot))
+  if (!fs.existsSync(installed)) issues.push(`插件未安装在 ${installed}（渲染按该路径解析模板与资源）`)
+  if (!findBrowser()) issues.push('找不到浏览器（可设 META_TEST_BROWSER=<可执行文件路径>）')
+  if (!hasDependency('yaml')) issues.push('缺少依赖 yaml')
+  return issues
+}
+
 /** 键序无关的稳定序列化：对象按键名排序，数组保持原序（用于断言比较） */
 export function stableStringify (value) {
   const walk = (v) => {
@@ -91,7 +116,7 @@ export function createChecks (title) {
       console.log(`${c.ok ? '✓' : '✗'} ${c.what}${c.ok ? '' : `：${JSON.stringify(c.got)}（期望 ${JSON.stringify(c.want)}）`}`)
     }
     const bad = checks.filter(c => !c.ok).length
-    console.log(`${title}：${checks.length - bad}/${checks.length}${bad ? ' ← 有失败' : ' 全通过'}`)
+    console.log(`${title}：${checks.length - bad}/${checks.length}${bad ? ' ← 有失败' : ' 全通过'}${skipSuffix()}`)
     return bad
   }
   return { checks, push, ok, report }
@@ -208,21 +233,9 @@ export function findBrowser () {
  * 解析 `plugins/<插件>/resources/...`，工作区里跑会找不到资源 → 直接跳过。
  */
 export function requireRenderEnv () {
-  if (!hasBotRenderer()) {
-    skip('不在 bot 环境中（插件根上两级没有 lib/puppeteer/puppeteer.js）')
-    process.exit(0)
-  }
-  const installed = path.join(appRoot, 'plugins', path.basename(pluginRoot))
-  if (!fs.existsSync(installed)) {
-    skip(`插件未安装在 ${installed}（渲染按该路径解析模板与资源）`)
-    process.exit(0)
-  }
-  if (!findBrowser()) {
-    skip('找不到浏览器（可设 META_TEST_BROWSER=<可执行文件路径>）')
-    process.exit(0)
-  }
-  if (!hasDependency('yaml')) {
-    skip('缺少依赖 yaml')
+  const issues = renderEnvIssues()
+  if (issues.length) {
+    skip(issues[0])
     process.exit(0)
   }
 }
@@ -245,7 +258,7 @@ export function checker () {
     },
     counts: () => ({ pass, fail }),
     finish () {
-      console.log(`\n结果：通过 ${pass} / 失败 ${fail}`)
+      console.log(`\n结果：通过 ${pass} / 失败 ${fail}${skipSuffix()}`)
       process.exit(fail === 0 ? 0 : 1)
     }
   }

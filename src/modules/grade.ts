@@ -607,6 +607,7 @@ export function buildSuggestions (targets: GuideTargets, build: BuildSnapshot, d
     out.push(`圣遗物：凑「${targets.artifact.recommend[0]}」4 件`)
   }
 
+  if (!out.length) out.push('各维度均已达标：可继续提升面板词条质量　〔看词条〕')
   return out.slice(0, 4)
 }
 

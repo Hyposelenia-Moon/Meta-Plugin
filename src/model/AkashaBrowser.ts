@@ -59,6 +59,8 @@ interface RendererBackend {
 }
 
 let ownBrowser: BrowserLike | null = null
+/** 启动中的浏览器（并发调用共享它；见 getBrowser 注释） */
+let launching: Promise<BrowserLike> | null = null
 let ownBrowserIdleTimer: ReturnType<typeof setTimeout> | null = null
 let puppeteerModule: { launch: (opts: Record<string, unknown>) => Promise<BrowserLike> } | null = null
 
@@ -115,15 +117,33 @@ async function getBrowser (): Promise<{ browser: BrowserLike, owned: boolean }> 
 
   if (ownBrowser?.connected) return { browser: ownBrowser, owned: true }
 
-  const puppeteer = await loadPuppeteer()
-  const exe = chromiumPathFrom(backend)
-  const launchConfig: Record<string, unknown> = {
-    headless: 'new',
-    args: ['--disable-gpu', '--no-sandbox', '--disable-setuid-sandbox', '--no-zygote'],
-    ...(exe ? { executablePath: exe } : {})
+  // ⚠ 2026-10-15 审核 P2 #12：冷启动并发。框架还没有可复用浏览器时，多个 getBrowser
+  //    在 launch 完成前都看到 ownBrowser 为空 → 各自启动，最后只剩一个引用（其余泄漏）。
+  //    这里**共享同一次启动 Promise**；失败时把启动状态清空，下一次调用可以重试。
+  if (!launching) {
+    launching = (async (): Promise<BrowserLike> => {
+      try {
+        const puppeteer = await loadPuppeteer()
+        const exe = chromiumPathFrom(backend)
+        // 配置里的代理必须真正落到启动参数上（审核附加项：proxy 之前只被接收、没被使用）
+        const proxy = String(loadConfig().proxy || '').trim()
+        const args = ['--disable-gpu', '--no-sandbox', '--disable-setuid-sandbox', '--no-zygote']
+        if (proxy) args.push(`--proxy-server=${proxy}`)
+        const launchConfig: Record<string, unknown> = {
+          headless: 'new',
+          args,
+          ...(exe ? { executablePath: exe } : {})
+        }
+        const browser = await puppeteer.launch(launchConfig)
+        ownBrowser = browser          // 在这里赋值：并发调用者随后就能直接复用
+        return browser
+      } finally {
+        launching = null              // 成功或失败都清空，避免"启动中"状态卡死
+      }
+    })()
   }
-  ownBrowser = await puppeteer.launch(launchConfig)
-  return { browser: ownBrowser, owned: true }
+  const browser = await launching
+  return { browser, owned: true }
 }
 
 /** 自己起的浏览器：空闲一段时间后关闭 */
@@ -167,9 +187,12 @@ export async function akashaBrowserTransport (
   // ⚠ P5：榜条目 / 角色筛选 / 赛道分类 这几条只会在**对应页面**上被页面自身请求（页面里自己 fetch 会被 CF 403），
   //    所以这里的可拦截判断要认它们；页面地址由 opts.pageUrl 指定（默认仍是个人页 / 首页）
   const interceptable = INTERCEPTABLE_PREFIXES.some(prefix => pathname.startsWith(prefix)) ||
-    /^\/api\/(leaderboards|filters|v2\/leaderboards)/.test(pathname)
-  const uidMatch = pathname.match(/\/(?:user|getCalculationsForUser)\/(\d{9,10})/)
-  const uid = uidMatch?.[1] || ''
+    /^\/api\/(leaderboards|filters|v2\/leaderboards|builds)/.test(pathname)
+  // UID 也可能只在 query 上（如 `/api/builds/?uid=…`，审核附加项：之前只从路径取，导致 pageUrl
+  // 落成首页、builds 请求根本没被发出）
+  const uidFromPath = pathname.match(/\/(?:user|getCalculationsForUser)\/(\d{9,10})/)?.[1] || ''
+  const uidFromQuery = String(parsed.searchParams.get('uid') || '').trim()
+  const uid = /^\d{9,10}$/.test(uidFromQuery) ? uidFromQuery : uidFromPath
   const pageUrl = opts.pageUrl || (uid ? `https://akasha.cv/profile/${uid}` : 'https://akasha.cv/')
 
   const { browser } = await getBrowser()

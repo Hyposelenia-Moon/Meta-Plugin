@@ -14,6 +14,7 @@
 import { cacheInfo, ensureFresh, getSnapshot } from '../model/TeamStore.js'
 import type { RaidRecord } from '../model/TeamStore.js'
 import { bossById, bossesOfVer, findBoss, findCharacter, searchCharacters, versions } from '../model/CharacterIndex.js'
+import { resolveBossName } from './bossAlias.js'
 import { ensureAvatars } from '../model/AvatarStore.js'
 import { getPluginConfig } from '../components/config.js'
 import { avatarIdsOf } from './teamView.js'
@@ -69,7 +70,7 @@ export async function queryRaidTiers (
     }
   }
 
-  const bossRecord = q.boss ? findBoss(q.boss) : null
+  const bossRecord = q.boss ? findBoss(resolveBossName(q.boss)) : null
   if (q.boss && !bossRecord) {
     return {
       ok: false,

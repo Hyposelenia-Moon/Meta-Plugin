@@ -44,6 +44,7 @@ fs.writeFileSync(process.env.META_CONFIG_FILE, [
 const C = await import(pathToFileURL(path.join(libDir, 'components', 'constants.js')).href)
 const { queryRaidTiers, N7_SECONDS_LIMIT, RAID_SPEED_CAP } = await import(pathToFileURL(path.join(libDir, 'modules', 'raidTiersQuery.js')).href)
 const { resetStore } = await import(pathToFileURL(path.join(libDir, 'model', 'TeamStore.js')).href)
+const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFileURL(path.join(libDir, 'modules', 'bossAlias.js')).href)
 
 // ---------- 1. 路由 ----------
 {
@@ -98,6 +99,22 @@ const { resetStore } = await import(pathToFileURL(path.join(libDir, 'model', 'Te
     const bad = await queryRaidTiers({ ver: '1.0' }, { downloadAvatars: false })
     ok('不存在的版本给出失败与候选', bad.ok === false && (bad.suggestions || []).length > 0)
   }
+}
+
+// ---------- 3b. 首领简写表（手动维护） ----------
+{
+  const fsMod = await import('node:fs')
+  const tmpAlias = path.join(ensureTmp(), 'boss-alias.test.json')
+  try { fsMod.rmSync(tmpAlias, { force: true }) } catch { /* 忽略 */ }
+  process.env.META_BOSS_ALIAS_FILE = tmpAlias
+  resetBossAlias()
+  ok('没有简写表时原样透传', resolveBossName('矮灵雕刻师') === '矮灵雕刻师' && resolveBossName('矮灵') === '矮灵')
+  fsMod.writeFileSync(tmpAlias, JSON.stringify({ '矮灵雕刻师': ['矮灵', '雕刻师'], '_note': '测试用' }), 'utf8')
+  resetBossAlias()
+  ok('简写表生效（简写 → 全名）', resolveBossName('矮灵') === '矮灵雕刻师' && resolveBossName('雕刻师') === '矮灵雕刻师')
+  ok('全名仍原样返回', resolveBossName('矮灵雕刻师') === '矮灵雕刻师')
+  ok('表里没有的照旧透传', resolveBossName('不存在的首领') === '不存在的首领')
+  ok('简写表支持环境变量覆盖', bossAliasFile() === tmpAlias)
 }
 
 // ---------- 4. app 与模板接线 ----------

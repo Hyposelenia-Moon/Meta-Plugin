@@ -1032,15 +1032,38 @@ function findStampDir (stamp) {
   return { name, dir }
 }
 
-/** 把待改文件复制到 data/_backup/<stamp>/，并写 manifest.json */
+/**
+ * 把待改文件复制到 data/_backup/<stamp>/，并写 manifest.json
+ *
+ * ⚠ 2026-10-15 审核 P2：时间戳只到秒且目录用 `recursive: true` 创建，
+ * 同一秒的第二次操作会**覆盖**前一次快照与 manifest（撤销第一次时恢复的是第二次的内容）。
+ * 现在改为**独占创建**：撞名自动加 `-2`/`-3` 后缀，已有快照一律不覆盖；
+ * 返回真实分配到的目录名，供响应与撤销接口使用。
+ *
+ * @returns {{ dir: string, name: string }}
+ */
 function writeBackup (stamp, files, manifest) {
-  const dir = path.join(backupDir, stamp)
-  fs.mkdirSync(dir, { recursive: true })
-  for (const name of files) {
-    fs.copyFileSync(characterFile(name), path.join(dir, `${name}.json`))
+  fs.mkdirSync(backupDir, { recursive: true })
+  let name = String(stamp)
+  let dir = ''
+  let created = false
+  for (let i = 2; i <= 999; i++) {
+    dir = path.join(backupDir, name)
+    try {
+      fs.mkdirSync(dir)          // 不带 recursive：目录已存在时抛 EEXIST，绝不覆盖
+      created = true
+      break
+    } catch (err) {
+      if (err?.code !== 'EEXIST') throw err
+      name = `${stamp}-${i}`
+    }
   }
-  writeJsonFile(path.join(dir, 'manifest.json'), { stamp, createdAt: new Date().toISOString(), done: false, files, ...manifest })
-  return dir
+  if (!created) throw err(409, `同一秒内备份次数过多，请稍后重试：${stamp}`)
+  for (const n of files) {
+    fs.copyFileSync(characterFile(n), path.join(dir, `${n}.json`))
+  }
+  writeJsonFile(path.join(dir, 'manifest.json'), { stamp: name, createdAt: new Date().toISOString(), done: false, files, ...manifest })
+  return { dir, name }
 }
 
 /**
@@ -1057,7 +1080,9 @@ function runBatchReplace ({ type, from, to }) {
   }
   const stamp = makeStamp()
   const names = [...byFile.keys()]
-  const dir = writeBackup(stamp, names, { type, from, to, hits: hits.length })
+  const backup = writeBackup(stamp, names, { type, from, to, hits: hits.length })
+  const dir = backup.dir
+  const backupName = backup.name
 
   let changed = 0
   const perCharacter = []
@@ -1082,10 +1107,10 @@ function runBatchReplace ({ type, from, to }) {
   // 索引里并入了「数据里出现过的 ref 名」，替换后必须重建，否则旧名字还会被当成合法名
   const idx = refreshIndexFile()
   writeJsonFile(path.join(dir, 'manifest.json'), {
-    stamp, createdAt: new Date().toISOString(), done: true, files: names, type, from, to,
+    stamp: backupName, createdAt: new Date().toISOString(), done: true, files: names, type, from, to,
     hits: hits.length, changed, indexRefreshed: idx.refreshed
   })
-  return { stamp, files: names.length, perCharacter, changed }
+  return { stamp: backupName, files: names.length, perCharacter, changed }
 }
 
 /**
@@ -1592,13 +1617,19 @@ function apiDeleteCharacter (res, url) {
   const file = characterFile(name)
   if (!fs.existsSync(file)) return sendError(res, 404, `角色不存在：${name}`)
   if (!fs.existsSync(trashDir)) fs.mkdirSync(trashDir, { recursive: true })
-  fs.renameSync(file, path.join(trashDir, `${name}.json`))
+  // 2026-10-15 审核 P2：回收站固定 `<角色名>.json`，删掉同名角色再删一次会**覆盖**上一份历史版本。
+  // 这里明确拒绝覆盖（要保留多版本可改造成删除 ID 方案，但先保证不丢数据）。
+  const trashedFile = path.join(trashDir, `${name}.json`)
+  if (fs.existsSync(trashedFile)) {
+    return sendError(res, 409, `回收站里已有「${name}.json」（上次删除的版本），为避免覆盖历史版本已拒绝本次删除；请先在回收站里恢复或手动清理`)
+  }
+  fs.renameSync(file, trashedFile)
   removeFromOrder(name)
   const idx = refreshIndexFile()
   sendJson(res, 200, {
     ok: true,
     name,
-    trashed: path.relative(root, path.join(trashDir, `${name}.json`)).split(path.sep).join('/'),
+    trashed: path.relative(root, trashedFile).split(path.sep).join('/'),
     indexRefreshed: idx.refreshed,
     ...(idx.warning ? { indexWarning: idx.warning } : {})
   })
@@ -2250,6 +2281,19 @@ async function commitChanges (opts = {}) {
 
   const staged = await gitRun(['diff', '--cached', '--name-only'])
   if (!staged.stdout.trim()) return { executed: false, hash: null, skipped: '无改动可提交（工作区已干净）' }
+
+  // 提交范围必须与请求一致（2026-10-15 审核 P2）：用户此前 `git add` 过的**范围外**文件也会被
+  // `git commit` 一起提交，与接口声明的范围不符。发现范围外暂存就**阻止提交**并原样保留其暂存状态。
+  const stagedPaths = staged.stdout.split('\n').map(x => x.trim()).filter(Boolean)
+  const wanted = new Set(unique.map(p => p.split('\\').join('/')))
+  const foreign = stagedPaths.filter(p => !wanted.has(p) && !unique.includes(p))
+  if (foreign.length) {
+    return {
+      executed: false,
+      hash: null,
+      skipped: `暂存区里有本次范围外的文件（${foreign.slice(0, 5).join('、')}${foreign.length > 5 ? ' 等' : ''}），已阻止提交；请先处理它们或改用不带路径的提交`
+    }
+  }
 
   const message = buildCommitMessage(subject, opts.bullets ?? [])
   const commit = await gitRun(['commit', '-m', message])

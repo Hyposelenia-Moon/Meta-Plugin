@@ -1,67 +1,82 @@
 /**
- * 帮助配置：结构契约（紧凑版式）
+ * 帮助配置套件（2026-10-14：两小一大 + 主菜单只放常用指令）
  *
- * 帮助图按「分组标题条 + 三列网格」渲染，每项只有命令与一行说明。
- * 这里钉住三件事：字段极简（不回流成语法块/参数表）、排版可容纳（标题与说明不过长）、
- * 命令覆盖齐全且不重复——帮助与插件命令漂移时直接报红。
+ * 三页各自过结构门禁；主菜单说明更严（≤16 字 = "常用指令的简洁解释"），分菜单 ≤40 字（可正常解释）。
+ * 覆盖表按**三页并集**检查，避免"主菜单精简后把入口弄丢"。
  */
-import fs from 'node:fs'
 import path from 'node:path'
-import { checker, mod, pluginRoot } from './_helper.mjs'
+import { createChecks, pluginRoot, readText } from './_helper.mjs'
 
-const { check, finish } = checker()
+const { push, ok, report } = createChecks('帮助配置（两小一大）')
 
-// ⚠ 阶段 4.7 说明：本套件断言的是 Mhydps 的  resources/help/help-cfg.js（#DPS 帮助的分组）。
-// 本仓库当前的 help-cfg.js 只有攻略侧内容，DPS 分组将在**阶段 5**（帮助页/状态页）与攻略侧合并。
-// 合并完成前显式跳过，避免把一个"已知待办"记成失败。
-const helpCfgSrc = fs.readFileSync(path.join(pluginRoot, 'resources', 'help', 'help-cfg.js'), 'utf8')
-if (!helpCfgSrc.includes('#DPS')) {
-  console.log('⏭ 跳过：帮助页的 #DPS 分组在阶段 5 与攻略侧合并（当前 help-cfg.js 只有攻略内容）')
-  process.exit(0)
+const mod = await import('file://' + path.join(pluginRoot, 'resources', 'help', 'help-cfg.js').replace(/\\/g, '/'))
+const pages = mod.helpPages || {}
+const pageNames = ['meta', 'guide', 'dps']
+
+ok('三个页面都在（meta / guide / dps）', pageNames.every(n => pages[n]?.cfg && Array.isArray(pages[n]?.list)))
+ok('总帮助别名为 meta（helpCfg / helpList 指向同一份）',
+  mod.helpCfg?.title === pages.meta?.cfg?.title && mod.helpList?.length === pages.meta?.list?.length)
+
+const DESC_LIMIT = { meta: 24, guide: 30, dps: 30 }
+
+for (const name of pageNames) {
+  const page = pages[name]
+  if (!page) continue
+  const items = page.list.flatMap(g => g.list || [])
+  const titles = items.map(i => i.title)
+
+  ok(`${name}: 页头有标题与副标题`, typeof page.cfg.title === 'string' && page.cfg.title.length > 0 &&
+    typeof page.cfg.subTitle === 'string' && page.cfg.subTitle.length > 0)
+  ok(`${name}: 分组非空且每组有名字`, page.list.length > 0 && page.list.every(g => typeof g.group === 'string' && g.group && g.list?.length > 0))
+  ok(`${name}: 每条只有 title / desc`, items.every(i => Object.keys(i).every(k => k === 'title' || k === 'desc')))
+  ok(`${name}: 标题以 # 开头`, items.every(i => String(i.title).trim().startsWith('#')))
+  ok(`${name}: 标题唯一`, new Set(titles).size === titles.length, titles.filter((t, i) => titles.indexOf(t) !== i).join(','))
+  ok(`${name}: 每组 ≤ 8 条`, page.list.every(g => g.list.length <= 8), page.list.map(g => `${g.group}:${g.list.length}`).join(' '))
+  const limit = DESC_LIMIT[name] || 40
+  ok(`${name}: 说明 ≤ ${limit} 字`, items.every(i => i.desc.length <= limit),
+    items.filter(i => i.desc.length > limit).map(i => `${i.title}(${i.desc.length})`).join(','))
+  ok(`${name}: 没有语法 / 参数表 / 示例字段`, items.every(i => !i.syntax && !i.args && !i.examples))
+  ok(`${name}: 没有分组级 auth（权限由 apps 层管）`, page.list.every(g => !g.auth))
 }
 
-const { helpCfg, helpList } = await import(mod('resources/help/help-cfg.js'))
+// 主菜单要"常用"：条数克制，且给出三个入口
+{
+  const meta = pages.meta
+  const items = meta.list.flatMap(g => g.list || [])
+  ok('主菜单条数克制（≤12 条）', items.length <= 12, String(items.length))
+  ok('主菜单含攻略 / 练度 / 伤害 / 榜单四类常用入口',
+    ['#胡桃攻略', '#练度查询 胡桃', '#胡桃dps', '#DPS榜'].every(t => items.some(i => i.title === t)),
+    items.map(i => i.title).join(' | '))
+  ok('主菜单指向两个分菜单', items.some(i => i.title === '#攻略帮助') && items.some(i => i.title === '#DPS帮助'))
+  ok('总菜单含「数据与维护」，分菜单不再重复承载',
+    meta.list.some(g => g.group === '数据与维护') && !pages.dps.list.some(g => g.group === '数据与维护') && !pages.guide.list.some(g => g.group === '数据与维护'))
+  const maxLen = Math.max(...items.map(i => i.desc.length))
+  ok('主菜单解释居中：一行说清且不口语化（10~24 字）', maxLen <= 24 && maxLen >= 10, String(maxLen))
+}
 
-// ---- 页头 ----
-check('helpCfg 有标题（阶段 5 合并页：攻略 + 榜单统一标题）', typeof helpCfg.title === 'string' && helpCfg.title.length > 0 && helpCfg.title.includes('帮助'))
-check('helpCfg 有副标题', typeof helpCfg.subTitle === 'string' && helpCfg.subTitle.length > 0)
+// 覆盖表：三页并集
+{
+  const all = pageNames.flatMap(n => (pages[n]?.list || []).flatMap(g => g.list || []))
+  const combined = all.map(i => `${i.title} ${i.desc}`)
+  const need = ['#胡桃攻略', '#练度查询 胡桃', '#配装 胡桃 3', '#胡桃dps', '#危战', '#队伍伤害 四人名',
+    '#队伍伤害 轴:重击×8', '#队伍伤害 词条:+20暴击', '#DPS榜', '#DPS视频',
+    '#攻略状态', '#DPS更新']
+  push('三页并集覆盖全部入口（含旧写法说明）', need.filter(k => !combined.some(t => t.includes(k))), [])
+  ok('已移除的攻略写法没被写回帮助页',
+    !combined.some(t => t.includes('#攻略 胡桃') || t.includes('#攻略 武器')))
+  // 2026-10-14 用户定：帮助页**只讲新写法**，不出现旧写法说明
+  const legacyNotes = JSON.stringify(mod.helpPages).match(/旧写法|同义\\|同页|亦可|仍可用/g) || []
+  push('帮助页不出现旧写法的说明性文字', legacyNotes, [])
+}
 
-// ---- 分组与条目 ----
-check('helpList 非空', Array.isArray(helpList) && helpList.length > 0, `${helpList.length} 组`)
-check('每组有 group 名与 list', helpList.every(g => typeof g.group === 'string' && g.group && Array.isArray(g.list) && g.list.length > 0))
+// app 接线
+{
+  const src = readText(path.join(pluginRoot, 'src', 'apps', 'help.ts'))
+  ok('app 按页面取配置（helpPages）', src.includes('helpPages?.[page]'))
+  ok('app 认 #meta（总帮助）', src.includes('META_HELP_RULE') && src.includes('isMetaHelpCommand'))
+  ok('app 判页：meta / dps / guide', src.includes("return 'meta'") && src.includes("return 'dps'") && src.includes("return 'guide'"))
+  ok('app 首个导出是插件类', /^export class \w+ extends plugin/m.test(src))
+}
 
-const items = helpList.flatMap(g => g.list)
-check('每条有 title 与 desc', items.every(i => typeof i.title === 'string' && i.title && typeof i.desc === 'string' && i.desc))
-check('命令标题以 # 开头', items.every(i => i.title.trim().startsWith('#')))
-
-// ---- 字段极简：只有 title / desc（防止再次复杂化） ----
-const extraKeys = items.flatMap(i => Object.keys(i)).filter(k => k !== 'title' && k !== 'desc')
-check('条目只保留 title / desc 两个字段', extraKeys.length === 0, [...new Set(extraKeys)].join(','))
-check('条目里不再有语法 / 参数表 / 示例字段', items.every(i => !i.syntax && !i.args && !i.examples))
-
-// ---- 排版可容纳三列网格 ----
-check('标题长度 ≤ 30 字（三列不换行）', items.every(i => i.title.length <= 30), items.filter(i => i.title.length > 30).map(i => i.title).join(' | '))
-check('说明长度 ≤ 40 字（一行内可读）', items.every(i => i.desc.length <= 40), items.filter(i => i.desc.length > 40).map(i => i.desc).join(' | '))
-check('每组条目 ≤ 8 条', helpList.every(g => g.list.length <= 8), helpList.map(g => `${g.group}:${g.list.length}`).join(' '))
-
-// ---- 不重复 ----
-const titles = items.map(i => i.title)
-check('命令条目不重复', new Set(titles).size === titles.length, titles.filter((t, idx) => titles.indexOf(t) !== idx).join(','))
-
-// ---- 覆盖率：合并后的帮助页要同时覆盖**攻略侧**与**榜单侧**（阶段 5 合并）----
-//   #练度查询 这种 v3 新入口还没实现，等实现后再加进本表
-const needCover = ['#胡桃dps', '#危战', '#DPS榜', '#DPS危战榜', '#DPS练度查询', '#DPS视频', '#DPS状态', '#DPS帮助', '#DPS更新', '#胡桃攻略', '#攻略 胡桃', '#攻略帮助']
-// 规范写法放 title，其余等价写法写在 desc 里（本套件一贯的「其余写法并进说明」）→ 两处都算覆盖
-const combined = items.map(i => [i.title, i.desc].join(' '))
-const missing = needCover.filter(k => !combined.some(t => t.includes(k)))
-check('覆盖攻略侧与榜单侧的全部入口', missing.length === 0, missing.join(','))
-
-// ---- 权限分组 ----
-check('主人指令标注「仅主人」（合并后归入「列表与维护」组）', items.some(i => i.title.includes('#DPS更新') && i.desc.includes('仅主人')))
-check('简化后不再有分组级 auth（权限由 apps 层管）', helpList.every(g => !g.auth))
-
-// ---- 常用写法要有具体示例条目（截图风格的「命令 + 用法」） ----
-check('榜单组保留一条筛选示例（其余写法并进说明）', titles.includes('#DPS榜 金≤12') && titles.includes('#DPS榜 胡桃'), titles.filter(t => t.startsWith('#DPS榜')).join(' | '))
-check('危战组保留版本示例，首领写法并进说明', titles.includes('#DPS危战榜 7.1') && items.some(i => i.title === '#DPS危战榜 7.1' && i.desc.includes('首领')))
-
-finish()
+const bad = report()
+process.exit(bad ? 1 : 0)

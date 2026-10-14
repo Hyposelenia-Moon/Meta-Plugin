@@ -76,6 +76,13 @@ const members = [
   const bad = SP.parseStatPatch('乱写+abc,暴击率+')
   ok('无法识别的片段进 invalid 而不是抛错', bad.items.length === 0 && bad.invalid.length === 2, JSON.stringify(bad.invalid))
   ok('空写法 → 空词条', SP.parseStatPatch('').items.length === 0)
+  // 2026-10-14：对齐阿修版 miao 的面板「换/补」语法（符号在前）
+  const miao1 = SP.parseStatPatch('+30暴击')
+  ok('miao 换补式：+30暴击 → cpct +30', miao1.items.length === 1 && miao1.items[0].attrKey === 'cpct' && miao1.items[0].delta === 30, JSON.stringify(miao1))
+  const miao2 = SP.parseStatPatch('-10爆伤 +20精通')
+  ok('miao 换补式：多属性空格分隔', miao2.items.length === 2 && miao2.items[0].delta === -10 && miao2.items[1].attrKey === 'mastery', JSON.stringify(miao2))
+  ok('按基数百分比的写法进 invalid 并说明', SP.parseStatPatch('+10%大攻击').invalid.length === 1 && /百分比/.test(SP.parseStatPatch('+10%大攻击').invalid[0]))
+  ok('早期写法仍兼容（暴击率+20 / 攻击力=100）', SP.parseStatPatch('暴击率+20').items.length === 1 && SP.parseStatPatch('攻击力=100').items[0].attrKey === 'atk')
 
   const attrs = { cpct: 60, cdmg: 200, hp: 1000, atk: 1200 }
   const applied = SP.applyStatPatch(attrs, SP.parseStatPatch('暴击率+20,暴击伤害-40,生命值-5000'))
@@ -96,10 +103,10 @@ const members = [
 {
   const TD = await load('modules/teamDamage.js')
   ok('参数解析在纯模块里（可离线单测）', typeof TD.parseTeamArgs === 'function' && typeof TD.splitTeamTokens === 'function')
-  const parsed = TD.parseTeamArgs('胡桃 行秋 夜兰 钟离 100000000 轴:重击×8@21s 词条:暴击率+20')
+  const parsed = TD.parseTeamArgs('胡桃 行秋 夜兰 钟离 100000000 轴:重击×8@21s 词条:+20暴击')
   ok('拆出四个角色名', parsed.names.join(',') === '胡桃,行秋,夜兰,钟离', parsed.names.join(','))
   ok('拆出 UID', parsed.uid === '100000000', parsed.uid)
-  ok('拆出轴与词条', parsed.axisText === '重击×8@21s' && parsed.patchText === '暴击率+20', `${parsed.axisText}｜${parsed.patchText}`)
+  ok('拆出轴与词条', parsed.axisText === '重击×8@21s' && parsed.patchText === '+20暴击', `${parsed.axisText}｜${parsed.patchText}`)
   ok('顿号/逗号分隔也认', TD.parseTeamArgs('胡桃、行秋，夜兰/钟离').names.length === 4)
   const app = readText(path.join(pluginRoot, 'src', 'apps', 'teamDamage.ts'))
   ok('app 产物存在', fs.existsSync(path.join(libDir, 'apps', 'teamDamage.js')))
@@ -110,13 +117,13 @@ const members = [
   ok('app 把词条交给桥临时重算（不改 miao 面板）', app.includes('patch: patch.items.length ? patch : undefined'))
   ok('app 计算参考 DPS 并带轴口径', app.includes('teamDps(') && app.includes('axisLabel'))
 
-  const ev = C.matchEntryCommand('#队伍伤害 胡桃 行秋 夜兰 钟离 轴:重击×8@21s 词条:暴击率+20')
+  const ev = C.matchEntryCommand('#队伍伤害 胡桃 行秋 夜兰 钟离 轴:重击×8@21s 词条:+20暴击')
   ok('带轴/词条的消息仍命中入口', ev?.key === 'teamDamage')
-  ok('轴与词条都在捕获参数里', /轴:重击×8@21s/.test(ev?.match[1] || '') && /词条:暴击率\+20/.test(ev?.match[1] || ''))
+  ok('轴与词条都在捕获参数里', /轴:重击×8@21s/.test(ev?.match[1] || '') && /词条:\+20暴击/.test(ev?.match[1] || ''))
 
   const help = readText(path.join(pluginRoot, 'resources', 'help', 'help-cfg.js'))
   ok('帮助页写明默认轴口径（每人最高单次×1／20s）', /最高单次×1／20s/.test(help))
-  ok('帮助页收录词条写法', /词条:暴击率\+20/.test(help))
+  ok('帮助页收录词条写法', /词条:\+20暴击/.test(help))
 }
 
 const bad = report()

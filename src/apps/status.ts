@@ -6,6 +6,7 @@
  * ⚠ 本文件只导出插件类：`src/index.ts` 的加载器取「模块首个导出」当插件类。
  */
 import { getPluginConfig, getProxy, loadConfig } from '../components/config.js'
+import { proxyHasAuth, proxySafe } from '../components/proxy.js'
 import { DPS_COMMANDS, DPS_COPYRIGHT, DPS_RULES, SITE_NAME, agoText, formatTime } from '../components/constants.js'
 import { avatarStats } from '../model/AvatarStore.js'
 import { versions } from '../model/CharacterIndex.js'
@@ -33,6 +34,8 @@ interface StatusData {
   ttlText: string
   staleText: string
   proxy: string
+  proxyConfigured: boolean
+  proxyAuth: boolean
   /** 联网总开关（默认关；关着就不会联网，页面只能出缓存里的数据） */
   networkEnabled: boolean
   /** 攻略数据：有内容的角色数 / 收录总数 */
@@ -50,6 +53,8 @@ interface StatusData {
   copyright: string
 }
 
+
+
 export class MetaStatus extends plugin {
   constructor () {
     super({
@@ -66,10 +71,12 @@ export class MetaStatus extends plugin {
   }
 
   /** 状态数据（图与文本回退共用一份） */
-  buildData (): StatusData {
+  buildData (master = false): StatusData {
     const info = cacheInfo()
     const counts = getCounts()
     const proxy = getProxy()
+    // 公共页面只回显"是否配置"；主人也只多看到 host:port（凭据一律不显示）
+    const proxyShown = master ? proxySafe(proxy) : (proxy ? '已配置' : '')
     const verList = versions()
 
     // 阶段 5：状态页一次覆盖两侧（攻略数据 + 资源来源 + 联网开关）
@@ -92,7 +99,9 @@ export class MetaStatus extends plugin {
       ageText: info.fetchedAt ? agoText(info.ageMs) : '—',
       ttlText: `${info.ttlMinutes} 分钟`,
       staleText: info.stale ? '已过期（下次查询会自动刷新）' : '有效',
-      proxy: proxy || '',
+      proxy: proxyShown,
+      proxyConfigured: !!proxy,
+      proxyAuth: proxyHasAuth(proxy),
       networkEnabled: loadConfig().networkEnabled === true,
       codexFilled,
       codexTotal,
@@ -113,14 +122,14 @@ export class MetaStatus extends plugin {
 
   /** `#DPS状态` — 缓存时间、条数、头像缓存与版本信息 */
   async handleStatus (e: YunzaiEvent): Promise<boolean> {
-    const data = this.buildData()
+    const data = this.buildData((e as unknown as { isMaster?: boolean }).isMaster === true)
 
     if (!data.hasData) {
       await e.reply(
         '[Meta] 还没有本地数据。\n' +
         '· 主人执行 #DPS更新 立即拉取\n' +
         '· 直接查询（#DPS榜 / #DPS危战榜）也会自动拉取\n' +
-        `· 若拉取失败，检查配置里的 proxy（当前：${data.proxy || '未设置（直连）'}）`
+        `· 若拉取失败，检查配置里的 proxy（当前：${data.proxyConfigured ? (data.proxy || '已配置') : '未设置（直连）'}${data.proxyAuth ? '（含认证，凭据不显示）' : ''}）`
       )
       return true
     }
@@ -136,7 +145,7 @@ export class MetaStatus extends plugin {
       ...data.sources.map(s => `· ${s.name}：${s.count} 条`),
       `· 危战版本：${data.versions}`,
       `· 立绘缓存：${data.avatar.cached}/${data.avatar.total} 张`,
-      `· 代理：${data.proxy || '未设置（直连）'}`,
+      `· 代理：${data.proxyConfigured ? (data.proxy || '已配置') : '未设置（直连）'}${data.proxyAuth ? '（含认证，凭据不显示）' : ''}`,
       `· 联网开关：${data.networkEnabled ? '已开启' : '已关闭（不联网）'}　攻略数据：${data.codexFilled}/${data.codexTotal} 个角色有内容`,
       `· 资源来源：miao ${data.miaoOk ? '已安装' : '未找到'}｜Atlas ${data.atlasOk ? '已安装（可选）' : '未安装'}`,
       `· ${versionText}`

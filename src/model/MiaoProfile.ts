@@ -53,7 +53,7 @@ async function miaoModels (): Promise<Record<string, any>> {
 /**
  * 解析本次要查的账号
  *
- * 顺序与 miao 一致：**事件里的 uid → 消息里的 10 位 UID → miao 的米游社绑定**。
+ * 顺序：**事件里的 uid → miao 的米游社绑定**（命令里不再出现 UID，2026-10-14 用户定）。
  * 未绑定时 miao 会自己回 `#扫码登录` 按钮（我们据此返回 `prompted`，不再重复回复）。
  */
 export async function resolveUid (e: YunzaiEvent, explicitUid = ''): Promise<{ uid: string, prompted?: boolean, error?: string }> {
@@ -62,9 +62,6 @@ export async function resolveUid (e: YunzaiEvent, explicitUid = ''): Promise<{ u
 
   const fromEvent = String((e as unknown as { uid?: unknown }).uid || '')
   if (UID_RE.test(fromEvent)) return { uid: fromEvent.match(UID_RE)![1] }
-
-  const fromMsg = String(e?.msg || '').match(UID_RE)
-  if (fromMsg) return { uid: fromMsg[1] }
 
   // 交给 miao：它内部会处理"已绑定账号"，未绑定时回 #扫码登录
   try {
@@ -77,9 +74,30 @@ export async function resolveUid (e: YunzaiEvent, explicitUid = ''): Promise<{ u
   } catch (err) {
     return { uid: '', error: `无法读取 miao 的账号绑定：${(err as Error)?.message || err}` }
   }
-  return { uid: '', error: '没有可用的账号：请在命令里带上 10 位 UID，或先在 miao 侧绑定米游社' }
+  return { uid: '', error: '没有可用的账号：请先在 miao 侧绑定米游社（#扫码登录）' }
 }
 
+/** `mysArtis`（套装名 + 星级）→ 我们的 artis 形状，用于 `mysPanel` 简版面板 */
+function artisFromMysArtis (avatar: Record<string, any> | null): Array<Record<string, any>> {
+  const src = avatar?.mysArtis
+  if (!src || typeof src !== 'object') return []
+  return Object.keys(src).sort().map(k => {
+    const a = (src as Record<string, any>)[k] || {}
+    return { set: String(a.name || ''), level: Number(a.level) || 0, star: Number(a.star) || 0 }
+  }).filter(a => a.set)
+}
+/** 脚注去重 + 最多 2 条 + 单条截断（miao 刷新失败这类噪音不再刷屏） */
+function tidyNotes (notes: string[]): string[] {
+  const out: string[] = []
+  for (const raw of notes) {
+    const text = String(raw || '').replace(/\s+/g, ' ').trim()
+    if (!text) continue
+    const short = text.length > 60 ? text.slice(0, 60) + '…' : text
+    if (!out.includes(short)) out.push(short)
+    if (out.length >= 2) break
+  }
+  return out
+}
 /** 从 miao 的天赋对象里取等级（兼容 `{level}` / `{original}` / 纯数字三种形状） */
 function talentLevel (ds: unknown): number {
   if (typeof ds === 'number' && Number.isFinite(ds)) return ds
@@ -142,35 +160,101 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
     const player = typeof Player.get === 'function'
       ? Player.get(resolved.uid)
       : Player.create({ uid: resolved.uid })
+    // miao 的刷新/取数流程会通过 `player.e` 回消息（miao 自己的命令里 player 就是 `Player.create(e)`），
+    // 缺了它会出现 `e.reply is not a function` —— 这里把本次命令的事件挂上去（2026-10-15）
+    if (player && !(player as any).e) (player as any).e = e
     if (!player) return { ok: false, error: `无法载入玩家 ${resolved.uid}` }
 
-    let profile = player.getProfile?.(char.id)
+    /**
+     * 取一次面板：按"最不容易踩到 miao 排行榜评分"的顺序尝试三条通道
+     *
+     * 起因：`player.refresh({profile:true})` 会顺带跑排行榜评分，其中 `ProfileRank.js`
+     * 对某些数据形状会抛 `Cannot read properties of undefined (reading 'mark')`，
+     * 且**崩在保存之前** → 刷新等于白跑。用户已绑米游社 ck 时，
+     * `refreshMysDetail(2)`（无视缓存强制刷新米游社明细）能直接拿到完整面板且不走那条评分。
+     */
     const notes: string[] = []
-    if (!profile || profile.hasData === false) {
-      notes.push('本地无面板缓存，已让 miao 取一次')
-      if (typeof player.refresh === 'function') {
-        await player.refresh({ profile: true })
-        profile = player.getProfile?.(char.id)
+    const fetchPanel = async (reason: string): Promise<void> => {
+      // miao 的三条刷新通道；**每试一条就重读并检查完整性**，只有拿到完整面板才算成功
+      // 与 miao 的「米游社面板更新」同款：`refreshProfile(2, true)`（force=2 + fromMys=true）
+      // 是 miao `ProfileList.refreshMys` 走的调用；`refresh({profile:true})` 是它的兜底
+      const channels: Array<[string, () => Promise<unknown>]> = [
+        ['米游社更新面板', async () => await (player as any).refreshProfile?.(2, true)],
+        ['通用刷新', async () => await (player as any).refresh?.({ profile: true })],
+        ['米游社明细', async () => await (player as any).refreshMysDetail?.(2)]
+      ]
+      for (const [label, run] of channels) {
+        try {
+          const ret = await run()
+          const got = player.getProfile?.(char.id)
+          if (got) profile = got
+          // miao 刷新返回 false = 没取到新数据；undefined 多半是方法不存在 —— 都继续下一条
+          // miao 自己的"有没有面板"判定优先（`player.hasProfile`），再兜我们的完整性检查
+          if (ret === false || !((player as any).hasProfile || isComplete(profile))) {
+            notes.push(`${reason} → miao「${label}」未取到完整面板`)
+            continue
+          }
+          notes.push(`${reason} → 已用 miao「${label}」更新面板`)
+          return
+        } catch (err) {
+          notes.push(`miao「${label}」失败（${(err as Error)?.message || err}）`)
+        }
       }
+      notes.push(`${reason} → 三条通道都未取到圣遗物明细（可在 miao 侧先发一次「米游社面板更新」）`)
+    }
+    let profile = player.getProfile?.(char.id)
+    const isComplete = (p: Record<string, any> | null | undefined): boolean => {
+      if (!p || p.hasData === false) return false
+      const artis = Array.isArray(p.artis) ? p.artis : []
+      const attr = p.attr && typeof p.attr === 'object' ? Object.keys(p.attr).length : 0
+      return artis.length >= 5 && !!p.weapon?.name && attr > 0
+    }
+
+    if (!profile || profile.hasData === false) {
+      await fetchPanel('本地无面板缓存')
+      profile = player.getProfile?.(char.id) || profile
+    } else if (!isComplete(profile)) {
+      await fetchPanel('本地面板数据不完整')
+      profile = player.getProfile?.(char.id) || profile
     }
     if (!profile || profile.hasData === false) {
       return { ok: false, error: `没有取到「${local.name}」的面板数据：该角色可能未在米游社公开展示，或取数失败（miao 里可先发一次 #面板 试试）` }
     }
+    // 圣遗物明细与评分都在 avatar 上（profile 上通常没有 artis）
+    let avatar: Record<string, any> | null = null
+    try {
+      // 照抄 miao 自己的读法：`getAvatar(id)`（米游社来源 mys/mysPanel 优先，才有圣遗物明细）；
+      // `getAvatar(id, true)` 会给到非米游社来源（缺 artis），只作兜底
+      avatar = player.getAvatar?.(char.id) || player.getAvatar?.(char.id, true) || null
+      // avatar 上没有圣遗物明细时，说明这份数据是简版（例如只带面板）→ 让 miao 重取一次再读
+    } catch { /* 拿不到就回落 profile */ }
 
     // 圣遗物评分：走 miao 的规则（评分依赖副词条，展示时只列主词条）
     let artiMark: BuildSnapshot['artiMark'] = null
     try {
       const ArtisMark = models.ArtisMark || (await import(miaoUrl('models/artis/ArtisMark.js'))).default
-      const detail = ArtisMark?.getMarkDetail?.(profile, false)
-      if (detail && Number.isFinite(Number(detail._mark))) {
-        artiMark = { total: Number(detail._mark), markClass: String(detail.markClass || '') }
+      // avatar 与 profile 都试一遍（谁算得出来用谁）；miao 内部评分对数据形状敏感，
+      // 某些数据下会抛（如 "Cannot read properties of undefined (reading 'mark')"）—— 这里一律降级为"无评分"
+      // ⚠ 只有拿到"含主词条"的圣遗物明细时才算评分：mysPanel 简版（只有套装名）会让 miao 内部抛
+      //   "Cannot read properties of undefined (reading 'mark')"，这里直接跳过
+      const canScore = (c: Record<string, any> | null | undefined): boolean =>
+        Array.isArray(c?.artis) && c.artis.some((a: Record<string, any>) => !!a?.main)
+      for (const candidate of [player.getAvatar?.(char.id), player.getAvatar?.(char.id, true), avatar, profile].filter(canScore)) {
+        if (!candidate) continue
+        try {
+          const detail = ArtisMark?.getMarkDetail?.(candidate, false)
+          if (detail && Number.isFinite(Number(detail._mark))) {
+            artiMark = { total: Number(detail._mark), markClass: String(detail.markClass || '') }
+            break
+          }
+        } catch { /* 换下一个候选 */ }
       }
     } catch { /* 评分失败不影响其它维度 */ }
 
     const build: BuildSnapshot = {
       charName: local.name,
-      level: Number(profile.level) || 0,
-      cons: Number(profile.cons) || 0,
+      level: Number(avatar?.level ?? profile.level) || 0,
+      cons: Number(avatar?.cons ?? profile.cons) || 0,
       weapon: profile.weapon?.name
         ? { name: String(profile.weapon.name), affix: Number(profile.weapon.affix) || 0, rarity: Number(profile.weapon.rarity) || 0 }
         : null,
@@ -179,14 +263,26 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
         E: talentLevel(profile.talent?.e),
         Q: talentLevel(profile.talent?.q)
       },
-      artis: artisOf(profile),
+      artis: ((): BuildSnapshot['artis'] => {
+        const av = player.getAvatar?.(char.id) || player.getAvatar?.(char.id, true) || avatar || profile
+        const full = artisOf(av)
+        if (full.length) return full as BuildSnapshot['artis']
+        // miao 原生套装查询：`avatar.artisSet` = `mysArtis.getSetData()` 的 `names`
+        //（`mysPanel` 简版面板也有它，这是 miao 自己页面上显示套装的同一个来源）
+        const names = (av as Record<string, any>)?.artisSet?.names
+        if (Array.isArray(names) && names.length) {
+          return names.map(s => ({ set: String(s || ''), level: 0 })).filter(a => a.set) as BuildSnapshot['artis']
+        }
+        // 最兜底：直接扫 `mysArtis` 原始数据（套装名 + 星级）
+        return artisFromMysArtis((av as Record<string, any>) || null) as BuildSnapshot['artis']
+      })(),
       artiMark,
       attrs: Object.fromEntries(
         Object.entries(profile.attr || {}).filter(([, v]) => Number.isFinite(Number(v))).map(([k, v]) => [k, Number(v)])
       )
     }
 
-    return { ok: true, uid: resolved.uid, build, notes }
+    return { ok: true, uid: resolved.uid, build, notes: tidyNotes(notes) }
   } catch (err) {
     return { ok: false, error: `读取 miao 面板出错：${(err as Error)?.message || err}` }
   }
@@ -279,6 +375,9 @@ export async function readTeamDamage (
 
   try {
     const player = typeof Player.get === 'function' ? Player.get(resolved.uid) : Player.create({ uid: resolved.uid })
+    // miao 的刷新/取数流程会通过 `player.e` 回消息（miao 自己的命令里 player 就是 `Player.create(e)`），
+    // 缺了它会出现 `e.reply is not a function` —— 这里把本次命令的事件挂上去（2026-10-15）
+    if (player && !(player as any).e) (player as any).e = e
     if (!player) return { ok: false, error: `无法载入玩家 ${resolved.uid}` }
 
     for (const raw of names) {

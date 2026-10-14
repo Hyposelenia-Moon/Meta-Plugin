@@ -11,6 +11,7 @@
 import { cacheInfo, ensureFresh, getSnapshot } from '../model/TeamStore.js'
 import type { RaidRecord } from '../model/TeamStore.js'
 import { bossById, bossesOfVer, findBoss, findCharacter, memberIs, searchCharacters, versions } from '../model/CharacterIndex.js'
+import { resolveBossName } from './bossAlias.js'
 import type { CharacterRecord } from '../model/CharacterIndex.js'
 import { ensureAvatars } from '../model/AvatarStore.js'
 import { getPageSize, getPluginConfig } from '../components/config.js'
@@ -139,7 +140,7 @@ export async function queryRaid (q: RaidQuery = {}, opts: QueryOptions = {}): Pr
     }
   }
 
-  const bossRecord = q.boss ? findBoss(q.boss) : null
+  const bossRecord = q.boss ? findBoss(resolveBossName(q.boss)) : null
   if (q.boss && !bossRecord) {
     return {
       ok: false,
@@ -219,7 +220,7 @@ export async function findRaidEntry (
     }
   }
 
-  const bossRecord = q.boss ? findBoss(q.boss) : null
+  const bossRecord = q.boss ? findBoss(resolveBossName(q.boss)) : null
   if (q.boss && !bossRecord) {
     return { ok: false, error: `没有找到首领「${q.boss}」`, suggestions: [] }
   }

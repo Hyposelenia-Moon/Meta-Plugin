@@ -4189,7 +4189,15 @@ function globalEvents () {
     modal({ title: '重命名角色', message: '同时改文件名和 _order.json：' + from, input: true, value: from, okText: '重命名' })
       .then(function (to) {
         if (!to || to === from) return
-        return api('POST', '/api/rename', { from: from, to: to }).then(function (res) {
+        // 2026-10-15 审核 P2：重命名会清空内存模型 / dirty / pending，未保存草稿被静默丢弃。
+        // 先走一次全局保存（含切走时暂存的其它角色），保存后仍有未落盘改动就中止重命名。
+        return Promise.resolve(dirtyCount() > 0 ? save() : true).then(function () {
+          if (dirtyCount() > 0) {
+            showStatus('有改动未保存成功，已取消重命名', 'warn', true)
+            return null
+          }
+          return api('POST', '/api/rename', { from: from, to: to })
+        }).then(function (res) {
           state.current = null
           state.model = null
           markDirty(false)
@@ -4198,6 +4206,7 @@ function globalEvents () {
           delete state.pending[to]
           return refreshIndex().then(refreshList).then(function () { return res })
         }).then(function (res) {
+          if (!res) return              // 上面因保存失败中止，不再打开目标角色
           return openCharacter(to).then(function () {
             var idxNote = (res && res.indexRefreshed) ? '，索引已刷新' : ''
             var idxWarn = (res && res.indexWarning) ? '；' + res.indexWarning : ''

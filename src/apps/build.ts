@@ -11,7 +11,7 @@
  *
  * ⚠ 本文件只导出插件类：`src/index.ts` 的加载器取「模块首个导出」当插件类。
  */
-import { getAkashaEnabled, getPluginConfig } from '../components/config.js'
+import { getAkashaEnabled, getAkashaMaxChars, getPluginConfig } from '../components/config.js'
 import { AKASHA_NAME, DPS_COMMANDS, DPS_RULES } from '../components/constants.js'
 import { fetchAkashaProfile, fetchAkashaTranslations, setTransport } from '../model/AkashaClient.js'
 import { akashaBrowserTransport } from '../model/AkashaBrowser.js'
@@ -96,10 +96,12 @@ export class MetaBuild extends plugin {
       logger?.warn?.(`[Meta] akasha 名字中文化失败（保留英文）：${(err as Error)?.message || String(err)}`)
     }
 
-    const view = buildAkashaView(profile, { translations })
+    // 指定角色时**先在全量角色上筛选、再应用展示上限**（2026-10-15 审核 P2 #9）：
+    // 之前是先取默认前 N 个再筛，目标排在第 N+1 位时即使有记录也会误报"akasha 上没有该角色"
+    const view = buildAkashaView(profile, { translations, max: records.length ? Number.MAX_SAFE_INTEGER : undefined })
     let chars = view.chars
     if (records.length) {
-      chars = filterAkashaChars(chars, records)
+      chars = filterAkashaChars(chars, records).slice(0, getAkashaMaxChars())
       notices.push(chars.length
         ? `已按 ${args.names.join('、')} 筛选（命中 ${chars.length} 个）`
         : `akasha 上没有 ${args.names.join('、')} 的记录（该号收录 ${view.total} 个角色）`)

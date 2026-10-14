@@ -5,166 +5,98 @@
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
   <style>
-    /* 提升指南页：顶部档位卡 + 四维达成度条 + 对比表 + 建议 */
-    .grade-hero {
-      display: flex;
-      align-items: baseline;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
-    .grade-rank {
-      font-size: 64px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      color: var(--accent, #ffd479);
-      line-height: 1;
-    }
-    .grade-total {
-      font-size: 26px;
-      color: var(--muted, #ccc);
-    }
-    .grade-panel {
-      font-size: 22px;
-      color: var(--accent-2, #8fd6ff);
-    }
-    .dim-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    .dim-row:last-child { border-bottom: none; }
-    .dim-name {
-      flex: 0 0 110px;
-      font-size: 20px;
-      font-weight: 600;
-    }
-    .dim-bar {
-      flex: 1 1 auto;
-      height: 12px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.12);
-      overflow: hidden;
-    }
-    .dim-bar-fill {
-      height: 100%;
-      border-radius: 6px;
-      background: linear-gradient(90deg, var(--accent, #ffd479), var(--accent-2, #8fd6ff));
-    }
-    .dim-pct {
-      flex: 0 0 150px;
-      font-size: 18px;
-      color: var(--muted, #ccc);
-      text-align: right;
-    }
-    .dim-detail {
-      margin: 2px 0 10px 122px;
-      font-size: 16px;
-      color: var(--muted-2, #999);
-    }
-    .cmp-row {
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 17px;
-    }
-    .cmp-row:last-child { border-bottom: none; }
-    .cmp-group { flex: 0 0 88px; color: var(--muted-2, #999); }
-    .cmp-name { flex: 0 0 120px; font-weight: 600; }
-    .cmp-target { flex: 1 1 auto; color: var(--muted, #ccc); }
-    .cmp-actual { flex: 0 0 200px; text-align: right; }
-    .v-ok { color: var(--green, #7ddc8f); }
-    .v-warn { color: var(--gold, #ffd479); }
-    .v-off { color: var(--red, #ff8a8a); }
-    .v-info { color: var(--muted-2, #999); }
-    .sug-row { font-size: 18px; padding: 4px 0; }
-    .note-row { font-size: 15px; color: var(--muted-2, #999); padding: 2px 0; }
+    /* 提升指南：结论 → 差在哪 → 怎么做（三屏式，权重与口径收进脚注） */
+    .gd-hero { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+    .gd-rank { font-size: 60px; font-weight: 800; color: var(--accent, #ffd479); line-height: 1; letter-spacing: 2px; }
+    .gd-total { font-size: 24px; color: var(--muted, #ccc); }
+    .gd-panel { font-size: 22px; color: var(--accent-2, #8fd6ff); }
+    .gd-dims { margin-top: 12px; }
+    .gd-dim { display: flex; align-items: center; gap: 12px; padding: 5px 0; }
+    .gd-dim-name { flex: 0 0 84px; font-size: 19px; }
+    .gd-dim-bar { flex: 1 1 auto; height: 10px; border-radius: 5px; background: rgba(255,255,255,.10); overflow: hidden; }
+    .gd-dim-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--accent, #ffd479), var(--accent-2, #8fd6ff)); }
+    .gd-dim-pct { flex: 0 0 78px; text-align: right; font-size: 18px; color: var(--muted, #ccc); }
+    .gd-badge { font-size: 16px; padding: 3px 10px; border-radius: 10px; background: rgba(255,255,255,.08); }
+    .gd-badge.ok { color: var(--green, #7ddc8f); }
+    .gd-badge.warn { color: var(--gold, #ffd479); }
+    .gd-badge.off { color: var(--muted-2, #999); }
+    .gd-row { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .gd-row:last-child { border-bottom: none; }
+    .gd-group { flex: 0 0 84px; color: var(--muted-2, #999); font-size: 17px; }
+    .gd-name { flex: 0 0 130px; font-size: 21px; font-weight: 700; }
+    .gd-arrow { flex: 1 1 auto; font-size: 19px; }
+    .gd-verdict { flex: 0 0 130px; text-align: right; font-size: 19px; font-weight: 700; }
+    .gd-miss { color: var(--gold, #ffd479); }
+    .gd-okline { font-size: 16px; color: var(--muted-2, #999); padding: 6px 0 2px; }
+    .gd-sug { font-size: 19px; padding: 5px 0; }
+    .gd-foot { font-size: 15px; color: var(--muted-2, #999); padding: 2px 0; }
   </style>
 </head>
 <body style="zoom:{{renderScale}}">
   <div class="page">
     <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-rank.jpg')"></div>
     <div class="page-inner">
-      <!-- 页头 -->
+      <!-- ① 结论 -->
       <div class="card head-card">
         <div class="header">
           <div class="game-name">Meta-Plugin · 提升指南</div>
-          <div class="title">{{if title}}{{title}}{{else}}练度查询{{/if}}</div>
+          <div class="title">{{title}}</div>
           {{if subtitle}}<div class="subtitle">{{subtitle}}</div>{{/if}}
         </div>
-        <div class="page-meta">
-          {{if uid}}<span>UID {{uid}}</span>{{/if}}
-          <span>攻略目标 × 当前配装（面板数据来自 miao）</span>
-        </div>
       </div>
-
-      <!-- 档位 -->
       <div class="card body-card">
-        <div class="grade-hero">
-          <div class="grade-rank">{{ranks}}</div>
-          <div class="grade-total">{{total}} 分</div>
-          <div class="grade-panel">面板：{{panelTier}}</div>
+        <div class="gd-hero">
+          <div class="gd-rank">{{ranks}}</div>
+          <div class="gd-total">{{total}} 分</div>
+          <div class="gd-panel">面板：{{panelTier}}</div>
         </div>
-      </div>
-
-      <!-- 四维 -->
-      <div class="card body-card">
-        <div class="card-title">四个维度</div>
-        {{each dims d}}
-        <div class="dim-row">
-          <div class="dim-name">{{d.label}}</div>
-          <div class="dim-bar">
-            {{if d.ratio !== null}}<div class="dim-bar-fill" style="width:{{d.ratioPct}}%"></div>{{/if}}
+        <div class="gd-dims">
+          {{each dims d}}
+          <div class="gd-dim">
+            <div class="gd-dim-name">{{d.label}}</div>
+            <div class="gd-dim-bar"><div class="gd-dim-fill" style="width:{{d.pct}}%"></div></div>
+            <div class="gd-dim-pct">{{d.pctText}}</div>
           </div>
-          <div class="dim-pct">{{d.ratioText}}{{if d.weightText}}　{{d.weightText}}{{/if}}</div>
+          {{/each}}
         </div>
-        <div class="dim-detail">{{d.detail}}</div>
-        {{/each}}
       </div>
 
-      <!-- 对比表 -->
+      <!-- ② 差在哪 -->
       <div class="card body-card">
-        <div class="card-title">攻略目标 vs 我的</div>
-        {{if rows && rows.length > 0}}
-        {{each rows r}}
-        <div class="cmp-row">
-          <div class="cmp-group">{{r.group}}</div>
-          <div class="cmp-name">{{r.name}}</div>
-          <div class="cmp-target">{{r.target}}</div>
-          <div class="cmp-actual v-{{r.verdict}}">{{r.actual}}</div>
+        <div class="card-title">未达标项</div>
+        {{if missRows && missRows.length > 0}}
+        {{each missRows r}}
+        <div class="gd-row">
+          <div class="gd-group">{{r.group}}</div>
+          <div class="gd-name">{{r.name}}</div>
+          <div class="gd-arrow">{{r.actual}} <span class="gd-miss">→</span> {{r.target}}</div>
+          <div class="gd-verdict gd-miss">{{r.deltaText}}</div>
         </div>
         {{/each}}
         {{else}}
-        <div class="empty-hint">没有可对比的条目（该角色攻略可能缺少相应模块）</div>
+        <div class="gd-row"><div class="gd-name">全部达标</div><div class="gd-arrow">攻略目标项均已满足</div></div>
         {{/if}}
+
+        {{if consLine}}<div class="gd-okline">命座：{{consLine}}</div>{{/if}}
       </div>
 
-      <!-- 建议 -->
-      {{if suggestions && suggestions.length > 0}}
+      <!-- ③ 怎么做 -->
       <div class="card body-card">
-        <div class="card-title">提升建议（按投入产出排序）</div>
+        <div class="card-title">提升建议</div>
         {{each suggestions s idx}}
-        <div class="sug-row">{{idx + 1}}. {{s}}</div>
+        <div class="gd-sug">{{idx + 1}}. {{s}}</div>
         {{/each}}
       </div>
-      {{/if}}
 
-      <!-- 脚注 -->
-      {{if notes && notes.length > 0}}
+      <!-- 脚注：口径 + 权重 -->
       <div class="card foot-card">
+        <div class="gd-foot">口径：面板取各项目标区间的达成率均值；攻略缺项不计入总分，命座不计分。</div>
+        <div class="gd-foot">{{weightsNote}}</div>
         {{each notes n}}
-        <div class="note-row">注：{{n}}</div>
+        <div class="gd-foot">注：{{n}}</div>
         {{/each}}
         <div class="copyright">{{copyright}}</div>
       </div>
-      {{else}}
-      <div class="card foot-card">
-        <div class="copyright">{{copyright}}</div>
-      </div>
-      {{/if}}
     </div>
   </div>
 </body>

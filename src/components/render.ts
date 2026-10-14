@@ -191,11 +191,33 @@ export async function renderPage (
     logger?.warn?.(`[Meta] 未找到 miao 布局（${MIAO_LAYOUT}）：攻略页会缺少样式，请确认 miao-plugin 已安装`)
   }
 
-  return await runtime.render(PLUGIN_NAME, `${app}/${tpl}`, {
+  // 2026-10-15 审核 P2 #10：TRSS 的默认 render **即使截图失败、什么都没发也返回 true**，
+  // 只把返回值当"已发送"会出现"既不发图也不回退文本"。改用 `retType: 'base64'` 拿真实截图结果：
+  // 拿到图 → 我们确认后再发送；拿不到 → 返回 false，让调用方走同源文本回退。
+  const rendered = await runtime.render(PLUGIN_NAME, `${app}/${tpl}`, {
     ...params,
+    retType: 'base64',
     copyright: opts.copyright ?? COPYRIGHT
     // ⚠ 不覆盖 `sys`：miao 的布局把 `{{sys.scale}}` 直接插在 `<body …>` 上（期望一个属性串），
     // 我们传数字会变成无效属性；页面缩放实际由 miao 的 CSS（`body{transform:scale(1.4)}`）决定。
     // 本插件的 `renderScale` 配置只作用于我们自己的模板（如帮助页 `style="zoom:{{renderScale}}"`）。
   } as Record<string, unknown>)
+
+  // 兼容三种返回：base64 字符串 / { base64 } 对象 / 其它（框架自己已发送或截图失败）
+  const b64 = typeof rendered === 'string'
+    ? rendered
+    : String((rendered as { base64?: unknown } | null)?.base64 || '')
+  if (b64.length < 64) {
+    logger?.warn?.(`[Meta] 攻略页截图未拿到图像（app=${app}, tpl=${tpl}）→ 交给调用方走文本回退`)
+    return false
+  }
+
+  const segment = (globalThis as unknown as { segment?: { image?: (src: string) => unknown } }).segment
+  const reply = (e as unknown as { reply?: (msg: unknown) => Promise<unknown> }).reply
+  if (typeof segment?.image !== 'function' || typeof reply !== 'function') {
+    logger?.warn?.('[Meta] 缺少 segment.image / e.reply，无法发送攻略页截图 → 走文本回退')
+    return false
+  }
+  await reply.call(e, segment.image(`base64://${b64}`))
+  return true
 }

@@ -76,7 +76,7 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
     raid: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'page', 'totalPages', 'rows'],
   'char-dps': ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tierCount', 'tiers'],
   tiers: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tiers'],
-  grade: ['title', 'subtitle', 'uid', 'ranks', 'total', 'panelTier', 'dims', 'rows', 'groups', 'suggestions', 'notes'],
+  grade: ['title', 'subtitle', 'ranks', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'weightsNote', 'notes'],
   'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes', 'referenceDps', 'referenceTotal', 'window', 'axisLabel', 'axisManual', 'patchLabel', 'contributions'],
   'akasha-build': ['title', 'subtitle', 'charName', 'rank', 'uid', 'nickname', 'cons', 'damageText', 'critValueText', 'talent', 'weapon', 'artis', 'sets', 'panel'],
     status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']

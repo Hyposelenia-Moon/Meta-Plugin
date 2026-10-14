@@ -22,6 +22,50 @@ import { makeRef, parseRef, deriveSections, deriveTags, validate, constellationI
 import { warn, getWarnings, resetWarnings, setWarnContext } from './lib/parse-warnings.mjs'
 import { MAIN_DOC } from './lib/main-doc.mjs'
 
+/**
+ * 角色名 → 安全的文件名（2026-10-15 审核 P1）
+ *
+ * 背景：文档首段得到的名称直接参与路径拼接，含 `../` 或路径分隔符的异常 DOCX
+ * 可以让目标 JSON 落到 `data/gi` 之外（隔离副本里实测覆写了目录外的哨兵文件）。
+ * 这里把"名称合法"与"最终路径落在目录内"两件事都做成**硬校验**，
+ * 读取旧文件、备份与写入共用同一份结果（`items[].prevFile`）。
+ */
+export function assertSafeName (name) {
+  const text = String(name ?? '').trim()
+  if (!text) throw new Error('角色名为空，拒绝导入')
+  if (text.includes('/') || text.includes('\\')) throw new Error(`角色名含路径分隔符，拒绝导入：${text}`)
+  if (text === '.' || text === '..' || text.includes('..')) throw new Error(`角色名含相对路径片段，拒绝导入：${text}`)
+  if (path.isAbsolute(text)) throw new Error(`角色名是绝对路径，拒绝导入：${text}`)
+  if (/[<>:"|?*\u0000-\u001f]/.test(text)) throw new Error(`角色名含非法字符，拒绝导入：${text}`)
+  if (text.length > 60) throw new Error(`角色名过长，拒绝导入：${text.slice(0, 30)}…`)
+  return text
+}
+
+/** 拼接后校验路径确实落在 `dir` 内（越界即拒绝） */
+/**
+ * 导出文档的抬头行判定（2026-10-15 审核 P2 #13）
+ *
+ * 导出侧写的是 `原神·角色攻略`（无空格），解析侧原来只跳 `原神 ·`（有空格）→
+ * 回导时抬头被当成一个"角色块"，整个往返被拒绝。这里统一成"`原神` + 可选空白 + `·`"。
+ */
+export function isExportHeaderLine (line) {
+  return /^\s*原神\s*·/.test(String(line ?? ''))
+}
+
+/** 空模块占位行（导出侧写 `（暂无数据）`；解析侧必须认识它，且**不算未识别行**） */
+export function isEmptyModulePlaceholder (line) {
+  return /^\s*[（(]\s*暂无数据\s*[)）]\s*$/.test(String(line ?? ''))
+}
+export function insideDir (dir, file) {
+  const base = path.resolve(dir)
+  const full = path.resolve(file)
+  if (full !== base && !full.startsWith(base + path.sep)) {
+    throw new Error(`目标路径越出 ${path.basename(base)} 目录，拒绝导入：${full}`)
+  }
+  return full
+}
+
+
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(here, '..')
 const dataDir = process.env.DSH_DATA_DIR ? path.resolve(process.env.DSH_DATA_DIR) : path.join(root, 'data')
@@ -850,19 +894,22 @@ function main () {
   /** 阶段 1 的产物：解析结果先全部留在内存，门禁通过后才写盘 */
   const items = []
   for (const block of blocks) {
-    const lines = block.filter(x => x !== '')
+    // 空模块占位（导出侧写 `（暂无数据）`）直接丢掉：它是"这里没有内容"的表达，不是未识别行
+    const lines = block.filter(x => x !== '' && !isEmptyModulePlaceholder(x))
     if (!lines.length) continue
     setWarnContext(String(lines[0] ?? '').split('——')[0].trim())
     const parsed = parseBlock(lines, index)
     // 跳过抬头段：只认「原神 · 角色攻略」这一句（以前还硬编码了 `共 129 名角色`，
     // 角色数一变这个判据就失效；抬头第一行不变，够了）
-    if (!parsed.name || parsed.name.startsWith('原神 ·')) continue
-    const prevFile = path.join(giDir, `${parsed.name}.json`)
+    if (!parsed.name || isExportHeaderLine(parsed.name)) continue
+    // 名称与路径双校验：不合法就抛错（本次导入**不写任何文件**），越界路径同样拒绝
+    const safeName = assertSafeName(parsed.name)
+    const prevFile = insideDir(giDir, path.join(giDir, `${safeName}.json`))
     let prev = {}
     if (fs.existsSync(prevFile)) { try { prev = readJson(prevFile) } catch { prev = {} } }
     const data = {
       schema: 2,
-      name: parsed.name,
+      name: safeName,
       game: 'gi',
       ...(prev.highlight ? { highlight: prev.highlight } : {}),
       // 模块级「无需填写」标记：文档表达不了它，从上一份 JSON 原样带过来（与 highlight 同一套做法）
@@ -879,12 +926,12 @@ function main () {
     data.tags = deriveTags(data)
     data.sections = deriveSections(data)
     const issues = validate(data, index)
-    report.issues.push(...issues.map(x => ({ name: parsed.name, ...x })))
+    report.issues.push(...issues.map(x => ({ name: safeName, ...x })))
     const noteCount = Object.values(data.v2).reduce((n, rows) => n + (rows ?? []).filter(isNoteRow).length, 0)
     // 行数统计**不含备注行**（备注单独计），这样「配队行 79」这类数字在加备注前后不变
     const rows = (k) => (data.v2[k] ?? []).filter(r => !isNoteRow(r)).length
     const cnt = {
-      name: parsed.name,
+      name: safeName,
       weapons: rows('weapons'),
       artifacts: rows('artifacts'),
       talents: rows('talents'),
@@ -894,12 +941,12 @@ function main () {
       notes: noteCount,
       unparsed: parsed.stray.length
     }
-    if (parsed.stray.length) report.stray.push(...parsed.stray.map(s => ({ name: parsed.name, ...s })))
+    if (parsed.stray.length) report.stray.push(...parsed.stray.map(s => ({ name: safeName, ...s })))
     report.characters.push(cnt)
     report.totals.characters++
     for (const k of ['weapons', 'artifacts', 'talents', 'panels', 'constellations', 'teams', 'notes', 'unparsed']) report.totals[k] += cnt[k]
     // 只收集，不写盘 —— 未识别行必须在**任何角色文件被写之前**判定
-    items.push({ name: parsed.name, prevFile, data, stray: parsed.stray })
+    items.push({ name: safeName, prevFile, data, stray: parsed.stray })
   }
   report.warnings = getWarnings()
 
@@ -942,4 +989,10 @@ const isDirectRun = (() => {
   }
 })()
 
-if (isDirectRun) main()
+if (isDirectRun) {
+  // 校验失败（如角色名越界）以**可读信息 + 非零退出码**结束，且此时尚未写任何文件
+  main().catch((err) => {
+    console.error(`× ${err?.message || err}`)
+    process.exitCode = 1
+  })
+}

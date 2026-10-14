@@ -1,18 +1,15 @@
 /**
- * `#练度查询 胡桃 [UID]` —— 提升指南（v3 P2）
+ * `#练度查询 胡桃` —— 提升指南（v3 P2）
  *
- * 把**攻略目标**与**当前配装**（miao 面板，账号走米游社绑定）合起来算：
- *   总体练度（四维加权 → MAX…D）＋ 面板三档（大毕业/毕业/小毕业）＋ 对比表 ＋ 提升建议
- *
- * 口径见 v3 方案 §4；评分器在 `modules/grade.ts`（纯函数），面板取数在 `model/MiaoProfile.ts`（薄桥）。
- * 旧 `#DPS练度查询`（akasha 名次面板）原样保留，两者互不影响。
+ * 排版（2026-10-14 用户定稿）：三屏式 —— **结论 → 差在哪 → 怎么做**；
+ * 权重与口径收进脚注，不再用四条进度条占版面；页头不显示 UID（账号走 miao 绑定）。
  *
  * ⚠ 本文件只导出插件类：`src/index.ts` 的加载器取「模块首个导出」当插件类。
  */
 import { getGradePanelTiers, getGradeRankThresholds, getGradeWeights, getPluginConfig } from '../components/config.js'
 import { COPYRIGHT, ENTRY_COMMANDS, ENTRY_RULES } from '../components/constants.js'
 import { extractTargets, gradeBuild } from '../modules/grade.js'
-import type { GradeResult } from '../modules/grade.js'
+import type { CompareRow, GradeResult } from '../modules/grade.js'
 import { readProfile } from '../model/MiaoProfile.js'
 import { respond } from '../modules/respond.js'
 
@@ -22,21 +19,37 @@ import plugin from '../../../../lib/plugins/plugin.js'
 /** 本 app 的命令元数据（见 components/constants.ts 的 ENTRY_COMMANDS） */
 const META = ENTRY_COMMANDS.find(c => c.rules.includes('grade'))!
 
-/** 文本回退：总体档位 + 四维 + 前几条建议 */
-export function gradeText (result: GradeResult, uid: string): string {
+/** 未达标行的"差多少"文案 */
+export function deltaTextOf (row: CompareRow): string {
+  if (row.verdict === 'off') return '无数据'
+  const actual = Number(String(row.actual).replace(/[^\d.-]/g, ''))
+  const nums = String(row.target).match(/\d+(?:\.\d+)?/g)?.map(Number) || []
+  if (!Number.isFinite(actual) || !nums.length) return '未达标'
+  const min = Math.min(...nums)
+  const diff = Number((min - actual).toFixed(1))
+  return diff > 0 ? `差 ${diff}` : '未达标'
+}
+
+/** 维度徽标：达标 / 百分比 / 不计分 */
+function badgeOf (label: string, ratio: number | null): { label: string, value: string, kind: string } {
+  if (ratio === null) return { label, value: '不计分', kind: 'off' }
+  const pct = Math.round(ratio * 100)
+  return { label, value: pct >= 100 ? '达标' : `${pct}%`, kind: pct >= 100 ? 'ok' : pct >= 60 ? 'warn' : 'off' }
+}
+
+/** 文本回退（同样三屏式：结论 → 差在哪 → 怎么做） */
+export function gradeText (result: GradeResult, missRows: CompareRow[], okLine: string): string {
   const lines = [
-    `【${result.charName}】练度：${result.rank}（${result.total} 分）　面板：${result.panelTier}`,
-    `UID ${uid}`,
-    ''
+    `【${result.charName}】练度 ${result.rank}（${result.total} 分）　面板 ${result.panelTier}`,
+    result.dims.map(d => `${d.label} ${d.ratio === null ? '不计分' : Math.round(d.ratio * 100) + '%'}`).join('｜'),
+    '',
+    '差在哪：'
   ]
-  for (const d of result.dims) {
-    const ratio = d.ratio === null ? '不计分' : `${(d.ratio * 100).toFixed(0)}%（权重 ${(d.weight * 100).toFixed(0)}%）`
-    lines.push(`· ${d.label}：${ratio} —— ${d.detail}`)
-  }
-  if (result.suggestions.length) {
-    lines.push('', '提升建议：')
-    result.suggestions.forEach((s, i) => lines.push(`  ${i + 1}. ${s}`))
-  }
+  if (missRows.length) for (const r of missRows) lines.push(`  ${r.group} ${r.name}　${r.actual} → ${r.target}（${deltaTextOf(r)}）`)
+  else lines.push('  全部达标')
+  if (okLine) lines.push(`  已达标：${okLine}`)
+  lines.push('', '怎么做：')
+  result.suggestions.forEach((s, i) => lines.push(`  ${i + 1}. ${s}`))
   if (result.notes.length) lines.push('', ...result.notes.map(n => `注：${n}`))
   return lines.join('\n')
 }
@@ -56,72 +69,75 @@ export class MetaGrade extends plugin {
     })
   }
 
-  /**
-   * `#练度查询 胡桃 [UID]` —— 攻略 × 当前配装
-   */
+  /** `#练度查询 胡桃`（账号走 miao 的米游社绑定，命令里不带 UID） */
   async handleGrade (e: YunzaiEvent): Promise<boolean> {
     const match = String(e.msg).match(ENTRY_RULES.grade) || []
-    const raw = (match[1] || '').trim()
-
-    // 解析「角色名 [UID]」：UID 可选（10 位数字，缺省走 miao 的米游社绑定）
-    const uidInText = raw.match(/(?:^|\s)([1-9]\d{8})(?:\s|$)/)
-    const charName = raw.replace(/(?:^|\s)[1-9]\d{8}(?:\s|$)/, ' ').trim()
-
+    const charName = String(match[1] || '').replace(/\s+/g, ' ').trim()
     if (!charName) {
-      await e.reply('[Meta] 用法：#练度查询 胡桃（账号走 miao 的米游社绑定；也可在后面带 10 位 UID）')
+      await e.reply('[Meta] 用法：#练度查询 胡桃（账号走 miao 的米游社绑定，不用写 UID）')
       return true
     }
 
-    // 攻略目标（缺攻略时明确告知，不静默出半张图）
     const { codexStore } = await import('../model/CodexStore.js')
     const { buildCodexView } = await import('../modules/subViews.js')
     const guide = codexStore.getGuide(charName)
     if (!guide) {
       const { findCharacter, searchCharacters } = await import('../model/CharacterIndex.js')
       const hit = findCharacter(charName)
-      const tips = hit ? searchCharacters(hit.name, 5).map(c => c.name) : searchCharacters(charName, 5).map(c => c.name)
+      const tips = (hit ? searchCharacters(hit.name, 5) : searchCharacters(charName, 5)).map(c => c.name)
       await e.reply(`[Meta] 没有找到角色「${charName}」` + (tips.length ? `\n你是不是想找：${tips.join('、')}` : ''))
       return true
     }
+
     const view = buildCodexView(guide, {
       signature: codexStore.getSignature(guide?.name || charName),
       weaponTags: codexStore.getWeaponTags()
     }) as unknown as Parameters<typeof extractTargets>[0]
     const targets = extractTargets(view, guide?.name || charName)
 
-    // 当前配装（miao 面板）
-    const profile = await readProfile(e, targets.charName || charName, uidInText ? uidInText[1] : '')
+    const profile = await readProfile(e, targets.charName || charName)
     if (!profile.ok) {
       if (!profile.prompted) await e.reply(`[Meta] ${profile.error}`)
       return true
     }
 
+    const weights = getGradeWeights()
     const result = gradeBuild(targets, profile.build, {
-      weights: getGradeWeights() as never,
+      weights: weights as never,
       panelTiers: getGradePanelTiers(),
       rankThresholds: getGradeRankThresholds()
     })
 
+    // 行分组：未达标（含缺数据）在前、已达标压成一行、命座单独提示
+    // 「主词条」在 mysPanel 简版来源下拿不到 → 这种行不生成（比显示"无数据"更有信息量）
+    const missRows = result.rows
+      .filter(r => r.verdict === 'warn' || r.verdict === 'off')
+      .filter(r => !(r.group === '主词条' && (r.verdict === 'off' || String(r.actual) === '—')))
+      .map(r => ({ ...r, deltaText: deltaTextOf(r) }))
+    const okRows = result.rows.filter(r => r.verdict === 'ok')
+    const consRow = result.rows.find(r => r.group === '命座')
+    const okLine = okRows.map(r => `${r.name}${r.group === '面板' ? ` ${r.actual}` : ''}`).join('、')
+    const consLine = consRow ? `${consRow.target}（当前 ${consRow.actual}，不计分）` : ''
+
     const data = {
       title: `#${result.charName} · 提升指南`,
-      subtitle: `总体练度 ${result.rank}（${result.total} 分）｜面板 ${result.panelTier}`,
-      uid: profile.uid,
+      subtitle: '攻略目标 × 当前配装（面板数据来自 miao）',
       ranks: result.rank,
       total: result.total,
       panelTier: result.panelTier,
       dims: result.dims.map(d => ({
-        ...d,
-        ratioPct: d.ratio === null ? 0 : Math.round(d.ratio * 100),
-        ratioText: d.ratio === null ? '不计分' : `${(d.ratio * 100).toFixed(0)}%`,
-        weightText: d.ratio === null ? '' : `权重 ${(d.weight * 100).toFixed(0)}%`
+        label: d.label,
+        pct: d.ratio === null ? 0 : Math.round(d.ratio * 100),
+        pctText: d.ratio === null ? '不计分' : `${Math.round(d.ratio * 100)}%`
       })),
-      rows: result.rows,
-      groups: [...new Set(result.rows.map(r => r.group))],
+      missRows,
+      consLine,
       suggestions: result.suggestions,
+      weightsNote: `权重 面板 ${weights.panel} / 武器 ${weights.weapon} / 圣遗物 ${weights.artifact} / 天赋 ${weights.talent}（可配置）`,
       notes: [...result.notes, ...profile.notes],
       copyright: COPYRIGHT
     }
 
-    return await respond(e, 'grade', data, () => gradeText(result, profile.uid))
+    return await respond(e, 'grade', data, () => gradeText(result, missRows, okLine))
   }
 }

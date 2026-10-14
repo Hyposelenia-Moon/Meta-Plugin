@@ -70,7 +70,8 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
   ok('无 miao 时返回 ok:false', r.ok === false)
   ok('失败原因是中文可读文案', typeof r.error === 'string' && r.error.length > 0 && /miao|未找到/.test(r.error), r.error)
   const resolved = await MP.resolveUid({ msg: '#练度查询 胡桃 100000001', reply: async () => {} })
-  ok('消息里的 UID 能被解析（可选覆盖）', resolved.uid === '100000001', JSON.stringify(resolved))
+  // 2026-10-14 用户定：练度查询不带 UID（一律走 miao 绑定）→ 消息里的数字不再被当成账号
+  ok('消息里的 UID 不再被采纳（走绑定）', resolved.uid === '' && !!resolved.error, JSON.stringify(resolved))
 }
 
 // ---------- 4. app 与模板 ----------
@@ -87,8 +88,8 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
   ok('模板引用公共样式与缩放/版权写法',
     tpl.includes('{{_res_path}}/common/base.css') && tpl.includes('{{_res_path}}/common/components.css') &&
     tpl.includes('{{renderScale}}') && tpl.includes('{{copyright}}'))
-  ok('模板渲染四维达成度条（ratioPct）', tpl.includes('ratioPct'))
-  ok('模板渲染对比表与建议', tpl.includes('{{each rows r}}') && tpl.includes('{{each suggestions s idx}}'))
+  ok('模板用四条细进度条（dims）呈现四维达成度', tpl.includes('{{each dims d}}') && tpl.includes('gd-dim-fill'))
+  ok('模板渲染对比表与建议', tpl.includes('{{each missRows r}}') && tpl.includes('{{each suggestions s idx}}'))
 }
 
 // ---------- 5. 帮助页收录 ----------

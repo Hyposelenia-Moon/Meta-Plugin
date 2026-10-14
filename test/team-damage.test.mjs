@@ -99,13 +99,13 @@ const fixture = JSON.parse(readText(path.join(pluginRoot, 'test', 'fixtures', 'd
   ok('模板已就位并引用公共样式', fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'team-damage.html')) &&
     tpl.includes('{{_res_path}}/common/base.css') && tpl.includes('{{renderScale}}') && tpl.includes('{{copyright}}'))
   ok('模板渲染队员伤害与参考区', tpl.includes('{{each members m}}') && tpl.includes('{{each refs r}}'))
-  ok('帮助页收录 #队伍伤害', /#队伍伤害 胡桃 行秋 夜兰 钟离/.test(readText(path.join(pluginRoot, 'resources', 'help', 'help-cfg.js'))))
+  ok('帮助页收录 #队伍伤害', /#队伍伤害 四人名/.test(readText(path.join(pluginRoot, 'resources', 'help', 'help-cfg.js'))))
 }
 
 // ---------- 6. miao 桥：无 miao 时可读失败 ----------
 {
   const MP = await load('model/MiaoProfile.js')
-  const r = await MP.readTeamDamage({ msg: '#队伍伤害 胡桃 行秋 夜兰 钟离', reply: async () => {} }, ['胡桃', '行秋', '夜兰', '钟离'])
+  const r = await MP.readTeamDamage({ msg: '#队伍伤害 四人名', reply: async () => {} }, ['胡桃', '行秋', '夜兰', '钟离'])
   ok('无 miao 时返回 ok:false 而不是抛错', r.ok === false)
   ok('失败原因可读', typeof r.error === 'string' && /miao|未找到/.test(r.error), r.error)
 }

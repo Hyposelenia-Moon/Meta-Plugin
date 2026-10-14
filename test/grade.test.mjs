@@ -70,7 +70,7 @@ ok('满分配装档位在 ACE 及以上', ['MAX', 'ACE'].includes(rGood.rank), r
 ok('满分配装面板档为「大毕业」', rGood.panelTier === '大毕业', rGood.panelTier)
 ok('四个维度都参评且权重之和为 1', rGood.dims.every(d => d.ratio !== null) &&
   Math.abs(rGood.dims.reduce((s, d) => s + d.weight, 0) - 1) < 1e-6)
-ok('建议在满分时为空', rGood.suggestions.length === 0, rGood.suggestions.join('｜'))
+ok('满分时给一条正向建议（不再留空）', rGood.suggestions.length === 1 && /均已达标/.test(rGood.suggestions[0]), rGood.suggestions.join('｜'))
 
 const bad = {
   charName: '胡桃',

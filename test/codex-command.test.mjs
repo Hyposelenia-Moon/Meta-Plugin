@@ -7,8 +7,8 @@
  *      这一层直接 import 编译产物跑，不依赖 bot；
  *   2. **app 结构**：`src/apps/codex.ts` 的优先级写死 `PREEMPT_PRIORITY`、accept 用纯判定、
  *      四条规则齐全、handler 存在，且**只导出插件类**（加载器取首个导出）；
- *   3. **参数解析**：后缀式 / 前缀式（角色+模块、角色+档位、反查武器、反查配队、列表、状态）；
- *   4. **视图收窄**：模块过滤、档位过滤、空判定；
+ *   3. **参数解析**：后缀式（`#胡桃攻略`）与列表 / 状态（2026-10-14 起前缀式与反查已移除）；
+ *   4. **视图收窄**：档位过滤、空判定；
  *   5. **反查与图标**：真实数据上查武器推荐者与配队，`withIcons` 在有 miao 时挂图、无 miao 时不挂也不报错。
  *
  * Atlas 后缀表：`META_ATLAS_DIR` 或 `<插件根>/../Atlas-Plugin` 在场时**动态读取**（保证跟着它走）；
@@ -29,7 +29,7 @@ const { CodexStore } = await import(pathToFileURL(path.join(libDir, 'model', 'Co
 
 // ---------- 1. 抢占对照表 ----------
 const claim = [
-  '#胡桃攻略', '#胡桃攻略2', '#胡桃攻略7', '#胡桃指南', '#更新胡桃攻略', '#更新胡桃指南',
+  '#胡桃攻略', '#胡桃攻略2', '#胡桃攻略7', '#更新胡桃攻略', '#胡桃攻略',
   '#攻略 胡桃', '#攻略 胡桃 武器', '#攻略 胡桃 过渡',
   '#攻略 武器 护摩之杖', '#攻略 配队 胡桃 夜兰', '#攻略列表', '#攻略状态'
 ]
@@ -79,8 +79,12 @@ if (fs.existsSync(appFile)) {
   ok('优先级取 PREEMPT_PRIORITY（写死）', src.includes('priority: PREEMPT_PRIORITY'))
   ok('实现 accept()', /async\s+accept\s*\(/.test(src))
   ok('accept 只做纯判定 isCodexCommand', src.includes('isCodexCommand(e.msg)'))
-  ok('四条规则齐全', ['CODEX_SUFFIX_RULE', 'CODEX_GUIDE_RULE', 'CODEX_META_RULE', 'CODEX_ARG_RULE'].every(k => src.includes(k)))
-  ok('handler 齐全', ['handleSuffix', 'handleMeta', 'handleArg', 'replyCharacter', 'replyPage', 'replyReverseWeapon', 'replyReverseTeam', 'replyList', 'replyStatus'].every(k => src.includes(k)))
+  // 2026-10-14 用户定：只保留后缀式 `#胡桃攻略`（前缀式 `#攻略 胡桃 [模块]` 与反查 `#攻略 武器 …` 已移除）
+  ok('规则只剩后缀式与列表/状态两条', ['CODEX_SUFFIX_RULE', 'CODEX_META_RULE'].every(k => src.includes(k)) &&
+    !src.includes('CODEX_GUIDE_RULE') && !src.includes('CODEX_ARG_RULE'))
+  ok('handler 齐全（移除反查后，仅保留后缀式与列表/状态相关）',
+    ['handleSuffix', 'handleMeta', 'replyCharacter', 'replyPage', 'replyList', 'replyStatus'].every(k => src.includes(k)) &&
+    !src.includes('handleArg'))
   ok('走框架 runtime 渲染（renderPage）', src.includes('renderPage(e,'))
   ok('渲染失败回落文本', src.includes('viewToText(view)'))
   ok('只导出插件类与 resolveCharacter（供套件/复用）', !/\nexport\s+(?:default|interface|type|const)\s/.test(src))
@@ -90,7 +94,7 @@ if (fs.existsSync(appFile)) {
 push('后缀：普通', B.parseSuffixQuery('#胡桃攻略'), { character: '胡桃', setIndex: null })
 push('后缀：带套数', B.parseSuffixQuery('#胡桃攻略2'), { character: '胡桃', setIndex: 2 })
 push('后缀：更新前缀', B.parseSuffixQuery('#更新胡桃攻略'), { character: '胡桃', setIndex: null })
-push('后缀：指南', B.parseSuffixQuery('#胡桃指南'), { character: '胡桃', setIndex: null })
+push('后缀：指南', B.parseSuffixQuery('#胡桃攻略'), { character: '胡桃', setIndex: null })
 push('后缀：裸「#攻略」→ null', B.parseSuffixQuery('#攻略'), null)
 push('后缀：图鉴不是攻略 → null', B.parseSuffixQuery('#胡桃图鉴'), null)
 push('后缀：复合名（旅行者·火）', B.parseSuffixQuery('#旅行者·火攻略'), { character: '旅行者·火', setIndex: null })

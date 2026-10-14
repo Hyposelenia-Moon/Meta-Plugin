@@ -98,24 +98,54 @@ interface MiaoLoaded {
  *  定位与加载 miao-plugin
  * ============================================================ */
 
-/** 本机 miao-plugin 目录（可用配置 `miaoPluginDir` 覆盖；为空则本次不出面板） */
+/**
+ * 目录"像不像 miao-plugin"（能力判定，不看目录名）
+ *
+ * `models/index.js` 是导入入口；再要一个 miao 特有的资源/应用目录，避免误判其它插件。
+ */
+function looksLikeMiao (dir: string): boolean {
+  return fs.existsSync(path.join(dir, 'models', 'index.js')) &&
+    (fs.existsSync(path.join(dir, 'resources', 'meta-gs')) ||
+     fs.existsSync(path.join(dir, 'apps', 'profile')))
+}
+
+/** `plugins/*` 里所有目录（扫描用；读不到就返回空数组） */
+function pluginDirs (): string[] {
+  const base = path.join(botRoot, 'plugins')
+  try {
+    return fs.readdirSync(base, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .map(d => path.join(base, d.name))
+  } catch {
+    return []
+  }
+}
+
+/**
+ * 本机 miao-plugin 目录（可用 `META_MIAO_PLUGIN` 环境变量或配置 `miaoPluginDir` 覆盖）
+ *
+ * ⚠ 修正（2026-10-14）：`dir.ts` 的 `botRoot` 是 **bot 根**（如 `D:\...\Yunzai`），
+ *   不是 `<bot>/plugins` —— 原实现少拼了一层 `plugins`，于是永远找不到 miao。
+ *   另外阿修 fork 版可能装成别的目录名，所以最后**扫描 `plugins/*` 做能力判定**兜底。
+ */
 export function miaoPluginDir (): string {
-  // `botRoot` = `<bot>/plugins/<本插件>` 的上一级 = `<bot>/plugins`，
-  // 因此候选就是 `<bot>/plugins/miao-plugin`（与源码的 `path.join(cwd, 'plugins', 'miao-plugin')` 同义）
-  const pluginsDir = botRoot
-  // `miaoPluginDir` 尚未进 `MetaConfig` 接口（那是 config.ts 的事，本轮不动它）：
-  // 这里按"配置里可能有这个键"读取，缺省即空串 → 与源码 `String(getPluginConfig()?.miaoPluginDir || '')` 等价
   const cfg = loadConfig() as unknown as { miaoPluginDir?: unknown }
   const candidates: string[] = [
     String(process.env.META_MIAO_PLUGIN || ''),
     String(cfg.miaoPluginDir || '').trim(),
-    path.join(pluginsDir, 'miao-plugin')
+    path.join(botRoot, 'plugins', 'miao-plugin'),
+    path.join(botRoot, 'miao-plugin')
   ]
   for (const p of candidates) {
     if (!p) continue
     const dir = path.resolve(p)
-    if (fs.existsSync(path.join(dir, 'models', 'index.js')) &&
-        fs.existsSync(path.join(dir, 'resources', 'character', 'profile-detail.html'))) return dir
+    if (looksLikeMiao(dir)) return dir
+  }
+  // 兜底：目录名被改过（fork / 自定义）时按能力找
+  for (const dir of pluginDirs()) {
+    const name = path.basename(dir).toLowerCase()
+    if (name.includes('meta') || name.includes('atlas') || name.includes('mhydps')) continue
+    if (looksLikeMiao(dir)) return dir
   }
   return ''
 }

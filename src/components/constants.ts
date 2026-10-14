@@ -26,6 +26,18 @@ export function isHelpCommand (msg: string): boolean {
   return HELP_RULE.test(String(msg ?? ''))
 }
 
+/**
+ * 总帮助入口 `#meta` / `#Meta帮助`（2026-10-14：帮助改成两小一大）
+ *
+ * `#攻略帮助`（含 `#攻略` / `#攻略说明`）= 攻略 + 提升指南；`#DPS帮助` = 伤害 + 榜单 + 状态。
+ */
+export const META_HELP_RULE = /^#?(?:meta|Meta|META)(?:帮助|说明)?$/
+
+/** 是否总帮助入口（纯正则，无 I/O） */
+export function isMetaHelpCommand (msg: string): boolean {
+  return META_HELP_RULE.test(String(msg ?? ''))
+}
+
 /** 页脚版权行（模板里的 `{{copyright}}`） */
 export const COPYRIGHT = 'Meta-Plugin · 原神攻略 / 强度榜单 / 练度查询'
 
@@ -38,8 +50,13 @@ export const COPYRIGHT = 'Meta-Plugin · 原神攻略 / 强度榜单 / 练度查
  */
 export const CODEX_SUFFIX_RULE = /^#?(更新)?(?!.*设置默认攻略)([^#\s]\S*?)攻略([1-7])?$/
 
-/** 角色攻略的「指南」后缀式（Atlas 的 codex 快捷入口也用这个词） */
+/** 前缀式 #攻略 <角色> [模块|档位]（2026-10-14 起**入口已移除**；规则保留给 modules/branches 的解析器） */
 export const CODEX_GUIDE_RULE = /^#(.+)指南$/
+
+/** 反查 #攻略 <武器|配队> …（同上：入口已移除） */
+export const CODEX_ARG_RULE = /^#攻略\s+(.+)$/
+
+/** 角色攻略的「指南」后缀式（Atlas 的 codex 快捷入口也用这个词） */
 
 /**
  * **前缀式**入口：`#攻略 <角色> [模块|档位]`、`#攻略 武器 <武器名>`、`#攻略 配队 <角色…>`
@@ -47,7 +64,6 @@ export const CODEX_GUIDE_RULE = /^#(.+)指南$/
  * 这里只判断"是不是前缀式"，参数怎么解释交给 `modules/branches.ts`
  * （`武器`/`圣遗物`/`配队` 既是模块名又是反查头部，需要按"能否解析成角色"来定夺）。
  */
-export const CODEX_ARG_RULE = /^#攻略\s+(.+)$/
 
 /** 列表与状态：`#攻略列表` / `#攻略状态` */
 export const CODEX_META_RULE = /^#攻略(列表|状态)$/
@@ -60,7 +76,7 @@ export type TierWord = (typeof TIER_WORDS)[number]
 /** 是否角色攻略的后缀式（`#胡桃攻略` / `#胡桃攻略2` / `#胡桃指南`） */
 export function isCodexSuffix (msg: string): boolean {
   const text = String(msg ?? '')
-  return CODEX_SUFFIX_RULE.test(text) || CODEX_GUIDE_RULE.test(text)
+  return CODEX_SUFFIX_RULE.test(text)
 }
 
 /** 是否前缀式（`#攻略 …`） */
