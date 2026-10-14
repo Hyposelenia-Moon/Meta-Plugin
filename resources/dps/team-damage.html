@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+  <style>
+    /* 队伍伤害页：每人一张卡（关键伤害）+ 同阵容参考表 */
+    .tm-hero {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .tm-cost {
+      font-size: 40px;
+      font-weight: 800;
+      color: var(--accent, #ffd479);
+      line-height: 1;
+    }
+    .tm-cost-note { font-size: 17px; color: var(--muted-2, #999); }
+    .tm-card { margin-top: 10px; }
+    .tm-head {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .tm-name { font-size: 24px; font-weight: 700; }
+    .tm-sub { font-size: 16px; color: var(--muted, #ccc); }
+    .tm-rule {
+      font-size: 15px;
+      color: var(--accent-2, #8fd6ff);
+    }
+    .dmg-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 18px;
+    }
+    .dmg-row:last-child { border-bottom: none; }
+    .dmg-title { flex: 1 1 auto; color: var(--muted, #ccc); }
+    .dmg-value { flex: 0 0 220px; text-align: right; font-weight: 700; }
+    .ref-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 17px;
+    }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-cost { flex: 0 0 210px; }
+    .ref-team { flex: 1 1 auto; color: var(--muted, #ccc); }
+    .ref-dmg { flex: 0 0 200px; text-align: right; font-weight: 700; }
+    .note-row { font-size: 15px; color: var(--muted-2, #999); padding: 2px 0; }
+  </style>
+</head>
+<body style="zoom:{{renderScale}}">
+  <div class="page">
+    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-rank.jpg')"></div>
+    <div class="page-inner">
+      <!-- 页头 -->
+      <div class="card head-card">
+        <div class="header">
+          <div class="game-name">Meta-Plugin · 队伍伤害</div>
+          <div class="title">{{if title}}{{title}}{{else}}队伍伤害{{/if}}</div>
+          {{if subtitle}}<div class="subtitle">{{subtitle}}</div>{{/if}}
+        </div>
+        <div class="page-meta">
+          <div class="tm-hero">
+            <div class="tm-cost">约 {{approxCost}} 金</div>
+            {{if uid}}<span>UID {{uid}}</span>{{/if}}
+          </div>
+        </div>
+      </div>
+
+      <!-- 每个队员：关键伤害 -->
+      {{each members m}}
+      <div class="card body-card tm-card">
+        <div class="tm-head">
+          <span class="tm-name">{{m.charName}}</span>
+          <span class="tm-sub">C{{m.cons}}｜{{m.weaponText}}｜天赋 A{{m.talent.A}}/E{{m.talent.E}}/Q{{m.talent.Q}}</span>
+          {{if m.ruleBy}}<span class="tm-rule">规则：{{m.ruleBy}}</span>{{/if}}
+        </div>
+        {{if m.rowsText && m.rowsText.length > 0}}
+        {{each m.rowsText r}}
+        <div class="dmg-row">
+          <div class="dmg-title">{{r.title}}</div>
+          <div class="dmg-value num">{{r.valueText}}</div>
+        </div>
+        {{/each}}
+        {{else}}
+        <div class="empty-hint">该角色没有取到伤害行（可能缺少 miao 伤害规则）</div>
+        {{/if}}
+      </div>
+      {{/each}}
+
+      <!-- 同阵容参考 -->
+      <div class="card body-card">
+        <div class="card-title">同阵容参考（mhydps · 累计 {{refTotal}} 条，按金数最接近排序）</div>
+        {{if refs && refs.length > 0}}
+        {{each refs r}}
+        <div class="ref-row">
+          <div class="ref-cost">{{r.cost}} 金 <span class="tm-cost-note">限{{r.limitcost}}/常{{r.normalcost}}｜差 {{r.costDiff}}</span></div>
+          <div class="ref-team">{{r.membersText}}{{if r.video}} <span class="tag">B站视频</span>{{/if}}</div>
+          <div class="ref-dmg num">{{r.damageText}}</div>
+        </div>
+        {{/each}}
+        {{else}}
+        <div class="empty-hint">这份榜单里暂时没有这套四人阵容的记录</div>
+        {{/if}}
+      </div>
+
+      <!-- 脚注 -->
+      {{if notes && notes.length > 0}}
+      <div class="card foot-card">
+        {{each notes n}}
+        <div class="note-row">注：{{n}}</div>
+        {{/each}}
+        <div class="copyright">{{copyright}}</div>
+      </div>
+      {{else}}
+      <div class="card foot-card">
+        <div class="copyright">{{copyright}}</div>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+</body>
+</html>

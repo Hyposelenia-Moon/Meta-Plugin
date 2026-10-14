@@ -42,6 +42,11 @@
   - **v3 P2 新增**（2026-10-14，本插件自研）：`src/modules/grade.ts`（纯函数评分器）、
     `src/model/MiaoProfile.ts`（miao 面板薄桥）、`src/apps/grade.ts`、`resources/dps/grade.html`、
     `test/{grade,level-query}.test.mjs`
+  - **v3 P3 新增**（2026-10-14，本插件自研）：`src/modules/teamDamage.ts`（金数估算 / 同阵容匹配）、
+    `src/model/MiaoProfile.ts` 的 `readTeamDamage`（复用 miao 的 `avatar.calcDmg`）、`src/apps/teamDamage.ts`、
+    `resources/dps/team-damage.html`、`test/team-damage.test.mjs`
+  - **复用 miao 的伤害引擎**：`models/ProfileDmg.js` + `resources/meta-gs/character/<名>/calc.js`
+    （129 个角色），通过 `avatar.calcDmg({ enemyLv: 103, mode: 'profile' })` 调用；本插件不复制其规则文件
   - 资源：`resources/dps/*.html`（榜单 / 危战 / 状态 / 帮助模板）、`resources/common/bg-*.jpg`（4 张插画底）、
     `resources/common/font/*`、`resources/common/{base,components}.css`、`resources/data/{characters,bosses}.json`
   - 测试：16 个套件迁入本仓库（`test/*.test.mjs`），并冻结了与合并前**逐字等价**的快照

@@ -190,3 +190,150 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
     return { ok: false, error: `读取 miao 面板出错：${(err as Error)?.message || err}` }
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * 整队读取（v3 P3 `#队伍伤害`）
+ * ------------------------------------------------------------------ */
+
+/** 单个队员的配装与关键伤害 */
+export interface TeamMemberDamage {
+  charName: string
+  /** 角色星级（估算金数用） */
+  rarity: number
+  level: number
+  cons: number
+  weapon: { name: string, affix: number, rarity: number } | null
+  talent: { A: number, E: number, Q: number }
+  /** 关键伤害行（title + avg；治疗/护盾也在这里） */
+  rows: Array<{ title: string, value: number }>
+  /** 伤害规则来源：喵喵 / 组团伤害 / 自定义伤害 */
+  ruleBy: string
+  artiSets: string[]
+  artiMark: { total: number, markClass: string } | null
+}
+
+export interface TeamDamageResult {
+  ok: true
+  uid: string
+  members: TeamMemberDamage[]
+  notes: string[]
+}
+
+/** 把 miao 的伤害行统一成 `{ title, value }`（helper 返回的是 `{ avg }`，防御式取第一个可用数值） */
+function damageRowsOf (raw: unknown): Array<{ title: string, value: number }> {
+  if (!Array.isArray(raw)) return []
+  const out: Array<{ title: string, value: number }> = []
+  for (const row of raw) {
+    const ds = row as Record<string, unknown>
+    const value = Number(ds?.avg ?? ds?.dmg ?? ds?.expect ?? ds?.value)
+    const title = String(ds?.title ?? '').trim()
+    if (!title || !Number.isFinite(value)) continue
+    out.push({ title, value })
+  }
+  return out
+}
+
+/**
+ * 读取整队的配装与关键伤害
+ *
+ * v1 口径（与 v3 方案 §5.5 对齐，差异见下）：
+ *   - 每人的关键伤害走 miao 的 `avatar.calcDmg({ enemyLv: 103, mode: 'profile' })`，
+ *     也就是**与 miao 面板/`#xx伤害` 同一套算法**；
+ *   - 页面会标注每人的**伤害规则来源**（喵喵 / 组团伤害 / 自定义伤害）——
+ *     "组团伤害"（跨角色 buff 叠加）由 miao 的系统配置 `teamCalc` 决定，本插件**不擅自改用户配置**：
+ *     没开时提示"在 miao 侧开启组团伤害可让数值更贴近实战"。
+ */
+export async function readTeamDamage (
+  e: YunzaiEvent,
+  names: string[],
+  explicitUid = ''
+): Promise<TeamDamageResult | ProfileFailure> {
+  if (!miaoPluginDir()) {
+    return { ok: false, error: '未找到 miao-plugin（必需依赖）：请确认它已安装在 bot 的 plugins 目录' }
+  }
+
+  const resolved = await resolveUid(e, explicitUid)
+  if (!resolved.uid) return { ok: false, error: resolved.error || '没有可用的账号', prompted: resolved.prompted }
+
+  let models: Record<string, any>
+  try {
+    models = await miaoModels()
+  } catch (err) {
+    return { ok: false, error: `加载 miao 模型失败：${(err as Error)?.message || err}` }
+  }
+  const Player = models.Player
+  const Character = models.Character
+  if (!Player || !Character) return { ok: false, error: 'miao 模型缺少 Player / Character（版本不兼容？）' }
+
+  const { findCharacter } = await import('./CharacterIndex.js')
+  const notes: string[] = []
+  const members: TeamMemberDamage[] = []
+
+  try {
+    const player = typeof Player.get === 'function' ? Player.get(resolved.uid) : Player.create({ uid: resolved.uid })
+    if (!player) return { ok: false, error: `无法载入玩家 ${resolved.uid}` }
+
+    for (const raw of names) {
+      const local = findCharacter(raw)
+      if (!local) return { ok: false, error: `没有找到角色「${raw}」` }
+      const char = Character.get?.(local.name) || Character.get?.(raw)
+      if (!char?.id) return { ok: false, error: `miao 里没有角色「${local.name}」` }
+
+      let avatar = player.getAvatar?.(char.id, true)
+      if (!avatar) return { ok: false, error: `没有取到「${local.name}」的面板数据：该角色可能未在米游社公开展示` }
+      if (avatar.isProfile === false || avatar.hasData === false) {
+        notes.push(`${local.name}：本地无面板缓存，已让 miao 取一次`)
+        if (typeof player.refresh === 'function') {
+          await player.refresh({ profile: true })
+          avatar = player.getAvatar?.(char.id, true)
+        }
+      }
+      if (!avatar || avatar.hasData === false || avatar.isProfile === false) {
+        return { ok: false, error: `没有取到「${local.name}」的面板数据（未公开或取数失败）` }
+      }
+
+      // 伤害规则来源（喵喵 / 组团伤害 / 自定义）
+      let ruleBy = ''
+      try {
+        const ProfileDmg = models.ProfileDmg || (await import(miaoUrl('models/ProfileDmg.js'))).default
+        const rule = typeof ProfileDmg?.dmgRulePath === 'function' ? ProfileDmg.dmgRulePath(local.name) : null
+        ruleBy = String(rule?.createdBy || '')
+      } catch { /* 拿不到就不标注 */ }
+
+      let dmgRaw: unknown = []
+      if (typeof avatar.calcDmg === 'function') {
+        dmgRaw = await avatar.calcDmg({ enemyLv: 103, mode: 'profile' })
+      }
+
+      let artiMark: TeamMemberDamage['artiMark'] = null
+      try {
+        const detail = avatar.getArtisMark?.(false)
+        if (detail && Number.isFinite(Number(detail._mark))) {
+          artiMark = { total: Number(detail._mark), markClass: String(detail.markClass || '') }
+        }
+      } catch { /* 评分拿不到不影响伤害 */ }
+
+      members.push({
+        charName: local.name,
+        rarity: Number(char.star ?? char.rarity) || 5,
+        level: Number(avatar.level) || 0,
+        cons: Number(avatar.cons) || 0,
+        weapon: avatar.weapon?.name
+          ? { name: String(avatar.weapon.name), affix: Number(avatar.weapon.affix) || 0, rarity: Number(avatar.weapon.rarity) || 0 }
+          : null,
+        talent: { A: talentLevel(avatar.talent?.a), E: talentLevel(avatar.talent?.e), Q: talentLevel(avatar.talent?.q) },
+        rows: damageRowsOf(dmgRaw),
+        ruleBy,
+        artiSets: [...new Set((Array.isArray(avatar.artis) ? avatar.artis : []).map((a: Record<string, any>) => String(a?.set || '')).filter(Boolean))] as string[],
+        artiMark
+      })
+    }
+  } catch (err) {
+    return { ok: false, error: `读取 miao 队伍数据出错：${(err as Error)?.message || err}` }
+  }
+
+  if (members.some(m => m.ruleBy && m.ruleBy !== '组团伤害')) {
+    notes.push('队伍 buff：部分角色用的是 miao 的单人规则；在 miao 侧开启「组团伤害」（系统配置 teamCalc）后数值会更贴近实战')
+  }
+  return { ok: true, uid: resolved.uid, members, notes }
+}
