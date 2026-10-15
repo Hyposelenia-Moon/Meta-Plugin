@@ -37,16 +37,14 @@ fs.writeFileSync(process.env.META_CONFIG_FILE, [
 const C = await import(pathToFileURL(path.join(libDir, 'components', 'constants.js')).href)
 const { queryCharDps, DEFAULT_PER_TIER } = await import(pathToFileURL(path.join(libDir, 'modules', 'charDpsQuery.js')).href)
 
-// ---------- 1. 路由：新入口命中，旧命令不受影响 ----------
+// ---------- 1. 路由（2026-10-15 合并：`#DPS榜 胡桃` 即角色档位视图） ----------
 {
-  ok('`#胡桃dps` 命中新入口', C.matchEntryCommand('#胡桃dps')?.key === 'charDps')
-  ok('`#胡桃dps 12金` 命中新入口（参数在捕获组 2）', C.matchEntryCommand('#胡桃dps 12金')?.match[2] === '12金')
-  ok('`#胡桃 dps 金≤12` 允许空格', C.matchEntryCommand('#胡桃 dps 金≤12')?.match[2] === '金≤12')
-  const legacy = ['#DPS榜', '#DPS', '#DPS状态', '#DPS危战榜 7.1', '#DPS练度查询 胡桃', '#DPS视频 3']
-  push('旧 `#DPS…` 命令**不会**被新入口吞掉', legacy.filter(t => C.matchEntryCommand(t)), [])
-  push('旧 `#DPS…` 命令仍由旧规则命中（未被改动）',
-    legacy.filter(t => !C.matchDpsCommand(t)), [])
-  push('攻略类命令两边都不命中', ['#胡桃攻略', '#攻略 胡桃'].filter(t => C.matchEntryCommand(t) || C.matchDpsCommand(t)), [])
+  ok('`#DPS榜 胡桃` 命中榜单入口（app 内分派到角色档位视图）', C.matchCommand('#DPS榜 胡桃')?.key === 'rank')
+  ok('`#DPS榜 胡桃 12金` 参数进捕获组', C.matchCommand('#DPS榜 胡桃 12金')?.match[1] === '胡桃 12金')
+  ok('`#DPS 胡桃`（榜字可省）同样命中', C.matchCommand('#DPS 胡桃')?.match[1] === '胡桃')
+  ok('`#DPS榜 12金`（不带角色名）仍是总榜', C.matchCommand('#DPS榜 12金')?.key === 'rank')
+  push('旧 `#胡桃dps` 形态不再命中任何入口', ['#胡桃dps', '#胡桃 dps 12金'].filter(t => C.matchCommand(t) !== null), [])
+  push('攻略类命令两边都不命中', ['#胡桃攻略', '#攻略 胡桃'].filter(t => C.matchCommand(t)), [])
 }
 
 // ---------- 2. 金档分组 ----------
@@ -86,14 +84,18 @@ if (hu.ok) {
   ok('角色不存在时返回可用的失败结果', none.ok === false && !!none.error)
 }
 
-// ---------- 5. app 与模板接线 ----------
+// ---------- 5. 接线（2026-10-15 合并：角色档位视图并入 `#DPS榜`） ----------
 {
-  const src = readText(path.join(pluginRoot, 'src', 'apps', 'charDps.ts'))
-  ok('app 用 ENTRY_RULES 注册规则', src.includes('reg: ENTRY_RULES.charDps'))
-  ok('app 元数据取自 ENTRY_COMMANDS', src.includes('ENTRY_COMMANDS.find(') && src.includes('META.priorityOffset'))
-  ok('app 首个导出是插件类', /^export class \w+ extends plugin/m.test(src))
+  const src = readText(path.join(pluginRoot, 'src', 'apps', 'rank.ts'))
+  ok('榜单 app 用 RULES.rank 注册规则', src.includes('reg: RULES.rank'))
+  ok('榜单 app 元数据取自 COMMANDS', src.includes('COMMANDS.find(') && src.includes('META.priorityOffset'))
+  ok('榜单 app 首个导出是插件类', /^export class \w+ extends plugin/m.test(src))
   ok('模板 char-dps.html 已就位', fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'char-dps.html')))
-  ok('ENTRY_COMMANDS 里登记了 charDps', C.ENTRY_COMMANDS.some(c => c.rules.includes('charDps')))
+  ok('带角色名时走角色档位视图（原 charDps app 已并入）',
+    src.includes('replyCharTiers') && src.includes('queryCharDps') && src.includes("respond(e, 'char-dps'"))
+  ok('COMMANDS 里不再有 charDps 条目、规则也随合并移除',
+    !C.COMMANDS.some(c => c.rules.includes('charDps')) && C.RULES.charDps === undefined)
+  ok('原 app 文件已删除', !fs.existsSync(path.join(pluginRoot, 'src', 'apps', 'charDps.ts')))
 }
 
 const bad = report()

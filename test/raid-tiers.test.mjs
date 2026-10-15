@@ -46,15 +46,24 @@ const { queryRaidTiers, N7_SECONDS_LIMIT, RAID_SPEED_CAP } = await import(pathTo
 const { resetStore } = await import(pathToFileURL(path.join(libDir, 'model', 'TeamStore.js')).href)
 const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFileURL(path.join(libDir, 'modules', 'bossAlias.js')).href)
 
-// ---------- 1. 路由 ----------
+// ---------- 1. 路由（2026-10-15：危战改为**必带档位**，裸 `#危战` 留给 miao） ----------
 {
-  ok('`#危战` 命中新入口', C.matchEntryCommand('#危战')?.key === 'raidTiers')
-  ok('`#危战 7.1` 参数进捕获组', C.matchEntryCommand('#危战 7.1')?.match[1] === '7.1')
-  ok('`#危战 矮灵雕刻师` 参数进捕获组', C.matchEntryCommand('#危战 矮灵雕刻师')?.match[1] === '矮灵雕刻师')
-  const legacy = ['#DPS危战榜', '#DPS危战榜 7.1', '#DPS危战视频 3', '#DPS榜', '#DPS状态']
-  push('旧 `#DPS…` 命令不被新入口吞掉', legacy.filter(t => C.matchEntryCommand(t)), [])
-  push('旧 `#DPS…` 命令仍由旧规则命中', legacy.filter(t => !C.matchDpsCommand(t)), [])
-  ok('`#危战` 不会被旧规则当危战榜', C.matchDpsCommand('#危战') === null)
+  ok('`#危战 矮灵 n7` 命中危战分档', C.matchCommand('#危战 矮灵 n7')?.key === 'raidTiers')
+  ok('档位从第 2 组拿、筛选词从第 1 组拿',
+    (() => { const m = C.matchCommand('#危战 矮灵雕刻师 n7')?.match; return m?.[1] === '矮灵雕刻师' && m?.[2] === '7' })())
+  ok('`#危战 7.1 n6` 版本进第 1 组', C.matchCommand('#危战 7.1 n6')?.match[1] === '7.1')
+  ok('`#危战 n7`（只给档位）也认', C.matchCommand('#危战 n7')?.key === 'raidTiers')
+  ok('档位也接受「6档」写法', C.matchCommand('#危战 胡桃 6档')?.key === 'raidTiers')
+  ok('写了筛选但没档位 → 提示选档', C.matchCommand('#危战 矮灵')?.key === 'raidTiersPrompt')
+
+  // 与 miao-plugin 的边界（裸 `#危战` / `#危战数据` / `#危战排名` 都是它的，且它 priority: 1 先跑）
+  const miaoForms = ['#危战', '#危战数据', '#危战排名', '#危战单人', '#幽境危战']
+  push('miao 的危战形态一个都不认领', miaoForms.filter(t => C.matchCommand(t) !== null), [])
+
+  // 其它命令不被危战规则吞掉
+  const others = ['#危战视频 3', '#DPS榜', '#meta状态', '#练度榜 胡桃']
+  push('其它命令不被危战规则吞掉',
+    others.filter(t => ['raidTiers', 'raidTiersPrompt'].includes(String(C.matchCommand(t)?.key))), [])
 }
 
 // ---------- 2. 70s 边界（合成数据，精确） ----------
@@ -66,7 +75,8 @@ const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFi
     const n7 = r.tiers.find(t => t.key === 'n7')
     const n6 = r.tiers.find(t => t.key === 'n6')
     ok('n7 上限常量是 70s（65s + 最多 5s 浮动）', N7_SECONDS_LIMIT === 70)
-    ok('n7 收录 69s 与 70s（各档计数正确）', n7.count === 2 && n7.rows.map(x => x.speed).join(',') === '69,70')
+    ok('n7 收录 69s 与 70s（各档计数正确）', n7.count === 2 && n7.rows.map(x => x.speed).join(',') === '70,69')
+    ok('n7 也按耗时降序（2026-10-15：时间越长越靠前）', n7.rows[0].speed === 70 && n7.rows[1].speed === 69)
     ok('n6 收录 71s 与 120s', n6.count === 2)
     ok('n6 按耗时降序（越接近上限越前）', n6.rows[0].speed === RAID_SPEED_CAP && n6.rows[1].speed === 71)
     ok('两档计数之和 = 命中总数', n7.count + n6.count === r.total)
@@ -87,8 +97,8 @@ const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFi
     ok('n7 全部 ≤ 70s', n7.rows.every(x => x.speed <= N7_SECONDS_LIMIT))
     ok('n6 全部 > 70s', n6.rows.every(x => x.speed > N7_SECONDS_LIMIT))
     ok('两档覆盖全部记录', n7.count + n6.count === r.total && r.total === fixture.length)
-    ok('n7 升序 / n6 降序',
-      n7.rows.every((x, i) => i === 0 || n7.rows[i - 1].speed <= x.speed) &&
+    ok('两档都按耗时降序（n7 内越接近 70s 越前 / n6 内越接近 120s 越前）',
+      n7.rows.every((x, i) => i === 0 || n7.rows[i - 1].speed >= x.speed) &&
       n6.rows.every((x, i) => i === 0 || n6.rows[i - 1].speed >= x.speed))
     ok('行上保留了视频与首领名', n7.rows.every(x => typeof x.video === 'string' && 'bossName' in x))
 
@@ -98,6 +108,22 @@ const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFi
     ok('角色筛选复用现有语义（含即算）', byChar.ok === true && byChar.total <= r.total)
     const bad = await queryRaidTiers({ ver: '1.0' }, { downloadAvatars: false })
     ok('不存在的版本给出失败与候选', bad.ok === false && (bad.suggestions || []).length > 0)
+
+    // ---------- 3c. 档位剥离（2026-10-15）：指定档位时只回该档 ----------
+    ok('不指定档位时 tier=null 且两档都在', r.tier === null && r.tiers.length === 2)
+    ok('counts 与两档计数一致', r.counts.n7 === n7.count && r.counts.n6 === n6.count)
+
+    const only7 = await queryRaidTiers({}, { downloadAvatars: false, tier: 'n7' })
+    ok('指定 n7 只回一档', only7.ok === true && only7.tier === 'n7' && only7.tiers.length === 1 && only7.tiers[0].key === 'n7')
+    ok('单档页仍报两档条数（提示选档要用）', only7.counts.n7 === r.counts.n7 && only7.counts.n6 === r.counts.n6)
+    ok('单档副标题写明档位口径', /n7 档（≤ 70s 速通档）/.test(only7.subtitle))
+
+    const only6 = await queryRaidTiers({}, { downloadAvatars: false, tier: 'n6' })
+    ok('指定 n6 只回一档', only6.ok === true && only6.tiers.length === 1 && only6.tiers[0].key === 'n6')
+    ok('单档副标题写明险胜档', /n6 档（> 70s 险胜档）/.test(only6.subtitle))
+
+    const both = await queryRaidTiers({ tier: 'n7' }, { downloadAvatars: false })
+    ok('档位不是筛选条件：传进 q 也不改变命中数', both.ok === true && both.total === r.total)
   }
 }
 
@@ -120,11 +146,11 @@ const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFi
 // ---------- 4. app 与模板接线 ----------
 {
   const src = readText(path.join(pluginRoot, 'src', 'apps', 'raidTiers.ts'))
-  ok('app 用 ENTRY_RULES 注册规则', src.includes('reg: ENTRY_RULES.raidTiers'))
-  ok('app 元数据取自 ENTRY_COMMANDS', src.includes('ENTRY_COMMANDS.find(') && src.includes('META.priorityOffset'))
+  ok('app 用 RULES 注册规则', src.includes('reg: RULES.raidTiers'))
+  ok('app 元数据取自 COMMANDS', src.includes('COMMANDS.find(') && src.includes('META.priorityOffset'))
   ok('app 首个导出是插件类', /^export class \w+ extends plugin/m.test(src))
   ok('模板 tiers.html 已就位', fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'tiers.html')))
-  ok('ENTRY_COMMANDS 里登记了 raidTiers', C.ENTRY_COMMANDS.some(c => c.rules.includes('raidTiers')))
+  ok('COMMANDS 里登记了 raidTiers', C.COMMANDS.some(c => c.rules.includes('raidTiers')))
 }
 
 const bad = report()

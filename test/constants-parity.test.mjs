@@ -67,42 +67,90 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
   push('纯函数（数量级 / 秒数 / 时间 / 头像 URL / 百分比判定）与合并前同输入同输出', bad, [])
 }
 
-// ---------- 4. 命令正则：source/flags 逐字一致 ----------
+// ---------- 4. 命令正则（偏差 B17：按用户 2026-10-15 决定重构命令面） ----------
+/*
+ * 偏差 B17（用户 2026-10-15 定，"指令大乱炖，全部重构"）：
+ *   冻结面 `DPS_RULES` 的 8 条旧正则**整体废除**，命令面按功能重新命名 →
+ *   `#DPS榜`(榜字可省) / `#练度榜` / `#视频`(=#榜视频) / `#危战视频` / `#危战 … n6|n7` /
+ *   `#练度查询` / `#队伍伤害<N>` / `#配装` / `#meta状态` / `#榜单刷新` / `#DPS帮助`。
+ *   因此本节不再对照快照，而是断言**新表的形态**（旧名一条都不许复活）。
+ */
 {
   const bad = []
-  for (const [key, literal] of Object.entries(snap.rules)) {
-    const rule = C.DPS_RULES?.[key]
-    if (!rule) {
-      bad.push(`DPS_RULES.${key}: 缺失`)
-      continue
-    }
-    if (String(rule) !== literal) bad.push(`DPS_RULES.${key}: 期望 ${literal}，实际 ${String(rule)}`)
+  const must = {
+    rank: /^#?(?:dps|DPS)(?:榜(?!视频))?(?!榜|视频|帮助|状态|更新|强制|刷新|练度|危战)\s*([\s\S]*)$/,
+    build: /^#?练度榜\s*([\s\S]*)$/,
+    video: /^#?榜?视频\s*([\s\S]*)$/,
+    raidVideo: /^#?危战视频\s*([\s\S]*)$/,
+    raidTiers: /^#?危战\s+([\s\S]*?)\s*(?:n|N)?([67])(?:档)?\s*$/,
+    raidTiersPrompt: /^#?危战\s+([\s\S]+)$/,
+    grade: /^#?练度查询(?:\s+([\s\S]+))?$/,
+    teamDamage: /^#?队伍伤害\s*(\d{1,2})?(?:\s+([\s\S]+))?$/,
+    akashaBuild: /^#?配装(?:\s+([\s\S]+))?$/,
+    status: /^#?meta状态$/,
+    admin: /^#?榜单刷新$/,
+    help: /^#?(?:dps|DPS)帮助$/
   }
-  push('8 条 #DPS… 命令正则与合并前逐字一致（含负向断言）', bad, [])
+  for (const [key, expected] of Object.entries(must)) {
+    const rule = C.RULES?.[key]
+    if (!rule) { bad.push(`RULES.${key}: 缺失`); continue }
+    if (String(rule) !== String(expected)) bad.push(`RULES.${key}: 期望 ${String(expected)}，实际 ${String(rule)}`)
+  }
+  push('新命令正则与既定口径逐字一致（12 条）', bad, [])
+
+  // 旧名一条都不许复活（用户："旧写法一律废除"）
+  const dead = ['#DPS练度查询', '#DPS状态', '#DPS视频', '#DPS危战视频', '#DPS更新', '#DPS强制更新', '#DPS刷新', '#DPS危战榜', '#胡桃dps', '#DPS榜视频']
+  push('旧命令名一个都匹配不到（已废除）', dead.filter(m => C.matchCommand(m) !== null), [])
+
+  // 只保留 `#DPS榜` / `#DPS` / `#DPS帮助` 三个 DPS 字样命令
+  push('保留的 DPS 字样命令：榜/省榜/帮助',
+    [C.matchCommand('#DPS榜')?.key, C.matchCommand('#DPS')?.key, C.matchCommand('#DPS帮助')?.key].join(','),
+    'rank,rank,help')
 }
 
-// ---------- 5. 路由真值表（含捕获参数） ----------
+// ---------- 5. 路由真值表（新命令面 + 与 miao 的边界） ----------
 {
+  const rows = [
+    ['#DPS榜', 'rank', ''],
+    ['#DPS', 'rank', ''],
+    ['#DPS 胡桃 12金', 'rank', '胡桃 12金'],
+    ['#练度榜 胡桃', 'build', '胡桃'],
+    ['#视频 3 胡桃', 'video', '3 胡桃'],
+    ['#榜视频 3', 'video', '3'],
+    ['#危战视频 3 矮灵', 'raidVideo', '3 矮灵'],
+    ['#危战 矮灵 n7', 'raidTiers', '矮灵'],
+    ['#危战 7.1 n6', 'raidTiers', '7.1'],
+    ['#危战 n7', 'raidTiers', ''],
+    ['#危战 矮灵', 'raidTiersPrompt', '矮灵'],
+    ['#练度查询 胡桃', 'grade', '胡桃'],
+    ['#队伍伤害2 胡桃 行秋 夜兰 钟离', 'teamDamage', '2'],
+    ['#配装 胡桃 3', 'akashaBuild', '胡桃 3'],
+    ['#meta状态', 'status', undefined],
+    ['#榜单刷新', 'admin', undefined],
+    ['#DPS帮助', 'help', undefined]
+  ]
   const bad = []
-  const badArgs = []
-  for (const row of snap.routing) {
-    const hit = C.matchDpsCommand(row.msg)
-    const key = hit ? hit.key : null
-    if (key !== row.key) bad.push(`${JSON.stringify(row.msg)}: 期望 ${row.key}，实际 ${key}`)
-    else {
-      const args = hit ? (hit.match[1] ?? null) : null
-      if (args !== row.args) badArgs.push(`${JSON.stringify(row.msg)}: 期望参数 ${JSON.stringify(row.args)}，实际 ${JSON.stringify(args)}`)
+  for (const [msg, key, args] of rows) {
+    const hit = C.matchCommand(msg)
+    const got = hit ? hit.key : null
+    if (got !== key) bad.push(`${JSON.stringify(msg)}: 期望 ${key}，实际 ${got}`)
+    else if (args !== undefined) {
+      const gotArgs = hit.match[1] ?? null
+      if (gotArgs !== args) bad.push(`${JSON.stringify(msg)}: 期望参数 ${JSON.stringify(args)}，实际 ${JSON.stringify(gotArgs)}`)
     }
   }
-  push(`路由真值表（${snap.routing.length} 条消息）命中与合并前一致`, bad, [])
-  push('路由捕获到的参数与合并前一致', badArgs, [])
+  push(`新路由真值表（${rows.length} 条）`, bad, [])
+
+  // 与 miao-plugin 的边界：裸 `#危战` 及其"数据/排名/单人"（无空格）形态必须**不**被我们认领
+  const miao = ['#危战', '#危战数据', '#危战排名', '#危战单人', '#幽境危战']
+  push('miao 的危战形态一条都不认领', miao.filter(m => C.matchCommand(m) !== null), [])
 }
 
 // ---------- 6. 与攻略命令互不干扰（合并边界） ----------
 {
   const codexish = ['#攻略', '#攻略帮助', '#攻略说明', '#胡桃攻略', '#胡桃攻略2', '#攻略 胡桃 武器', '#攻略列表', '#攻略状态', '#设置默认攻略2']
-  push('攻略类命令不会被 #DPS… 路由吞掉', codexish.filter(m => C.matchDpsCommand(m) !== null), [])
-  const dpsish = ['#DPS榜', '#DPS危战榜', '#DPS状态', '#DPS帮助', '#DPS练度查询', '#DPS更新']
+  push('攻略类命令不会被 #DPS… 路由吞掉', codexish.filter(m => C.matchCommand(m) !== null), [])
+  const dpsish = ['#DPS榜', '#危战 矮灵 n7', '#meta状态', '#DPS帮助', '#练度榜', '#榜单刷新']
   push('攻略判定（isCodexCommand/isHelpCommand）不认领 #DPS… 命令',
     dpsish.filter(m => C.isCodexCommand(m) || C.isHelpCommand(m)), [])
 }

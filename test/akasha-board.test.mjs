@@ -86,14 +86,14 @@ const { entries, total } = AB.normalizeBoard(raw, textmap)
   ok('textmap URL 会把词小写并去重',
     /words\[\]=varka/.test(ABc.textmapUrl(['Varka', 'varka', 'Crit DMG'])))
 
-  ok('`#配装 胡桃` 命中新入口', C.matchEntryCommand('#配装 胡桃')?.key === 'akashaBuild')
-  ok('参数进捕获组（含名次）', C.matchEntryCommand('#配装 胡桃 3')?.match[1] === '胡桃 3')
+  ok('`#配装 胡桃` 命中新入口', C.matchCommand('#配装 胡桃')?.key === 'akashaBuild')
+  ok('参数进捕获组（含名次）', C.matchCommand('#配装 胡桃 3')?.match[1] === '胡桃 3')
   const legacy = ['#DPS榜', '#练度查询 胡桃', '#队伍伤害 胡桃 行秋 夜兰 钟离', '#危战', '#攻略 胡桃']
-  push('不吞其它入口', legacy.filter(t => C.matchEntryCommand(t)?.key === 'akashaBuild'), [])
-  ok('ENTRY_COMMANDS 登记了 akashaBuild', C.ENTRY_COMMANDS.some(c => c.rules.includes('akashaBuild')))
+  push('不吞其它入口', legacy.filter(t => C.matchCommand(t)?.key === 'akashaBuild'), [])
+  ok('COMMANDS 登记了 akashaBuild', C.COMMANDS.some(c => c.rules.includes('akashaBuild')))
 
   const app = readText(path.join(pluginRoot, 'src', 'apps', 'akashaBuild.ts'))
-  ok('app 用 ENTRY_RULES.akashaBuild 注册', app.includes('reg: ENTRY_RULES.akashaBuild'))
+  ok('app 用 RULES.akashaBuild 注册', app.includes('reg: RULES.akashaBuild'))
   ok('app 首个导出是插件类', /^export class \w+ extends plugin/m.test(app))
   ok('app 走取数层与归一化（不自己解析）', app.includes("from '../model/AkashaBoard.js'") && app.includes("from '../modules/akashaBoard.js'"))
   ok('app 对名次越界给可读提示', app.includes('这个榜单只有'))

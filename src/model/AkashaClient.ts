@@ -24,7 +24,7 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { getAkashaCacheTtlMinutes, getAkashaProxy, getAkashaTimeoutMs, loadConfig } from '../components/config.js'
+import { getAkashaCacheTtlMinutes, getAkashaProxy, getAkashaTimeoutMs, isQueryNetworkEnabled, loadConfig, QUERY_NETWORK_OFF_HINT } from '../components/config.js'
 import { AKASHA_BASE, AKASHA_CACHE_DIR, AKASHA_LANG } from '../components/constants.js'
 import { dataDir } from './TeamStore.js'
 
@@ -144,9 +144,9 @@ export async function akashaGet (
   params: Record<string, unknown> = {},
   opts: AkashaOptions = {}
 ): Promise<unknown> {
-  // 联网总开关：关闭时直接抛错（状态页据此提示"联网已关闭"）
-  if (!loadConfig().networkEnabled) {
-    throw akashaError(AKASHA_ERROR.offline, '联网功能已关闭：请在配置里开启 networkEnabled')
+  // 业务查询联网开关：关闭时直接抛错（状态页据此提示"联网已关闭"）
+  if (!isQueryNetworkEnabled()) {
+    throw akashaError(AKASHA_ERROR.offline, `${QUERY_NETWORK_OFF_HINT}；练度数据需要在配置里开启 networkEnabled`)
   }
 
   const url = new URL(`${AKASHA_BASE}/api/${String(endpoint).replace(/^\//, '')}`)

@@ -12,7 +12,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { dataDir, pluginRoot } from '../dir.js'
-import { getAkashaProxy, getAkashaTimeoutMs, loadConfig } from '../components/config.js'
+import { getAkashaProxy, getAkashaTimeoutMs, isQueryNetworkEnabled, QUERY_NETWORK_OFF_HINT } from '../components/config.js'
 import { akashaBrowserTransport } from './AkashaBrowser.js'
 import { normalizeBoard, type BoardEntry, type Textmap } from '../modules/akashaBoard.js'
 
@@ -72,7 +72,10 @@ export function boardPageUrl (calculationId: string): string {
 /** 把要翻译的词拼成 textmap 请求（键是英文小写） */
 export function textmapUrl (words: string[]): string {
   const uniq = [...new Set(words.map(w => String(w || '').trim().toLowerCase()).filter(Boolean))].slice(0, 60)
-  return 'https://akasha.cv/api/textmap/zh-CN' + uniq.map(w => `?words[]=${encodeURIComponent(w)}`).join('&').replace('?', '?')
+  // ⚠ 重复参数必须都叫 `words[]`：原实现拼成 `?words[]=a&?words[]=b`，第二个起参数名变成 `?words[]`，
+  //   标准解析器只能取到第一个词，批量中文化会缺词（2026-10-15 四项目复核 P2）
+  const query = uniq.map(w => `words[]=${encodeURIComponent(w)}`).join('&')
+  return `https://akasha.cv/api/textmap/zh-CN${query ? `?${query}` : ''}`
 }
 
 export interface BoardFetchOk {
@@ -104,8 +107,8 @@ export async function fetchBoard (
   charNameOrId: string | number,
   opts: { size?: number, attempts?: number } = {}
 ): Promise<BoardFetchOk | BoardFetchFail> {
-  if (!loadConfig().networkEnabled) {
-    return { ok: false, error: '联网功能已关闭：请在配置里开启 networkEnabled（阿卡莎榜单需要浏览器会话）' }
+  if (!isQueryNetworkEnabled()) {
+    return { ok: false, error: `${QUERY_NETWORK_OFF_HINT}；阿卡莎榜单需要浏览器会话` }
   }
   const official = officialIdOf(charNameOrId)
   if (!official) return { ok: false, error: `取不到「${charNameOrId}」的角色 id（本地 id 表里没有）` }

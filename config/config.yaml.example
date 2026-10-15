@@ -10,7 +10,25 @@ priority: 8000
 # 渲染缩放比例
 renderScale: 1.5
 
-# 联网总开关：默认关闭（榜单 / 危战 / 练度 不发请求；攻略查询完全离线）
+# 模块开关（功能层：该模块的命令是否响应）
+# true = 可用；false = 不响应（非接管类回提示；接管类「#胡桃攻略 / 帮助页」放行给其他插件）
+# ⚠ 与下面的 networkEnabled（只管查询类远程访问）正交
+modules:
+  codex: true
+  help: true
+  rank: true
+  raidTiers: true
+  build: true
+  grade: true
+  akashaBuild: true
+  # 队伍伤害：默认关闭（用户 2026-10-15 定）
+  teamDamage: false
+  video: true
+  status: true
+  admin: true
+
+# 业务查询联网开关（默认关闭）
+# 只管辖 DPS 榜 / 危战 / 练度等业务查询的远程访问与刷新；**不是**整个插件的全局联网禁令
 networkEnabled: false
 
 # 抓取 mhydps.cn 的代理，留空 = 直连
@@ -28,7 +46,7 @@ dpsPageSize: 10
 # 是否缓存并渲染角色立绘
 dpsAvatarEnabled: true
 
-# 启用练度查询
+# 阿卡莎数据通道（数据通道层；与上面的 modules 模块开关正交）
 akashaEnabled: true
 
 # 默认 UID：命令里不写 UID 时用它
@@ -46,11 +64,15 @@ akashaCacheTtlMinutes: 30
 # 一次练度查询最多列几个角色
 akashaMaxChars: 12
 
-# 练度评分权重（面板/武器/圣遗物/天赋；只对攻略里有目标的维度加权）
-gradeWeights: "panel:30,weapon:20,artifact:35,talent:15"
+# 练度评分权重（综合 / 武器 / 天赋；「综合」= 圣遗物有效词条为主 + 套装符合度）
+gradeWeights: "comprehensive:65,weapon:20,talent:15"
 
 # 面板三档阈值：大毕业 / 毕业 / 小毕业（按面板目标平均达成度）
 gradePanelTiers: "big:0.9,normal:0.6,small:0.3"
 
 # 总体练度九档阈值（MAX/ACE/SSS/SS/S/A/B/C，低于最后一项记 D）
 gradeRankThresholds: "MAX:95,ACE:88,SSS:80,SS:72,S:64,A:55,B:45,C:30"
+
+# 队伍伤害的序号轴表（`序号:名称=轴定义`，多个轴逗号分隔；`默认` = 每人最高单次×1／20s）
+# 例：1:保守轴=默认,2:重击轴=重击×8@20s+元素战技×1
+teamDamageAxes: "1:保守轴=默认"

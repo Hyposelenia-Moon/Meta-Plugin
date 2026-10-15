@@ -26,13 +26,185 @@
     .gd-name { flex: 0 0 130px; font-size: 21px; font-weight: 700; }
     .gd-arrow { flex: 1 1 auto; font-size: 19px; }
     .gd-verdict { flex: 0 0 130px; text-align: right; font-size: 19px; font-weight: 700; }
-    .gd-miss { color: var(--gold, #ffd479); }
+    /* 圣遗物行右侧要放「评分 246.4 ACE　词条数：45.3」：列加宽 + 不换行，避免与左侧套装名错位 */
+    .gd-verdict-wide { flex: 0 0 330px; white-space: nowrap; font-size: 17px; }
+    /*
+     * 档位配色与 miao 一致（`miao-plugin/resources/common/css/profile-detail.css` 的 `mark-*` 表）：
+     * MAX / ACE 红；SSS / SS 金；S / A 紫；B 及以下用默认色。
+     */
+    .gd-rank.gd-tier-MAX, .gd-rank.gd-tier-ACE, .gd-mark-MAX, .gd-mark-ACE { color: #e85656; }
+    .gd-rank.gd-tier-SSS, .gd-rank.gd-tier-SS, .gd-mark-SSS, .gd-mark-SS { color: #ffe699; }
+    .gd-rank.gd-tier-S, .gd-rank.gd-tier-A, .gd-mark-S, .gd-mark-A { color: #d699ff; }
+    /* B 及以下 miao 没有配色规则 → 用页面默认文字色（与 miao 面板一致） */
+    .gd-rank.gd-tier-B, .gd-rank.gd-tier-C, .gd-rank.gd-tier-D { color: var(--text); }
+    .gd-miss { color: #e85656; }
     .gd-okline { font-size: 16px; color: var(--muted-2, #999); padding: 6px 0 2px; }
+    /*
+     * 立绘行（2026-10-15 用户定：**完全 miao 同款**）——
+     * 左：整幅立绘（右上角叠角色名 + `Lv.90　1命`）；右：**实际面板** 8 行（名称 + 达成条 + 实际值 + 攻略目标）。
+     */
+    /*
+     * 字体：照抄 miao `resources/common/common.css` 的 `@font-face`（直接引用 miao 的字体文件，不复制）
+     * 与 `profile-detail.css` 的 `font-family`（`Number` / `汉仪文黑-65W`(YS) / NZBZ / PingFang SC）。
+     */
+    @font-face {
+      font-family: 'Number';
+      src: url('../../../../../plugins/miao-plugin/resources/common/font/tttgbnumber.woff') format('woff'),
+           url('../../../../../plugins/miao-plugin/resources/common/font/tttgbnumber.ttf') format('truetype');
+    }
+    @font-face {
+      font-family: 'NZBZ';
+      src: url('../../../../../plugins/miao-plugin/resources/common/font/NZBZ.woff') format('woff'),
+           url('../../../../../plugins/miao-plugin/resources/common/font/NZBZ.ttf') format('truetype');
+    }
+    @font-face {
+      font-family: 'YS';
+      src: url('../../../../../plugins/miao-plugin/resources/common/font/HYWH-65W.woff') format('woff'),
+           url('../../../../../plugins/miao-plugin/resources/common/font/HYWH-65W.ttf') format('truetype');
+    }
+    /* miao `profile-detail.css:2` 的字体栈 */
+    body { font-family: Number, "汉仪文黑-65W", YS, PingFangSC-Medium, "PingFang SC", sans-serif; }
+    /*
+     * ===== 立绘行：**逐条照抄 miao**（`miao-plugin/resources/character/profile-detail.css`
+     *        + `profile-detail.html` 的 `block 'main'`），只把类名统一加 `gd-` 前缀，**数值一个不改**。
+     * miao 的前提是页面宽 600px（`body { width: 600px }`），所以本页整页也压到 600px ——
+     * 于是 `1400×500 / margin-left:-545px` 这些绝对值不需要任何换算就能得到 miao 的构图。
+     *   `.basic`        → `.gd-basic`
+     *   `.main-pic`     → `.gd-main-pic`
+     *   `.detail`       → `.gd-detail`
+     *   `.char-name` / `.char-lv` / `.cons` → `.gd-char-name` / `.gd-char-lv` / `.gd-cons`
+     *   `.char-talents` / `.talent-item` / `.talent-icon` / `.talent-icon-img` / `.talent-crown`
+     *                   → `.gd-char-talents` / `.gd-talent-item` / `.gd-talent-icon` / `.gd-talent-icon-img` / `.gd-talent-crown`
+     *   `.char-attr`（`li` 300×32、斑马行、`.weight/.icon/.title/.value` 列）→ `.gd-char-attr`
+     *   `.char-cons`    → `.gd-char-cons`
+     */
+    /* miao `body { width: 600px }`：整页按面板宽度排版；立绘行以下的分区随 600px 自适应 */
+    body { width: 600px; min-width: 600px; max-width: 600px; }
+    .gd-basic { position: relative; margin: 0 -15px 15px -10px; }
+    .gd-main-pic {
+      width: 1400px; height: 500px;
+      background-size: contain; background-repeat: no-repeat; background-position: center;
+      margin-left: -545px; position: relative; z-index: 2;
+    }
+    .gd-detail { position: absolute; right: 20px; top: 20px; color: #fff; z-index: 3; }
+    .gd-char-name {
+      font-size: 50px;
+      font-family: Number, "印品南征北战NZBZ体", NZBZ, "汉仪文黑-65W", YS, PingFangSC-Medium, "PingFang SC", sans-serif;
+      text-shadow: 0 0 3px #000, 2px 2px 4px rgba(0, 0, 0, .7);
+      text-align: right;
+    }
+    .gd-char-lv { margin-bottom: 20px; text-shadow: 0 0 3px #000, 2px 2px 4px rgba(0, 0, 0, .7); text-align: right; }
+    /*
+     * 命座徽章：照抄 miao —— `.char-lv .cons`（profile-detail.css）给外边距与对齐，
+     * 徽章本体在 `common/css/common.css` 的 `.cons` / `.cons-N`（底色按命座数分档）。
+     */
+    .gd-char-lv .gd-cons { margin-left: 5px; vertical-align: bottom; }
+    .gd-cons { display: inline-block; vertical-align: middle; padding: 0 5px; border-radius: 4px; }
+    .gd-cons-0 { background: #666; color: #fff; }
+    .gd-cons-1 { background: #5cbac2; color: #fff; }
+    .gd-cons-2 { background: #339d61; color: #fff; }
+    .gd-cons-3 { background: #3e95b9; color: #fff; }
+    .gd-cons-4 { background: #3955b7; color: #fff; }
+    .gd-cons-5 { background: #531ba9cf; color: #fff; }
+    .gd-cons-6 { background: #ff5722; color: #fff; }
+    .gd-char-talents { display: flex; width: 300px; margin: 0 0 10px 0; }
+    .gd-char-talents .gd-talent-item { flex: 1; }
+    /*
+     * 天赋 / 命座图标：`z-index: 90` 是**必须**的（照抄 miao `profile-detail.css:226`）——
+     * 立绘 `.gd-main-pic` 是 `z-index: 2`，命座行没这个层级就会被立绘盖住（看起来"图标消失"）。
+     * 圆环底图不在这里写，由下面的 `.gd-elem-*` 按元素铺（miao `common.css:208-266`）。
+     */
+    .gd-talent-icon {
+      width: 100px; height: 100px; padding: 5px; border-radius: 50%; position: relative; display: table;
+      background-size: contain; background-repeat: no-repeat; background-position: center center; z-index: 90;
+    }
+    .gd-talent-icon-img {
+      width: 46%; height: 46%; position: absolute; top: 50%; left: 50%; margin: -22% 0 0 -23%;
+      background-repeat: no-repeat; background-position: center; background-size: contain;
+    }
+    .gd-talent-icon strong {
+      background: #fff; width: 34px; height: 26px; line-height: 26px; font-size: 17px; text-align: center;
+      border-radius: 5px; position: absolute; bottom: 2px; left: 50%; margin-left: -15px;
+      color: #000; box-shadow: 0 0 5px 0 #000;
+    }
+    /* 被命座加成的天赋：深底金字（miao `.talent-icon.talent-plus strong`） */
+    .gd-talent-icon.gd-talent-plus strong {
+      background: #2e353e; color: #ffdfa0; font-weight: bold;
+      box-shadow: 0 0 1px 0 #d3bc8e, 1px 1px 2px 0 rgba(0, 0, 0, .5);
+    }
+    .gd-talent-icon.gd-talent-crown::after {
+      content: ''; display: block; position: absolute; left: 50%; top: 0; margin-left: -14px;
+      width: 28px; height: 28px;
+      background: url('../../../../../plugins/miao-plugin/resources/character/imgs/crown.png') no-repeat;
+      background-size: contain;
+    }
+    /*
+     * 图标圆环底图：照抄 miao `resources/common/common.css:208-266` 的
+     * `.elem-{elem} .talent-icon { background-image: url("./bg/talent-{elem}.webp") }`，
+     * 只把选择器加 `gd-` 前缀、把 url 换成指向 miao 资源的相对路径（只引用不复制）。
+     * 元素类挂在 `<body>` 上（同 miao `elem.html:16`）。
+     */
+    .gd-elem-hydro .gd-talent-icon { background-image: url('../../../../../plugins/miao-plugin/resources/common/bg/talent-hydro.webp'); }
+    .gd-elem-anemo .gd-talent-icon { background-image: url('../../../../../plugins/miao-plugin/resources/common/bg/talent-anemo.webp'); }
+    .gd-elem-cryo .gd-talent-icon { background-image: url('../../../../../plugins/miao-plugin/resources/common/bg/talent-cryo.webp'); }
+    .gd-elem-electro .gd-talent-icon { background-image: url('../../../../../plugins/miao-plugin/resources/common/bg/talent-electro.webp'); }
+    .gd-elem-geo .gd-talent-icon { background-image: url('../../../../../plugins/miao-plugin/resources/common/bg/talent-geo.webp'); }
+    .gd-elem-pyro .gd-talent-icon { background-image: url('../../../../../plugins/miao-plugin/resources/common/bg/talent-pyro.webp'); }
+    .gd-elem-dendro .gd-talent-icon { background-image: url('../../../../../plugins/miao-plugin/resources/common/bg/talent-dendro.webp'); }
+    .gd-elem-quantum .gd-talent-icon { background-image: url('../../../../../plugins/miao-plugin/resources/common/bg/talent-quantum.webp'); }
+    /* 面板（`.char-attr`）：li 固定 300px、32px 高、斑马行；列 = icon(26) / title(75) / value(100) */
+    .gd-char-attr { backdrop-filter: blur(2px); background: rgba(0, 0, 0, .2); border-radius: 8px; overflow: hidden; margin: 0; padding: 0; }
+    .gd-char-attr li {
+      width: 300px; font-size: 17px; list-style: none; height: 32px; line-height: 32px;
+      text-shadow: 0 0 1px rgba(0, 0, 0, .5); display: flex; padding-left: 3px;
+    }
+    .gd-char-attr li:nth-child(even) { background: rgba(0, 0, 0, .4); }
+    .gd-char-attr li:nth-child(odd) { background: rgba(50, 50, 50, .4); }
+    .gd-char-attr li .icon { width: 26px; padding: 2px 5px; }
+    .gd-char-attr li .icon i {
+      display: inline-block; height: 16px; width: 16px;
+      background-image: url('../../../../../plugins/miao-plugin/resources/character/imgs/icon.png');
+      background-size: auto 16px;
+    }
+    .gd-char-attr li .title { width: 75px; text-shadow: 0 0 1px rgba(0, 0, 0, .8), 1px 1px 3px rgba(0, 0, 0, .5); }
+    /* 属性权重列（照抄 miao，`>= 80` 金色） */
+    .gd-char-attr li .weight { width: 36px; }
+    .gd-char-attr li .weight span {
+      display: block; width: 30px; border-radius: 5px; font-size: 12px; height: 18px; line-height: 18px;
+      background: rgba(0, 0, 0, .5); text-align: center; margin: 7px auto 0;
+    }
+    .gd-char-attr li .weight span.gold { color: #ffe699; }
+    /* 基础值 / 加成列（照抄 miao `.value2`） */
+    .gd-char-attr li .value2 {
+      font-weight: normal; width: 70px; text-align: right; font-size: 12px;
+      padding: 4px 10px 0 0; background: rgba(0, 0, 0, .2);
+    }
+    .gd-char-attr li .value2 span { display: block; height: 13px; line-height: 13px; transform-origin: right center; }
+    .gd-char-attr li .value2 .base { color: #eee; }
+    .gd-char-attr li .value2 .base.zero { color: #aaaa; }
+    .gd-char-attr li .value2 .plus { color: #90e800; }
+    .gd-char-attr li .value {
+      width: 100px; text-align: right; font-weight: normal; padding-right: 10px;
+      text-shadow: 0 0 1px rgba(0, 0, 0, .8), 1px 1px 3px rgba(0, 0, 0, .5);
+    }
+    /* 属性图标精灵图偏移（照抄 miao 的 `.i-*`） */
+    .i-hp { background-position: -16px 0; }
+    .i-atk { background-position: -32px 0; }
+    .i-def { background-position: -48px 0; }
+    .i-mastery { background-position: -64px 0; }
+    .i-cpct { background-position: -80px 0; }
+    .i-cdmg { background-position: -96px 0; }
+    .i-recharge { background-position: -112px 0; }
+    .i-dmg { background-position: -128px 0; }
+    /* 命座（`.char-cons` + 50×50 的 `.talent-icon`；条目是 `.cons-item`，不参与 flex 均分） */
+    .gd-char-cons { display: flex; width: 250px; position: absolute; bottom: 5px; left: 20px; }
+    .gd-char-cons .gd-talent-icon { width: 50px; height: 50px; margin: 0 -5px; }
+    .gd-char-cons .gd-talent-icon.off { filter: grayscale(100%); opacity: .4; }
     .gd-sug { font-size: 19px; padding: 5px 0; }
     .gd-foot { font-size: 15px; color: var(--muted-2, #999); padding: 2px 0; }
   </style>
 </head>
-<body style="zoom:{{renderScale}}">
+<body class="gd-elem-{{elemClass}}" style="zoom:{{renderScale}}">
   <div class="page">
     <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-rank.jpg')"></div>
     <div class="page-inner">
@@ -44,11 +216,50 @@
           {{if subtitle}}<div class="subtitle">{{subtitle}}</div>{{/if}}
         </div>
       </div>
+      <!-- ① 立绘行：结构逐条照抄 miao（`.basic` / `.main-pic` / `.detail` / `.char-cons`） -->
+      <div class="gd-basic">
+        {{if splashRel}}<div class="gd-main-pic" style="background-image:url({{splashRel}})"></div>
+        {{else if portrait}}<div class="gd-main-pic" style="background-image:url({{_data_path}}/{{portrait}})"></div>
+        {{else}}<div class="gd-main-pic"></div>{{/if}}
+        <div class="gd-detail">
+          <div class="gd-char-name">{{charName}}</div>
+          <div class="gd-char-lv">UID {{uidText}} - Lv.{{buildInfo.levelText}}<span class="gd-cons gd-cons-{{buildInfo.consN}}">{{buildInfo.consN}}命</span></div>
+          <div class="gd-char-talents">
+            {{each talentIcons t}}
+            <div class="gd-talent-item">
+              <div class="gd-talent-icon{{if t.plus}} gd-talent-plus{{/if}}{{if t.crown}} gd-talent-crown{{/if}}">{{if t.icon}}<div class="gd-talent-icon-img" style="background-image:url({{t.icon}})"></div>{{/if}}<strong>{{t.level}}</strong></div>
+            </div>
+            {{/each}}
+          </div>
+          <ul class="gd-char-attr">
+            {{each panelRows r}}
+            <li>
+              <div class="icon"><i class="i-{{r.key}}"></i></div>
+              <div class="title">{{r.name}}</div>
+              <div class="weight">{{if r.weight}}<span class="{{r.gold? 'gold':'normal'}}">{{r.weight}}</span>{{/if}}</div>
+              <div class="value">{{r.value}}</div>
+              <div class="value2">
+                <span class="base{{if r.base === '0.0%'}} zero{{/if}}">{{r.base}}</span>
+                <span class="plus">+{{r.plus}}</span>
+              </div>
+            </li>
+            {{/each}}
+          </ul>
+        </div>
+        <div class="gd-char-cons">
+          {{each consIcons c}}
+          <div class="gd-cons-item">
+            <div class="gd-talent-icon{{if !c.on}} off{{/if}}">{{if c.icon}}<div class="gd-talent-icon-img" style="background-image:url({{c.icon}})"></div>{{/if}}</div>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+
       <div class="card body-card">
         <div class="gd-hero">
-          <div class="gd-rank">{{ranks}}</div>
+          <div class="gd-rank gd-tier-{{rankClass}}">{{ranks}}</div>
           <div class="gd-total">{{total}} 分</div>
-          <div class="gd-panel">面板：{{panelTier}}</div>
+          <div class="gd-panel">综合：{{panelTier}}</div>
         </div>
         <div class="gd-dims">
           {{each dims d}}
@@ -61,7 +272,21 @@
         </div>
       </div>
 
-      <!-- ② 差在哪 -->
+      <!-- ② 当前配装（2026-10-15：只给武器 / 套装 + miao 评分与有效词条数；等级命座与天赋都在立绘行） -->
+      <div class="card body-card">
+        <div class="card-title">当前配装</div>
+        <div class="gd-row">
+          <div class="gd-group">武器</div>
+          <div class="gd-arrow">{{buildInfo.weapon}}</div>
+        </div>
+        <div class="gd-row">
+          <div class="gd-group">圣遗物</div>
+          <div class="gd-arrow">{{buildInfo.artis}}</div>
+          <div class="gd-verdict gd-verdict-wide">{{if buildInfo.artiMark}}<span class="gd-mark-{{buildInfo.artiMarkClass}}">{{buildInfo.artiMark}}</span>{{/if}}{{if buildInfo.rolls}}　{{buildInfo.rolls}}{{/if}}</div>
+        </div>
+      </div>
+
+      <!-- ③ 差在哪 -->
       <div class="card body-card">
         <div class="card-title">未达标项</div>
         {{if missRows && missRows.length > 0}}
@@ -80,7 +305,7 @@
         {{if consLine}}<div class="gd-okline">命座：{{consLine}}</div>{{/if}}
       </div>
 
-      <!-- ③ 怎么做 -->
+      <!-- ④ 怎么做 -->
       <div class="card body-card">
         <div class="card-title">提升建议</div>
         {{each suggestions s idx}}
@@ -88,10 +313,23 @@
         {{/each}}
       </div>
 
-      <!-- 脚注：口径 + 权重 -->
+      <!-- ⑤ 参考 DPS（当前金数向下取 4 的倍数，步长 4，最多 3 档；每档取含该角色的最高伤害） -->
+      {{if refDps && refDps.length > 0}}
+      <div class="card body-card">
+        <div class="card-title">参考 DPS</div>
+        {{each refDps r}}
+        <div class="gd-row">
+          <div class="gd-group">{{r.cost}} 金</div>
+          <div class="gd-arrow">{{r.teamText}}</div>
+          <div class="gd-verdict">{{r.damageText}}{{if r.video}}｜视频{{/if}}</div>
+        </div>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      <!-- ⑥ 脚注：口径（一行）+ 备注 + 版权 -->
       <div class="card foot-card">
-        <div class="gd-foot">口径：面板取各项目标区间的达成率均值；攻略缺项不计入总分，命座不计分。</div>
-        <div class="gd-foot">{{weightsNote}}</div>
+        <div class="gd-foot">口径：综合分＝圣遗物有效词条＋套装符合度；面板与命座仅作参考。</div>
         {{each notes n}}
         <div class="gd-foot">注：{{n}}</div>
         {{/each}}

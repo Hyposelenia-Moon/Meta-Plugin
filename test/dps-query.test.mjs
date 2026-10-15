@@ -8,7 +8,7 @@
  *
  * 另外钉住本仓库特有的两点：
  *   - 离线（`networkEnabled: false`）时查询入口**降级不抛错**（返回空结果，由 app 层提示）；
- *   - 视频查询的报错文案已按 B15 改成 `#DPS视频` / `#DPS危战视频`。
+ *   - 视频查询的报错文案已按 B15 改成 `#视频` / `#危战视频`。
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -259,7 +259,7 @@ const raids = TS.normalizeTeams2(fixture('teams2.sample.json'))
   const rd = FT.raidText(raidResult)
   ok('危战文本含耗时与版本首领', rd.includes('24s') && rd.includes('7.1') && rd.includes('矮灵雕刻师'))
   ok('危战文本含绿玩标签', rd.includes('绿玩'))
-  ok('危战文本含标题', rd.includes('#DPS危战榜'))
+  ok('危战文本含标题', rd.includes('#危战'))
 
   const entry = FT.entryText({ row: rankResult.rows[0], rank: 3, total: 9, fetchedAt: Date.now() }, 'rank')
   ok('单条文本含名次与总数', entry.includes('第 3 名') && entry.includes('共 9 条'))
@@ -302,9 +302,9 @@ const raids = TS.normalizeTeams2(fixture('teams2.sample.json'))
   ok('版本不存在 → ok:false + 版本候选', badVer.ok === false && Array.isArray(badVer.suggestions))
 
   const r1 = await RQ.findRankEntry({}, 0)
-  ok('名次非正整数 → 报错文案为 #DPS视频', r1.ok === false && r1.error.includes('#DPS视频 3'))
+  ok('名次非正整数 → 报错文案为 #视频', r1.ok === false && r1.error.includes('#视频 3'))
   const r2 = await DQ.findRaidEntry({}, 0)
-  ok('危战名次非正整数 → 文案为 #DPS危战视频', r2.ok === false && r2.error.includes('#DPS危战视频 3'))
+  ok('危战名次非正整数 → 文案为 #危战视频', r2.ok === false && r2.error.includes('#危战视频 3'))
   const r3 = await RQ.findRankEntry({}, 5, { downloadAvatars: false })
   ok('无数据时按名次查询 → 明确报"没有任何记录"', r3.ok === false && r3.error.includes('没有任何记录'))
 }

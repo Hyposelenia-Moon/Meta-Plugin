@@ -45,7 +45,7 @@ for (const name of pageNames) {
   const items = meta.list.flatMap(g => g.list || [])
   ok('主菜单条数克制（≤12 条）', items.length <= 12, String(items.length))
   ok('主菜单含攻略 / 练度 / 伤害 / 榜单四类常用入口',
-    ['#胡桃攻略', '#练度查询 胡桃', '#胡桃dps', '#DPS榜'].every(t => items.some(i => i.title === t)),
+    ['#胡桃攻略', '#练度查询 胡桃', '#DPS榜 胡桃', '#DPS榜'].every(t => items.some(i => i.title === t)),
     items.map(i => i.title).join(' | '))
   ok('主菜单指向两个分菜单', items.some(i => i.title === '#攻略帮助') && items.some(i => i.title === '#DPS帮助'))
   ok('总菜单含「数据与维护」，分菜单不再重复承载',
@@ -58,12 +58,18 @@ for (const name of pageNames) {
 {
   const all = pageNames.flatMap(n => (pages[n]?.list || []).flatMap(g => g.list || []))
   const combined = all.map(i => `${i.title} ${i.desc}`)
-  const need = ['#胡桃攻略', '#练度查询 胡桃', '#配装 胡桃 3', '#胡桃dps', '#危战', '#队伍伤害 四人名',
-    '#队伍伤害 轴:重击×8', '#队伍伤害 词条:+20暴击', '#DPS榜', '#DPS视频',
-    '#攻略状态', '#DPS更新']
-  push('三页并集覆盖全部入口（含旧写法说明）', need.filter(k => !combined.some(t => t.includes(k))), [])
+  const need = ['#胡桃攻略', '#练度查询 胡桃', '#练度榜 胡桃', '#配装 胡桃 3', '#DPS榜 胡桃', '#危战',
+    '#队伍伤害 四人名', '+30暴击', '#DPS榜', '#视频', '#危战视频',
+    '#攻略状态', '#meta状态', '#榜单刷新']
+  push('三页并集覆盖全部入口（含默认轴与免前缀词条）', need.filter(k => !combined.some(t => t.includes(k))), [])
   ok('已移除的攻略写法没被写回帮助页',
     !combined.some(t => t.includes('#攻略 胡桃') || t.includes('#攻略 武器')))
+  // 2026-10-15 用户定：帮助页不放"需开发者处理"的内容（配置键 / 文件名 / 改配置说明）
+  const devish = JSON.stringify(mod.helpPages)
+    .match(/teamDamageAxes|boss-alias|\.json|\.yaml|\.ts\b|\.js\b|改配置|配置项|modules\.|序号轴/g) || []
+  push('帮助页不出现配置键 / 文件名 / 改配置说明', devish, [])
+  // 只展示默认轴：不得出现 `#队伍伤害2`（其余序号轴要管理员先定义，不适合当入口）
+  push('帮助页不展示非默认序号轴', combined.filter(t => /#队伍伤害[2-9]/.test(t)), [])
   // 2026-10-14 用户定：帮助页**只讲新写法**，不出现旧写法说明
   const legacyNotes = JSON.stringify(mod.helpPages).match(/旧写法|同义\\|同页|亦可|仍可用/g) || []
   push('帮助页不出现旧写法的说明性文字', legacyNotes, [])

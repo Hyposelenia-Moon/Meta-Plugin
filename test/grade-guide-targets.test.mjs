@@ -91,7 +91,7 @@ const emptyView = { metaRows: [], sections: buildV2Sections(guide) }
   }
   const text = gradeBuild(t, build, {}).suggestions.join('\n')
   ok('④ 不出现"凑「…」4 件"', !/凑「.+」4 件/.test(text))
-  ok('④ 低分归因到词条质量', /提升词条质量/.test(text))
+  ok('④ 低分归因到词条质量', /提升有效词条/.test(text))
 }
 
 const bad = report()

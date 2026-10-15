@@ -4,7 +4,12 @@
  * 对应 `defSet/config.yaml` 的模板变量：`meta_priority` / `meta_renderScale` / `meta_networkEnabled` /
  * `meta_proxy` / `meta_dpsTimeoutMs` / `meta_dpsCacheTtlMinutes` / `meta_dpsPageSize` / `meta_dpsAvatarEnabled` /
  * `meta_akashaEnabled` / `meta_akashaDefaultUid` / `meta_akashaProxy` / `meta_akashaTimeoutMs` /
- * `meta_akashaCacheTtlMinutes` / `meta_akashaMaxChars`
+ * `meta_akashaCacheTtlMinutes` / `meta_akashaMaxChars` /
+ * `meta_module_<模块键>` × 13（模块开关：配置文件里是嵌套的 `modules:`，表单按模块逐项）
+ *
+ * 三层开关的界面分组（2026-10-15 起）：
+ *   「模块开关」（功能层：命令是否响应）→「业务查询联网」（查询联网层）→「数据源二 · akasha」（数据通道层）。
+ *   三者正交，说明文字不得互相替代（见 `AGENTS.md` 硬约束 8/12）。
  *
  * 沿用 Mhydps-Plugin 的三条约定：
  *   1. 字段名 → 模板变量名的映射集中在 `TEMPLATE_VARS`（用 `Record<keyof MetaConfig, string>` 让 tsc 保证不漏键）；
@@ -16,12 +21,15 @@ import fs from 'node:fs'
 import path from 'node:path'
 import YAML from 'yaml'
 import { pluginRoot } from '../dir.js'
-import { configFile, defaultConfig, exampleFile, type MetaConfig } from '../components/config.js'
+import { configFile, defaultConfig, defaultModules, exampleFile, MODULE_KEYS, MODULE_LABELS, type MetaConfig, type ModuleKey } from '../components/config.js'
 
 const DEFSET_CONFIG_PATH = path.join(pluginRoot, 'defSet', 'config.yaml')
 
+/** 标量配置键（`modules` 是嵌套对象，单独按模块处理） */
+type ScalarConfigKey = Exclude<keyof MetaConfig, 'modules'>
+
 /** guoba 字段 → defSet 模板变量名 */
-const TEMPLATE_VARS: Record<keyof MetaConfig, string> = {
+const TEMPLATE_VARS: Record<ScalarConfigKey, string> = {
   priority: 'meta_priority',
   renderScale: 'meta_renderScale',
   networkEnabled: 'meta_networkEnabled',
@@ -38,16 +46,56 @@ const TEMPLATE_VARS: Record<keyof MetaConfig, string> = {
   akashaProxy: 'meta_akashaProxy',
   akashaTimeoutMs: 'meta_akashaTimeoutMs',
   akashaCacheTtlMinutes: 'meta_akashaCacheTtlMinutes',
-  akashaMaxChars: 'meta_akashaMaxChars'
+  akashaMaxChars: 'meta_akashaMaxChars',
+  teamDamageAxes: 'meta_teamDamageAxes'
 }
 
-/** 模板变量兜底值（字符串形态；取自 defaultConfig，保证示例文件与代码默认值同源） */
-const DEFAULTS: Record<string, string> = Object.fromEntries(
-  Object.entries(TEMPLATE_VARS).map(([field, varName]) => [
-    varName,
-    String((defaultConfig as unknown as Record<string, unknown>)[field] ?? '')
+/**
+ * 模块开关：每个模块一个 guoba 字段 + 一个模板变量
+ *
+ * 配置文件里它们是 `modules:` 下的嵌套键（便于阅读与手改），但锅巴表单是**逐项** Switch，
+ * 所以这里走"字段 `module_<key>` ↔ 变量 `meta_module_<key>`"的映射，由 get/setConfigData 负责换算。
+ */
+const MODULE_VARS: Record<ModuleKey, string> = Object.fromEntries(
+  MODULE_KEYS.map(key => [key, `meta_module_${key}`])
+) as Record<ModuleKey, string>
+
+/** guoba 表单里的模块开关字段名 */
+export function moduleField (key: ModuleKey): string {
+  return `module_${key}`
+}
+
+/**
+ * 模块开关的界面说明
+ *
+ * ⚠ 接管类（攻略 / 帮助）关闭时是"不认领、放行"，其他模块是"回一条提示"，说明文字不能写同一句。
+ */
+const MODULE_HELP: Record<ModuleKey, { help: string, bottom: string }> = Object.fromEntries(
+  MODULE_KEYS.map(key => [
+    key,
+    (key === 'codex' || key === 'help')
+      ? {
+          help: '关闭后本插件不接管该入口：放行给 genshin「米游社攻略」/ Atlas',
+          bottom: `配置键 modules.${key}，默认${defaultModules[key] ? '开启' : '关闭'}`
+        }
+      : {
+          help: '关闭后该模块的命令不响应：回一条「已在配置中关闭」的提示',
+          bottom: `配置键 modules.${key}，默认${defaultModules[key] ? '开启' : '关闭'}`
+        }
   ])
-)
+) as Record<ModuleKey, { help: string, bottom: string }>
+
+/** 模板变量兜底值（字符串形态；取自 defaultConfig，保证示例文件与代码默认值同源） */
+const DEFAULTS: Record<string, string> = {
+  ...Object.fromEntries(
+    Object.entries(TEMPLATE_VARS).map(([field, varName]) => [
+      varName,
+      String((defaultConfig as unknown as Record<string, unknown>)[field] ?? '')
+    ])
+  ),
+  // 模块开关的兜底值（`true` / `false` 文本，正好是 YAML 布尔）
+  ...Object.fromEntries(MODULE_KEYS.map(key => [MODULE_VARS[key], String(defaultModules[key])]))
+}
 
 /** guoba 会注入的 `Result` 构造器（只用到 ok / error） */
 interface GuobaResult {
@@ -79,7 +127,7 @@ export function supportGuoba (): Record<string, unknown> {
       link: 'https://github.com/Hyposelenia-Moon/Meta-Plugin',
       isV3: true,
       isV2: false,
-      description: '原神角色攻略（六模块一图）+ DPS / 危战榜单 + 练度查询',
+      description: '原神角色攻略（六模块一图）+ DPS / 危战榜单 + 练度查询（13 个模块可逐项开关）',
       icon: 'mdi:book-open-variant',
       iconColor: '#4a9eff'
     },
@@ -106,13 +154,37 @@ export function supportGuoba (): Record<string, unknown> {
           componentProps: { min: 0.5, max: 3, step: 0.1, defaultValue: 1.5 }
         },
 
-        // ==================== 联网 ====================
-        { label: '联网（榜单 / 练度）', component: 'SOFT_GROUP_BEGIN' },
+        // ==================== 模块开关（功能层：命令是否响应） ====================
+        {
+          label: '模块开关（功能层）',
+          component: 'SOFT_GROUP_BEGIN'
+        },
+        {
+          field: moduleField('teamDamage'),
+          label: `${MODULE_LABELS.teamDamage}（默认关闭）`,
+          helpMessage: MODULE_HELP.teamDamage.help,
+          bottomHelpMessage: MODULE_HELP.teamDamage.bottom,
+          component: 'Switch',
+          required: true,
+          componentProps: { defaultValue: defaultModules.teamDamage }
+        },
+        ...MODULE_KEYS.filter(key => key !== 'teamDamage').map(key => ({
+          field: moduleField(key),
+          label: MODULE_LABELS[key],
+          helpMessage: MODULE_HELP[key].help,
+          bottomHelpMessage: MODULE_HELP[key].bottom,
+          component: 'Switch',
+          required: true,
+          componentProps: { defaultValue: defaultModules[key] }
+        })),
+
+        // ==================== 业务查询联网（查询联网层） ====================
+        { label: '业务查询联网（查询联网层）', component: 'SOFT_GROUP_BEGIN' },
         {
           field: 'networkEnabled',
-          label: '启用联网功能',
-          helpMessage: '关闭后榜单 / 危战 / 练度一律不发请求',
-          bottomHelpMessage: '默认关闭：攻略查询完全离线可用；要查榜单与练度时再打开',
+          label: '启用业务查询联网',
+          helpMessage: '关闭后 DPS 榜 / 危战 / 练度等**查询类**远程请求一律不发（攻略查询完全离线可用）',
+          bottomHelpMessage: '默认关闭。⚠ 只管辖查询类远程访问，不是整个插件的全局联网禁令：别名服务、可选插件探测、依赖安装等不受它影响',
           component: 'Switch',
           required: true,
           componentProps: { defaultValue: false }
@@ -167,12 +239,12 @@ export function supportGuoba (): Record<string, unknown> {
         },
 
         // ==================== 数据源二 · akasha.cv ====================
-        { label: '数据源二 · akasha.cv（练度查询）', component: 'SOFT_GROUP_BEGIN' },
+        { label: '数据源二 · akasha.cv（练度名次面板 / 榜上配装）', component: 'SOFT_GROUP_BEGIN' },
         {
           field: 'akashaEnabled',
-          label: '启用练度查询',
-          helpMessage: '练度数据来自 akasha.cv（mhydps.cn 没有练度排名）',
-          bottomHelpMessage: '关闭后 #练度查询 只提示未启用，不发任何请求',
+          label: '阿卡莎数据通道（数据通道层）',
+          helpMessage: '练度数据来自 akasha.cv（mhydps.cn 没有练度排名）；本项只控制"能不能走阿卡莎通道"',
+          bottomHelpMessage: '⚠ 与「模块开关」正交：关掉它，模块即使开着也取不到练度数据；关掉 modules.build / modules.akashaBuild 则命令直接不响应',
           component: 'Switch',
           required: true,
           componentProps: { defaultValue: true }
@@ -224,12 +296,24 @@ export function supportGuoba (): Record<string, unknown> {
         },
 
         // ==================== 练度评分（v3 P2） ====================
+        // ==================== 队伍伤害 ====================
+        { label: '队伍伤害', component: 'SOFT_GROUP_BEGIN' },
+        {
+          field: 'teamDamageAxes',
+          label: '序号轴表',
+          helpMessage: '写法 `序号:名称=轴定义`，多个轴用逗号分隔；轴定义 = 关键词×次数@窗口s（多段用 +）',
+          bottomHelpMessage: '`默认` 或留空 = 保守轴（每人最高单次×1／20s）。例：1:保守轴=默认,2:重击轴=重击×8@20s+元素战技×1；查询时发 #队伍伤害2 四人名',
+          component: 'Input',
+          required: false,
+          componentProps: { placeholder: '1:保守轴=默认,2:重击轴=重击×8@20s+元素战技×1' }
+        },
+
         { label: '练度评分 · 权重与档位', component: 'SOFT_GROUP_BEGIN' },
         {
           field: 'gradeWeights',
           label: '练度评分权重',
-          helpMessage: '面板 / 武器 / 圣遗物 / 天赋 的权重',
-          bottomHelpMessage: '写法 panel:30,weapon:20,artifact:35,talent:15；只对攻略里有目标的维度加权（改权重不用改代码）',
+          helpMessage: '综合（圣遗物有效词条）/ 武器 / 天赋 的权重',
+          bottomHelpMessage: '写法 comprehensive:65,weapon:20,talent:15；面板目标不计分、只作参考（旧写法 panel+artifact 会自动相加）',
           component: 'Input',
           required: false,
           componentProps: { placeholder: 'panel:30,weapon:20,artifact:35,talent:15' }
@@ -261,6 +345,11 @@ export function supportGuoba (): Record<string, unknown> {
         for (const [field, varName] of Object.entries(TEMPLATE_VARS)) {
           out[field] = cfg[field] ?? (defaultConfig as unknown as Record<string, unknown>)[field] ?? DEFAULTS[varName]
         }
+        // 模块开关：从嵌套的 `modules` 里逐项摊平成表单字段
+        const modules = (cfg.modules && typeof cfg.modules === 'object') ? cfg.modules as Record<string, unknown> : {}
+        for (const key of MODULE_KEYS) {
+          out[moduleField(key)] = modules[key] ?? defaultModules[key]
+        }
         return out
       },
 
@@ -278,6 +367,15 @@ export function supportGuoba (): Record<string, unknown> {
             // 2026-10-15 审核 P2：第二参是**替换字符串**，用户值里的 `$&`/`$1` 会被当替换语法解释
       //（实测密码 `pass$&word` 存成 `pass${meta_proxy}word`）→ 改用回调，返回值按字面量插入
       template = template.replace(new RegExp(`\\$\\{${varName}\\}`, 'g'), () => String(value))
+          }
+
+          // 模块开关：表单字段 `module_<key>` → 模板变量 `meta_module_<key>`（值就是 `true` / `false`）
+          for (const key of MODULE_KEYS) {
+            const raw = data[moduleField(key)]
+            const value = (raw === undefined || raw === null || raw === '')
+              ? (DEFAULTS[MODULE_VARS[key]] ?? String(defaultModules[key]))
+              : raw
+            template = template.replace(new RegExp(`\\$\\{${MODULE_VARS[key]}\\}`, 'g'), () => String(value))
           }
 
           fs.mkdirSync(path.dirname(configFile()), { recursive: true })

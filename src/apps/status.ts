@@ -1,13 +1,13 @@
 /**
- * `#DPS状态` —— 缓存时间、条数、头像缓存与版本信息
+ * `#meta状态` —— 缓存时间、条数、头像缓存与版本信息
  *
  * 合并自 `Mhydps-Plugin/apps/status.js`。图与文本回退共用 `buildData()` 一份数据。
  *
  * ⚠ 本文件只导出插件类：`src/index.ts` 的加载器取「模块首个导出」当插件类。
  */
-import { getPluginConfig, getProxy, loadConfig } from '../components/config.js'
+import { disabledModules, getPluginConfig, getProxy, isQueryNetworkEnabled, MODULE_LABELS } from '../components/config.js'
 import { proxyHasAuth, proxySafe } from '../components/proxy.js'
-import { DPS_COMMANDS, DPS_COPYRIGHT, DPS_RULES, SITE_NAME, agoText, formatTime } from '../components/constants.js'
+import { COMMANDS, DPS_COPYRIGHT, RULES, SITE_NAME, agoText, formatTime } from '../components/constants.js'
 import { avatarStats } from '../model/AvatarStore.js'
 import { versions } from '../model/CharacterIndex.js'
 import { cacheInfo, getCounts } from '../model/TeamStore.js'
@@ -19,10 +19,11 @@ import { respond } from '../modules/respond.js'
 
 // @ts-expect-error 框架文件不在 tsc 解析范围，运行时相对 lib/ 解析（见 components/render.ts 文件头 T1 / T2）
 import plugin from '../../../../lib/plugins/plugin.js'
+import { moduleGateReply } from '../modules/moduleGate.js'
 
-const META = DPS_COMMANDS.find(c => c.rules.includes('status'))!
+const META = COMMANDS.find(c => c.rules.includes('status'))!
 
-const TITLE = '#DPS状态'
+const TITLE = '#meta状态'
 
 /** 状态页数据（图与文本共用） */
 interface StatusData {
@@ -36,8 +37,10 @@ interface StatusData {
   proxy: string
   proxyConfigured: boolean
   proxyAuth: boolean
-  /** 联网总开关（默认关；关着就不会联网，页面只能出缓存里的数据） */
+  /** 业务查询联网开关（默认关；关着时查询类远程访问一律不发，页面只能出缓存里的数据） */
   networkEnabled: boolean
+  /** 已关闭的模块（功能层；标签串，逗号顿号分隔，空串表示全开） */
+  disabledModules: string
   /** 攻略数据：有内容的角色数 / 收录总数 */
   codexFilled: number
   codexTotal: number
@@ -65,7 +68,7 @@ export class MetaStatus extends plugin {
         ? Number(getPluginConfig().priority) + META.priorityOffset
         : 8000 + META.priorityOffset,
       rule: [
-        { reg: DPS_RULES.status, fnc: 'handleStatus', permission: META.permission }
+        { reg: RULES.status, fnc: 'handleStatus', permission: META.permission }
       ]
     })
   }
@@ -102,7 +105,8 @@ export class MetaStatus extends plugin {
       proxy: proxyShown,
       proxyConfigured: !!proxy,
       proxyAuth: proxyHasAuth(proxy),
-      networkEnabled: loadConfig().networkEnabled === true,
+      networkEnabled: isQueryNetworkEnabled(),
+      disabledModules: disabledModules().map(key => MODULE_LABELS[key]).join('、'),
       codexFilled,
       codexTotal,
       miaoOk,
@@ -120,15 +124,16 @@ export class MetaStatus extends plugin {
     }
   }
 
-  /** `#DPS状态` — 缓存时间、条数、头像缓存与版本信息 */
+  /** `#meta状态` — 缓存时间、条数、头像缓存与版本信息 */
   async handleStatus (e: YunzaiEvent): Promise<boolean> {
+    if (await moduleGateReply('status', e)) return true
     const data = this.buildData((e as unknown as { isMaster?: boolean }).isMaster === true)
 
     if (!data.hasData) {
       await e.reply(
         '[Meta] 还没有本地数据。\n' +
-        '· 主人执行 #DPS更新 立即拉取\n' +
-        '· 直接查询（#DPS榜 / #DPS危战榜）也会自动拉取\n' +
+        '· 主人执行 #榜单刷新 立即拉取\n' +
+        '· 直接查询（#DPS榜 / #危战）也会自动拉取\n' +
         `· 若拉取失败，检查配置里的 proxy（当前：${data.proxyConfigured ? (data.proxy || '已配置') : '未设置（直连）'}${data.proxyAuth ? '（含认证，凭据不显示）' : ''}）`
       )
       return true
@@ -146,7 +151,7 @@ export class MetaStatus extends plugin {
       `· 危战版本：${data.versions}`,
       `· 立绘缓存：${data.avatar.cached}/${data.avatar.total} 张`,
       `· 代理：${data.proxyConfigured ? (data.proxy || '已配置') : '未设置（直连）'}${data.proxyAuth ? '（含认证，凭据不显示）' : ''}`,
-      `· 联网开关：${data.networkEnabled ? '已开启' : '已关闭（不联网）'}　攻略数据：${data.codexFilled}/${data.codexTotal} 个角色有内容`,
+      `· 业务查询联网：${data.networkEnabled ? '已开启' : '已关闭（查询类远程访问不发请求）'}　模块关闭：${data.disabledModules || '无'}　攻略数据：${data.codexFilled}/${data.codexTotal} 个角色有内容`,
       `· 资源来源：miao ${data.miaoOk ? '已安装' : '未找到'}｜Atlas ${data.atlasOk ? '已安装（可选）' : '未安装'}`,
       `· ${versionText}`
     ].join('\n')

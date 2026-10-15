@@ -46,7 +46,7 @@
         </div>
       </div>
 
-      <!-- 两档：n7 在前（越快越靠前），n6 在后（越接近 120s 越靠前） -->
+      <!-- 档位剥离：指定档位时这里只渲染一块。两档都按耗时降序（n7 越接近 70s 越前 / n6 越接近 120s 越前） -->
       {{if tiers && tiers.length > 0}}
       {{each tiers tier}}
       <div class="card body-card tier-card">
@@ -84,6 +84,7 @@
             <div class="rank-main">
               <div class="rank-value num">{{if row.speedText}}{{row.speedText}}{{else if row.speed}}{{row.speed}}s{{else}}—{{/if}}</div>
               <div class="rank-unit">耗时</div>
+              {{if row.overallRank}}<div class="rank-unit">全榜 #{{row.overallRank}}</div>{{/if}}
             </div>
 
             <div class="cost-box">

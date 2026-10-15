@@ -195,21 +195,49 @@ export function pickByRank (entries: BoardEntry[], rank: number): BoardEntry | n
   return sorted[want - 1] || null
 }
 
+/**
+ * akasha `stats` 里的**比例键**（值域 0~1，展示要 ×100 才是百分数）
+ *
+ * ⚠ miao 的 `Format.pct(n)` 只拼 `%`、**不乘 100**（乘 100 的是 `Format.percent`），
+ *   所以比例换算必须自己来，否则 0.7933 会显示成 `0.8%`（2026-10-15 四项目复核 P2）。
+ */
+const AKASHA_RATIO_KEYS = new Set([
+  'critRate', 'critDamage', 'critDMG', 'energyRecharge', 'healingBonus',
+  'pyroDamageBonus', 'hydroDamageBonus', 'electroDamageBonus', 'cryoDamageBonus',
+  'anemoDamageBonus', 'geoDamageBonus', 'dendroDamageBonus', 'physicalDamageBonus'
+])
+
+/** 该 stats 键是不是比例（容忍 `critRate_` 这类结尾下划线变体） */
+export function isAkashaRatioKey (key: string): boolean {
+  const k = String(key || '').trim().replace(/_+$/, '')
+  return AKASHA_RATIO_KEYS.has(k) || /DamageBonus$/.test(k)
+}
+
+/** 按单位格式化一条 akasha stats：比例 → `79.3%`；平铺值 → 千分位（元素精通留一位小数） */
+export function formatAkashaValue (key: string, value: unknown): string {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return '-'
+  if (isAkashaRatioKey(key)) return `${(n * 100).toFixed(1)}%`
+  if (String(key) === 'elementalMastery') return n.toLocaleString('en-US', { maximumFractionDigits: 1 })
+  return Math.round(n).toLocaleString('en-US')
+}
+
 /** 面板摘要（页面用：挑几个常用项，按固定顺序） */
 export function panelSummary (entry: BoardEntry): Array<{ label: string, value: string }> {
-  const pick = (keys: string[], label: string, percent = false) => {
+  // 单位统一走 `formatAkashaValue`：比例键 ×100、平铺键千分位（2026-10-15 四项目复核 P2）
+  const pick = (keys: string[], label: string) => {
     for (const k of keys) {
       const hit = entry.stats.find(s => s.key === k)
-      if (hit) return { label, value: percent ? `${hit.value.toFixed(1)}%` : Math.round(hit.value).toLocaleString('en-US') }
+      if (hit) return { label, value: formatAkashaValue(k, hit.value) }
     }
     return null
   }
   return [
     pick(['maxHp', 'baseHp'], '生命值'),
     pick(['atk', 'baseAtk'], '攻击力'),
-    pick(['critRate', 'critRate_'], '暴击率', true),
-    pick(['critDMG', 'critDMG_', 'critDamage'], '暴击伤害', true),
+    pick(['critRate', 'critRate_'], '暴击率'),
+    pick(['critDMG', 'critDMG_', 'critDamage'], '暴击伤害'),
     pick(['elementalMastery'], '元素精通'),
-    pick(['energyRecharge'], '元素充能效率', true)
+    pick(['energyRecharge'], '元素充能效率')
   ].filter(Boolean) as Array<{ label: string, value: string }>
 }

@@ -2,7 +2,7 @@
  * 视频查询：按名次取单条记录并给出 B 站链接
  *
  * 名次与榜单图编号同口径（当前筛选与排序下从 1 起的全局序号），所以这里同时钉住：
- * 名次解析（`#DPS榜视频 3 胡桃` 里先摘出数字）、筛选叠加、链接缺失的兜底文案，
+ * 名次解析（`#榜视频 3 胡桃` 里先摘出数字）、筛选叠加、链接缺失的兜底文案，
  * 以及越界/空结果的错误分支。
  */
 import path from 'node:path'
@@ -73,7 +73,7 @@ const raids = normalizeTeams2(loadFixture('teams2.sample.json'))
 const raidRows = buildRaidRows(raids, 1)
 const raidRow = raidRows.find(r => r.video) || raidRows[0]
 const raidText = entryText({ ok: true, row: raidRow, total: raids.length, rank: raidRow.rank, fetchedAt: Date.now(), stale: false }, 'raid')
-check('危战文本标题正确', raidText.includes('#DPS危战榜'))
+check('危战文本标题正确', raidText.includes('#危战'))
 check('危战文本含耗时与首领', raidText.includes(raidRow.speedText) && raidText.includes(raidRow.bossName))
 check('危战文本含视频链接', raidText.includes(raidRow.video))
 

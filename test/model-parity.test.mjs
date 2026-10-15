@@ -161,7 +161,7 @@ const fixture = (name) => JSON.parse(fs.readFileSync(path.join(pluginRoot, 'test
   } catch (err) {
     msg = String(err?.message || err)
   }
-  ok('联网关闭时 fetchJson 抛清晰错误', msg.includes('联网功能已关闭'))
+  ok('联网关闭时 fetchJson 抛清晰错误', msg.includes('业务查询联网已关闭') && msg.includes('networkEnabled=false'))
 
   // 头像下载：关闭时静默跳过（不抛错、不计数）
   const stats = await AS.ensureAvatars(['10000046', '10000002'])
@@ -189,7 +189,7 @@ const fixture = (name) => JSON.parse(fs.readFileSync(path.join(pluginRoot, 'test
   } catch (err) {
     off = `${err?.code ?? ''}|${err?.message ?? ''}`
   }
-  ok('联网关闭时 akashaGet 抛 AKASHA_OFFLINE', off.startsWith('AKASHA_OFFLINE') && off.includes('联网功能已关闭'))
+  ok('联网关闭时 akashaGet 抛 AKASHA_OFFLINE', off.startsWith('AKASHA_OFFLINE') && off.includes('业务查询联网已关闭'))
 
   // 打开联网开关（loadConfig 每次调用都重读配置文件）
   fs.writeFileSync(process.env.META_CONFIG_FILE, 'networkEnabled: true\n', 'utf8')
@@ -254,7 +254,7 @@ const fixture = (name) => JSON.parse(fs.readFileSync(path.join(pluginRoot, 'test
   } catch (err) {
     bmsg = String(err?.message || err)
   }
-  ok('联网关闭时浏览器 transport 不启动', bmsg.includes('联网功能已关闭'))
+  ok('联网关闭时浏览器 transport 不启动', bmsg.includes('业务查询联网已关闭'))
   const info = await AB.akashaBrowserInfo()
   ok('akashaBrowserInfo 结构正确（工作区无渲染后端）',
     info.reuseRendererBrowser === false && info.ownBrowser === false && typeof info.rendererDir === 'string')

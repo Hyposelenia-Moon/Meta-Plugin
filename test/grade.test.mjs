@@ -67,8 +67,10 @@ good.talent = { A: targets.talent.find(t => t.key === 'A').target, E: targets.ta
 const rGood = G.gradeBuild(targets, good)
 ok('满分配装总分很高（≥90）', rGood.total >= 90, String(rGood.total))
 ok('满分配装档位在 ACE 及以上', ['MAX', 'ACE'].includes(rGood.rank), rGood.rank)
-ok('满分配装面板档为「大毕业」', rGood.panelTier === '大毕业', rGood.panelTier)
-ok('四个维度都参评且权重之和为 1', rGood.dims.every(d => d.ratio !== null) &&
+ok('满分配装毕业档为「大毕业」（2026-10-15 起按综合/词条分判定）', rGood.panelTier === '大毕业', rGood.panelTier)
+ok('三个维度都参评且权重之和为 1（面板已并入综合、不再单列）',
+  rGood.dims.length === 3 && rGood.dims.every(d => d.ratio !== null) &&
+  !rGood.dims.some(d => d.key === 'panel' || d.key === 'artifact') &&
   Math.abs(rGood.dims.reduce((s, d) => s + d.weight, 0) - 1) < 1e-6)
 ok('满分时给一条正向建议（不再留空）', rGood.suggestions.length === 1 && /均已达标/.test(rGood.suggestions[0]), rGood.suggestions.join('｜'))
 
@@ -85,17 +87,17 @@ const bad = {
     { slot: '空之杯', set: '战狂', mainName: '攻击力', level: 16 },
     { slot: '理之冠', set: '战狂', mainName: '攻击力', level: 16 }
   ],
-  artiMark: { total: 20, markClass: 'B' },
+  artiMark: { total: 8, markClass: 'D' },
   attrs: { cpct: 40, cdmg: 120, mastery: 30, hp: 22000 }
 }
 const rBad = G.gradeBuild(targets, bad)
 ok('短板配装总分明显更低（< 60）', rBad.total < 60, String(rBad.total))
 ok('短板配装档位靠后', ['C', 'D', 'B'].includes(rBad.rank), rBad.rank)
-ok('面板全线不达标时是「未毕业」（门槛不参与抬分）', rBad.panelTier === '未毕业', rBad.panelTier)
+ok('词条极差（miao D 档 + 套装不符）时为「未毕业」', rBad.panelTier === '未毕业', rBad.panelTier)
 {
-  // 门槛用例：面板达标但等级不够 → 从「大毕业」压到「小毕业」并写明原因
+  // 门槛用例：综合（词条）达标但等级不够 → 从「大毕业」压到「小毕业」并写明原因
   const capped = G.gradeBuild(targets, { ...good, level: 80 })
-  ok('面板达标但等级不足 → 档位被压到「小毕业」', capped.panelTier === '小毕业', capped.panelTier)
+  ok('综合达标但等级不足 → 档位被压到「小毕业」', capped.panelTier === '小毕业', capped.panelTier)
   ok('门槛写进了 notes', capped.notes.some(n => n.includes('建议等级')), capped.notes.join('｜'))
 }
 ok('建议里含天赋与主词条（按投入产出排序）',
@@ -103,22 +105,26 @@ ok('建议里含天赋与主词条（按投入产出排序）',
   rBad.suggestions.join('｜'))
 ok('建议不超过 4 条', rBad.suggestions.length <= 4)
 
-// ---------- 3. 对比表口径 ----------
+// ---------- 3. 对比表口径（2026-10-15：面板与圣遗物合并为「综合」，面板行降级为参考） ----------
 {
-  ok('对比表含武器/套装/评分/主词条/天赋/命座/面板各行',
-    ['武器', '圣遗物', '主词条', '天赋', '命座', '面板'].every(g => rBad.rows.some(r => r.group === g)),
+  ok('对比表含武器/综合/主词条/天赋/命座/参考各行',
+    ['武器', '综合', '主词条', '天赋', '命座', '参考'].every(g => rBad.rows.some(r => r.group === g)),
     [...new Set(rBad.rows.map(r => r.group))].join(','))
   ok('主词条只列沙/杯/冠这类部位（不含副词条名）',
     rBad.rows.filter(r => r.group === '主词条').every(r => targets.mainStats.some(m => m.slot === r.name)))
   ok('命座行只作提示（verdict=info）', rBad.rows.filter(r => r.group === '命座').every(r => r.verdict === 'info'))
-  ok('miao 评分进了对比表', rBad.rows.some(r => r.name === 'miao 评分' && /B/.test(r.actual)))
+  ok('面板行只作参考（verdict=info，不判未达标）',
+    rBad.rows.filter(r => r.group === '参考').every(r => r.verdict === 'info'))
+  ok('词条评分走 miao 规则并进了对比表',
+    rBad.rows.some(r => r.name === '词条评分' && /D/.test(r.actual) && r.verdict === 'warn'))
 }
 
 // ---------- 4. 缺项不计入分母 ----------
 {
   const thin = G.extractTargets({ metaRows: [], sections: [{ title: '武器', rows: [{ label: '推荐', items: [{ text: '护摩之杖' }] }] }] }, '测试角色')
-  const r = G.gradeBuild(thin, { ...good, weapon: { name: '护摩之杖', affix: 1 } })
-  ok('攻略只有武器时，其它维度标为不计分', r.dims.filter(d => d.ratio === null).length === 3)
+  // 没有圣遗物数据时「综合」也无从评分 → 只剩武器一个可评维度
+  const r = G.gradeBuild(thin, { ...good, weapon: { name: '护摩之杖', affix: 1 }, artis: [], artiMark: null })
+  ok('攻略只有武器（且无圣遗物数据）时，其它维度标为不计分', r.dims.filter(d => d.ratio === null).length === 2)
   ok('可评维度权重被归一为 1', Math.abs(r.dims.find(d => d.key === 'weapon').weight - 1) < 1e-6)
   ok('只按武器算：命中推荐档 → 100 分', Math.abs(r.total - 100) < 1e-6, String(r.total))
   ok('缺项写进 notes', r.notes.some(n => n.includes('不计入总分')))
@@ -126,24 +132,24 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
 
 // ---------- 5. 档位与阈值 ----------
 {
-  ok('面板三档边界', G.panelTierOf(0.9, good, targets).tier === '大毕业' &&
+  ok('毕业档三档边界（按综合分）', G.panelTierOf(0.9, good, targets).tier === '大毕业' &&
     G.panelTierOf(0.6, good, targets).tier === '毕业' &&
     G.panelTierOf(0.3, good, targets).tier === '小毕业' &&
     G.panelTierOf(0.29, good, targets).tier === '未毕业')
   ok('rankOf 阈值（含 D 兜底）', G.rankOf(95) === 'MAX' && G.rankOf(88) === 'ACE' && G.rankOf(64) === 'S' && G.rankOf(29) === 'D')
-  ok('parseSpec 解析权重写法', JSON.stringify(G.parseSpec('panel:30,weapon:20,artifact:35,talent:15', ['panel', 'weapon', 'artifact', 'talent'])) ===
-    JSON.stringify({ panel: 30, weapon: 20, artifact: 35, talent: 15 }))
-  ok('parseSpec 忽略非法项', Object.keys(G.parseSpec('panel:abc,unknown:5', ['panel'])).length === 0)
+  ok('parseSpec 解析权重写法', JSON.stringify(G.parseSpec('comprehensive:65,weapon:20,talent:15', ['comprehensive', 'weapon', 'talent'])) ===
+    JSON.stringify({ comprehensive: 65, weapon: 20, talent: 15 }))
+  ok('parseSpec 忽略非法项', Object.keys(G.parseSpec('comprehensive:abc,unknown:5', ['comprehensive'])).length === 0)
   ok('parseRankThresholds 失败回落默认', G.parseRankThresholds('乱写').length === G.DEFAULT_RANK_THRESHOLDS.length)
   ok('miao 档位映射覆盖 MAX…D', ['MAX', 'ACE', 'SSS', 'SS', 'S', 'A', 'B', 'C', 'D'].every(k => Number.isFinite(G.MIAO_MARK_SCORE[k])))
 }
 
 // ---------- 6. 权重可覆盖 ----------
 {
-  const heavy = G.gradeBuild(targets, bad, { weights: { panel: 100, weapon: 0, artifact: 0, talent: 0 } })
-  ok('自定义权重生效（只看面板时分数≈面板达成度）',
-    Math.abs(heavy.total - Math.round(heavy.dims.find(d => d.key === 'panel').ratio * 1000) / 10) < 0.6,
-    `${heavy.total} vs ${heavy.dims.find(d => d.key === 'panel').ratio}`)
+  const heavy = G.gradeBuild(targets, bad, { weights: { comprehensive: 100, weapon: 0, talent: 0 } })
+  ok('自定义权重生效（只看综合时分数≈综合分）',
+    Math.abs(heavy.total - Math.round(heavy.dims.find(d => d.key === 'comprehensive').ratio * 1000) / 10) < 0.6,
+    `${heavy.total} vs ${heavy.dims.find(d => d.key === 'comprehensive').ratio}`)
   const src = readText(path.join(pluginRoot, 'src', 'modules', 'grade.ts'))
   ok('评分器不引 miao / 不发网络（纯函数）', !/from '\.\.\/model\/MiaoProfile|http/.test(src))
 }

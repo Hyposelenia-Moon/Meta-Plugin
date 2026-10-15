@@ -144,7 +144,7 @@ if (rank.html) {
 // ---- raid ----
 const raidData = {
   siteName: SITE_NAME,
-  title: '#DPS危战榜',
+  title: '#危战',
   subtitle: '版本 7.1 · 按金数升序',
   fetchedAt: formatTime(now),
   total: raids.length,
@@ -165,7 +165,7 @@ if (raid.html) {
 // ---- status ----
 const statusData = {
   siteName: SITE_NAME,
-  title: '#DPS状态',
+  title: '#meta状态',
   hasData: true,
   dataTime: formatTime(now),
   ageText: agoText(1000),
@@ -201,7 +201,7 @@ const help = await renderOnce('help', helpData, 'test-help')
 check('help 出图成功', Boolean(help.img), help.err)
 if (help.html) {
   checkRefs(help.html, path.dirname(path.join(appRoot, 'temp', 'html', 'Mhydps-Plugin', 'dps', 'help', 'x.html')), 'help', /(?:href|src)="([^"]+)"/g)
-  check('help：渲染了指令条目', help.html.includes('#DPS榜') && help.html.includes('#DPS危战榜') && help.html.includes('#DPS练度查询'))
+  check('help：渲染了指令条目', help.html.includes('#DPS榜') && help.html.includes('#危战') && help.html.includes('#练度榜'))
   check('help：分组标题条数量与配置一致', (help.html.match(/class="help-group"/g) || []).length === helpList.length, `${helpList.length} 组`)
   check('help：使用三列网格', help.html.includes('class="help-grid"') || help.html.includes('help-grid cols-'))
   check('help：条目含命令与说明', help.html.includes('entry-cmd') && help.html.includes('entry-desc'))

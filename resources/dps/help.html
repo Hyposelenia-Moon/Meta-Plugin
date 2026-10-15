@@ -34,9 +34,9 @@
       font-weight: 700;
       color: var(--gold);
       line-height: 1.4;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      /* 标题过长时换行，不再截断成「…」（2026-10-15 用户反馈：换补词条示例被截断） */
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
     .entry-desc {
       font-size: 17px;

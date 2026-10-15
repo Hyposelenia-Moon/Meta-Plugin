@@ -82,8 +82,17 @@ const submitted = {
   // v3 P2 新增三项（评分权重与档位阈值；同为"可存可读"的普通字段）
   gradeWeights: 'panel:40,weapon:10,artifact:30,talent:20',
   gradePanelTiers: 'big:0.95,normal:0.5,small:0.2',
-  gradeRankThresholds: 'MAX:90,ACE:80,SSS:70,SS:60,S:50,A:40,B:30,C:20'
+  gradeRankThresholds: 'MAX:90,ACE:80,SSS:70,SS:60,S:50,A:40,B:30,C:20',
+  // 队伍伤害序号轴（2026-10-15 新增；配置里是一条紧凑字符串，锅巴用单行 Input 编辑）
+  teamDamageAxes: '1:保守轴=默认,2:重击轴=重击×8@20s',
+  // 模块开关（2026-10-15 新增）：面板按模块**逐项**提交，配置文件里写成嵌套的 `modules:`
+  ...Object.fromEntries(Object.entries(defaultConfig.modules).map(([key, value]) => [`module_${key}`, value]))
 }
+
+check('模块开关数量为 11', Object.keys(defaultConfig.modules).length === 11)
+check('模块开关默认值：teamDamage 关闭、其余开启',
+  defaultConfig.modules.teamDamage === false &&
+  Object.entries(defaultConfig.modules).filter(([k]) => k !== 'teamDamage').every(([, v]) => v === true))
 
 const saved = await configInfo.setConfigData(submitted, { Result })
 check('保存返回成功', saved.ok === true, JSON.stringify(saved))
@@ -109,6 +118,9 @@ check('akasha 五项也已写入', written.akashaEnabled === false &&
   written.akashaTimeoutMs === 45000 &&
   written.akashaCacheTtlMinutes === 90 &&
   written.akashaMaxChars === 20, JSON.stringify(written))
+check('模块开关写成嵌套的 modules（11 键、teamDamage 保持默认关闭）',
+  Object.keys(written.modules || {}).length === 11 && written.modules?.teamDamage === false,
+  JSON.stringify(written.modules))
 
 const roundTrip = configInfo.getConfigData()
 check('读回与提交一致', fields.every(f => JSON.stringify(roundTrip[f]) === JSON.stringify(submitted[f])), JSON.stringify(roundTrip))

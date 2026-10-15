@@ -11,7 +11,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **源码**：`src/` → `tsc` → `lib/`（目录结构一致）。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / akasha / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
-- **常用命令**：`pnpm build`、`pnpm test`（55 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（59 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -20,19 +20,20 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 |---|---|---|---|
 | 角色攻略 | `Meta攻略`（**-100000**，写死） | `#胡桃攻略` / `#胡桃攻略2` / `#胡桃指南` | 后缀式；早于 Atlas 快捷入口(-99999) 与 genshin 米游社攻略(50) |
 | 帮助（两小一大） | `Meta攻略帮助`（-100000） | `#meta`（总）/ `#攻略帮助`（=`#攻略`/`#攻略说明`）/ `#DPS帮助` | 三条规则同一 handler；图失败回落同源文本 |
-| DPS 榜 | `MetaDPS榜`（8000+0） | `#DPS榜 [角色] [金数] [标签] [主C] [绿玩] [页N]` | 兼容别名 |
-| 角色档位 | `Meta角色DPS档位`（8000-5） | `#胡桃dps [金数]` | v3 入口 |
-| 危战榜 | `Meta危战榜`（8000-20） | `#DPS危战榜 [版本] [首领] [角色] [金数] [页N]` | |
-| 危战档位 | `Meta危战档位`（8000-5） | `#危战 [版本/首领/角色]` | v3；n6 / n7 两档 |
-| 练度查询 | `Meta练度查询`（8000-50） | `#DPS练度查询 [角色] [UID]` | 阿卡莎名次面板 |
+| DPS 榜（含角色档位视图） | `MetaDPS榜`（8000+0） | `#DPS榜 [角色] [金数] [标签] [主C] [绿玩] [页N]`（`榜` 可省） | 2026-10-15 合并原 `#胡桃dps`：带角色名 = 按金档分层 |
+| 危战分档 | `Meta危战档位`（8000-5） | `#危战 <版本/首领/角色> n6\|n7` | n6/n7 **剥离**，档位必填；裸 `#危战` 是 miao 的命令，不认领 |
+| 练度榜 | `Meta练度榜`（8000-50） | `#练度榜 [角色] [UID]` | 阿卡莎名次面板（原 `#DPS练度查询`） |
 | 练度提升指南 | `Meta练度提升指南`（8000-5） | `#练度查询 胡桃` | v3；攻略目标 × 当前配装（**不带 UID**） |
-| 队伍伤害 | `Meta队伍伤害`（8000-5） | `#队伍伤害 A B C D [轴:] [词条:]` | v3；要求四个角色名 |
+| 队伍伤害 | `Meta队伍伤害`（8000-5） | `#队伍伤害<N> A B C D [词条…] [UID]` | v3；N = 配置 `teamDamageAxes` 的序号轴（省略 = 1），词条**免前缀**；旧 `轴:`/`词条:` 已废除 |
 | 榜上配装 | `Meta榜上配装`（8000-5） | `#配装 胡桃 [名次]` | v3；需浏览器会话与代理 |
-| 视频 | `Meta视频查询`（8000-100） | `#DPS视频 <名次>` / `#DPS危战视频 <名次>` | |
-| 状态 | `Meta状态`（8000-10） | `#DPS状态` | |
-| 数据管理 | `Meta数据管理`（8000-10，master） | `#DPS更新` / `#DPS强制更新` / `#DPS刷新` | 仅主人 |
+| 视频 | `Meta视频查询`（8000-100） | `#视频 <名次>`（=`#榜视频`）/ `#危战视频 <名次>` | 危战视频名次按**全榜排序**；档页每行标「全榜 #N」 |
+| 状态 | `Meta状态`（8000-10） | `#meta状态` | |
+| 榜单刷新 | `Meta数据管理`（8000-10，master） | `#榜单刷新` | 仅主人；旧三种写法行为相同，只留一条 |
 
-> `#DPS…` 与 v3 新入口的 priority = `config.priority`（默认 8000）+ 各命令偏移；偏移与文案的唯一来源是 `src/components/constants.ts`。
+> 2026-10-15 用户裁定**命令面整体重构**（"指令大乱炖"）：旧 `#DPS…` 族一律废除，只保留 `#DPS榜` / `#DPS` / `#DPS帮助`；
+> 冲突侦察结论与最终命名表见 [docs/功能与命令.md](./docs/功能与命令.md)（`constants-parity` 的偏差 B17 守着旧名不复活）。
+
+> 本插件业务命令的 priority = `config.priority`（默认 8000）+ 各命令偏移；偏移与文案的唯一来源是 `src/components/constants.ts` 的 `COMMANDS`。
 
 ## 文档索引（按需阅读，别一次全读）
 
@@ -65,35 +66,45 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 
 1. **抢占优先级写死** — 攻略类走 `PREEMPT_PRIORITY = -100000`，**不做成配置项**；`accept()` 只认领 `攻略` / `攻略帮助` / `攻略说明`（+ `#meta`），其余一律放行，保证 Atlas 图鉴行为逐字不变。子项：**`#设置默认攻略N` 不接管**，`CODEX_SUFFIX_RULE` 的负向断言 `(?!.*设置默认攻略)` 必须保留，否则会吞掉 genshin 的设置命令。
 2. **攻略入口只留后缀式** — `#<角色>攻略`；`#攻略 <角色>`、`#攻略 <角色> <模块>`、`#攻略 <武器> <名>` 已按要求移除，**不得加回**。
-3. **合并前常量值冻结** — `DPS_RULES` 等值与 `Mhydps-Plugin` 合并前**逐字一致**（`test/constants-parity.test.mjs` 快照守着）；v3 新入口用 `ENTRY_RULES` 分开维护，不要混进去。
+3. **命令表单一来源** — 所有命令正则只在 `src/components/constants.ts` 的 `RULES` 定义一处，元数据（插件名 / 文案 / 权限 / 优先级偏移 / 模块键）只在 `COMMANDS`，判定只在 `matchCommand`；app 里只允许 `reg: RULES.x` + `COMMANDS.find(...)`。改命令必须同轮更新 `COMMANDS.dsc`、帮助页（`resources/help/help-cfg.js`）、README、[docs/功能与命令.md](./docs/功能与命令.md) 与相关套件。
+   历史：合并前的 `DPS_RULES` 冻结面已按用户 2026-10-15 的决定**整体废除**（偏差 **B17**，`test/constants-parity.test.mjs` 守着"旧名一个都不许复活"）；快照仍守着**非命令**常量（标量 / 映射表 / 纯函数）与合并前逐字一致。
+   子项：**帮助页只写使用者向内容**（`resources/help/help-cfg.js`）——不得出现配置键、文件名、"改配置"这类要开发者/管理员处理的说明；**不展示需要管理员先配置的非默认序号轴**（只写 `#队伍伤害 四人名`）；标题过长靠 CSS 换行（`resources/{codex,dps}/help.html` 的 `.entry-cmd` 已去掉 `nowrap`+`ellipsis`）。`test/dps-help-config.test.mjs` 三个门禁守着这三点。
+13. **练度评分口径（2026-10-15 用户定）** — `#练度查询` 的三维加权是 `综合 / 武器 / 天赋`：**综合 = 圣遗物有效词条为主**（miao 评分档位 ×0.8 + 套装符合度 ×0.2，走 miao 的评分规则）；**面板目标不计分、只作参考**（对比表 `参考` 组、`verdict: info`），毕业档按综合分判定、等级仍作门槛。旧配置写 `panel`+`artifact` 会自动相加折进 `comprehensive`（`getGradeWeights()`）。
+   页面宽度与立绘行（2026-10-15 用户定：**照抄 miao，不许自己发挥**）：练度页整页 **600px**（= miao 面板 `body{width:600px}`），立绘行以下分区随 600px 自适应；立绘行逐条复制 miao `resources/character/profile-detail.{html,css}`（只加 `gd-` 前缀、**数值一字不改**）：`.basic`→`.gd-basic`、`.main-pic`(1400×500/`margin-left:-545px`)→`.gd-main-pic`、`.detail`(right/top 20px)→`.gd-detail`（内含 `.char-name`50px / `.char-lv` / `.char-talents` / `.char-attr`）、`.char-cons`(250px/bottom 5/left 20)→`.gd-char-cons`；面板 = `.char-attr li`（**300×32**、斑马行、五列 `.icon`26/`.title`75/`.weight`36/`.value`100/`.value2`70（白字基础值 + 绿字 `+加成`），图标精灵图 `character/imgs/icon.png` + `.i-*` 偏移；`.value`/`.value2` 的文本**直接调 miao 的 `Format.comma`/`Format.pct`**（照抄 `apps/profile/ProfileDetail.js:216-242`：`hp` 取整 + 千分位、其余 1 位小数，`phy > dmg` 时 `dmg` 行显示物伤），权重取 `getArtisMark(true).charWeight`），**只写属性名与数值**（不加目标、不加达标条）；天赋图标**照抄 `CharImg.getImgs()`**：`talentCons[key]>0` 用命座图标 `icons/cons-N.webp`，否则 `icons/talent-{key}.webp`；`level > original` 加 `talent-plus`（深底金字）、`original >= 10` 叠 `character/imgs/crown.png`（`top:0`）；图标圆环按元素（`<body>` 挂 `gd-elem-{elem}`，照抄 `common.css:208-266` 的 `common/bg/talent-{elem}.webp`），`.gd-talent-icon` **必须带 `z-index: 90`**，否则左下角命座行会被 `z-index:2` 的立绘盖住；命座行条目是 `.cons-item`（不参与 flex 均分）；命座徽章照抄 `.char-lv .cons` + `common/css/common.css` 的 `.cons`/`.cons-N`（0 `#666`/1 `#5cbac2`/2 `#339d61`/3 `#3e95b9`/4 `#3955b7`/5 `#531ba9cf`/6 `#ff5722`，白字）；立绘图优先 miao `imgs/{costumeSplash,splash}.webp`，缺图回落 ProfileImg 图库 → 结论（档位 + 三维条）→ **当前配装**（武器 → 套装 + miao 评分与有效词条数，不列单件与伤害；等级/命座与天赋都已在立绘行）→ 未达标项 → 提升建议 → **参考 DPS**（当前金数向下取 4 的倍数、步长 4、最多 3 档，每档取含该角色的最高伤害）→ 脚注**口径一行 + 版权，合计不超过 2 行**。套装只写 4 件套 / 2+2 / 2 件套，凑不出就写「散件」；圣遗物行右侧显示 `评分 246.4 ACE　词条数：42.4` —— 词条数只累加 miao `charWeight[key] > 0` 的有效词条 `eff`（**无效词条不计**；也不是数条目数，那是 20）。
+   改这套口径必须同轮更新 `resources/dps/grade.html` 的口径行、`docs/功能与命令.md` 的「练度评分口径」与相关套件（`grade` / `grade-guide-targets` / `dps-template` / `portrait-gallery`）。
+   配色：**档位颜色与 miao 同款**（MAX/ACE 红 `#e85656`、SSS/SS 金 `#ffe699`、S/A 紫 `#d699ff`、B 以下默认色），综合档位与圣遗物评分同样上色，**未达标项用同一红色**；圣遗物行右侧固定宽度 + `nowrap`（长文本折行会与左侧套装名错位）。
 4. **`lib/` 入库** — 改 `src/` 后必须 `pnpm build` 并一并提交 `lib/`（`test/lib-fresh.test.mjs` 按 mtime 判断"lib 是否落后于 src"）。
 5. **运行时只写 `out/` 与 `config/`** — 绝不写 `data/`、`lib/`、`resources/`、`scripts/`、`tool/`（写了会挡住 bot 侧的 `#更新`）。
 6. **测试不得写 `data/`** — 路径一律走 `test/.test-tmp/` 自建子目录或环境变量覆盖（`META_CONFIG_FILE` / `META_MIAO_DIR` / `META_ATLAS_DIR`）。
 7. **miao 必需、Atlas 可选** — 缺 miao 给可读提示；Atlas 缺失或异常**只降级不报错**，且**不 import 它的内部模块**（走稳定导出，见 [docs/待办与规划.md](./docs/待办与规划.md)）。
    读面板必须走 miao 的对象契约：`Avatar.artis` 是 **`Artis` 实例**（`getArtisDetail()` 按部位 1..5、`artis.sets` 给件数、`artis.hasAttr` 判词条、`getArtisMark()` 给评分），**不要 `Array.isArray`、不要用 `names` 计件**；刷新成功只看**目标角色**（别拿账号级 `player.hasProfile` 当成功）。
-8. **联网默认关** — 仓库侧 `networkEnabled` 默认 `false`，用于控制 DPS 榜单、危战榜、练度查询等业务查询中的远程数据访问与刷新；相关远程刷新点（mhydps / akasha / miao 面板 / 队伍）都要先读开关，关闭时不得发起受该开关管理的远程请求。**该开关不是整个插件的全局联网禁令**，不自动限制别名服务、可选插件探测、依赖安装及其他非上述业务查询的网络操作；这些操作仍须遵守各自的安全与错误处理约束。榜单 / 危战 / 练度需代理（国内直连 `mhydps.cn` 会在 TLS 握手阶段失败）；米游社 ck 由 miao 保存，本插件不保存任何凭据。
+8. **联网默认关（查询联网层）** — 仓库侧 `networkEnabled` 默认 `false`，用于控制 DPS 榜单、危战榜、练度查询等业务查询中的远程数据访问与刷新；相关远程刷新点（mhydps / akasha / miao 面板 / 队伍）都要先读开关，关闭时不得发起受该开关管理的远程请求。**该开关不是整个插件的全局联网禁令**，不自动限制别名服务、可选插件探测、依赖安装及其他非上述业务查询的网络操作；这些操作仍须遵守各自的安全与错误处理约束。榜单 / 危战 / 练度需代理（国内直连 `mhydps.cn` 会在 TLS 握手阶段失败）；米游社 ck 由 miao 保存，本插件不保存任何凭据。
+    子项：判定统一走 `isQueryNetworkEnabled()`（**别再散写** `loadConfig().networkEnabled`），关闭文案统一用 `QUERY_NETWORK_OFF_HINT`（含"只管辖查询类远程访问"这句，不得自创措辞）；`AvatarStore` 的榜单头像下载属查询类资源、同样受管。三层开关的划分见第 12 条。
 9. **锅巴模板替换必须用回调** — `template.replace(re, () => String(value))`：直接传字符串会把值里的 `$&` / `$1` 当替换语法（`src/guoba/index.ts`）。
 10. **编辑器静默陷阱** — 事件委托必须 `closest('[data-act]')` 往上找（行尾图标是内联 SVG，`e.target` 常是 `<path>`）；保存失败（`res` 为 `null`）时**先返回**，否则会清掉未落盘草稿；`git diff --cached` 必须带 `-z`（默认 `quotePath` 会把中文路径转义，逐行比较会把自己人判成"范围外"而阻止提交）；改过共享层**必须重启编辑器进程**（长驻进程会缓存旧模块）。
 11. **框架截图契约** — `runtime.render(plugin, path, data, cfg)` 的 `retType` 属于**第 4 参**；本版 `puppeteer.screenshot` 返回**图片消息段**（不是 base64），拿到段要直接 `e.reply` 发送；只有当框架已经自己发图（返回 `true`）或我们确实拿到图时才 `return true`，否则一律 `false` 交同源文本回退。
+12. **三层开关正交** — 配置里三组开关各管一段，**不得互相替代**：`modules.*`（**功能层**，13 个模块，默认全开、`teamDamage` 默认关闭：关闭时命令不响应）｜`networkEnabled`（**查询联网层**，见第 8 条）｜`akashaEnabled`（**数据通道层**：是否允许走阿卡莎会话）。模块开关的接入方式：非接管类在 handler 首行 `if (await moduleGateReply('<key>', e)) return true`；接管类（攻略 / 帮助）在 `accept` 与 handler 两处都判 `moduleOff('<key>')` 并返回 `false`（**框架的 `accept` 只影响认领，不会跳过本插件自己的 rule**，只改一处会变成"不认领却照样吃掉消息"）。新增命令模块必须同轮登记 `MODULE_KEYS` / `MODULE_LABELS` 与 [docs/功能与命令.md](./docs/功能与命令.md) 的开关表。
 
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 55 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 59 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。
 - 冻结门禁：`mhydps-parity`（与合并前逐字等价）、`constants-parity`（常量快照）、`codex-parity`（131/131 逐字段）。
 - **行为级契约套件**（用假对象/真实构建器驱动编译产物，不查源码正则）：
-  `miao-artis-contract`（`Artis` 实例形状、`sets` 件数）、`grade-guide-targets`（`kind` 分桶、组合候选、建议口径）、
+  `miao-artis-contract`（`Artis` 实例形状、`sets` 件数）、`miao-damage-rows`（`{ret}` 伤害结果契约与三种失败口径）、
+  `grade-guide-targets`（`kind` 分桶、组合候选、建议口径）、`akasha-units`（比例键 ×100、总值/基础值分槽、`words[]` 重复参数、浏览器复用规则）、
+  `modules-switch`（模块开关的默认值、深合并、闸门拦截与放行、13 个 app 的接线）、
   `render-fallback`（`retType` 第 4 参、图片消息段返回、失败一律回退）。
 - 维护者区自检（不在 `pnpm test` 内）：`node scripts/editor-selftest.mjs`（241/241）、`display-selftest.mjs`、`display-audit.mjs`、`audit-guide-html.mjs`。
 - 细节与固定验收集见 [docs/测试.md](./docs/测试.md) 与 [docs/改动传播清单.md](./docs/改动传播清单.md)。
 
 ## 待办（摘要）
 
-1. **miao 面板取数通道**：已按 2026-10-15 外部复核落实（`Artis` 对象契约、目标级完整性、`kind` 分桶、`networkEnabled` 闸门、`render` 第 4 参、编辑器草稿与中文路径、`akashaProxy`、`notes` 合并、比较表与建议口径）——**待真机复测** `#练度查询 哥伦比娅`（能否真出圣遗物主词条与评分）。
-2. **复核报告 C 批（工程债）未做**：`lib-fresh` 改内容门禁、`accept()` 对已移除前缀的认领清理、状态页明示联网/代理口径、迁移等价措辞修正。
+1. **miao 面板取数通道**：已按 2026-10-15 两轮复核落实（`Artis` 对象契约、目标级完整性、`kind` 分桶、`networkEnabled` 闸门、`render` 第 4 参、编辑器草稿与中文路径、`akashaProxy`、`notes` 合并、比较表与建议口径、`{ret}` 伤害结果、akasha 单位与总值/基础值分槽、`words[]` 重复参数、代理感知的浏览器复用）——**待真机复测** `#练度查询 哥伦比娅` 与 `#配装`（能否真出圣遗物主词条、属性百分比是否正确）。
+2. **两轮复核的 C 批（工程债）未做**：`lib-fresh` 改内容门禁、`accept()` 对已移除前缀的认领清理、状态页明示联网/代理口径、迁移等价措辞修正。
 3. **Atlas 四项稳定导出**待作者落地：别名解析 / 图标路径 / 实体信息 / codex 旧资产移交（适配层已预留 `icon()` / `entityOf()`）。
 4. **Atlas 侧移除 `syncCodexRepo()`**：旧仓库改名后 bot 日志里仍在 502。
 5. **`Mhydps-Plugin` 远端仓库**是否 Archive / 删除待确认（本地两处副本已清空）。

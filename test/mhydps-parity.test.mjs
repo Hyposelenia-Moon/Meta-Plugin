@@ -99,7 +99,7 @@ const strip = (r) => blankVideo(JSON.parse(JSON.stringify(r, (k, v) => (k === 'a
 // ---------- 3. 文本回退 ----------
 {
   const texts = snap.rank.filter(c => c.r.ok).map(c => FT.rankText(c.r, '#DPS榜'))
-    .concat(snap.raid.filter(c => c.r.ok).map(c => FT.raidText(c.r, '#DPS危战榜')))
+    .concat(snap.raid.filter(c => c.r.ok).map(c => FT.raidText(c.r, '#危战')))
   push(`文本回退（${texts.length} 段）与合并前逐字一致`,
     texts.filter((t, i) => t !== snap.text[i]).map((_, i) => i), [])
 }
@@ -121,7 +121,16 @@ const strip = (r) => blankVideo(JSON.parse(JSON.stringify(r, (k, v) => (k === 'a
 {
   const a = snap.cases.arg
   push('parseRankArgs 与合并前一致', a.filter((t, i) => JSON.stringify(QA.parseRankArgs(t)) !== JSON.stringify(snap.arg.rank[i])), [])
-  push('parseRaidArgs 与合并前一致', a.filter((t, i) => JSON.stringify(QA.parseRaidArgs(t)) !== JSON.stringify(snap.arg.raid[i])), [])
+  /*
+   * 偏差 B16（用户 2026-10-15 定，危战 n6/n7 剥离）：
+   * `parseRaidArgs` 新增 `tier` 字段（服务 `#危战 矮灵 n7`），比合并前快照多一个键；
+   * 其余字段仍要求**逐字一致**，所以这里摘掉 `tier` 再比。
+   */
+  const stripTier = (o) => { const { tier: _tier, ...rest } = o; return rest }
+  push('parseRaidArgs 与合并前一致（除偏差 B16 新增的 tier）',
+    a.filter((t, i) => JSON.stringify(stripTier(QA.parseRaidArgs(t))) !== JSON.stringify(stripTier(snap.arg.raid[i]))), [])
+  ok('parseRaidArgs 的 tier 缺省为 null 且不影响其它字段',
+    QA.parseRaidArgs('胡桃 金≤12').tier === null && QA.parseRaidArgs('胡桃 金≤12').costMax === 12)
   push('parseBuildArgs 与合并前一致', a.filter((t, i) => JSON.stringify(QA.parseBuildArgs(t)) !== JSON.stringify(snap.arg.build[i])), [])
   push('takeRankNo 与合并前一致', a.filter((t, i) => JSON.stringify(QA.takeRankNo(t)) !== JSON.stringify(snap.arg.takeRankNo[i])), [])
 }

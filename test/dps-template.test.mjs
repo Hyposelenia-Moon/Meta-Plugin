@@ -65,6 +65,29 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
     [...refs].filter(rel => !fs.existsSync(path.join(resDir, rel))), [])
 }
 
+// ---------- 2b. 立绘行图标：元素圆环底图 + 层级 ----------
+{
+  const html = readText(path.join(tplDir, 'grade.html'))
+  // 2026-10-15 用户反馈：天赋/命座图标只剩中间那块白色图形（缺元素圆环），命座行还整个看不见
+  const rules = [...html.matchAll(/\.gd-elem-([a-z]+) \.gd-talent-icon \{ background-image: url\('([^']+)'\); \}/g)]
+  const ring = new Map(rules.map(m => [m[1], m[2]]))
+  push('元素圆环规则覆盖 miao 的 8 个元素（不含星铁）', ring.size, 8)
+  push('每个圆环都指向同名的 talent-{elem}.webp',
+    [...ring].filter(([elem, url]) => !url.endsWith(`/common/bg/talent-${elem}.webp`)), [])
+  ok('.gd-talent-icon 带 z-index: 90（否则左下角命座行会被 z-index:2 的立绘盖住）',
+    /\.gd-talent-icon \{[^}]*z-index: 90/.test(html))
+  ok('旋绕（.gd-talent-crown）贴圆环顶边（top: 0）', /\.gd-talent-crown::after \{[^}]*top: 0/.test(html))
+  const miaoRoot = process.env.META_MIAO_DIR
+    ? path.join(process.env.META_MIAO_DIR, 'resources')
+    : path.resolve(pluginRoot, '..', 'miao-plugin', 'resources')
+  if (fs.existsSync(path.join(miaoRoot, 'common', 'bg'))) {
+    push('圆环底图在 miao 里都存在',
+      [...ring.values()].map(u => path.basename(u)).filter(f => !fs.existsSync(path.join(miaoRoot, 'common', 'bg', f))), [])
+  } else {
+    console.log(`跳过：未找到 miao 资源（${miaoRoot}）—— 圆环底图存在性未校验`)
+  }
+}
+
 // ---------- 3. 数据契约（模板根字段 ⊆ app 传入的数据） ----------
 {
   const INJECTED = new Set(['_res_path', '_data_path', '_miao_path', 'renderScale', 'copyright', 'sys', 'elemLayout', 'defaultLayout', 'pluResPath', 'tplFile', 'saveId', 'imgType'])
@@ -76,10 +99,11 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
     raid: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'page', 'totalPages', 'rows'],
   'char-dps': ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tierCount', 'tiers'],
   tiers: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tiers'],
-  grade: ['title', 'subtitle', 'ranks', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'weightsNote', 'notes'],
+  // 2026-10-15：新增「当前配装 / 参考 DPS / 角色立绘」三块（后两块可缺省 → 模板用 {{if}} 兜着）
+  grade: ['title', 'subtitle', 'charName', 'ranks', 'rankClass', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'buildInfo', 'panelRows', 'uidText', 'consIcons', 'talentIcons', 'elemClass', 'splashRel', 'refDps', 'portrait', 'notes'],
   'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes', 'referenceDps', 'referenceTotal', 'window', 'axisLabel', 'axisManual', 'patchLabel', 'contributions'],
   'akasha-build': ['title', 'subtitle', 'charName', 'rank', 'uid', 'nickname', 'cons', 'damageText', 'critValueText', 'talent', 'weapon', 'artis', 'sets', 'panel'],
-    status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
+    status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'disabledModules', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
   }
   const LOOP = new Set(['row', 'rows', 'c', 'item', 's', 'r', '$data', 'member', 'team'])
 
@@ -158,10 +182,10 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
     }
     const cases = [
       ['rank', { ...base, title: '#DPS榜', subtitle: '玛薇卡 · 按期望DPS降序', total: rows.length, page: 1, totalPages: 1, pageSize: 10, rows }],
-      ['raid', { ...base, title: '#DPS危战榜', subtitle: '版本 7.1 · 按金数升序', total: raidRows.length, page: 1, totalPages: 1, rows: raidRows }],
+      ['raid', { ...base, title: '#危战', subtitle: '版本 7.1 · 按金数升序', total: raidRows.length, page: 1, totalPages: 1, rows: raidRows }],
       ['status', {
         ...base,
-        title: '#DPS状态',
+        title: '#meta状态',
         hasData: true,
         dataTime: '2026-10-13 12:00',
         ageText: '5 分钟前',

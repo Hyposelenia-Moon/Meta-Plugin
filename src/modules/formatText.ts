@@ -14,6 +14,13 @@ import type { MemberView } from './teamView.js'
 /** 榜单记录的一行视图（`rankQuery.buildRows` / `raidQuery.buildRows` 的产物） */
 export interface ViewRow {
   rank: number
+  /**
+   * 全榜名次（2026-10-15 用户定：`#危战视频 N` 的 N 按**全榜排序** —— 金数升序、同金比耗时）
+   *
+   * 档页按耗时降序排（档内序号 = `rank`），与视频名次口径不同，故每行额外标"全榜 #N"，
+   * 用户看到就能直接发 `#危战视频 N`。
+   */
+  overallRank?: number
   cost: number
   limitcost: number
   normalcost: number
@@ -95,7 +102,7 @@ function badgeLine (row: ViewRow): string {
  */
 export function entryText (result: EntryResult, kind: 'rank' | 'raid' = 'rank'): string {
   const row = result.row
-  const title = kind === 'raid' ? '#DPS危战榜' : '#DPS榜'
+  const title = kind === 'raid' ? '#危战' : '#DPS榜'
   const lines = [`${title} 第 ${result.rank} 名（当前条件下共 ${result.total} 条）`]
 
   if (kind === 'raid') {
@@ -132,7 +139,7 @@ export function rankText (result: ViewResult, title = '#DPS榜'): string {
 }
 
 /** 危战榜文本版 */
-export function raidText (result: ViewResult, title = '#DPS危战榜'): string {
+export function raidText (result: ViewResult, title = '#危战'): string {
   const lines = [
     `${title}${result.subtitle ? `｜${result.subtitle}` : ''}`,
     `共 ${result.total} 条 · 第 ${result.page}/${result.totalPages} 页`,
@@ -156,7 +163,7 @@ export const copyrightLine = DPS_COPYRIGHT
  *
  * 口径必须写在文本里：akasha 的名次/伤害是它自己的公式与赛道榜，与本站榜单的期望 DPS 无关。
  */
-export function akashaText (view: AkashaView, title = '#DPS练度查询'): string {
+export function akashaText (view: AkashaView, title = '#练度榜'): string {
   const p = view.player
   const lines = [
     `${title}｜${p.nickname || '未知昵称'}（UID ${p.uid}）`,

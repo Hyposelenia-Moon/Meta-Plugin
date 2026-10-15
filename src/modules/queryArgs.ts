@@ -41,11 +41,13 @@ export interface RankArgs {
   unknown: string[]
 }
 
-/** 危战榜参数（多出 版本 / 首领） */
+/** 危战榜参数（多出 版本 / 首领 / 档位） */
 export interface RaidArgs {
   char: string
   ver: string
   boss: string
+  /** 危战档位（用户 2026-10-15 定：`#危战 矮灵 n6` / `n7`；不写则 app 层提示选档） */
+  tier: 'n6' | 'n7' | null
   costMin: number | null
   costMax: number | null
   page: number
@@ -142,13 +144,16 @@ export function parseRankArgs (text: unknown): RankArgs {
 }
 
 /**
- * 解析危战榜参数（多出 版本 / 首领 两个维度）
+ * 解析危战榜参数（多出 版本 / 首领 / 档位 三个维度）
+ *
+ * 档位写法：`#危战 矮灵 n7` / `#危战 7.1 n6`（`n6` 与 `n7` 大小写与位置都随意）
  */
 export function parseRaidArgs (text: unknown): RaidArgs {
   const args: RaidArgs = {
     char: '',
     ver: '',
     boss: '',
+    tier: null,
     costMin: null,
     costMax: null,
     page: 1,
@@ -174,6 +179,18 @@ export function parseRaidArgs (text: unknown): RaidArgs {
       continue
     }
 
+    /*
+     * 危战档位：`n6` / `n7`（也接受 `N6` / `6档` / `7档`）
+     *
+     * ⚠ 裸数字 `6` / `7` **不**当档位：位置简写里它更像金数或名次，误判会静默改变结果口径。
+     */
+    const tier = token.match(/^(?:[nN]([67])|([67])档)$/)
+    if (tier) {
+      if (args.tier) args.unknown.push(token)
+      else args.tier = (tier[1] || tier[2]) === '7' ? 'n7' : 'n6'
+      continue
+    }
+
     // 版本号形如 7.1
     if (!args.ver && /^\d+\.\d+$/.test(token)) {
       args.ver = token
@@ -196,10 +213,10 @@ export function parseRaidArgs (text: unknown): RaidArgs {
 /**
  * 解析练度查询参数（UID 与角色名可以任意顺序、任意组合）
  *
- *   `#DPS练度查询 123456789`        整号全部公开角色
- *   `#DPS练度查询 胡桃`             只看胡桃（UID 取配置里的 `akashaDefaultUid`）
- *   `#DPS练度查询 胡桃 123456789`   两者都给也行
- *   `#DPS练度查询 uid:123456789 桃` 显式键值同样支持
+ *   `#练度榜 123456789`        整号全部公开角色
+ *   `#练度榜 胡桃`             只看胡桃（UID 取配置里的 `akashaDefaultUid`）
+ *   `#练度榜 胡桃 123456789`   两者都给也行
+ *   `#练度榜 uid:123456789 桃` 显式键值同样支持
  *
  * UID 只认 9 位纯数字；角色名交给 `findCharacter` 判定（命中别名也算），
  * 两者都不像的 token 进 `unknown`，由 app 层提示用户。
@@ -229,7 +246,7 @@ export function parseBuildArgs (text: unknown): BuildArgs {
 /**
  * 从参数里摘出名次（第一个纯数字 token），其余原样留给 `parseRankArgs` / `parseRaidArgs`
  *
- * 用在视频查询（`#DPS视频 3 胡桃`）：名次与榜单图编号同口径，
+ * 用在视频查询（`#视频 3 胡桃`）：名次与榜单图编号同口径，
  * 其余筛选词与榜单命令完全一致，故这里只负责把数字拆出来。
  */
 export function takeRankNo (text: unknown): { rankNo: number, rest: string } {

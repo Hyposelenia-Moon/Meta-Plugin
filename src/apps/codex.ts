@@ -28,6 +28,7 @@ import { atlasRes } from '../model/AtlasRes.js'
 import { codexStore } from '../model/CodexStore.js'
 import { miaoRes } from '../model/MiaoRes.js'
 import { filterView, isViewEmpty, parseSuffixQuery } from '../modules/branches.js'
+import { moduleOff } from '../modules/moduleGate.js'
 import {
   buildCodexView,
   portraitOf,
@@ -82,11 +83,15 @@ export class MetaCodex extends plugin {
 
   /** 抢占：认领攻略类消息（纯正则，无 I/O） */
   async accept (e: YunzaiEvent): Promise<boolean> {
+    // 模块关闭时不认领：放行给 genshin「米游社攻略」/ Atlas 的原有入口（见 modules/moduleGate.ts）
+    if (moduleOff('codex')) return false
     return isCodexCommand(e.msg)
   }
 
   /** `#胡桃攻略` / `#胡桃攻略2` / `#胡桃指南` */
   async handleSuffix (e: YunzaiEvent): Promise<boolean> {
+    // 框架的 accept 不跳过自己的 rule 匹配，所以 handler 也要放行（返回 false = 继续匹配后续规则）
+    if (moduleOff('codex')) return false
     const query = parseSuffixQuery(e.msg)
     if (!query) return false
     return await this.replyCharacter(e, query.character, { setIndex: query.setIndex })
@@ -94,6 +99,7 @@ export class MetaCodex extends plugin {
 
   /** `#攻略列表` / `#攻略状态` */
   async handleMeta (e: YunzaiEvent): Promise<boolean> {
+    if (moduleOff('codex')) return false
     const hit = String(e.msg ?? '').match(CODEX_META_RULE)
     if (!hit) return false
     return hit[1] === '列表' ? await this.replyList(e) : await this.replyStatus(e)

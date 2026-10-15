@@ -142,6 +142,16 @@ export function parseStatPatch (text: unknown): StatPatch {
   return { items, invalid }
 }
 
+/**
+ * 单个 token 是否是一条词条（2026-10-15：`#队伍伤害` 免前缀词条靠它把词条与角色名分开）
+ *
+ * 只有"整 token 就是一条合法词条"才算命中：`+30暴击` / `暴击+20` ✓；`胡桃`、`100000000`、`+20` ✗。
+ */
+export function statPatchToken (token: unknown): StatPatchItem | null {
+  const parsed = parseStatPatch(token)
+  return parsed.items.length === 1 && parsed.invalid.length === 0 ? parsed.items[0] : null
+}
+
 /** 把词条应用到属性表（不改原对象；结果为负时截到 0） */
 export function applyStatPatch (attrs: Record<string, number>, patch: StatPatch): Record<string, number> {
   const out: Record<string, number> = { ...(attrs || {}) }

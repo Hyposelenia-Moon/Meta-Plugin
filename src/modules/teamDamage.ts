@@ -10,6 +10,7 @@
  * 本模块**纯函数**（不读文件、不联网、不引 miao），因此可用合成数据完整单测。
  */
 import type { TeamRecord } from '../model/TeamStore.js'
+import { statPatchToken } from './statPatch.js'
 
 /** 参与的队员（取自 miao 薄桥，或测试里手工构造） */
 export interface TeamMemberInput {
@@ -141,31 +142,48 @@ export function buildTeamDamageView (
  * 参数解析（从 app 里挪出来：纯函数才能离线单测）
  * ------------------------------------------------------------------ */
 
-/** 从参数里分离出「轴:」「词条:」两个特殊项（其余才是角色名 / UID） */
-export function splitTeamTokens (raw: string): { rest: string, axisText: string, patchText: string } {
-  let text = String(raw || '')
-  let axisText = ''
-  let patchText = ''
-  text = text.replace(/轴[:：]\s*(\S+)/g, (_m, v: string) => { axisText = v; return ' ' })
-  text = text.replace(/词条[:：]\s*(\S+)/g, (_m, v: string) => { patchText = v; return ' ' })
-  return { rest: text, axisText, patchText }
-}
+/**
+ * 旧写法（2026-10-15 废除）：`轴:…` / `词条:…`
+ *
+ * 现在轴走序号（`#队伍伤害2`）、词条免前缀（`暴击+20`）；命中旧写法时给一句改用提示，
+ * 而不是静默当作角色名（否则只会得到"要四个角色名"这种看不懂的报错）。
+ */
+export const LEGACY_TOKEN_RE = /^(?:轴|词条)[:：]/
 
-/** 把参数拆成「四人名 + 可选 UID + 轴 + 词条」（支持空格 / 顿号 / 逗号分隔） */
-export function parseTeamArgs (raw: string): { names: string[], uid: string, axisText: string, patchText: string } {
-  const { rest, axisText, patchText } = splitTeamTokens(raw)
-  const parts = rest
+/** 把参数拆成「四人名 + 可选 UID + 词条」（支持空格 / 顿号 / 逗号分隔） */
+export function parseTeamArgs (raw: string): {
+  names: string[]
+  uid: string
+  /** 词条 token（免前缀；`statPatchToken` 判定） */
+  patchTokens: string[]
+  /** 旧写法 token（已废除，app 提示用） */
+  legacyTokens: string[]
+} {
+  const parts = String(raw || '')
     .split(/[\s、,，/|]+/)
     .map(t => t.trim())
     .filter(Boolean)
+
   let uid = ''
   const names: string[] = []
+  const patchTokens: string[] = []
+  const legacyTokens: string[] = []
+
   for (const p of parts) {
+    if (LEGACY_TOKEN_RE.test(p)) {
+      legacyTokens.push(p)
+      continue
+    }
     if (/^[1-9]\d{8}$/.test(p) && !uid) {
       uid = p
       continue
     }
+    if (statPatchToken(p)) {
+      patchTokens.push(p)
+      continue
+    }
     names.push(p)
   }
-  return { names, uid, axisText, patchText }
+
+  return { names, uid, patchTokens, legacyTokens }
 }

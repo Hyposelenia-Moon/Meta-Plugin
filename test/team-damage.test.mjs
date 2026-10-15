@@ -75,21 +75,55 @@ const fixture = JSON.parse(readText(path.join(pluginRoot, 'test', 'fixtures', 'd
 
 // ---------- 4. 路由与参数 ----------
 {
-  const ev = C.matchEntryCommand('#队伍伤害 胡桃 行秋 夜兰 钟离')
+  const ev = C.matchCommand('#队伍伤害 胡桃 行秋 夜兰 钟离')
   ok('`#队伍伤害 …` 命中新入口', ev?.key === 'teamDamage')
-  ok('参数进捕获组', ev?.match[1] === '胡桃 行秋 夜兰 钟离')
-  const legacy = ['#DPS榜', '#DPS状态', '#DPS危战榜 7.1', '#练度查询 胡桃', '#危战']
-  push('不吞其它入口', legacy.filter(t => C.matchEntryCommand(t)?.key === 'teamDamage'), [])
-  ok('ENTRY_COMMANDS 登记了 teamDamage', C.ENTRY_COMMANDS.some(c => c.rules.includes('teamDamage')))
+  ok('参数进捕获组 2（轴序号为空）', !ev?.match[1] && ev?.match[2] === '胡桃 行秋 夜兰 钟离')
+
+  // 2026-10-15：轴改为内置序号（`#队伍伤害2 …`）
+  const ev2 = C.matchCommand('#队伍伤害2 胡桃 行秋 夜兰 钟离 暴击+20')
+  ok('序号轴进捕获组 1', ev2?.match[1] === '2' && ev2?.match[2] === '胡桃 行秋 夜兰 钟离 暴击+20')
+  const ev3 = C.matchCommand('#队伍伤害 123456789 胡桃 行秋 夜兰 钟离')
+  ok('9 位 UID 不会被当成轴序号', !ev3?.match[1] && String(ev3?.match[2]).startsWith('123456789'))
+
+  const p = TD.parseTeamArgs('胡桃 行秋 夜兰 钟离 暴击+20 +30爆伤 123456789')
+  ok('词条免前缀即被识别（不再是角色名）',
+    p.names.join(',') === '胡桃,行秋,夜兰,钟离' && p.patchTokens.join(' ') === '暴击+20 +30爆伤')
+  ok('UID 仍单独取出', p.uid === '123456789')
+  const pl = TD.parseTeamArgs('胡桃 行秋 夜兰 钟离 轴:重击×8 词条:暴击+20')
+  ok('旧写法被识别为 legacy（给改用提示，不当角色名）', pl.legacyTokens.length === 2 && pl.names.length === 4)
+
+  const legacy = ['#DPS榜', '#meta状态', '#危战 7.1', '#练度查询 胡桃', '#危战']
+  push('不吞其它入口', legacy.filter(t => C.matchCommand(t)?.key === 'teamDamage'), [])
+  ok('COMMANDS 登记了 teamDamage', C.COMMANDS.some(c => c.rules.includes('teamDamage')))
 
   const app = await load('apps/teamDamage.js').catch(() => null)
   ok('app 产物存在', fs.existsSync(path.join(libDir, 'apps', 'teamDamage.js')))
 }
 
+// ---------- 4b. 序号轴表（配置项 teamDamageAxes） ----------
+{
+  const AX = await load('modules/teamAxes.js')
+  const def = AX.parseAxesConfig('')
+  ok('配置空着也永远有轴 1（保守轴）', def.length === 1 && def[0].no === '1' && def[0].axis.manual === false)
+  ok('不带序号 = 轴 1', AX.axisByNo('', '').no === '1')
+
+  const cfg = '1:保守轴=默认,2:重击轴=重击×8@20s+元素战技×1,3=元素爆发×1+重击×4@15s'
+  const axes = AX.parseAxesConfig(cfg)
+  ok('解析出 3 个轴且按序号排序', axes.map(a => a.no).join(',') === '1,2,3')
+  ok('轴 2 名称与窗口正确', axes[1].name === '重击轴' && axes[1].axis.window === 20 && axes[1].axis.manual === true)
+  ok('轴 2 的两段关键词与次数正确',
+    axes[1].axis.segments.map(s => `${s.keyword}×${s.count}`).join('+') === '重击×8+元素战技×1')
+  ok('没写名称时用轴定义兜底', axes[2].name.includes('元素爆发×1'))
+  ok('取轴：命中 / 未命中', AX.axisByNo('2', cfg)?.name === '重击轴' && AX.axisByNo('9', cfg) === null)
+  const help = AX.axesHelpLines(cfg)
+  ok('帮助清单只给序号+名称+窗口（不暴露关键词写法）',
+    help.length === 3 && help[1].includes('2 = 重击轴') && !help[1].includes('×8'), help.join('｜'))
+}
+
 // ---------- 5. app 与模板接线 ----------
 {
   const src = readText(path.join(pluginRoot, 'src', 'apps', 'teamDamage.ts'))
-  ok('app 用 ENTRY_RULES.teamDamage 注册', src.includes('reg: ENTRY_RULES.teamDamage'))
+  ok('app 用 RULES.teamDamage 注册', src.includes('reg: RULES.teamDamage'))
   ok('app 首个导出是插件类', /^export class \w+ extends plugin/m.test(src))
   ok('v1 要求四个角色名（不擅自补队）', src.includes('names.length !== 4'))
   ok('app 复用 miao 桥与纯函数模块', src.includes("from '../model/MiaoProfile.js'") && src.includes("from '../modules/teamDamage.js'"))
@@ -99,7 +133,7 @@ const fixture = JSON.parse(readText(path.join(pluginRoot, 'test', 'fixtures', 'd
   ok('模板已就位并引用公共样式', fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'team-damage.html')) &&
     tpl.includes('{{_res_path}}/common/base.css') && tpl.includes('{{renderScale}}') && tpl.includes('{{copyright}}'))
   ok('模板渲染队员伤害与参考区', tpl.includes('{{each members m}}') && tpl.includes('{{each refs r}}'))
-  ok('帮助页收录 #队伍伤害', /#队伍伤害 四人名/.test(readText(path.join(pluginRoot, 'resources', 'help', 'help-cfg.js'))))
+  ok('帮助页收录 #队伍伤害（默认轴，不带序号）', /#队伍伤害 四人名/.test(readText(path.join(pluginRoot, 'resources', 'help', 'help-cfg.js'))))
 }
 
 // ---------- 6. miao 桥：无 miao 时可读失败 ----------

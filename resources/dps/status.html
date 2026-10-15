@@ -65,8 +65,12 @@
             <span class="kv-label">网络代理</span>
             <span class="kv-value">{{if proxy}}{{proxy}}{{else}}直连{{/if}}</span>
           </div>          <div class="kv-item">
-            <span class="kv-label">联网开关</span>
-            <span class="kv-value">{{if networkEnabled}}已开启{{else}}已关闭（不联网）{{/if}}</span>
+            <span class="kv-label">业务查询联网</span>
+            <span class="kv-value">{{if networkEnabled}}已开启{{else}}已关闭（查询类远程访问不发请求）{{/if}}</span>
+          </div>
+          <div class="kv-item">
+            <span class="kv-label">已关闭模块</span>
+            <span class="kv-value">{{if disabledModules}}{{disabledModules}}{{else}}无{{/if}}</span>
           </div>
         </div>
 

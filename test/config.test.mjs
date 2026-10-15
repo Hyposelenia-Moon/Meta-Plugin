@@ -41,11 +41,25 @@ push('示例文件解析结果 == defaultConfig', example, defaults)
 push('示例文件键集合 == defaultConfig 键集合', Object.keys(example).sort(), keys)
 
 // ---------- 2. defSet 模板占位符与配置键一一对应 ----------
+// `modules` 是**嵌套对象**：模板与锅巴表单按模块逐项展开（`meta_module_<key>` / 字段 `module_<key>`），
+// 所以这里比较的是"标量键 + 11 个模块键"的并集（2026-10-15 起：`charDps` / `raid` 随命令合并移除）
+const moduleKeys = [...C.MODULE_KEYS].sort()
+const scalarKeys = keys.filter(k => k !== 'modules')
+const expectedVars = [...scalarKeys.map(k => `meta_${k}`), ...moduleKeys.map(k => `meta_module_${k}`)].sort()
+const expectedFields = [...scalarKeys, ...moduleKeys.map(k => `module_${k}`)].sort()
+const flatDefaults = { ...defaults, ...Object.fromEntries(moduleKeys.map(k => [`module_${k}`, defaults.modules[k]])) }
+delete flatDefaults.modules
+
+ok('模块开关默认值：teamDamage 关闭', C.defaultModules.teamDamage === false)
+ok('模块开关默认值：其余全部开启',
+  moduleKeys.filter(k => k !== 'teamDamage').every(k => C.defaultModules[k] === true))
+push('模块键数量 == 11', moduleKeys.length, 11)
+
 const defsetPath = path.join(pluginRoot, 'defSet', 'config.yaml')
 ok('defSet/config.yaml 存在', fs.existsSync(defsetPath))
 const defset = readText(defsetPath)
 const vars = [...defset.matchAll(/\$\{([A-Za-z0-9_]+)\}/g)].map(m => m[1]).sort()
-push('defSet 占位符 == meta_<配置键>', vars, keys.map(k => `meta_${k}`).sort())
+push('defSet 占位符 == meta_<配置键>（模块逐项展开）', vars, expectedVars)
 
 // ---------- 3. 锅巴：结构 / 读回 / 保存往返 ----------
 // 先清掉本套件自己的临时目录：否则上一轮写入的 config.yaml 会让"读回默认值"这类断言假失败
@@ -61,11 +75,11 @@ ok('supportGuoba 返回 configInfo', !!configInfo)
 ok('configInfo.schemas 是数组', Array.isArray(configInfo?.schemas))
 
 const schemaFields = (configInfo?.schemas || []).filter(s => s.field).map(s => s.field).sort()
-push('schemas 覆盖全部配置键', schemaFields, keys)
+push('schemas 覆盖全部配置键（模块逐项展开）', schemaFields, expectedFields)
 
 const got = configInfo.getConfigData()
-push('getConfigData 覆盖全部配置键', Object.keys(got).sort(), keys)
-push('getConfigData 回落默认值', got, defaults)
+push('getConfigData 覆盖全部配置键（模块逐项展开）', Object.keys(got).sort(), expectedFields)
+push('getConfigData 回落默认值（modules 摊平）', got, flatDefaults)
 
 const Result = {
   ok: (_data, message) => ({ ok: true, message }),
@@ -87,6 +101,8 @@ if (fs.existsSync(target)) {
   push('兜底值 dpsPageSize', wrote.dpsPageSize, defaults.dpsPageSize)
   push('兜底值 akashaProxy（空串键）', wrote.akashaProxy, '')
   push('写入后键集合不变', Object.keys(wrote).sort(), keys)
+  push('写入后 modules 键集合不变', Object.keys(wrote.modules || {}).sort(), moduleKeys)
+  push('未提交的模块开关回落默认（teamDamage 仍关闭）', (wrote.modules || {}).teamDamage, false)
 
   const loaded = C.loadConfig()
   push('loadConfig 读回 priority', loaded.priority, 123)

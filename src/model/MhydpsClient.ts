@@ -17,7 +17,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { URL } from 'node:url'
 import { SITE_ORIGIN, SITE_REFERER, SITE_USER_AGENT } from '../components/constants.js'
-import { defaultConfig, loadConfig } from '../components/config.js'
+import { defaultConfig, isQueryNetworkEnabled, loadConfig, QUERY_NETWORK_OFF_HINT } from '../components/config.js'
 
 /** `httpGet` / `fetchJson` / `downloadTo` 的公共选项 */
 export interface HttpGetOptions {
@@ -69,10 +69,10 @@ const MAX_REDIRECT = 3
  * 取值 + 修剪 / 夹取，不做合法性校验（非法地址由连接错误报出）。
  */
 
-/** 联网总开关：关闭时所有网络入口抛错（不返回空数据） */
+/** 业务查询联网开关：关闭时所有远程入口抛错（不返回空数据）；只管辖查询类访问，不是全局禁令 */
 function assertNetwork (): void {
-  if (!loadConfig().networkEnabled) {
-    throw new Error('联网功能已关闭：请在配置里开启 networkEnabled')
+  if (!isQueryNetworkEnabled()) {
+    throw new Error(`${QUERY_NETWORK_OFF_HINT}；榜单数据需要在配置里开启 networkEnabled`)
   }
 }
 

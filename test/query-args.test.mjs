@@ -75,6 +75,28 @@ check('不存在的版本仍被识别为版本（查询层再校验）', r.ver =
 r = parseRaidArgs('玛薇卡 版本:7.1')
 check('键值与位置混用', r.char === '玛薇卡' && r.ver === '7.1')
 
+// ---- 危战档位（2026-10-15：n6 / n7 显式选档） ----
+r = parseRaidArgs('矮灵雕刻师 n7')
+check('档位 n7 与首领共存', r.boss === '矮灵雕刻师' && r.tier === 'n7' && r.unknown.length === 0)
+
+r = parseRaidArgs('7.1 N6')
+check('档位大小写不敏感', r.ver === '7.1' && r.tier === 'n6')
+
+r = parseRaidArgs('胡桃 7档')
+check('档位也接受「7档」写法', r.char === '胡桃' && r.tier === 'n7')
+
+r = parseRaidArgs('n6 矮灵 金≤4')
+check('档位顺序随意、不影响其它筛选', r.tier === 'n6' && r.boss === '矮灵' && r.costMax === 4)
+
+r = parseRaidArgs('n6 n7')
+check('重复档位只取第一个，多余的进 unknown', r.tier === 'n6' && r.unknown.join(',') === 'n7')
+
+r = parseRaidArgs('6')
+check('裸数字不当档位（避免与金数/名次混淆）', r.tier === null)
+
+r = parseRaidArgs('')
+check('不写档位 = null（交给 app 提示选档）', r.tier === null)
+
 // ---- 练度查询：UID 与角色名（顺序随意、都可省） ----
 let b = parseBuildArgs('')
 check('练度：空参数 = 全部角色', b.uid === '' && b.names.length === 0 && b.unknown.length === 0)

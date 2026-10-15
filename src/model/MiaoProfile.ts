@@ -11,7 +11,7 @@
  * 开发工作区没有 bot/miao 时，动态 import 会失败 → 同样走 `ok: false`（套件据此跳过）。
  */
 import { ENKA_PROP_CN } from '../components/constants.js'
-import { loadConfig } from '../components/config.js'
+import { isQueryNetworkEnabled, QUERY_NETWORK_OFF_HINT } from '../components/config.js'
 import { miaoPluginDir } from './MiaoPanel.js'
 import type { BuildArtifact, BuildSnapshot } from '../modules/grade.js'
 import { applyStatPatch } from '../modules/statPatch.js'
@@ -49,6 +49,42 @@ function miaoUrl (rel: string): string {
 async function miaoModels (): Promise<Record<string, any>> {
   const mod = await import(miaoUrl('models/index.js')) as Record<string, any>
   return (mod?.default && typeof mod.default === 'object') ? { ...mod.default, ...mod } : mod
+}
+
+/**
+ * 面板 8 行的显示文本 —— **照抄 miao `apps/profile/ProfileDetail.js:216-242`**
+ *
+ * miao 的面板文本不是"自己格式化一遍"，而是用它自己的 `Format.comma` / `Format.pct`：
+ *   - `hp` 取整 + 千分位（分组位数读 miao 配置 `commaGroup`），其余三项保留 1 位小数；
+ *   - 百分比四项走 `Format.pct`（1 位小数 + `%`）；`dmg` 在 `phy > dmg` 时改取物理伤害；
+ *   - 每行还给 `{key}Base`（白字基础值）与 `{key}Plus`（绿字加成），面板第五列用。
+ *
+ * 直接调 miao 的 `Format`（而不是在本插件里再实现一份）才能保证**小数点位数、千分位分组、
+ * 缺值形态**与面板逐字一致（2026-10-15 用户反馈：面板显示成了 `47268.265412357367` 这种原始浮点）。
+ */
+async function attrTextOf (profile: Record<string, any>): Promise<Record<string, string>> {
+  try {
+    const fmt = (await import(miaoUrl('components/Format.js'))).default as Record<string, any>
+    const a = (profile.attr || {}) as Record<string, number>
+    const base = (profile.base || {}) as Record<string, number>
+    const attr: Record<string, string> = {}
+    for (const key of ['hp', 'def', 'atk', 'mastery']) {
+      const fn = (n: number): string => fmt.comma(n, key === 'hp' ? 0 : 1)
+      attr[key] = fn(a[key])
+      attr[`${key}Base`] = fn(base[key])
+      attr[`${key}Plus`] = fn(a[key] - base[key])
+    }
+    for (const key of ['cpct', 'cdmg', 'recharge', 'dmg']) {
+      // miao：物理伤害高于元素伤害时，`dmg` 这一行显示物理伤害
+      const key2 = (key === 'dmg' && Number(a.phy) > Number(a.dmg)) ? 'phy' : key
+      attr[key] = fmt.pct(a[key2])
+      attr[`${key}Base`] = fmt.pct(base[key2])
+      attr[`${key}Plus`] = fmt.pct(a[key2] - base[key2])
+    }
+    return attr
+  } catch {
+    return {}
+  }
 }
 
 /**
@@ -108,6 +144,18 @@ function talentLevel (ds: unknown): number {
     if (Number.isFinite(v) && v > 0) return v
   }
   return 0
+}
+
+/**
+ * 天赋**原始**等级（miao `talent.original`）
+ *
+ * miao 面板的皇冠判据（`original >= 10`）与 `talent-plus`（`level > original`）都用它；
+ * miao 的 `Avatar.talent` 形如 `{level, original}`（`models/character/CharTalent.js:74`），
+ * 取不到时才回落到现等级（等于"没有命座加成"，不会误判成加号）。
+ */
+function originalLevelOf (ds: unknown, level: number): number {
+  const v = Number((ds as Record<string, unknown> | null)?.original)
+  return (Number.isFinite(v) && v > 0) ? v : level
 }
 
 /**
@@ -248,7 +296,7 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
      */
     const notes: string[] = []
     const titles = nativeKeyTitles(models)
-    const networkOn = loadConfig().networkEnabled === true
+    const networkOn = isQueryNetworkEnabled()
 
     /**
      * 目标角色本人当前的面板状态
@@ -276,7 +324,7 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
       // 是 miao `ProfileList.refreshMys` 走的调用；`refresh({profile:true})` 是它的兜底
       // ⚠ 联网总开关：关闭时**不发任何远程请求**，只用本地缓存（2026-10-15 外部复核第 5 项发现）
       if (!networkOn) {
-        notes.push(`${reason} → 联网已关闭（networkEnabled=false）：只读本地缓存，未发起远程刷新`)
+        notes.push(`${reason} → ${QUERY_NETWORK_OFF_HINT}：只读本地缓存，未发起远程刷新`)
         return
       }
       const channels: Array<[string, () => Promise<unknown>]> = [
@@ -321,18 +369,50 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
       // avatar 上没有圣遗物明细时，说明这份数据是简版（例如只带面板）→ 让 miao 重取一次再读
     } catch { /* 拿不到就回落 profile */ }
 
-    // 圣遗物评分：调**目标对象自己的** miao 访问器（评分依赖副词条；展示时只列主词条）
+    // 圣遗物评分 + 词条当量总和：调**目标对象自己的** miao 访问器（评分依赖副词条；展示时只列主词条）
     let artiMark: BuildSnapshot['artiMark'] = null
+    let substatRolls = 0
+    /*
+     * 属性权重（面板行的 `.weight` 小方块）：miao 把它挂在**带明细**的 `getArtisMark(true)` 上
+     * （`ArtisMark.getMarkDetail` 仅在 `withDetail` 时给 `ret.charWeight`），
+     * 所以从下面已经取到的那份 detail 里顺带拿走，不再单独读 `getArtisDetail()`（那里没有 charWeight）。
+     */
+    let charWeight: Record<string, number> = {}
     {
       const hasMain = (c: Record<string, any>): boolean => artisRowsOf(c, titles).some(r => !!r.mainName)
       const candidates = [targetState().avatar, player.getAvatar?.(char.id, true), avatar, profile]
         .filter((c): c is Record<string, any> => !!c && typeof c.getArtisMark === 'function' && hasMain(c))
       for (const candidate of candidates) {
         try {
-          // `Avatar.getArtisMark(withDetail=false)` → `ArtisMark.getMarkDetail(this, false)`
-          const detail = candidate.getArtisMark?.(false)
+          /*
+           * `Avatar.getArtisMark(withDetail)` → `ArtisMark.getMarkDetail(this, withDetail)`
+           *
+           * ⚠ 这里要 `withDetail = true`：只有带明细时才能读到每件圣遗物 `attrs[]` 的 `eff`
+           *   （miao 面板中间那列「12.9 爆伤 / 4.2 生命 …」就是它），它们的总和才是**词条当量数**；
+           *   数 `attrs[]` 的条目数只会得到"每件 4 条 = 20 条"，与 miao 显示对不上（2026-10-15 用户反馈）。
+           */
+          const detail = candidate.getArtisMark?.(true)
           if (detail && Number.isFinite(Number(detail._mark))) {
             artiMark = { total: Number(detail._mark), markClass: String(detail.markClass || '') }
+            /*
+             * 只累加**有效词条**：`charWeight` 是 miao 给该角色的每条属性权重（`ArtisMarkCfg.getCfg` 的产物），
+             * 权重为 0 的属性（例如胡桃的防御、丝柯克的生命/防御）算"无效词条"，不计入词条数
+             * （2026-10-15 用户反馈：原来把无效词条也算进去了）。
+             */
+            const weights = (detail.charWeight && typeof detail.charWeight === 'object') ? detail.charWeight as Record<string, unknown> : null
+            if (weights) charWeight = weights as Record<string, number>
+            let sum = 0
+            for (const idx of Object.keys(detail.artis || {})) {
+              const attrs = detail.artis?.[idx]?.attrs
+              if (!Array.isArray(attrs)) continue
+              for (const a of attrs) {
+                const eff = Number(a?.eff)
+                if (!Number.isFinite(eff)) continue
+                if (weights && !(Number(weights[String(a?.key ?? '')]) > 0)) continue
+                sum += eff
+              }
+            }
+            substatRolls = Number(sum.toFixed(1))
             break
           }
         } catch { /* 换下一个候选 */ }
@@ -351,6 +431,21 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
         E: talentLevel(profile.talent?.e),
         Q: talentLevel(profile.talent?.q)
       },
+      /** 原始等级（miao `talent.original`）：皇冠（≥10）与 `talent-plus`（现等级 > 原始等级）的判据 */
+      talentOriginal: {
+        A: originalLevelOf(profile.talent?.a, talentLevel(profile.talent?.a)),
+        E: originalLevelOf(profile.talent?.e, talentLevel(profile.talent?.e)),
+        Q: originalLevelOf(profile.talent?.q, talentLevel(profile.talent?.q))
+      },
+      /** 元素（miao 用它在 `<body>` 上加 `elem-{elem}`，天赋/命座图标圆环按元素取图） */
+      elem: String(char.elem || ''),
+      /*
+       * miao 面板行（`profile-detail.html:50-67`）用的两个原始映射，原样透出给页面：
+       *   `attr`       数值文本（`hp` / `hpBase` / `hpPlus` …）→ 面板 `.value` 与 `.value2`
+       *   `charWeight` 属性权重 → 面板 `.weight`（miao 的 `artisDetail.charWeight`，与有效词条过滤同源）
+       */
+      attrText: await attrTextOf(profile),
+      charWeight,
       artis: ((): BuildSnapshot['artis'] => {
         const state = targetState()
         const av = (state.avatar || profile) as Record<string, any>
@@ -363,6 +458,14 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
         return artisFromMysArtis(av || null) as BuildSnapshot['artis']
       })(),
       artiMark,
+      /**
+       * 有效词条数（2026-10-15 用户定：与 miao 面板一致，**无效词条不计**）
+       *
+       * = 五件圣遗物里，`charWeight[key] > 0` 的那些副词条 `eff`（miao 的"词条当量"）之和；
+       * 权重取自 miao 的 `ArtisMark.getMarkDetail(true).charWeight`（按角色/武器给的有效属性表）。
+       * 拿不到明细时为 0（页面不显示这一项）。
+       */
+      substatRolls,
       attrs: Object.fromEntries(
         Object.entries(profile.attr || {}).filter(([, v]) => Number.isFinite(Number(v))).map(([k, v]) => [k, Number(v)])
       )
@@ -402,11 +505,22 @@ export interface TeamDamageResult {
   notes: string[]
 }
 
-/** 把 miao 的伤害行统一成 `{ title, value }`（helper 返回的是 `{ avg }`，防御式取第一个可用数值） */
-function damageRowsOf (raw: unknown): Array<{ title: string, value: number }> {
-  if (!Array.isArray(raw)) return []
+/**
+ * miao 伤害结果 → 行
+ *
+ * ⚠ `Avatar.calcDmg({mode:'profile'})` / `ProfileDmg.calcData` 返回的是**对象**
+ *   `{ ret, msg, msgList, dmgRet, … }`（`models/ProfileDmg.js`），`ret` 才是行数组，
+ *   每行形如 `{ title, avg, … }`。只认数组会把有效伤害全部丢成空 → 参考 DPS 变 0
+ *   （2026-10-15 四项目复核 P1）。
+ */
+export function damageRowsOf (raw: unknown): Array<{ title: string, value: number }> {
+  const list: unknown[] = Array.isArray(raw)
+    ? raw
+    : Array.isArray((raw as { ret?: unknown } | null)?.ret)
+      ? (raw as { ret: unknown[] }).ret
+      : []
   const out: Array<{ title: string, value: number }> = []
-  for (const row of raw) {
+  for (const row of list) {
     const ds = row as Record<string, unknown>
     const value = Number(ds?.avg ?? ds?.dmg ?? ds?.expect ?? ds?.value)
     const title = String(ds?.title ?? '').trim()
@@ -414,6 +528,20 @@ function damageRowsOf (raw: unknown): Array<{ title: string, value: number }> {
     out.push({ title, value })
   }
   return out
+}
+
+/**
+ * 伤害结果的失败口径（用来区分"没有规则 / 算完没伤害 / 正常"）
+ *
+ * `no-rule` = miao 里没有该角色的伤害规则（`ret` 不是数组）；`empty` = 有规则但一行都没算出来。
+ */
+export function damageOutcome (raw: unknown): 'ok' | 'empty' | 'no-rule' {
+  if (raw === null || raw === undefined) return 'no-rule'
+  if (Array.isArray(raw)) return raw.length ? 'ok' : 'empty'
+  if (typeof raw !== 'object') return 'no-rule'
+  const ret = (raw as { ret?: unknown }).ret
+  if (!Array.isArray(ret)) return 'no-rule'
+  return ret.length ? 'ok' : 'empty'
 }
 
 /**
@@ -476,8 +604,8 @@ export async function readTeamDamage (
       if (!avatar) return { ok: false, error: `没有取到「${local.name}」的面板数据：该角色可能未在米游社公开展示` }
       if (avatar.isProfile === false || avatar.hasData === false) {
         // 联网总开关同样罩住这条刷新（2026-10-15 外部复核第 5 项发现：练度侧曾绕过开关）
-        if (loadConfig().networkEnabled !== true) {
-          notes.push(`${local.name}：本地无面板缓存，且联网已关闭（networkEnabled=false）→ 未发起远程刷新`)
+        if (!isQueryNetworkEnabled()) {
+          notes.push(`${local.name}：本地无面板缓存，且${QUERY_NETWORK_OFF_HINT} → 未发起远程刷新`)
         } else if (typeof player.refresh === 'function') {
           notes.push(`${local.name}：本地无面板缓存，已让 miao 取一次`)
           await player.refresh({ profile: true })
@@ -516,6 +644,14 @@ export async function readTeamDamage (
         dmgRaw = await avatar.calcDmg({ enemyLv: 103, mode: 'profile' })
       }
 
+      // 区分"没有伤害规则 / 算完没伤害 / 正常"，别把失败静默成 0 伤害
+      const outcome = damageOutcome(dmgRaw)
+      if (outcome !== 'ok') {
+        notes.push(`${local.name}：${outcome === 'no-rule'
+          ? 'miao 里没有该角色的伤害规则'
+          : 'miao 计算成功但没有伤害行'}（伤害列留空）`)
+      }
+
       let artiMark: TeamMemberDamage['artiMark'] = null
       try {
         const detail = avatar.getArtisMark?.(false)
@@ -535,7 +671,12 @@ export async function readTeamDamage (
         talent: { A: talentLevel(avatar.talent?.a), E: talentLevel(avatar.talent?.e), Q: talentLevel(avatar.talent?.q) },
         rows: damageRowsOf(dmgRaw),
         ruleBy,
-        artiSets: [...new Set((Array.isArray(avatar.artis) ? avatar.artis : []).map((a: Record<string, any>) => String(a?.set || '')).filter(Boolean))] as string[],
+        // ⚠ 同 readProfile：`avatar.artis` 是 `Artis` 实例，**不是数组**（`Array.isArray` 永远为假，
+        //    套装列会一直空）；件数走 `.sets`，明细走 `getArtisDetail()`
+        artiSets: [...new Set([
+          ...setRowsOf(avatar).map(r => r.set),
+          ...artisRowsOf(avatar, {}).map(r => r.set)
+        ])].filter(Boolean) as string[],
         artiMark
       })
     }

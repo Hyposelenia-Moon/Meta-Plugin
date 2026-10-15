@@ -35,9 +35,9 @@
       font-weight: 700;
       color: var(--gold);
       line-height: 1.4;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      /* 标题过长时换行，不再截断成「…」（2026-10-15 用户反馈：换补词条示例被截断） */
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
     .entry-desc {
       font-size: 17px;
@@ -50,17 +50,6 @@
     }
     .help-grid.cols-2 {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    /* 页脚说明（helpCfg.note）：原「米游社攻略图」的去向提示等 */
-    .help-note {
-      margin-top: 10px;
-      padding: 6px 10px;
-      font-size: 16px;
-      line-height: 1.5;
-      color: var(--muted-2);
-      background: var(--card-3);
-      border: 1px solid var(--line-soft);
-      border-radius: 8px;
     }
   </style>
 </head>
@@ -97,9 +86,6 @@
         </div>
         {{/if}}
         {{/each}}
-        {{if helpCfg && helpCfg.note}}
-        <div class="help-note">{{helpCfg.note}}</div>
-        {{/if}}
         {{else}}
         <div class="empty-hint">未取到帮助配置，请检查插件 help 配置项</div>
         {{/if}}

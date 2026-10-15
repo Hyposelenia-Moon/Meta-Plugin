@@ -15,7 +15,8 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { resourcesDir } from '../dir.js'
 import { render } from '../components/render.js'
-import { COPYRIGHT, DPS_RULES, HELP_RULE, META_HELP_RULE, PREEMPT_PRIORITY, isHelpCommand, isMetaHelpCommand } from '../components/constants.js'
+import { COPYRIGHT, RULES, HELP_RULE, META_HELP_RULE, PREEMPT_PRIORITY, isHelpCommand, isMetaHelpCommand } from '../components/constants.js'
+import { moduleOff } from '../modules/moduleGate.js'
 
 // @ts-expect-error 框架文件不在 tsc 解析范围，运行时相对 lib/ 解析（见 components/render.ts 文件头 T1 / T2）
 import plugin from '../../../../lib/plugins/plugin.js'
@@ -77,7 +78,7 @@ type HelpPage = 'meta' | 'guide' | 'dps'
 /** 按消息判断要出哪一页 */
 function helpPageOf (msg: string): HelpPage {
   if (isMetaHelpCommand(msg)) return 'meta'
-  if (DPS_RULES.help.test(String(msg ?? ''))) return 'dps'
+  if (RULES.help.test(String(msg ?? ''))) return 'dps'
   return 'guide'
 }
 
@@ -108,18 +109,21 @@ export class MetaHelp extends plugin {
         { reg: HELP_RULE, fnc: 'handleHelp', permission: 'all' },
         { reg: META_HELP_RULE, fnc: 'handleHelp', permission: 'all' },
         // 阶段 5 合并：原 Mhydps 的 `#DPS帮助` 并入同一份帮助页（不再有两套帮助图）
-        { reg: DPS_RULES.help, fnc: 'handleHelp', permission: 'all' }
+        { reg: RULES.help, fnc: 'handleHelp', permission: 'all' }
       ]
     })
   }
 
-  /** 抢占：只认领三个全局词（纯正则，无 I/O） */
+  /** 抢占：只认领三个全局词（纯正则，无 I/O）；模块关闭时**不认领**，放行给原属插件 */
   async accept (e: YunzaiEvent): Promise<boolean> {
+    if (moduleOff('help')) return false
     return isHelpCommand(e.msg) || isMetaHelpCommand(e.msg)
   }
 
   /** `#攻略帮助` / `#攻略` / `#攻略说明` —— 出帮助图，失败回落文本 */
   async handleHelp (e: YunzaiEvent): Promise<boolean> {
+    // 框架的 accept 不跳过自己的 rule 匹配，所以 handler 也要放行（返回 false = 继续匹配后续规则）
+    if (moduleOff('help')) return false
     const view = await loadHelpView(helpPageOf(String(e.msg ?? '')))
 
     try {

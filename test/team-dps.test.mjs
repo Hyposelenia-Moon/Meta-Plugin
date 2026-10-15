@@ -102,11 +102,13 @@ const members = [
 // ---------- 4. app 参数分离与路由 ----------
 {
   const TD = await load('modules/teamDamage.js')
-  ok('参数解析在纯模块里（可离线单测）', typeof TD.parseTeamArgs === 'function' && typeof TD.splitTeamTokens === 'function')
-  const parsed = TD.parseTeamArgs('胡桃 行秋 夜兰 钟离 100000000 轴:重击×8@21s 词条:+20暴击')
+  ok('参数解析在纯模块里（可离线单测）', typeof TD.parseTeamArgs === 'function' && typeof TD.LEGACY_TOKEN_RE === 'object')
+  const parsed = TD.parseTeamArgs('胡桃 行秋 夜兰 钟离 100000000 暴击+20 +30爆伤')
   ok('拆出四个角色名', parsed.names.join(',') === '胡桃,行秋,夜兰,钟离', parsed.names.join(','))
   ok('拆出 UID', parsed.uid === '100000000', parsed.uid)
-  ok('拆出轴与词条', parsed.axisText === '重击×8@21s' && parsed.patchText === '+20暴击', `${parsed.axisText}｜${parsed.patchText}`)
+  ok('免前缀词条被拆出来', parsed.patchTokens.join(' ') === '暴击+20 +30爆伤', parsed.patchTokens.join(' '))
+  ok('旧写法（轴:/词条:）只进 legacy，不再当参数解析',
+    (() => { const l = TD.parseTeamArgs('胡桃 行秋 夜兰 钟离 轴:重击×8 词条:+20暴击'); return l.legacyTokens.length === 2 && l.patchTokens.length === 0 })())
   ok('顿号/逗号分隔也认', TD.parseTeamArgs('胡桃、行秋，夜兰/钟离').names.length === 4)
   const app = readText(path.join(pluginRoot, 'src', 'apps', 'teamDamage.ts'))
   ok('app 产物存在', fs.existsSync(path.join(libDir, 'apps', 'teamDamage.js')))
@@ -116,14 +118,18 @@ const members = [
     app.includes("parseTeamArgs") && app.includes("from '../modules/teamDamage.js'"))
   ok('app 把词条交给桥临时重算（不改 miao 面板）', app.includes('patch: patch.items.length ? patch : undefined'))
   ok('app 计算参考 DPS 并带轴口径', app.includes('teamDps(') && app.includes('axisLabel'))
+  ok('app 用序号轴（配置项 teamDamageAxes），不再用 parseAxis',
+    app.includes('axisByNo(') && app.includes('teamDamageAxes') && !app.includes('parseAxis('))
 
-  const ev = C.matchEntryCommand('#队伍伤害 胡桃 行秋 夜兰 钟离 轴:重击×8@21s 词条:+20暴击')
-  ok('带轴/词条的消息仍命中入口', ev?.key === 'teamDamage')
-  ok('轴与词条都在捕获参数里', /轴:重击×8@21s/.test(ev?.match[1] || '') && /词条:\+20暴击/.test(ev?.match[1] || ''))
+  const ev = C.matchCommand('#队伍伤害2 胡桃 行秋 夜兰 钟离 暴击+20')
+  ok('带序号轴/词条的消息仍命中入口', ev?.key === 'teamDamage')
+  ok('序号进第 1 组、其余参数进第 2 组',
+    ev?.match[1] === '2' && /胡桃 行秋 夜兰 钟离 暴击\+20/.test(ev?.match[2] || ''))
 
   const help = readText(path.join(pluginRoot, 'resources', 'help', 'help-cfg.js'))
-  ok('帮助页写明默认轴口径（每人最高单次×1／20s）', /最高单次×1／20s/.test(help))
-  ok('帮助页收录词条写法', /词条:\+20暴击/.test(help))
+  // 2026-10-15 用户定：帮助页只展示默认轴（`#队伍伤害 四人名`），不暴露序号轴 / 窗口等实现细节
+  ok('帮助页展示默认轴写法（不带序号）', /#队伍伤害 四人名/.test(help) && !/#队伍伤害[2-9]/.test(help))
+  ok('帮助页收录免前缀词条写法', /\+30暴击/.test(help))
 }
 
 const bad = report()

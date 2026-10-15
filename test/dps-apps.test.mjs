@@ -3,9 +3,9 @@
  *
  * app 文件**不能**在开发工作区 import（它们静态 import 框架的 `plugin`，没有 bot 就加载失败），
  * 所以这里做两层断言：
- *   1. **结构**：类继承框架 plugin、`name`/`dsc`/`permission`/优先级偏移**全部取自 `DPS_COMMANDS`**、
- *      规则用 `DPS_RULES.*`、handler 名与规则里的 `fnc` 对得上、框架 import 是 4 级且带 `@ts-expect-error`；
- *   2. **一致性与等价性**：6 个 app 覆盖的规则键与 `DPS_COMMANDS` 对齐（`help` 归阶段 5）；
+ *   1. **结构**：类继承框架 plugin、`name`/`dsc`/`permission`/优先级偏移**全部取自 `COMMANDS`**、
+ *      规则用 `RULES.*`、handler 名与规则里的 `fnc` 对得上、框架 import 是 4 级且带 `@ts-expect-error`；
+ *   2. **一致性与等价性**：6 个 app 覆盖的规则键与 `COMMANDS` 对齐（`help` 归阶段 5）；
  *      用户可见文案仍是合并前的 `[Mhydps]` 前缀（阶段 4 的逐字等价要求，改名留阶段 6）。
  */
 import fs from 'node:fs'
@@ -26,8 +26,12 @@ const C = await import(pathToFileURL(path.join(libDir, 'components', 'constants.
 const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.js')).href)
 const PV = await import(pathToFileURL(path.join(libDir, 'components', 'pluginVersion.js')).href)
 
-/** 本轮落地的 6 个 DPS app（`help` 并入帮助页，属阶段 5；`codex`/`help` 是攻略侧既有 app） */
-const APPS = ['rank', 'raid', 'status', 'video', 'admin', 'build']
+/**
+ * 本组 app（2026-10-15 命令面重构后）：
+ * `rank`（榜单，已吸收原 `charDps`）/ `raidTiers`（危战分档，旧 `raid` 危战榜已废除）/
+ * `build`（练度榜）/ `status` / `video`（榜单视频 + 危战视频）/ `admin`（榜单刷新）
+ */
+const APPS = ['rank', 'raidTiers', 'status', 'video', 'admin', 'build']
 
 // ---------- 1. 每个 app 的结构与元数据 ----------
 for (const name of APPS) {
@@ -39,9 +43,9 @@ for (const name of APPS) {
   ok(`${name}: 继承框架 plugin`, /class\s+\w+\s+extends\s+plugin/.test(src))
   ok(`${name}: 框架 import 是 4 级（T1）`, src.includes("import('../../../../lib/plugins/plugin.js')") || src.includes('from \'../../../../lib/plugins/plugin.js\''))
   ok(`${name}: 框架 import 带 @ts-expect-error`, /@ts-expect-error[^\n]*\nimport plugin from '\.\.\/\.\.\/\.\.\/\.\.\/lib\/plugins\/plugin\.js'/.test(src))
-  ok(`${name}: 元数据取自 DPS_COMMANDS`, src.includes('DPS_COMMANDS.find(') && src.includes('META.priorityOffset'))
+  ok(`${name}: 元数据取自 COMMANDS`, src.includes('COMMANDS.find(') && src.includes('META.priorityOffset'))
   ok(`${name}: 优先级 = 配置值 + 偏移`, src.includes('Number(getPluginConfig().priority) + META.priorityOffset'))
-  ok(`${name}: 规则用 DPS_RULES（正则只有一处定义）`, src.includes('reg: DPS_RULES.'))
+  ok(`${name}: 规则用 RULES（正则只有一处定义）`, src.includes('reg: RULES.'))
   // 加载器取「模块首个导出」当插件类 → 首个导出必须是插件类（允许之后再导出辅助函数）
   ok(`${name}: 首个导出是插件类`, /^export class \w+ extends plugin/m.test(src))
 
@@ -50,17 +54,22 @@ for (const name of APPS) {
   push(`${name}: 规则声明的 handler 都已实现`, fncs.filter(f => !new RegExp(`async\\s+${f}\\s*\\(`).test(src)), [])
 }
 
-// ---------- 2. 与 DPS_COMMANDS 对齐 ----------
+// ---------- 2. 与 COMMANDS 对齐 ----------
 {
   // 覆盖的规则键按"实际 reg 用到哪些"统计（video 一个 app 认领 video + raidVideo 两条）
   const covered = APPS.flatMap(name => {
     const src = readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`))
-    return [...src.matchAll(/reg:\s*DPS_RULES\.(\w+)/g)].map(m => m[1])
+    return [...src.matchAll(/reg:\s*RULES\.(\w+)/g)].map(m => m[1])
   })
-  ok('6 个 app 共认领 7 条规则（video 认领 2 条）', covered.length === 7)
+  ok('本组 6 个 app 共认领 8 条规则（video 认领 video + raidVideo，rank 认领 rank）', covered.length === 8)
   push('覆盖的规则键不重复', covered.filter((k, i) => covered.indexOf(k) !== i), [])
-  const allRules = Object.keys(C.DPS_RULES)
-  push('除 help（阶段 5）外，所有规则都有 app', allRules.filter(k => k !== 'help' && !covered.includes(k)), [])
+  // 其余规则各有归属：grade/teamDamage/akashaBuild 在 v3 app 里、help 在帮助页、raidTiers 在危战 app
+  const otherApps = ['raidTiers', 'grade', 'teamDamage', 'akashaBuild']
+  const otherCovered = otherApps.flatMap(name =>
+    [...readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`)).matchAll(/reg:\s*RULES\.(\w+)/g)].map(m => m[1]))
+  const allRules = Object.keys(C.RULES)
+  push('所有规则都有 app 认领',
+    allRules.filter(k => k !== 'help' && !covered.includes(k) && !otherCovered.includes(k)), [])
 }
 
 // ---------- 3. 阶段 6 改名门禁：用户可见文案统一用 Meta ----------

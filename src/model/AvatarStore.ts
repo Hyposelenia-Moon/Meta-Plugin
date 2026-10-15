@@ -14,7 +14,7 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { getDpsTimeoutMs, loadConfig } from '../components/config.js'
+import { getDpsTimeoutMs, isQueryNetworkEnabled } from '../components/config.js'
 import { AVATAR_DIR, avatarUrl } from '../components/constants.js'
 import { downloadTo } from './MhydpsClient.js'
 import { dataDir } from './TeamStore.js'
@@ -96,8 +96,8 @@ export async function ensureAvatars (
   const concurrency = Math.max(1, Math.min(8, opts.concurrency || 4))
   const timeoutMs = opts.timeoutMs || getDpsTimeoutMs()
 
-  // 联网总开关关闭：不下载、不报错（页面退化成没有头像）
-  if (!loadConfig().networkEnabled) {
+  // 业务查询联网关闭：不下载、不报错（页面退化成没有头像）；榜单头像属查询类资源，受该开关管辖
+  if (!isQueryNetworkEnabled()) {
     logger?.debug?.('[Meta] 联网已关闭，跳过立绘下载（榜单页将不含头像）')
     return { total: uniq.length, cached: uniq.filter(id => hasAvatar(id)).length, downloaded: 0, failed: 0 }
   }

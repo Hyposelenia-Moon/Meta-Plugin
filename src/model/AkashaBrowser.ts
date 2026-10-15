@@ -15,12 +15,12 @@
  *
  * ⚠ T1（框架 import 深度）：本文件运行时刻位于 `<插件根>/lib/model/`，比 Mhydps 的 JS 插件
  *   **多一层**，到 bot 根要 **四** 层 `../`（合并前写的是三层，直接照抄会解析到 `<bot>/plugins/lib/…`）。
- * ⚠ 联网总开关：`networkEnabled` 关闭时直接抛错（不启动浏览器）。
+ * ⚠ 业务查询联网开关：`networkEnabled` 关闭时直接抛错（不启动浏览器）；它只管查询类远程访问。
  */
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { getAkashaProxy, getAkashaTimeoutMs, loadConfig } from '../components/config.js'
+import { getAkashaProxy, getAkashaTimeoutMs, isQueryNetworkEnabled, loadConfig, QUERY_NETWORK_OFF_HINT } from '../components/config.js'
 
 /** 本模块关心的接口前缀（`/api/textmap/` 不在拦截集里：它是页面加载后才发的，见下面的两条路） */
 const NEEDED = ['/api/user/', '/api/getCalculationsForUser/', '/api/textmap/', '/api/builds/', '/api/artifacts']
@@ -59,6 +59,8 @@ interface RendererBackend {
 }
 
 let ownBrowser: BrowserLike | null = null
+/** 自建浏览器启动时用的代理（代理变了就不复用，见 `getBrowser`） */
+let ownProxy = ''
 /** 启动中的浏览器（并发调用共享它；见 getBrowser 注释） */
 let launching: Promise<BrowserLike> | null = null
 let ownBrowserIdleTimer: ReturnType<typeof setTimeout> | null = null
@@ -110,12 +112,49 @@ function chromiumPathFrom (backend: RendererBackend | null): string {
   return cfg.executablePath || cfg.chromiumPath || ''
 }
 
-/** 拿到一个可用的浏览器：先复用渲染后端的，再考虑自己起 */
-async function getBrowser (): Promise<{ browser: BrowserLike, owned: boolean }> {
-  const backend = await rendererBackend()
-  if (backend?.browser) return { browser: backend.browser, owned: false }
+/** 当前应当使用的代理（`akashaProxy` 优先，留空回落通用 `proxy`） */
+function currentProxy (): string {
+  return (getAkashaProxy() || String(loadConfig().proxy || '')).trim()
+}
 
-  if (ownBrowser?.connected) return { browser: ownBrowser, owned: true }
+/**
+ * 渲染后端的浏览器能不能复用
+ *
+ * 它不是本插件起的，**代理不可知** —— 只有"没配代理"时复用才安全；
+ * 配了代理就必须走自建浏览器，否则 `akashaProxy` 形同虚设（2026-10-15 四项目复核 P2）。
+ */
+export function canReuseRendererBrowser (backendHasBrowser: boolean, proxy: string): boolean {
+  return Boolean(backendHasBrowser) && !String(proxy || '').trim()
+}
+
+/** 关掉自建浏览器（代理变更或空闲超时时用） */
+async function closeOwnBrowser (): Promise<void> {
+  const browser = ownBrowser
+  ownBrowser = null
+  ownProxy = ''
+  if (ownBrowserIdleTimer) {
+    clearTimeout(ownBrowserIdleTimer)
+    ownBrowserIdleTimer = null
+  }
+  try {
+    await browser?.close()
+  } catch { /* 忽略 */ }
+}
+
+/**
+ * 拿到一个可用的浏览器：按**代理能力**决定能否复用，再考虑自己起
+ *
+ * ⚠ 渲染后端那个浏览器不是本插件起的、代理不可知：配置了代理就不能拿它顶替，
+ *   否则 `akashaProxy` 这条路径形同虚设（2026-10-15 四项目复核 P2）。
+ */
+async function getBrowser (): Promise<{ browser: BrowserLike, owned: boolean }> {
+  const proxy = currentProxy()
+  const backend = await rendererBackend()
+  if (canReuseRendererBrowser(Boolean(backend?.browser), proxy)) return { browser: backend?.browser as BrowserLike, owned: false }
+
+  // 自建浏览器只在**代理没变**时可复用；代理改了必须重建，否则查询会走错出口
+  if (ownBrowser?.connected && ownProxy === proxy) return { browser: ownBrowser, owned: true }
+  if (ownBrowser && ownProxy !== proxy) await closeOwnBrowser()
 
   // ⚠ 2026-10-15 审核 P2 #12：冷启动并发。框架还没有可复用浏览器时，多个 getBrowser
   //    在 launch 完成前都看到 ownBrowser 为空 → 各自启动，最后只剩一个引用（其余泄漏）。
@@ -126,9 +165,6 @@ async function getBrowser (): Promise<{ browser: BrowserLike, owned: boolean }> 
         const puppeteer = await loadPuppeteer()
         const exe = chromiumPathFrom(backend)
         // 配置里的代理必须真正落到启动参数上（审核附加项：proxy 之前只被接收、没被使用）
-        // ⚠ 阿卡莎有自己的代理键：`akashaProxy` 优先，留空才回落通用 `proxy`
-        //   （2026-10-15 复核修正：只读通用 proxy 会在两者不同时用错代理）
-        const proxy = (getAkashaProxy() || String(loadConfig().proxy || '')).trim()
         const args = ['--disable-gpu', '--no-sandbox', '--disable-setuid-sandbox', '--no-zygote']
         if (proxy) args.push(`--proxy-server=${proxy}`)
         const launchConfig: Record<string, unknown> = {
@@ -138,6 +174,7 @@ async function getBrowser (): Promise<{ browser: BrowserLike, owned: boolean }> 
         }
         const browser = await puppeteer.launch(launchConfig)
         ownBrowser = browser          // 在这里赋值：并发调用者随后就能直接复用
+        ownProxy = proxy              // 记住启动时用的代理，供下次判断能否复用
         return browser
       } finally {
         launching = null              // 成功或失败都清空，避免"启动中"状态卡死
@@ -153,10 +190,8 @@ function touchIdleTimer (): void {
   if (!ownBrowser) return
   if (ownBrowserIdleTimer) clearTimeout(ownBrowserIdleTimer)
   ownBrowserIdleTimer = setTimeout(async () => {
-    try {
-      await ownBrowser?.close()
-    } catch { /* 忽略 */ }
-    ownBrowser = null
+    // 复用 `closeOwnBrowser`：顺手把 `ownProxy` 与定时器一起清掉，避免留下陈旧代理记忆
+    await closeOwnBrowser()
   }, IDLE_CLOSE_MS)
   ownBrowserIdleTimer.unref?.()
 }
@@ -177,9 +212,9 @@ export async function akashaBrowserTransport (
   url: string,
   opts: { timeoutMs?: number, headers?: Record<string, string>, proxy?: string, pageUrl?: string } = {}
 ): Promise<{ status: number, text: string }> {
-  // 联网总开关：关闭时不启动浏览器
-  if (!loadConfig().networkEnabled) {
-    throw new Error('联网功能已关闭：请在配置里开启 networkEnabled')
+  // 业务查询联网开关：关闭时不启动浏览器
+  if (!isQueryNetworkEnabled()) {
+    throw new Error(`${QUERY_NETWORK_OFF_HINT}；阿卡莎取数需要浏览器会话`)
   }
 
   const timeoutMs = opts.timeoutMs || getAkashaTimeoutMs()
@@ -273,11 +308,7 @@ export async function akashaBrowserTransport (
 
 /** 关闭自己起的浏览器（插件卸载/测试用） */
 export async function closeAkashaBrowser (): Promise<void> {
-  if (ownBrowserIdleTimer) clearTimeout(ownBrowserIdleTimer)
-  try {
-    await ownBrowser?.close()
-  } catch { /* 忽略 */ }
-  ownBrowser = null
+  await closeOwnBrowser()
 }
 
 /** 当前取数状态（状态页/排查用） */
@@ -288,7 +319,8 @@ export async function akashaBrowserInfo (): Promise<{
 }> {
   const backend = await rendererBackend()
   return {
-    reuseRendererBrowser: Boolean(backend?.browser),
+    // 配了代理时**不会**复用渲染后端的浏览器（它的代理不可知）→ 状态页要如实反映
+    reuseRendererBrowser: canReuseRendererBrowser(Boolean(backend?.browser), currentProxy()),
     ownBrowser: Boolean(ownBrowser?.connected),
     rendererDir: backend?.config?.executablePath || backend?.config?.chromiumPath || ''
   }

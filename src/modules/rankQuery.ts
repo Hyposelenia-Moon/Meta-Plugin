@@ -217,7 +217,7 @@ export async function findRankEntry (
 ): Promise<RankEntry | QueryFailure> {
   const rank = Number(rankNo)
   if (!Number.isFinite(rank) || rank < 1 || !Number.isInteger(rank)) {
-    return { ok: false, error: '名次需要是正整数，例如 #DPS视频 3' }
+    return { ok: false, error: '名次需要是正整数，例如 #视频 3' }
   }
 
   const character = q.char ? findCharacter(q.char) : null

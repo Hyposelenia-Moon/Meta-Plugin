@@ -1,31 +1,39 @@
 /**
  * grade — 练度评分器（v3 P2「提升指南」的核心）
  *
- * 设计口径（用户 2026-10-13 定，见 v3 方案 §4）：
- *   - **总体练度**：四维加权（面板 / 武器 / 圣遗物 / 天赋）→ 0~100 → `MAX…D` 九档
- *   - **面板**单独再给三档：大毕业 / 毕业 / 小毕业
+ * 设计口径：
+ *   - **综合（2026-10-15 用户定）**：面板与圣遗物**合并成一维**，以**圣遗物有效词条**为主 ——
+ *     `miao 评分档位 × 0.8 + 套装符合度 × 0.2`。理由：面板本来就是武器与圣遗物词条的产物，
+ *     分两维等于把同一件事算两次；用户口径是"以圣遗物词条数为主，毕业面板不设严格限制"。
+ *   - **面板目标不计分**：攻略里的面板区间只在对比表里作**参考**展示（`verdict: 'info'`），
+ *     不参与总分、不设门槛。
+ *   - **总体练度**：三维加权（综合 / 武器 / 天赋）→ 0~100 → `MAX…D` 九档
+ *   - **毕业档**（大毕业 / 毕业 / 小毕业）：按**综合（词条）分**判定；等级不足时最高「小毕业」
  *   - **命座不计分**（抽卡结果，不是"练"出来的），只作提示
- *   - **等级作门槛**：未达攻略「建议等级」时，面板档最高「小毕业」
  *   - **攻略缺该项不扣分**：该维度不计入分母（权重重归一）
+ *   - **圣遗物评分走 miao 的规则**（`ArtisMark.getMarkDetail()`：有效词条加权分 + MAX…D 档位），
+ *     页脚口径行写明这一点。
  *
  * 本模块**纯函数**：不读文件、不联网、不引 miao —— 攻略目标与玩家配装都由调用方准备好，
  * 因此可以用合成数据完整单测（`test/grade.test.mjs`）。
- *
- * 关于"面板与圣遗物重复计分"（用户 2026-10-13 修正）：面板数值本来就是圣遗物词条的产物，
- * 所以圣遗物维度**不再单列主词条得分**，而是「套装符合度 × 0.4 + miao 圣遗物评分档位 × 0.6」；
- * 主词条只在对比表里展示与提示。
  */
 
 /** 评分维度 */
-export type GradeDimKey = 'panel' | 'weapon' | 'artifact' | 'talent'
+export type GradeDimKey = 'comprehensive' | 'weapon' | 'talent'
 
-/** 默认权重（配置项 `gradeWeights` 可覆盖；权重会按"可评维度"归一） */
+/**
+ * 默认权重（配置项 `gradeWeights` 可覆盖；权重会按"可评维度"归一）
+ *
+ * `comprehensive` = 旧「面板 30 + 圣遗物 35」合并而来（读旧配置时自动相加，见 `components/config.ts`）。
+ */
 export const DEFAULT_WEIGHTS: Record<GradeDimKey, number> = {
-  panel: 30,
+  comprehensive: 65,
   weapon: 20,
-  artifact: 35,
   talent: 15
 }
+
+/** 旧配置里的两个维度键（读入时合并进 `comprehensive`，只为向后兼容） */
+export const LEGACY_WEIGHT_KEYS = ['panel', 'artifact'] as const
 
 /** 面板三档阈值（配置项 `gradePanelTiers` 可覆盖） */
 export const DEFAULT_PANEL_TIERS = { big: 0.9, normal: 0.6, small: 0.3 }
@@ -290,9 +298,19 @@ export interface BuildSnapshot {
   cons: number
   weapon: { name: string, affix: number, rarity?: number } | null
   talent: { A: number, E: number, Q: number }
+  /** 天赋**原始**等级（miao `talent.original`：现等级 − 命座加成）；面板的 `talent-plus` / `talent-crown` 判据 */
+  talentOriginal?: { A: number, E: number, Q: number }
+  /** 角色元素（miao `char.elem`，如 `hydro`）；立绘行的天赋图标圆环按元素取图 */
+  elem?: string
   artis: BuildArtifact[]
   /** miao 圣遗物评分（`ArtisMark.getMarkDetail` 的产物） */
   artiMark: { total: number, markClass: string } | null
+  /** 词条当量总和（五件副词条 `eff` 之和；与 miao 面板一致，拿不到时为 0） */
+  substatRolls?: number
+  /** miao 面板行的文本映射（`profile.attr`：`hp` / `hpBase` / `hpPlus` …）；无则回落到本插件自行格式化 */
+  attrText?: Record<string, string>
+  /** 角色对各属性的权重（miao 面板行 `.weight`，`>= 80` 显示为金色）；与有效词条过滤同源 */
+  charWeight?: Record<string, number>
   /** 面板属性（miao `attr` 口径：cpct / cdmg / hp / …） */
   attrs: Record<string, number>
 }
@@ -341,66 +359,18 @@ const num = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1))
  * 评分
  * ------------------------------------------------------------------ */
 
-function scorePanel (targets: GuideTargets, build: BuildSnapshot): GradeDim {
-  const label = '面板'
-  if (!targets.panel.length) {
-    return { key: 'panel', label, ratio: null, weight: 0, detail: '该角色攻略没有面板目标' }
-  }
-  let sum = 0
-  let worst = { name: '', ratio: 1 }
-  for (const t of targets.panel) {
-    const actual = build.attrs?.[t.attrKey]
-    let ratio: number
-    if (!Number.isFinite(actual)) {
-      ratio = 0
-    } else if (t.max > t.min) {
-      ratio = clamp01((Number(actual) - t.min) / (t.max - t.min))
-    } else {
-      ratio = clamp01(Number(actual) / (t.min || 1))
-    }
-    sum += ratio
-    if (ratio < worst.ratio) worst = { name: t.name, ratio }
-  }
-  const ratio = sum / targets.panel.length
-  return {
-    key: 'panel',
-    label,
-    ratio,
-    weight: 0,
-    detail: `${targets.panel.length} 项平均达成 ${pct(ratio)}` + (worst.name && worst.ratio < 1 ? `，最短板：${worst.name}` : '')
-  }
-}
-
-function scoreWeapon (targets: GuideTargets, build: BuildSnapshot): GradeDim {
-  const label = '武器'
-  const all = [...targets.weapon.recommend, ...targets.weapon.optional, ...targets.weapon.transition]
-  if (!all.length) return { key: 'weapon', label, ratio: null, weight: 0, detail: '该角色攻略没有武器目标' }
-  const name = String(build.weapon?.name || '')
-  if (!name) return { key: 'weapon', label, ratio: 0, weight: 0, detail: '未读取到武器' }
-
-  const inBucket = (list: string[]) => list.some(w => w === name || w.includes(name) || name.includes(w))
-  if (inBucket(targets.weapon.recommend)) {
-    const sig = targets.weapon.recommend[0] === name
-    return { key: 'weapon', label, ratio: 1, weight: 0, detail: `推荐档：${name}${sig ? '（专武，不加分）' : ''}` }
-  }
-  if (inBucket(targets.weapon.optional)) return { key: 'weapon', label, ratio: 0.75, weight: 0, detail: `可选档：${name}` }
-  if (inBucket(targets.weapon.transition)) return { key: 'weapon', label, ratio: 0.5, weight: 0, detail: `过渡档：${name}` }
-  return { key: 'weapon', label, ratio: 0.25, weight: 0, detail: `不在攻略推荐内：${name}` }
-}
-
-function scoreArtifact (targets: GuideTargets, build: BuildSnapshot): GradeDim {
-  const label = '圣遗物'
+/**
+ * 综合维度：圣遗物**有效词条**为主（miao 评分规则）+ 套装符合度
+ *
+ * 2026-10-15 用户定：面板与圣遗物合并成一维，且"以圣遗物词条数为主、毕业面板不设严格限制"——
+ * 所以这里**不看面板数值**（面板只作参考展示），只看 miao 的圣遗物评分与套装是否穿对。
+ */
+function scoreComprehensive (targets: GuideTargets, build: BuildSnapshot): GradeDim {
+  const label = '综合'
   const artis = build.artis || []
-  const hasTarget = targets.artifact.recommend.length > 0 || targets.artifact.optional.length > 0
-  // 攻略里没有套装目标 → 该维度不计分（与"缺项不扣分"同一口径）
-  if (!hasTarget && !targets.mainStats.length) {
-    return { key: 'artifact', label, ratio: null, weight: 0, detail: '该角色攻略没有套装目标（不计分）' }
-  }
-  if (!artis.length && !build.artiMark) {
-    return { key: 'artifact', label, ratio: null, weight: 0, detail: '未读取到圣遗物' }
-  }
+  const hasSetTarget = targets.artifact.recommend.length > 0 || targets.artifact.optional.length > 0
 
-  // 套装符合度
+  // 套装符合度（沿用旧口径：推荐 4 件 1.0 / 可选 4 件 0.8 / 2+2 0.7 / 不在表内 0.3）
   const count = new Map<string, number>()
   for (const a of artis) count.set(a.set, (count.get(a.set) || 0) + 1)
   const hit = (list: string[]) => [...count.entries()].filter(([set]) => list.some(s => s === set || s.includes(set) || set.includes(s)))
@@ -420,17 +390,42 @@ function scoreArtifact (targets: GuideTargets, build: BuildSnapshot): GradeDim {
     setNote = `2+2 组合（${pairs.map(([s]) => s).join(' + ')}）`
   }
 
-  // miao 评分档位
+  // miao 评分档位（词条口径）
   const markClass = String(build.artiMark?.markClass || '').toUpperCase()
   const markScore = MIAO_MARK_SCORE[markClass]
   const hasMark = Number.isFinite(markScore)
-  // 没读到圣遗物明细（只有评分）时就只按评分算，避免"套装不在表内"被误判成 0.3
-  const ratio = !artis.length && hasMark ? markScore : hasMark ? 0.4 * setScore + 0.6 * markScore : setScore
   const markNote = hasMark
-    ? `miao 评分 ${num(Number(build.artiMark?.total) || 0)}（${markClass}）`
-    : '未取到 miao 评分（只按套装计）'
+    ? `miao 词条评分 ${num(Number(build.artiMark?.total) || 0)}（${markClass}）`
+    : '未取到 miao 词条评分'
 
-  return { key: 'artifact', label, ratio, weight: 0, detail: `${setNote}；${markNote}` }
+  // 有词条评分 → 以它为主；没有评分但穿着推荐套装 → 只按套装算（并在 notes 里说明）
+  let ratio: number | null
+  if (hasMark) ratio = hasSetTarget ? 0.8 * markScore + 0.2 * setScore : markScore
+  else if (hasSetTarget && artis.length) ratio = setScore
+  else ratio = null
+
+  const detail = ratio === null
+    ? (artis.length ? '未取到 miao 词条评分（不计分）' : '未读取到圣遗物')
+    : (hasSetTarget ? `${setNote}；${markNote}` : markNote)
+
+  return { key: 'comprehensive', label, ratio, weight: 0, detail }
+}
+
+function scoreWeapon (targets: GuideTargets, build: BuildSnapshot): GradeDim {
+  const label = '武器'
+  const all = [...targets.weapon.recommend, ...targets.weapon.optional, ...targets.weapon.transition]
+  if (!all.length) return { key: 'weapon', label, ratio: null, weight: 0, detail: '该角色攻略没有武器目标' }
+  const name = String(build.weapon?.name || '')
+  if (!name) return { key: 'weapon', label, ratio: 0, weight: 0, detail: '未读取到武器' }
+
+  const inBucket = (list: string[]) => list.some(w => w === name || w.includes(name) || name.includes(w))
+  if (inBucket(targets.weapon.recommend)) {
+    const sig = targets.weapon.recommend[0] === name
+    return { key: 'weapon', label, ratio: 1, weight: 0, detail: `推荐档：${name}${sig ? '（专武，不加分）' : ''}` }
+  }
+  if (inBucket(targets.weapon.optional)) return { key: 'weapon', label, ratio: 0.75, weight: 0, detail: `可选档：${name}` }
+  if (inBucket(targets.weapon.transition)) return { key: 'weapon', label, ratio: 0.5, weight: 0, detail: `过渡档：${name}` }
+  return { key: 'weapon', label, ratio: 0.25, weight: 0, detail: `不在攻略推荐内：${name}` }
 }
 
 function scoreTalent (targets: GuideTargets, build: BuildSnapshot): GradeDim {
@@ -455,7 +450,12 @@ function scoreTalent (targets: GuideTargets, build: BuildSnapshot): GradeDim {
   }
 }
 
-/** 面板档（含等级门槛：未达建议等级 → 最高「小毕业」） */
+/**
+ * 毕业档（大毕业 / 毕业 / 小毕业 / 未毕业）
+ *
+ * 2026-10-15 起按**综合（圣遗物词条）分**判定 —— 面板目标不再计分，也就不能拿它当门槛；
+ * 等级门槛保留（未达攻略「建议等级」时最高「小毕业」）。
+ */
 export function panelTierOf (
   ratio: number | null,
   build: BuildSnapshot,
@@ -482,7 +482,7 @@ export function rankOf (total: number, thresholds = DEFAULT_RANK_THRESHOLDS): st
 /** 主评分：攻略目标 × 玩家配装 → 总分 / 档位 / 对比表 / 建议 */
 export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: GradeOptions = {}): GradeResult {
   const weights = { ...DEFAULT_WEIGHTS, ...(opts.weights || {}) }
-  const dims = [scorePanel(targets, build), scoreWeapon(targets, build), scoreArtifact(targets, build), scoreTalent(targets, build)]
+  const dims = [scoreComprehensive(targets, build), scoreWeapon(targets, build), scoreTalent(targets, build)]
 
   // 只对"有目标"的维度加权（缺项不扣分），权重重归一
   const scored = dims.filter(d => d.ratio !== null)
@@ -490,18 +490,18 @@ export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: G
   for (const d of dims) d.weight = d.ratio === null ? 0 : (Number(weights[d.key]) || 0) / (weightSum || 1)
 
   const total = scored.length ? scored.reduce((s, d) => s + d.ratio! * d.weight, 0) * 100 : 0
-  const panelDim = dims.find(d => d.key === 'panel')!
-  const panelInfo = panelTierOf(panelDim.ratio, build, targets, opts.panelTiers)
+  const compDim = dims.find(d => d.key === 'comprehensive')!
+  const panelInfo = panelTierOf(compDim.ratio, build, targets, opts.panelTiers)
 
   const notes: string[] = []
   if (cappedNote(targets, build, panelInfo.capped)) {
-    notes.push(`等级 ${build.level} 未达建议等级 ${targets.levelText}（面板档按门槛最高「小毕业」）`)
+    notes.push(`等级 ${build.level} 未达建议等级 ${targets.levelText}（毕业档按门槛最高「小毕业」）`)
   }
   for (const d of dims) if (d.ratio === null) notes.push(`${d.label}：${d.detail}（不计入总分）`)
-  if (!build.artiMark) notes.push('圣遗物评分：未取到 miao 评分，本次只按套装计分')
+  if (!build.artiMark) notes.push('圣遗物评分：未取到 miao 词条评分，本次只按套装计分')
 
   const rows = buildCompareRows(targets, build)
-  const suggestions = buildSuggestions(targets, build, dims, panelDim)
+  const suggestions = buildSuggestions(targets, build, dims, compDim)
 
   return {
     charName: targets.charName || build.charName,
@@ -540,12 +540,12 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot): 
     })
   }
 
-  // 套装
+  // 套装 + miao 词条评分（2026-10-15 起与面板合并为「综合」组）
   if (targets.artifact.recommend.length || targets.artifact.optional.length) {
     const sets = [...new Set((build.artis || []).map(a => a.set))].filter(Boolean)
     const hit = sets.some(s => matchesGuideName(s, targets.artifact.recommend))
     rows.push({
-      group: '圣遗物',
+      group: '综合',
       name: '套装',
       target: targets.artifact.recommend.join(' / ') || '—',
       actual: sets.map(s => `${s}×${(build.artis || []).filter(a => a.set === s).length}`).join(' / ') || '—',
@@ -553,11 +553,11 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot): 
     })
   }
 
-  // 圣遗物评分
+  // 圣遗物词条评分（综合维度的主依据；走 miao 的评分规则）
   if (build.artiMark) {
     rows.push({
-      group: '圣遗物',
-      name: 'miao 评分',
+      group: '综合',
+      name: '词条评分',
       target: '走 miao 规则（MAX…D）',
       actual: `${num(build.artiMark.total)}（${build.artiMark.markClass}）`,
       verdict: (MIAO_MARK_SCORE[String(build.artiMark.markClass).toUpperCase()] ?? 0) >= 0.8 ? 'ok' : 'warn'
@@ -600,16 +600,15 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot): 
     })
   }
 
-  // 面板
+  // 面板（2026-10-15 用户定：只作参考，不设严格限制 → 判定 `info`，不进"未达标项"）
   for (const t of targets.panel) {
     const actual = build.attrs?.[t.attrKey]
-    const inRange = Number.isFinite(actual) && Number(actual) >= t.min
     rows.push({
-      group: '面板',
+      group: '参考',
       name: t.name,
       target: t.max > t.min ? `${num(t.min)}~${num(t.max)}` : num(t.min),
       actual: Number.isFinite(actual) ? num(Number(actual)) : '—',
-      verdict: inRange ? 'ok' : Number.isFinite(actual) ? 'warn' : 'off'
+      verdict: 'info'
     })
   }
 
@@ -617,7 +616,7 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot): 
 }
 
 /** 提升建议（按"投入产出"排序，最多 4 条） */
-export function buildSuggestions (targets: GuideTargets, build: BuildSnapshot, dims: GradeDim[], panelDim: GradeDim): string[] {
+export function buildSuggestions (targets: GuideTargets, build: BuildSnapshot, dims: GradeDim[], compDim: GradeDim): string[] {
   const out: string[] = []
 
   // ① 天赋（投入最小）
@@ -635,46 +634,25 @@ export function buildSuggestions (targets: GuideTargets, build: BuildSnapshot, d
     out.push(`主词条：${mainMiss.map(t => `${t.slot}换「${t.options[0]}」`).join('、')}`)
   }
 
-  // ③ 面板短板
-  if (panelDim.ratio !== null && panelDim.ratio < 1) {
-    let worst: PanelTarget | null = null
-    let worstRatio = 1
-    for (const t of targets.panel) {
-      const actual = build.attrs?.[t.attrKey]
-      const ratio = !Number.isFinite(actual)
-        ? 0
-        : t.max > t.min ? clamp01((Number(actual) - t.min) / (t.max - t.min)) : clamp01(Number(actual) / (t.min || 1))
-      if (ratio < worstRatio) {
-        worst = t
-        worstRatio = ratio
-      }
-    }
-    if (worst) {
-      const actual = build.attrs?.[worst.attrKey]
-      out.push(`面板：${worst.name} ${Number.isFinite(actual) ? num(Number(actual)) : '—'} → 目标 ${worst.max > worst.min ? `${num(worst.min)}~${num(worst.max)}` : num(worst.min)}`)
+  // ③ 圣遗物词条质量（综合维度的主依据；套装覆盖与词条质量分开判断）
+  if (compDim.ratio !== null && compDim.ratio < 1) {
+    const counts = new Map<string, number>()
+    for (const a of build.artis || []) counts.set(a.set, (counts.get(a.set) || 0) + 1)
+    const covered = [...counts.entries()].some(([set, n]) => n >= 4 && matchesGuideName(set, targets.artifact.recommend))
+    if (targets.artifact.recommend.length && !covered) {
+      out.push(`圣遗物：凑「${targets.artifact.recommend[0]}」4 件`)
+    } else if (compDim.ratio < 0.8) {
+      out.push('圣遗物：提升有效词条（暴击 / 爆伤 / 攻击等，按 miao 评分口径）')
     }
   }
 
-  // ④ 武器 / 套装
+  // ④ 武器
   const weaponDim = dims.find(d => d.key === 'weapon')
   if (weaponDim?.ratio !== null && weaponDim !== undefined && weaponDim.ratio < 0.75) {
     out.push(`武器：换到推荐档（${targets.weapon.recommend.slice(0, 2).join(' / ')}）`)
   }
-  const artifactDim = dims.find(d => d.key === 'artifact')
-  if (artifactDim && artifactDim.ratio !== null && artifactDim.ratio !== undefined && targets.artifact.recommend.length) {
-    // 套装覆盖与词条质量**分开判断**：已经穿着推荐 4 件套时不该再建议"凑四件套"，
-    // 分数低应归因到词条质量（2026-10-15 外部复核第 6 项发现）
-    const counts = new Map<string, number>()
-    for (const a of build.artis || []) counts.set(a.set, (counts.get(a.set) || 0) + 1)
-    const covered = [...counts.entries()].some(([set, n]) => n >= 4 && matchesGuideName(set, targets.artifact.recommend))
-    if (!covered) {
-      out.push(`圣遗物：凑「${targets.artifact.recommend[0]}」4 件`)
-    } else if (artifactDim.ratio < 0.6) {
-      out.push('圣遗物：套装已达标，提升词条质量（暴击 / 爆伤 / 有效词条数）')
-    }
-  }
 
-  if (!out.length) out.push('各维度均已达标：可继续提升面板词条质量　〔看词条〕')
+  if (!out.length) out.push('各维度均已达标：可继续提升圣遗物词条质量　〔看词条〕')
   return out.slice(0, 4)
 }
 

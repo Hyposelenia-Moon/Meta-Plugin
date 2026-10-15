@@ -9,8 +9,29 @@ priority: ${meta_priority}
 # 渲染缩放比例（越大越清晰、渲染越慢）
 renderScale: ${meta_renderScale}
 
-# ---------- 联网总开关 ----------
-# 关闭（默认）后：榜单 / 危战 / 练度 一律不发请求；攻略查询完全离线，不受影响
+# ---------- 模块开关（功能层：该模块的命令是否响应） ----------
+# true = 可用；false = 不响应
+#   非接管类（#DPS… / 练度 / 配装 / 队伍伤害…）：回一条"已在配置中关闭"的提示
+#   接管类（#胡桃攻略 / 帮助页）：本插件不认领，放行给 genshin「米游社攻略」/ Atlas
+# ⚠ 与 networkEnabled（只管查询类远程访问）正交：模块开着而联网关时，命令照常响应、只是不发远程请求
+modules:
+  codex: ${meta_module_codex}
+  help: ${meta_module_help}
+  rank: ${meta_module_rank}
+  raidTiers: ${meta_module_raidTiers}
+  build: ${meta_module_build}
+  grade: ${meta_module_grade}
+  akashaBuild: ${meta_module_akashaBuild}
+  # 队伍伤害：默认关闭（用户 2026-10-15 定）
+  teamDamage: ${meta_module_teamDamage}
+  video: ${meta_module_video}
+  status: ${meta_module_status}
+  admin: ${meta_module_admin}
+
+# ---------- 业务查询联网开关（查询联网层） ----------
+# 默认关闭。**只**管辖 DPS 榜 / 危战 / 练度等业务查询的远程访问与刷新
+# （mhydps / akasha / miao 面板 / 队伍 / 榜单头像下载）；关闭时这些请求一律不发，攻略查询完全离线。
+# ⚠ 它**不是**整个插件的全局联网禁令：别名服务、可选插件探测、依赖安装等其他网络操作不受它限制
 networkEnabled: ${meta_networkEnabled}
 
 # ---------- 数据源一 · mhydps.cn（DPS榜 / 危战榜） ----------
@@ -31,7 +52,8 @@ dpsPageSize: ${meta_dpsPageSize}
 dpsAvatarEnabled: ${meta_dpsAvatarEnabled}
 
 # ---------- 数据源二 · akasha.cv（练度查询） ----------
-# 启用练度查询（练度数据来自 akasha.cv，mhydps.cn 没有练度排名）
+# 阿卡莎数据通道（数据通道层：是否允许走 akasha.cv 的浏览器会话）
+# ⚠ 与上面的模块开关正交：关掉它，模块即使开着也取不到练度数据
 akashaEnabled: ${meta_akashaEnabled}
 
 # 默认 UID：命令里不写 UID 时用它
@@ -49,7 +71,9 @@ akashaCacheTtlMinutes: ${meta_akashaCacheTtlMinutes}
 # 一次练度查询最多列几个角色
 akashaMaxChars: ${meta_akashaMaxChars}
 
-# 练度评分权重（面板/武器/圣遗物/天赋；只对攻略里有目标的维度加权）
+# 练度评分权重（综合 / 武器 / 天赋；只对攻略里有目标的维度加权）
+# 「综合」= 圣遗物有效词条（miao 评分规则）为主 + 套装符合度，面板目标不计分
+# 兼容旧写法：写 panel + artifact 会自动相加折进 comprehensive
 gradeWeights: "${meta_gradeWeights}"
 
 # 面板三档阈值：大毕业 / 毕业 / 小毕业（按面板目标平均达成度）
@@ -57,3 +81,9 @@ gradePanelTiers: "${meta_gradePanelTiers}"
 
 # 总体练度九档阈值（MAX/ACE/SSS/SS/S/A/B/C，低于最后一项记 D）
 gradeRankThresholds: "${meta_gradeRankThresholds}"
+
+# ---------- 队伍伤害（序号轴） ----------
+# 写法：`序号:名称=轴定义`，多个轴用逗号分隔；轴定义 = 关键词×次数@窗口s（多段用 +，关键词对 miao 伤害行标题包含匹配）
+# 查询：#队伍伤害2 胡桃 行秋 夜兰 钟离 —— 序号省略 = 1；词条直接写（暴击+20），不用加「词条:」
+# `默认` 或留空 = 保守轴（每位队员取自己伤害最高的 1 行 ×1，窗口 20s）
+teamDamageAxes: "${meta_teamDamageAxes}"

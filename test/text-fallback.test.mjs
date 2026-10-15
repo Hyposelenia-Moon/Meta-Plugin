@@ -89,6 +89,6 @@ const raidResult = {
 const rd = raidText(raidResult)
 check('危战文本含耗时与版本首领', rd.includes('24s') && rd.includes('7.1') && rd.includes('矮灵雕刻师'))
 check('危战文本含绿玩标签', rd.includes('绿玩'))
-check('危战文本含标题', rd.includes('#DPS危战榜'))
+check('危战文本含标题', rd.includes('#危战'))
 
 finish()
