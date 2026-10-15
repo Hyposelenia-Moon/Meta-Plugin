@@ -44,11 +44,12 @@ a = parseRankArgs('胡桃 页:4')
 check('“页:4” → page', a.page === 4)
 
 a = parseRankArgs('胡桃 总伤杯S3.N')
-check('多词标签归并到 tag', a.char === '胡桃' && a.tag === '总伤杯S3.N', `tag=${a.tag}`)
+// 2026-10-15 审核意见 2.3：显式条件与裸词**分开存**（可信度不同，解析层不合并）
+check('多词裸词归并到 tagBare（不再混进显式 tag）', a.char === '胡桃' && a.tagBare === '总伤杯S3.N' && a.tag === '', `tag=${a.tag} bare=${a.tagBare}`)
 
 // ---- DPS 榜：显式键值 ----
 a = parseRankArgs('角色:胡桃 金:12 标签:宏 页:5 绿玩 主C')
-check('显式键值全字段', a.char === '胡桃' && a.costMax === 12 && a.tag === '宏' && a.page === 5 && a.cleanOnly && a.mainOnly)
+check('显式键值全字段', a.char === '胡桃' && a.costMax === 12 && a.tag === '宏' && a.tagExplicit === true && a.page === 5 && a.cleanOnly && a.mainOnly)
 
 a = parseRankArgs('角色：胡桃')
 check('全角冒号可解析', a.char === '胡桃')
@@ -127,5 +128,39 @@ check('练度：非角色名进 unknown', b.names.length === 0 && b.unknown.incl
 
 b = parseBuildArgs('100000000 100000001')
 check('练度：只取第一个 UID，多余的进 unknown', b.uid === '100000000' && b.unknown.includes('100000001'))
+
+// ---- 引用内容隔离（2026-10-15 审核意见 2.1：只做整段精确剔除，不做词重合推断） ----
+{
+  const { stripQuotedArgs, quotedText, ownTextOf } = await import(mod('modules/quoteGuard.js'))
+  const quotedMsg = {
+    message: [
+      { type: 'text', text: '标签：满级\n视频：https://www.bilibili.com/video/BV14baT6EE7i\n数据：原神DPS数据库 · 抓取于 2026-10-15 22:26' }
+    ]
+  }
+  check('取引用消息的纯文本（段数组形态）', quotedText(quotedMsg).includes('标签：满级'))
+  check('取引用消息的纯文本（raw_message 形态）', quotedText({ raw_message: '原文' }) === '原文')
+  check('不是引用回复 → 原样返回', (await stripQuotedArgs({}, '胡桃 12金')) === '胡桃 12金')
+  check('取不到引用消息（抛错）→ 原样返回', (await stripQuotedArgs({ reply_id: 'q1', getReply: async () => { throw new Error('no') } }, '胡桃')) === '胡桃')
+  check('ownTextOf 只取当前消息自己的文本段',
+    ownTextOf({ message: [{ type: 'text', text: '#dps 七七' }] }) === '#dps 七七' && ownTextOf({}) === '')
+
+  // 引用原文**整段**出现才切（这是唯一被允许的剔除依据）
+  const hitQuote = { reply_id: 'q2', getReply: async () => quotedMsg }
+  check('引用原文整段出现 → 切掉该段，只留用户自己写的部分',
+    (await stripQuotedArgs(hitQuote, '七七 标签：满级 视频：https://www.bilibili.com/video/BV14baT6EE7i 数据：原神DPS数据库 · 抓取于 2026-10-15 22:26')) === '七七')
+  check('用户正文与引用无关时原样保留（不做任何推测）',
+    (await stripQuotedArgs(hitQuote, '胡桃 12金')) === '胡桃 12金')
+
+  /*
+   * 审核意见 2.1 的两个实测反例：旧实现按"词重合"推断来源，会把**用户自己重打的**内容删掉 ——
+   * 引用里出现过同样的角色名/金数/独立数字，不能证明新正文里的这些词来自引用。
+   */
+  const e2 = { reply_id: 'q3', getReply: async () => ({ message: [{ type: 'text', text: '刻晴(C6) 48金 队伍：兹白 C2 …' }] }) }
+  check('审核反例①：用户重打 `刻晴 48金` 不再被删空（旧实现 → 空串）',
+    (await stripQuotedArgs(e2, '刻晴 48金')) === '刻晴 48金')
+  const e3 = { reply_id: 'q4', getReply: async () => ({ message: [{ type: 'text', text: '第 1 名（当前条件下共 7 条）' }] }) }
+  check('审核反例②：`七七 视频1` 里的 `1` 不再被当成引用内容（旧实现 → `七七`）',
+    (await stripQuotedArgs(e3, '七七 视频1')) === '七七 视频1')
+}
 
 finish()

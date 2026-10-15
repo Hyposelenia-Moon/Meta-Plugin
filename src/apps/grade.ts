@@ -11,8 +11,9 @@ import { COPYRIGHT, COMMANDS, RULES } from '../components/constants.js'
 import { botRoot } from '../dir.js'
 import fs from 'node:fs'
 import path from 'node:path'
+import { buildPresentation, deltaTextOf } from '../components/presentation.js'
 import { extractTargets, gradeBuild } from '../modules/grade.js'
-import { portraitOf } from '../model/ProfileImgRes.js'
+import { heroImageOf } from '../model/ProfileImgRes.js'
 import type { CompareRow, GradeResult } from '../modules/grade.js'
 import { readProfile } from '../model/MiaoProfile.js'
 import { respond } from '../modules/respond.js'
@@ -24,29 +25,39 @@ import { moduleGateReply } from '../modules/moduleGate.js'
 /** 本 app 的命令元数据（见 components/constants.ts 的 COMMANDS） */
 const META = COMMANDS.find(c => c.rules.includes('grade'))!
 
-/** 未达标行的"差多少"文案 */
-export function deltaTextOf (row: CompareRow): string {
-  if (row.verdict === 'off') return '无数据'
-  const actual = Number(String(row.actual).replace(/[^\d.-]/g, ''))
-  const nums = String(row.target).match(/\d+(?:\.\d+)?/g)?.map(Number) || []
-  if (!Number.isFinite(actual) || !nums.length) return '未达标'
-  const min = Math.min(...nums)
-  const diff = Number((min - actual).toFixed(1))
-  return diff > 0 ? `差 ${diff}` : '未达标'
+/**
+ * 攻略目标版本（页面「计分口径」用）
+ *
+ * 取 `CodexStore.getSignature()` 里可复现的那几个字段拼成短标识；取不到就留空
+ * → 页面写"版本未提供"（绝不编造日期或版本号）。
+ */
+function targetVersionOf (signature: Record<string, unknown> | null): string {
+  if (!signature) return ''
+  const parts = ['v', 'rev', 'hash', 'updatedAt', 'updated', 'mtime']
+    .map(k => (signature[k] === undefined || signature[k] === null ? '' : String(signature[k])))
+    .filter(Boolean)
+  return parts.join('·')
 }
 
-/** 维度徽标：达标 / 百分比 / 不计分 */
+/** 维度徽标：达标 / 百分比 / 不计分 / 未知（四态，2026-10-15 UI 契约） */
 function badgeOf (label: string, ratio: number | null): { label: string, value: string, kind: string } {
   if (ratio === null) return { label, value: '不计分', kind: 'off' }
   const pct = Math.round(ratio * 100)
   return { label, value: pct >= 100 ? '达标' : `${pct}%`, kind: pct >= 100 ? 'ok' : pct >= 60 ? 'warn' : 'off' }
 }
 
-/** 文本回退（同样三屏式：结论 → 差在哪 → 怎么做） */
+/** 文本回退（同样三屏式：结论 → 差在哪 → 怎么做）；四态与图片同源 */
 export function gradeText (result: GradeResult, missRows: CompareRow[], okLine: string): string {
+  const dimText = (d: GradeResult['dims'][number]): string => {
+    if (d.state === 'unknown') return `${d.label} 未知`
+    if (d.state === 'unscored') return `${d.label} 不计分`
+    return `${d.label} ${Math.round((d.ratio || 0) * 100)}%`
+  }
   const lines = [
-    `【${result.charName}】练度 ${result.rank}（${result.total} 分）　面板 ${result.panelTier}`,
-    result.dims.map(d => `${d.label} ${d.ratio === null ? '不计分' : Math.round(d.ratio * 100) + '%'}`).join('｜'),
+    result.assessable
+      ? `【${result.charName}】练度 ${result.rank}（${result.total} 分）　面板 ${result.panelTier}`
+      : `【${result.charName}】练度：无法评估（关键数据未取到）`,
+    result.dims.map(dimText).join('｜'),
     '',
     '差在哪：'
   ]
@@ -74,13 +85,30 @@ export class MetaGrade extends plugin {
     })
   }
 
-  /** `#练度查询 胡桃`（只接角色名；账号走 miao 的米游社绑定，UID 形态已移除） */
+  /** `#练度查询 胡桃 [面板图N]`（角色名必填；账号走 miao 的米游社绑定，UID 形态已移除） */
   async handleGrade (e: YunzaiEvent): Promise<boolean> {
     if (await moduleGateReply('grade', e)) return true
     const match = String(e.msg).match(RULES.grade) || []
-    const raw = String(match[1] || '').replace(/\s+/g, ' ').trim()
+    let raw = String(match[1] || '').replace(/\s+/g, ' ').trim()
     if (!raw) {
-      await e.reply('[Meta] 用法：#练度查询 胡桃（只写角色名，账号走 miao 的米游社绑定）')
+      await e.reply('[Meta] 用法：#练度查询 胡桃 [面板图N]（角色名走 miao 的米游社绑定，不写 UID）')
+      return true
+    }
+
+    /*
+     * `面板图N` —— **照抄 miao**（`apps/profile/ProfileDetail.js:26-35`）：
+     * 它和角色名一样是空格分隔的独立 token，先摘出来（图库里的第 N 张，`N` 就是文件名里的 `_序号_`），
+     * 后续的角色名判定就不受它影响。
+     */
+    let panelImgIdx = 0
+    const imgRet = /(?:^|\s)面板图(\d+)(?:\s|$)/.exec(raw)
+    if (imgRet) {
+      const n = parseInt(imgRet[1], 10)
+      if (n > 0) panelImgIdx = n
+      raw = raw.replace(/\s*面板图\d+\s*/g, ' ').replace(/\s+/g, ' ').trim()
+    }
+    if (!raw) {
+      await e.reply('[Meta] 用法：#练度查询 胡桃 [面板图N]（角色名走 miao 的米游社绑定，不写 UID）')
       return true
     }
 
@@ -266,38 +294,39 @@ export class MetaGrade extends plugin {
       rolls: rollsText
     }
 
-    // 角色立绘（ProfileImg 图库 → miao 默认图库 → 不显示；降级不报错）
-    const portrait = portraitOf(targets.charName || charName)
-
+    // 角色立绘（**图库 → miao 自带立绘**，顺序照抄 miao；降级不报错）
     /*
-     * 立绘**优先用 miao 面板自己那张 splash**（2026-10-15 用户定：立绘行要"完全照抄 miao"）——
-     * miao 的 `profile-detail.html` 就是 `costumeSplash || imgs?.splash`；图库那张（ProfileImg 的裁剪图）
-     * 构图与 miao 不同，所以只作为**回落**（miao 没这张图时用图库图，再没有就不显示）。
+     * 彩蛋立绘判据 —— **照抄 miao**（`models/avatar/ProfileAvatar.js:68-77`）：
+     * 满命（C6）/ 圣遗物评分 ACE·MAX / 三个天赋原始等级 101010，命中其一就走 `super-character` 层。
      */
-    const splashRel = (['costumeSplash', 'splash'] as const)
-      .map(name => `../../../../../plugins/miao-plugin/resources/meta-gs/character/${targets.charName || charName}/imgs/${name}.webp`)
-      .find(rel => fs.existsSync(path.join(botRoot, 'plugins', 'miao-plugin', 'resources', 'meta-gs', 'character', targets.charName || charName, 'imgs', path.basename(rel)))) || ''
+    const talentTriple = (['A', 'E', 'Q'] as const)
+      .map(k => Number(profile.build.talentOriginal?.[k]) || 0).join('')
+    const isSuper = Number(profile.build.cons) === 6
+      || ['ACE', 'MAX'].includes(String(profile.build.artiMark?.markClass || '').toUpperCase())
+      || talentTriple === '101010'
+    const hero = heroImageOf(charDir, { isSuper, index: panelImgIdx })
 
     /*
-     * 参考 DPS（2026-10-15 用户定）：以**当前金数**为基底、向下取 4 的倍数、步长 4、最多 3 档（从低到高）。
+     * 参考 DPS（2026-10-15 用户定；同日分档口径改为"每 4 金一档"）：
+     * 以**当前金数所在的那一档**为起点、往后取 3 档（`≤4 金` → `5-8 金` → `9-12 金` …）。
      *
      * "当前金数" = 该角色自身投入：角色 1 金 + 命座每级 1 金 + 5★ 武器 1 金（练度页只面对单个角色，
-     * 拿不到整队金数）；基底下限 4（例：C1 + 5★ 武器 = 3 → 基底 4 → 4 / 8 / 12 金）。
-     * 每档取"含该角色"的**最高伤害**那条记录；榜单缓存不可用（未联网/无缓存）时这一块不渲染。
+     * 拿不到整队金数）。每档取"含该角色"的**最高伤害**那条记录；榜单缓存不可用（未联网/无缓存）时这一块不渲染。
      */
     const ownCost = 1 + (Number(profile.build.cons) || 0) + (Number(profile.build.weapon?.rarity) >= 5 ? 1 : 0)
-    const costBase = Math.max(4, Math.floor(ownCost / 4) * 4)
-    const refDps: Array<{ cost: number, damageText: string, teamText: string, video: string }> = []
+    const refDps: Array<{ label: string, damageText: string, teamText: string, video: string }> = []
     try {
-      const { queryCharDps } = await import('../modules/charDpsQuery.js')
+      const { costBucketOf, costRangeOf, queryCharDps } = await import('../modules/charDpsQuery.js')
       const res = await queryCharDps(targets.charName || charName, {}, { proxy: getProxy(), downloadAvatars: false })
       if (res.ok) {
-        for (const want of [costBase, costBase + 4, costBase + 8]) {
-          const tier = res.tiers.find(t => t.cost === want) || res.tiers.find(t => t.cost >= want)
+        const base = costBucketOf(ownCost)
+        for (const bucket of [base, base + 1, base + 2]) {
+          const range = costRangeOf(bucket)
+          const tier = res.tiers.find(t => t.min === range.min && t.max === range.max)
           const row = tier?.rows?.[0]
           if (!row) continue
           refDps.push({
-            cost: tier!.cost,
+            label: tier!.label,
             damageText: row.damageText || (row.damage ? String(row.damage) : '—'),
             teamText: row.chars.map(c => `${c.name}${c.constellation ? `C${c.constellation}` : ''}`).join(' + '),
             video: row.video || ''
@@ -329,6 +358,17 @@ export class MetaGrade extends plugin {
     }
     const elemClass = ELEM_CLASS[String(profile.build.elem || '')] || String(profile.build.elem || '') || 'hydro'
 
+    /*
+     * 展示层投影（2026-10-15 UI 重构「档案批注」）：四态、证据号、来源条、计分覆盖都从这一份出来。
+     * 旧字段（dims/missRows/suggestions…）**全部保留**，文本回退与老模板继续可用。
+     */
+    const mx = buildPresentation({
+      result,
+      observedAt: Date.now(),
+      targetVersion: targetVersionOf(codexStore.getSignature(guide?.name || charName)),
+      source: profile.source
+    })
+
     const data = {
       title: `#${result.charName} · 提升指南`,
       subtitle: '攻略目标 × 当前配装（面板数据来自 miao）',
@@ -351,9 +391,10 @@ export class MetaGrade extends plugin {
       consIcons,
       talentIcons,
       elemClass,
-      portrait: portrait.rel,
-      splashRel,
+      heroImg: hero.rel,
       refDps,
+      mx,
+      assessable: result.assessable,
       notes: [...result.notes, ...profile.notes],
       copyright: COPYRIGHT
     }

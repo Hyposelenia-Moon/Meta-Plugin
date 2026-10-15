@@ -4,6 +4,7 @@
   <meta charset="utf-8"/>
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/meta-ui.css"/>
   <style>
     /* 提升指南：结论 → 差在哪 → 怎么做（三屏式，权重与口径收进脚注） */
     .gd-hero { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
@@ -26,8 +27,14 @@
     .gd-name { flex: 0 0 130px; font-size: 21px; font-weight: 700; }
     .gd-arrow { flex: 1 1 auto; font-size: 19px; }
     .gd-verdict { flex: 0 0 130px; text-align: right; font-size: 19px; font-weight: 700; }
-    /* 圣遗物行右侧要放「评分 246.4 ACE　词条数：45.3」：列加宽 + 不换行，避免与左侧套装名错位 */
-    .gd-verdict-wide { flex: 0 0 330px; white-space: nowrap; font-size: 17px; }
+    /*
+     * 圣遗物行（2026-10-15 用户定：**评分块独占一行**）——
+     * 原来把「评分 246.4 ACE　词条数：45.3」固定成 330px 放在同一行，把套装名挤到 ~100px 里
+     * （「晨星与月的晓歌×4」被断成两行、右侧留一大块空白，看起来整行错位）；
+     * 现在让评分块 `flex-basis: 100%` 换到下一行右对齐 —— 套装名拿到整行宽度（长名 / 2+2 也不会被挤断）。
+     */
+    .gd-row-artis { flex-wrap: wrap; }
+    .gd-verdict-wide { flex: 0 0 100%; white-space: nowrap; font-size: 17px; }
     /*
      * 档位配色与 miao 一致（`miao-plugin/resources/common/css/profile-detail.css` 的 `mark-*` 表）：
      * MAX / ACE 红；SSS / SS 金；S / A 紫；B 及以下用默认色。
@@ -206,7 +213,6 @@
 </head>
 <body class="gd-elem-{{elemClass}}" style="zoom:{{renderScale}}">
   <div class="page">
-    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-rank.jpg')"></div>
     <div class="page-inner">
       <!-- ① 结论 -->
       <div class="card head-card">
@@ -218,8 +224,8 @@
       </div>
       <!-- ① 立绘行：结构逐条照抄 miao（`.basic` / `.main-pic` / `.detail` / `.char-cons`） -->
       <div class="gd-basic">
-        {{if splashRel}}<div class="gd-main-pic" style="background-image:url({{splashRel}})"></div>
-        {{else if portrait}}<div class="gd-main-pic" style="background-image:url({{_data_path}}/{{portrait}})"></div>
+        <!-- 面板图：图库（`面板图N` / 层内随机）→ miao 自带立绘；顺序与 miao `getCostumeSplash()` 一致 -->
+        {{if heroImg}}<div class="gd-main-pic" style="background-image:url({{heroImg}})"></div>
         {{else}}<div class="gd-main-pic"></div>{{/if}}
         <div class="gd-detail">
           <div class="gd-char-name">{{charName}}</div>
@@ -255,86 +261,165 @@
         </div>
       </div>
 
-      <div class="card body-card">
-        <div class="gd-hero">
-          <div class="gd-rank gd-tier-{{rankClass}}">{{ranks}}</div>
-          <div class="gd-total">{{total}} 分</div>
-          <div class="gd-panel">综合：{{panelTier}}</div>
-        </div>
-        <div class="gd-dims">
-          {{each dims d}}
-          <div class="gd-dim">
-            <div class="gd-dim-name">{{d.label}}</div>
-            <div class="gd-dim-bar"><div class="gd-dim-fill" style="width:{{d.pct}}%"></div></div>
-            <div class="gd-dim-pct">{{d.pctText}}</div>
+      <!--
+        数据区（2026-10-15 UI 重构「档案批注」）：`main.mx-content` 内的章节序号 + 证据号 + 四态章 + 来源条。
+        ⚠ 上面 `.gd-basic` 整棵子树（立绘行）**一字未动**，共享样式也只作用于 `.mx-content` 内。
+      -->
+      <main class="mx-content">
+        <!-- 01 结论 -->
+        <section class="mx-section mx-section--first">
+          <header class="mx-section__head">
+            <span class="mx-section__index">01</span>
+            <h2 class="mx-section__title">结论</h2>
+            <span class="mx-section__hint">计分维度 {{mx.score.evaluatedKeys.length}}/3</span>
+          </header>
+          <div class="mx-verdict{{if !assessable}} mx-verdict--unavailable{{/if}}">
+            <div class="mx-verdict__label">当前练度</div>
+            {{if assessable}}
+            <div class="mx-verdict__score">{{total}}<small>/ 100</small></div>
+            <div class="mx-verdict__rank mx-tier-{{rankClass}}">{{ranks}}</div>
+            <div class="mx-verdict__tier"><strong>{{panelTier}}</strong><small>综合档位</small></div>
+            {{else}}
+            <div class="mx-verdict__rank">待评</div>
+            <div class="mx-verdict__tier"><strong>—</strong><small>关键数据未取到</small></div>
+            {{/if}}
+            <p class="mx-verdict__note">{{if mx.score.isPartial}}计分口径：{{mx.score.scoringVersion}}{{if mx.score.targetVersion}} · 攻略目标 {{mx.score.targetVersion}}{{else}} · 攻略目标版本未提供{{/if}}；缺项不计分，未知项不计入总分{{else}}口径：{{mx.score.scoringVersion}}{{if mx.score.targetVersion}} · 攻略目标 {{mx.score.targetVersion}}{{else}} · 攻略目标版本未提供{{/if}}{{/if}}</p>
+          </div>
+          <ul class="mx-dimensions">
+            {{each mx.dims d}}
+            <li class="mx-dimension">
+              <span class="mx-dimension__name">{{d.label}}</span>
+              {{if d.pct === null}}
+              <span class="mx-meter mx-meter--{{d.state}}"></span>
+              {{else}}
+              <span class="mx-meter"><span class="mx-meter__fill" style="width:{{d.pct}}%"></span></span>
+              {{/if}}
+              <span class="mx-dimension__value">{{d.pctText}}</span>
+              <span class="mx-state mx-state--{{d.state}}"><span class="mx-state__symbol">{{d.symbol}}</span>{{d.stateLabel}}</span>
+              {{if d.state !== 'met' && d.state !== 'below'}}
+              <p class="mx-dimension__detail">{{d.detail}}</p>
+              {{/if}}
+            </li>
+            {{/each}}
+          </ul>
+          <aside class="mx-source-list">
+            {{each mx.sources s}}
+            <div class="mx-source">
+              <strong class="mx-source__name">{{s.name}}</strong>
+              <span class="mx-source__time">{{if s.updatedAt}}更新时间 {{s.updatedAt}}{{else}}时间未提供{{/if}}</span>
+              <span class="mx-source__state">{{s.modeText}}</span>
+            </div>
+            {{/each}}
+            <!-- 数据说明（来源 / 缓存 / 失败 / 刷新限制）在这里自然换行，不挤进两行脚注 -->
+            {{each notes n}}<div class="mx-source mx-source--note"><span>{{n}}</span></div>{{/each}}
+          </aside>
+        </section>
+
+        <!-- 02 当前配装 -->
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">02</span>
+            <h2 class="mx-section__title">当前配装</h2>
+          </header>
+          <div class="mx-equipment">
+            <span class="mx-equipment__text">武器：{{buildInfo.weapon}}</span>
+          </div>
+          <div class="mx-equipment">
+            <span class="mx-equipment__text">圣遗物：{{buildInfo.artis}}</span>
+          </div>
+          {{if buildInfo.artiMark || buildInfo.rolls}}
+          <div class="mx-meta-line">{{if buildInfo.artiMark}}<span class="mx-mark-{{buildInfo.artiMarkClass}}">{{buildInfo.artiMark}}</span>{{/if}}{{if buildInfo.rolls}}　{{buildInfo.rolls}}{{/if}}</div>
+          {{/if}}
+        </section>
+
+        <!-- 03 差距证据（未达标与未知都列出；参考项另起一组，明示不计分） -->
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">03</span>
+            <h2 class="mx-section__title">差距证据</h2>
+            {{if consLine}}<span class="mx-section__hint">参考：{{consLine}}</span>{{/if}}
+          </header>
+          {{if mx.evidence.length > 0}}
+          {{each mx.evidence r}}
+          {{if r.state !== 'met'}}
+          <div class="mx-compare">
+            <span class="mx-evidence-id">{{r.eid}}</span>
+            <div class="mx-compare__body">
+              <div class="mx-compare__head">
+                <span class="mx-compare__group">{{r.group}}</span>
+                <span class="mx-compare__name">{{r.name}}</span>
+                <span class="mx-compare__state mx-state mx-state--{{r.state}}"><span class="mx-state__symbol">{{r.symbol}}</span>{{r.stateLabel}}</span>
+              </div>
+              <div class="mx-compare__line">
+                <span class="mx-compare__actual">{{r.actual}}</span>
+                <span class="mx-compare__arrow">→</span>
+                <span class="mx-compare__target">{{r.target}}</span>
+                <span class="mx-compare__delta">{{r.deltaText}}</span>
+              </div>
+            </div>
+          </div>
+          {{/if}}
+          {{/each}}
+          {{if mx.metText}}<div class="mx-empty">{{mx.metText}}</div>{{/if}}
+          {{else}}
+          <div class="mx-empty">{{if assessable}}攻略目标项均已满足{{else}}没有可比对的计分项：{{mx.score.unknownKeys.length ? '关键数据未取到' : '攻略缺该项'}}{{/if}}</div>
+          {{/if}}
+
+          {{if mx.references.length > 0}}
+          <div class="mx-reference-row"><span class="mx-reference-row__name">参考项</span><span class="mx-reference-row__value">面板与命座只作参考，不计分</span></div>
+          <div class="mx-reference-row mx-reference-row--head"><span class="mx-reference-row__name">　</span><span class="mx-reference-row__value">当前</span><span class="mx-reference-row__extra">参考目标</span></div>
+          {{each mx.references r}}
+          <div class="mx-reference-row">
+            <span class="mx-reference-row__name">{{if r.group && r.group !== '参考'}}<span class="mx-reference-row__dir">{{r.group}}</span>{{/if}}<span class="mx-reference-row__attr">{{r.name}}</span></span>
+            <span class="mx-reference-row__value">{{r.actual}}</span>
+            <span class="mx-reference-row__extra">{{r.target}}</span>
           </div>
           {{/each}}
-        </div>
-      </div>
+          {{/if}}
+        </section>
 
-      <!-- ② 当前配装（2026-10-15：只给武器 / 套装 + miao 评分与有效词条数；等级命座与天赋都在立绘行） -->
-      <div class="card body-card">
-        <div class="card-title">当前配装</div>
-        <div class="gd-row">
-          <div class="gd-group">武器</div>
-          <div class="gd-arrow">{{buildInfo.weapon}}</div>
-        </div>
-        <div class="gd-row">
-          <div class="gd-group">圣遗物</div>
-          <div class="gd-arrow">{{buildInfo.artis}}</div>
-          <div class="gd-verdict gd-verdict-wide">{{if buildInfo.artiMark}}<span class="gd-mark-{{buildInfo.artiMarkClass}}">{{buildInfo.artiMark}}</span>{{/if}}{{if buildInfo.rolls}}　{{buildInfo.rolls}}{{/if}}</div>
-        </div>
-      </div>
+        <!-- 04 提升建议（编号 + 依据证据号） -->
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">04</span>
+            <h2 class="mx-section__title">提升建议</h2>
+            <span class="mx-section__hint">按处理顺序</span>
+          </header>
+          <ol class="mx-recommendations">
+            {{each mx.suggestions s}}
+            <li class="mx-recommendation">
+              <span class="mx-priority">{{s.priority}}</span>
+              <p>{{s.text}}</p>
+              {{if s.evidenceEids.length > 0}}<small class="mx-evidence-ref">依据 {{s.evidenceEids.join('、')}}</small>{{else}}<small class="mx-evidence-ref">通用建议</small>{{/if}}
+            </li>
+            {{/each}}
+          </ol>
+        </section>
 
-      <!-- ③ 差在哪 -->
-      <div class="card body-card">
-        <div class="card-title">未达标项</div>
-        {{if missRows && missRows.length > 0}}
-        {{each missRows r}}
-        <div class="gd-row">
-          <div class="gd-group">{{r.group}}</div>
-          <div class="gd-name">{{r.name}}</div>
-          <div class="gd-arrow">{{r.actual}} <span class="gd-miss">→</span> {{r.target}}</div>
-          <div class="gd-verdict gd-miss">{{r.deltaText}}</div>
-        </div>
-        {{/each}}
-        {{else}}
-        <div class="gd-row"><div class="gd-name">全部达标</div><div class="gd-arrow">攻略目标项均已满足</div></div>
+        <!-- 05 参考 DPS（当前金数所在档起，每 4 金一档、最多 3 档；每档取含该角色的最高伤害） -->
+        {{if refDps && refDps.length > 0}}
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">05</span>
+            <h2 class="mx-section__title">参考 DPS</h2>
+            <span class="mx-section__hint">同角色投入参考</span>
+          </header>
+          {{each refDps r}}
+          <div class="mx-reference-row">
+            <span class="mx-reference-row__name">{{r.label}}</span>
+            <span class="mx-reference-row__value">{{r.teamText}}</span>
+            <span class="mx-reference-row__extra">{{r.damageText}}{{if r.video}}｜视频记录{{/if}}</span>
+          </div>
+          {{/each}}
+        </section>
         {{/if}}
 
-        {{if consLine}}<div class="gd-okline">命座：{{consLine}}</div>{{/if}}
-      </div>
-
-      <!-- ④ 怎么做 -->
-      <div class="card body-card">
-        <div class="card-title">提升建议</div>
-        {{each suggestions s idx}}
-        <div class="gd-sug">{{idx + 1}}. {{s}}</div>
-        {{/each}}
-      </div>
-
-      <!-- ⑤ 参考 DPS（当前金数向下取 4 的倍数，步长 4，最多 3 档；每档取含该角色的最高伤害） -->
-      {{if refDps && refDps.length > 0}}
-      <div class="card body-card">
-        <div class="card-title">参考 DPS</div>
-        {{each refDps r}}
-        <div class="gd-row">
-          <div class="gd-group">{{r.cost}} 金</div>
-          <div class="gd-arrow">{{r.teamText}}</div>
-          <div class="gd-verdict">{{r.damageText}}{{if r.video}}｜视频{{/if}}</div>
-        </div>
-        {{/each}}
-      </div>
-      {{/if}}
-
-      <!-- ⑥ 脚注：口径（一行）+ 备注 + 版权 -->
-      <div class="card foot-card">
-        <div class="gd-foot">口径：综合分＝圣遗物有效词条＋套装符合度；面板与命座仅作参考。</div>
-        {{each notes n}}
-        <div class="gd-foot">注：{{n}}</div>
-        {{/each}}
-        <div class="copyright">{{copyright}}</div>
-      </div>
+        <!-- 脚注：口径一行 + 版权一行（数据说明已上移到 01 的来源区，脚注不超过两行） -->
+        <footer class="mx-footer">
+          <p class="mx-footer__method">口径：综合分＝圣遗物有效词条＋套装符合度；面板与命座仅作参考。</p>
+          <p class="mx-copyright">{{copyright}}</p>
+        </footer>
+      </main>
     </div>
   </div>
 </body>

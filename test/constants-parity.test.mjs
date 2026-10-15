@@ -71,8 +71,10 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
 /*
  * 偏差 B17（用户 2026-10-15 定，"指令大乱炖，全部重构"）：
  *   冻结面 `DPS_RULES` 的 8 条旧正则**整体废除**，命令面按功能重新命名 →
- *   `#DPS榜`(榜字可省) / `#练度榜` / `#视频`(=#榜视频) / `#危战视频` / `#危战 … n6|n7` /
- *   `#练度查询` / `#队伍伤害<N>` / `#配装` / `#meta状态` / `#榜单刷新` / `#DPS帮助`。
+ *   `#DPS榜`(榜字可省) / `#练度榜` / `#危战 … n6|n7` / `#练度查询` / `#队伍伤害<N>` / `#配装` /
+ *   `#meta状态` / `#榜单刷新` / `#DPS帮助`。
+ *   视频名次没有独立命令：它是 `#DPS榜 … 视频N` / `#危战 … n6|n7 视频N` 的**后缀**
+ *   （用户 2026-10-15 定：原 `#视频` / `#危战视频` 前缀式**废除**）。
  *   因此本节不再对照快照，而是断言**新表的形态**（旧名一条都不许复活）。
  */
 {
@@ -80,9 +82,7 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
   const must = {
     rank: /^#?(?:dps|DPS)(?:榜(?!视频))?(?!榜|视频|帮助|状态|更新|强制|刷新|练度|危战)\s*([\s\S]*)$/,
     build: /^#?练度榜\s*([\s\S]*)$/,
-    video: /^#?榜?视频\s*([\s\S]*)$/,
-    raidVideo: /^#?危战视频\s*([\s\S]*)$/,
-    raidTiers: /^#?危战\s+([\s\S]*?)\s*(?:n|N)?([67])(?:档)?\s*$/,
+    raidTiers: /^#?危战\s+([\s\S]*?)\s*(?:n|N)?([67])(?:档)?(?:\s*视频\s*(\d+))?\s*$/,
     raidTiersPrompt: /^#?危战\s+([\s\S]+)$/,
     grade: /^#?练度查询(?:\s+([\s\S]+))?$/,
     teamDamage: /^#?队伍伤害\s*(\d{1,2})?(?:\s+([\s\S]+))?$/,
@@ -96,10 +96,12 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
     if (!rule) { bad.push(`RULES.${key}: 缺失`); continue }
     if (String(rule) !== String(expected)) bad.push(`RULES.${key}: 期望 ${String(expected)}，实际 ${String(rule)}`)
   }
-  push('新命令正则与既定口径逐字一致（12 条）', bad, [])
+  push('新命令正则与既定口径逐字一致（10 条）', bad, [])
+  push('视频前缀式规则已删除（没有 RULES.video / RULES.raidVideo）',
+    ['video', 'raidVideo'].filter(k => C.RULES?.[k] !== undefined), [])
 
   // 旧名一条都不许复活（用户："旧写法一律废除"）
-  const dead = ['#DPS练度查询', '#DPS状态', '#DPS视频', '#DPS危战视频', '#DPS更新', '#DPS强制更新', '#DPS刷新', '#DPS危战榜', '#胡桃dps', '#DPS榜视频']
+  const dead = ['#DPS练度查询', '#DPS状态', '#DPS视频', '#DPS危战视频', '#DPS更新', '#DPS强制更新', '#DPS刷新', '#DPS危战榜', '#胡桃dps', '#DPS榜视频', '#视频 3', '#榜视频 3', '#危战视频 3']
   push('旧命令名一个都匹配不到（已废除）', dead.filter(m => C.matchCommand(m) !== null), [])
 
   // 只保留 `#DPS榜` / `#DPS` / `#DPS帮助` 三个 DPS 字样命令
@@ -115,9 +117,9 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
     ['#DPS', 'rank', ''],
     ['#DPS 胡桃 12金', 'rank', '胡桃 12金'],
     ['#练度榜 胡桃', 'build', '胡桃'],
-    ['#视频 3 胡桃', 'video', '3 胡桃'],
-    ['#榜视频 3', 'video', '3'],
-    ['#危战视频 3 矮灵', 'raidVideo', '3 矮灵'],
+    ['#DPS榜 刻晴 48金视频1', 'rank', '刻晴 48金视频1'],
+    ['#危战 矮灵 n7 视频3', 'raidTiers', '矮灵'],
+    ['#危战 矮灵 视频3', 'raidTiersPrompt', '矮灵 视频3'],
     ['#危战 矮灵 n7', 'raidTiers', '矮灵'],
     ['#危战 7.1 n6', 'raidTiers', '7.1'],
     ['#危战 n7', 'raidTiers', ''],

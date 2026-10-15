@@ -29,8 +29,8 @@ export const N7_SECONDS_LIMIT = 70
 /** 站点收录的耗时上限（秒），仅用于页面文案与排序说明 */
 export const RAID_SPEED_CAP = 120
 
-/** 每档默认取前几条 */
-export const DEFAULT_TIER_ROWS = 5
+/** 每档默认取前几条（用户 2026-10-15 定：单档最多列 **10** 条） */
+export const DEFAULT_TIER_ROWS = 10
 
 export interface RaidTierBlock {
   key: 'n7' | 'n6'

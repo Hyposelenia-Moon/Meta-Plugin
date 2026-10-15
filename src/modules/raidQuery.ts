@@ -208,7 +208,7 @@ export async function findRaidEntry (
 ): Promise<RaidEntry | QueryFailure> {
   const rank = Number(rankNo)
   if (!Number.isFinite(rank) || rank < 1 || !Number.isInteger(rank)) {
-    return { ok: false, error: '名次需要是正整数，例如 #危战视频 3' }
+    return { ok: false, error: '名次需要是正整数，例如 #危战 矮灵 n7 视频3' }
   }
 
   const character = q.char ? findCharacter(q.char) : null

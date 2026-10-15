@@ -28,10 +28,12 @@ const PV = await import(pathToFileURL(path.join(libDir, 'components', 'pluginVer
 
 /**
  * 本组 app（2026-10-15 命令面重构后）：
- * `rank`（榜单，已吸收原 `charDps`）/ `raidTiers`（危战分档，旧 `raid` 危战榜已废除）/
- * `build`（练度榜）/ `status` / `video`（榜单视频 + 危战视频）/ `admin`（榜单刷新）
+ * `rank`（榜单，已吸收原 `charDps`，后缀式 `视频N` 也在它里面）/ `raidTiers`（危战分档，旧 `raid` 危战榜已废除）/
+ * `build`（练度榜）/ `status` / `admin`（榜单刷新）
+ *
+ * ⚠ `video` app 已删除（用户 2026-10-15 定：视频名次改成后缀式、原前缀式废除）。
  */
-const APPS = ['rank', 'raidTiers', 'status', 'video', 'admin', 'build']
+const APPS = ['rank', 'raidTiers', 'status', 'admin', 'build']
 
 // ---------- 1. 每个 app 的结构与元数据 ----------
 for (const name of APPS) {
@@ -56,12 +58,12 @@ for (const name of APPS) {
 
 // ---------- 2. 与 COMMANDS 对齐 ----------
 {
-  // 覆盖的规则键按"实际 reg 用到哪些"统计（video 一个 app 认领 video + raidVideo 两条）
+  // 覆盖的规则键按"实际 reg 用到哪些"统计（raidTiers 一个 app 认领 raidTiers + raidTiersPrompt）
   const covered = APPS.flatMap(name => {
     const src = readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`))
     return [...src.matchAll(/reg:\s*RULES\.(\w+)/g)].map(m => m[1])
   })
-  ok('本组 6 个 app 共认领 8 条规则（video 认领 video + raidVideo，rank 认领 rank）', covered.length === 8)
+  ok('本组 5 个 app 共认领 6 条规则（raidTiers 认领 raidTiers + raidTiersPrompt）', covered.length === 6)
   push('覆盖的规则键不重复', covered.filter((k, i) => covered.indexOf(k) !== i), [])
   // 其余规则各有归属：grade/teamDamage/akashaBuild 在 v3 app 里、help 在帮助页、raidTiers 在危战 app
   const otherApps = ['raidTiers', 'grade', 'teamDamage', 'akashaBuild']

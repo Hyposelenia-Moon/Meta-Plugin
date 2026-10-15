@@ -1,0 +1,242 @@
+/*
+ * meta-ui.css —— 「档案批注」数据区组件（2026-10-15 UI 重构设计规格 §2/§3/§5）
+ *
+ * 只用在这一层：**所有规则都限定在 `.mx-content` 内**，不碰 miao 的 `.basic/.detail/.char-*`，
+ * 也不写无前缀的 `h2/table/span` 全局选择器 —— 练度页的冻结立绘行（`.gd-basic` 整棵子树）
+ * 与 miao 原生名次面板因此完全不受影响。
+ *
+ * 版式对齐离线预览（`Meta-UI/dossier-*.jpg`）：整块 `.mx-content` 自带**不透明浅色底**（文字不落在裸插画上），
+ * 章节之间用发丝线分隔、不叠圆角卡片；章节号金色，状态章为「颜色 + 固定图形 + 中文」三通道。
+ * 令牌：`--mx-*` 只在本文件内定义与消费（`base.css` 的原始令牌不改值）。
+ * 配色（2026-10-15 用户定：**黑底改浅色底**）：白底 + 深灰字，正文/次级/辅助/章节号/四态/评级色
+ * 全部按**普通文字 ≥ 4.5:1** 验证（`test/presentation.test.mjs` 用同一套 WCAG 公式算）。
+ */
+
+.mx-content {
+  --mx-bg: #ffffff;
+  --mx-surface: #f2f5fa;
+  --mx-surface-2: #e6ebf3;
+  --mx-text: #1b1f27;
+  --mx-secondary: #39404d;
+  --mx-muted: #59616f;
+  --mx-accent: #7d5a1c;
+  --mx-focus: #1a5fd0;
+  --mx-pass: #0d6b45;
+  --mx-warn: #b3261e;
+  --mx-excluded: #5b3fbe;
+  --mx-unknown: #59616f;
+  --mx-tier-max: #b3261e;
+  --mx-tier-sss: #7d5a1c;
+  --mx-tier-sa: #5b3fbe;
+  /* 攻略页的两档标色（旧页 sig-strict 红 / sig-alt 绿）：浅底上要压深才达标 */
+  --mx-signature: #b3261e;
+  --mx-alt: #0d6b45;
+  --mx-rule: #d3d9e3;
+  --mx-space-1: 4px;
+  --mx-space-2: 8px;
+  --mx-space-3: 12px;
+  --mx-space-4: 16px;
+  --mx-space-5: 20px;
+  --mx-space-6: 24px;
+  --mx-radius: 12px;
+  --mx-radius-small: 4px;
+  --mx-body-size: 18px;
+  --mx-body-leading: 1.55;
+  --mx-note-size: 14px;
+  --mx-score-size: 58px;
+
+  background: var(--mx-bg);
+  border-radius: var(--mx-radius);
+  color: var(--mx-text);
+  font-size: var(--mx-body-size);
+  line-height: var(--mx-body-leading);
+  margin-top: var(--mx-space-4);
+  padding: var(--mx-space-4) var(--mx-space-5) var(--mx-space-3);
+}
+
+/********  章节  ********/
+.mx-content .mx-section { padding-top: var(--mx-space-3); margin-top: var(--mx-space-5); border-top: 1px solid var(--mx-rule); }
+.mx-content .mx-section:first-child,
+.mx-content .mx-section--first { border-top: none; margin-top: 0; padding-top: 0; }
+.mx-content .mx-section__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--mx-space-2);
+  margin-bottom: var(--mx-space-2);
+}
+.mx-content .mx-section__index { color: var(--mx-accent); font-weight: 700; min-width: 24px; }
+.mx-content .mx-section__title { margin: 0; font-size: 21px; line-height: 1.35; color: var(--mx-text); }
+.mx-content .mx-section__hint { margin-left: auto; font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-empty { color: var(--mx-muted); font-size: var(--mx-note-size); }
+
+/********  结论带  ********/
+.mx-content .mx-verdict { display: flex; align-items: flex-end; gap: var(--mx-space-3); flex-wrap: wrap; }
+.mx-content .mx-verdict__label { flex: 1 1 100%; font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-verdict__score { font-size: var(--mx-score-size); font-weight: 800; line-height: 1; color: var(--mx-text); }
+.mx-content .mx-verdict__score small { font-size: var(--mx-note-size); font-weight: 400; color: var(--mx-muted); margin-left: 6px; }
+.mx-content .mx-verdict__rank { font-size: 27px; font-weight: 800; line-height: 1.1; letter-spacing: 1px; }
+.mx-content .mx-verdict__tier { margin-left: auto; text-align: right; color: var(--mx-secondary); }
+.mx-content .mx-verdict__tier strong { display: block; font-size: 21px; color: var(--mx-text); }
+.mx-content .mx-verdict__tier small { font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-verdict__note { flex: 1 1 100%; margin: var(--mx-space-2) 0 0; font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-verdict--unavailable .mx-verdict__rank,
+.mx-content .mx-verdict--unavailable .mx-verdict__score { color: var(--mx-unknown); }
+
+/* 评级配色与 miao 同款（MAX/ACE 红、SSS/SS 金、S/A 紫） */
+.mx-content .mx-tier-MAX, .mx-content .mx-tier-ACE,
+.mx-content .mx-mark-MAX, .mx-content .mx-mark-ACE { color: var(--mx-tier-max); }
+.mx-content .mx-tier-SSS, .mx-content .mx-tier-SS,
+.mx-content .mx-mark-SSS, .mx-content .mx-mark-SS { color: var(--mx-tier-sss); }
+.mx-content .mx-tier-S, .mx-content .mx-tier-A,
+.mx-content .mx-mark-S, .mx-content .mx-mark-A { color: var(--mx-tier-sa); }
+
+/********  维度行  ********/
+.mx-content .mx-dimensions { display: block; margin: var(--mx-space-3) 0 0; padding: 0; }
+.mx-content .mx-dimension { display: flex; align-items: center; gap: var(--mx-space-3); padding: 5px 0; list-style: none; }
+.mx-content .mx-dimension__name { flex: 0 0 72px; }
+.mx-content .mx-dimension__value { flex: 0 0 96px; text-align: right; color: var(--mx-secondary); }
+.mx-content .mx-dimension__detail { flex: 1 1 100%; margin: 0 0 4px 84px; font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-meter { flex: 1 1 auto; height: 8px; border-radius: 4px; background: var(--mx-surface-2); overflow: hidden; }
+.mx-content .mx-meter__fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--mx-accent), var(--mx-focus)); }
+.mx-content .mx-meter--unscored,
+.mx-content .mx-meter--unknown { background: transparent; box-shadow: inset 0 0 0 1px var(--mx-rule); }
+
+/********  状态章（颜色 + 图形 + 中文三通道）  ********/
+.mx-content .mx-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--mx-note-size);
+  padding: 1px 8px;
+  border-radius: var(--mx-radius-small);
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.mx-content .mx-state__symbol { font-weight: 700; }
+.mx-content .mx-state--met { color: var(--mx-pass); border-style: solid; }
+.mx-content .mx-state--below { color: var(--mx-warn); border-style: solid; border-left-width: 4px; font-weight: 700; }
+.mx-content .mx-state--unscored { color: var(--mx-excluded); border-style: dashed; }
+.mx-content .mx-state--unknown { color: var(--mx-unknown); border-style: dotted; }
+
+/********  证据行（编号 + 内容）  ********/
+.mx-content .mx-compare {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mx-space-3);
+  padding: var(--mx-space-2) 0;
+}
+.mx-content .mx-compare + .mx-compare { border-top: 1px solid var(--mx-rule); }
+.mx-content .mx-evidence-id { flex: 0 0 40px; color: var(--mx-accent); font-weight: 700; font-size: var(--mx-note-size); padding-top: 3px; }
+.mx-content .mx-compare__body { flex: 1 1 auto; min-width: 0; }
+.mx-content .mx-compare__head { display: flex; align-items: baseline; gap: var(--mx-space-2); flex-wrap: wrap; }
+.mx-content .mx-compare__group { font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-compare__name { font-size: var(--mx-body-size); font-weight: 700; word-break: break-word; }
+.mx-content .mx-compare__state { margin-left: auto; }
+.mx-content .mx-compare__line { margin-top: 2px; font-size: 16px; color: var(--mx-secondary); word-break: break-word; }
+.mx-content .mx-compare__actual { color: var(--mx-text); }
+.mx-content .mx-compare__arrow { color: var(--mx-muted); padding: 0 6px; }
+.mx-content .mx-compare__delta { color: var(--mx-warn); }
+.mx-content .mx-compare__hint { margin-top: 2px; font-size: var(--mx-note-size); color: var(--mx-muted); }
+
+/********  区间尺  ********/
+.mx-content .mx-range { display: inline-flex; align-items: center; gap: 6px; font-size: var(--mx-note-size); color: var(--mx-secondary); }
+.mx-content .mx-range__line { width: 46px; height: 2px; background: var(--mx-rule); border-radius: 1px; }
+
+/********  来源条  ********/
+.mx-content .mx-source-list { display: block; margin-top: var(--mx-space-3); border-top: 1px solid var(--mx-rule); padding-top: var(--mx-space-2); }
+.mx-content .mx-source { display: flex; align-items: baseline; gap: var(--mx-space-2); flex-wrap: wrap; font-size: var(--mx-note-size); color: var(--mx-secondary); padding: 2px 0; }
+.mx-content .mx-source__name { color: var(--mx-accent); font-weight: 700; }
+.mx-content .mx-source__time { color: var(--mx-muted); }
+.mx-content .mx-source__state { margin-left: auto; }
+
+/********  建议序列  ********/
+.mx-content .mx-recommendations { margin: 0; padding: 0; list-style: none; }
+.mx-content .mx-recommendation { display: flex; align-items: baseline; gap: var(--mx-space-3); padding: var(--mx-space-2) 0; }
+.mx-content .mx-recommendation + .mx-recommendation { border-top: 1px solid var(--mx-rule); }
+.mx-content .mx-priority { flex: 0 0 22px; color: var(--mx-accent); font-weight: 700; text-align: right; }
+.mx-content .mx-recommendation p { margin: 0; flex: 1 1 auto; }
+.mx-content .mx-evidence-ref { flex: 0 0 auto; font-size: var(--mx-note-size); color: var(--mx-muted); white-space: nowrap; }
+
+/********  装备单元  ********/
+.mx-content .mx-equipment { display: flex; align-items: baseline; gap: var(--mx-space-2); padding: 5px 0; }
+.mx-content .mx-equipment__icon { flex: 0 0 auto; width: 18px; height: 18px; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.mx-content .mx-equipment__text { flex: 1 1 auto; }
+.mx-content .mx-equipment__meta { color: var(--mx-muted); font-size: var(--mx-note-size); }
+/*
+ * 圣遗物行的评分/词条**独占次行右对齐**（用户 2026-10-15 定的排版，换组件后依然保留）：
+ * 套装名独占一行，`评分 X.Y SSS　词条数：N` 换行后靠右 —— 不再挤在同一行把长套装名折断。
+ */
+.mx-content .mx-meta-line {
+  text-align: right;
+  white-space: nowrap;
+  font-size: 16px;
+  color: var(--mx-secondary);
+  padding-top: 2px;
+}
+
+/********  参考行（不参与计分的信息）  ********/
+.mx-content .mx-reference-row { display: flex; align-items: baseline; gap: var(--mx-space-3); padding: 5px 0; font-size: 16px; color: var(--mx-secondary); }
+.mx-content .mx-reference-row + .mx-reference-row { border-top: 1px solid var(--mx-rule); }
+/* 列语义表头（当前 / 参考目标）—— 审核 4.3：参考区要有列名，别让读者猜哪列是目标 */
+.mx-content .mx-reference-row--head { border-top: none; padding-bottom: 0; color: var(--mx-muted); font-size: var(--mx-note-size); }
+.mx-content .mx-reference-row__name { flex: 0 0 116px; min-width: 0; color: var(--mx-muted); font-size: var(--mx-note-size); }
+/*
+ * 方向与属性**各自成行**（`输出向` / `暴击率`）：中文默认"任意位置可断"，
+ * 挤在一行会把 `暴击伤害` 断成 `暴击伤` + `害`（2026-10-15 审核意见 4.4：按语义边界换行）。
+ */
+.mx-content .mx-reference-row__dir { display: block; color: var(--mx-accent); }
+.mx-content .mx-reference-row__attr { display: block; white-space: nowrap; }
+.mx-content .mx-reference-row__value { flex: 1 1 auto; min-width: 0; word-break: break-word; }
+.mx-content .mx-reference-row__extra { flex: 0 0 auto; min-width: 64px; text-align: right; color: var(--mx-secondary); }
+
+/********  脚注  ********/
+.mx-content .mx-footer { margin-top: var(--mx-space-4); border-top: 1px solid var(--mx-rule); padding-top: var(--mx-space-2); font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-footer p { margin: 0; }
+.mx-content .mx-footer p + p { margin-top: 2px; }
+.mx-content .mx-footer__method { color: var(--mx-secondary); }
+
+/* 网页版阅读键（出图模板不渲染） */
+.mx-content .mx-reading-key { margin-top: var(--mx-space-2); font-size: var(--mx-note-size); color: var(--mx-muted); }
+
+/* ------------------------------------------------------------------ *
+ * 攻略页行组件（2026-10-15 起与练度页共用同一套令牌与状态章）
+ * 数值/装备/配队三类行同构：左侧标签固定宽 + 右侧可换行的条目串
+ * ------------------------------------------------------------------ */
+.mx-content .mx-guide-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  column-gap: var(--mx-space-3);
+  align-items: start;
+  padding: var(--mx-space-2) 0;
+  font-size: var(--mx-body-size);
+}
+.mx-content .mx-guide-row + .mx-guide-row { border-top: 1px solid var(--mx-rule); }
+.mx-content .mx-guide-row--nolabel { grid-template-columns: minmax(0, 1fr); }
+/*
+ * 超长标签（`月结晶/月感电`）：标签**独占一行**并按语义边界分行，
+ * 而不是把标签列整体加宽 —— 加宽会挤压武器名与说明（2026-10-15 审核意见 4.4）。
+ * 右列始终保留可用宽度（`minmax(0,1fr)` + `min-width: 0`）。
+ */
+.mx-content .mx-guide-row--longlabel { grid-template-columns: minmax(0, 1fr); }
+.mx-content .mx-guide-label { min-width: 0; font-size: 16px; font-weight: 700; line-height: 1.7; color: var(--mx-secondary); overflow-wrap: break-word; }
+.mx-content .mx-guide-label__line { display: block; }
+.mx-content .mx-guide-value { min-width: 0; overflow-wrap: break-word; line-height: 1.7; }
+/* 面板数值行：数值加粗放大、标签弱化（旧页 `.codex-stats-row` 的同一处理） */
+.mx-content .mx-guide-row--stats { font-size: 21px; font-weight: 700; }
+.mx-content .mx-guide-row--stats .mx-guide-label { font-size: 15px; font-weight: 400; color: var(--mx-muted); }
+/* 条目 + 其后的分隔符绑成整体：换行时「＞」不会跑到行首，名字也不会被拆开 */
+.mx-content .mx-unit { display: inline-block; white-space: nowrap; }
+.mx-content .mx-unit + .mx-unit { margin-left: 6px; }
+.mx-content .mx-sep { margin: 0 4px; font-size: 16px; color: var(--mx-muted); }
+.mx-content .mx-inline-note { margin-left: 3px; font-size: 0.82em; color: var(--mx-muted); }
+.mx-content .mx-marker { margin-right: 2px; font-weight: 700; }
+/* 专武 / 可选档：颜色 + 固定图形（★ / ◇）两通道，图例写在数据区顶部 */
+.mx-content .mx-item--sig { color: var(--mx-signature); font-weight: 700; }
+.mx-content .mx-item--alt { color: var(--mx-alt); font-weight: 700; }
+.mx-content .mx-icon { display: inline-block; width: 26px; height: 26px; margin-right: 6px; vertical-align: middle; border-radius: 6px; background-size: cover; background-position: center; }
+.mx-content .mx-face { display: inline-block; width: 34px; height: 34px; margin-right: 6px; vertical-align: middle; border-radius: 50%; background-size: cover; background-position: center top; }
+.mx-content .mx-talents { display: flex; gap: var(--mx-space-4); align-items: flex-start; padding: var(--mx-space-2) 0; }
+.mx-content .mx-team { padding: var(--mx-space-2) 0; font-size: var(--mx-body-size); }
+.mx-content .mx-team + .mx-team { border-top: 1px solid var(--mx-rule); }
+.mx-content .mx-team__tag { font-weight: 700; margin-right: var(--mx-space-2); color: var(--mx-accent); }
+.mx-content .mx-team__note { font-size: 0.82em; color: var(--mx-muted); }

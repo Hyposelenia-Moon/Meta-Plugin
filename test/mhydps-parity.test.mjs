@@ -74,7 +74,16 @@ const QA = await load('modules/queryArgs.js')
 function blankVideo (v) {
   return JSON.parse(JSON.stringify(v, (k, val) => (k === 'video' ? '' : val)))
 }
-const strip = (r) => blankVideo(JSON.parse(JSON.stringify(r, (k, v) => (k === 'ageMs' ? undefined : v))))
+const strip = (r) => {
+  /*
+   * 偏差 B18（用户 2026-10-15 + 审核意见）：消息来源隔离与标签严格语义的落地带来了两处新增键 ——
+   *   - `parseRankArgs`：`tagExplicit`（显式/裸词来源）与 `tagBare`（裸词）；
+   *   - `queryRank` / `findRankEntry`：`tags`（显式/裸词/生效条件/诊断）。
+   * 快照是合并前产物，这里按"抹掉新增键再比"处理，其余字段仍要求**逐字一致**。
+   */
+  const { tags: _tags, ...rest } = JSON.parse(JSON.stringify(r, (k, v) => (k === 'ageMs' ? undefined : v)))
+  return blankVideo(rest)
+}
 
 // ---------- 1. DPS 榜查询 ----------
 {
@@ -120,7 +129,27 @@ const strip = (r) => blankVideo(JSON.parse(JSON.stringify(r, (k, v) => (k === 'a
 // ---------- 5. 参数解析（四个函数） ----------
 {
   const a = snap.cases.arg
-  push('parseRankArgs 与合并前一致', a.filter((t, i) => JSON.stringify(QA.parseRankArgs(t)) !== JSON.stringify(snap.arg.rank[i])), [])
+  /*
+   * 偏差 B18（用户 2026-10-15 反馈"污染消息" + 审核意见 2.3/2.4）：`parseRankArgs` 把标签拆成
+   *   - `tag`：**显式** `标签:X` 的值（原样筛选，不放宽）
+   *   - `tagBare`：角色名之后的裸词（与数据集核对后才生效）
+   *   - `tagExplicit`：来源标记
+   * 合并前只有一个 `tag` 字段（显式与裸词混在一起），所以比对时把 `tagBare` 并回 `tag`、
+   * 摘掉 `tagExplicit`，其余字段仍要求**逐字一致**。
+   */
+  const foldTag = (o) => {
+    const { tagExplicit: _e, tagBare, ...rest } = o
+    return { ...rest, tag: [rest.tag, tagBare].filter(Boolean).join(' ') }
+  }
+  push('parseRankArgs 与合并前一致（除偏差 B18：tag 拆成 tag/tagBare/tagExplicit）',
+    a.filter((t, i) => JSON.stringify(foldTag(QA.parseRankArgs(t))) !== JSON.stringify(foldTag(snap.arg.rank[i]))), [])
+  ok('parseRankArgs 的显式/裸词来源分开：裸词进 tagBare、`标签:X` 进 tag',
+    (() => {
+      const bare = QA.parseRankArgs('胡桃 总伤杯S3')
+      const ex = QA.parseRankArgs('胡桃 标签:宏')
+      return bare.tagBare === '总伤杯S3' && bare.tag === '' && bare.tagExplicit !== true &&
+        ex.tag === '宏' && ex.tagExplicit === true && !ex.tagBare
+    })())
   /*
    * 偏差 B16（用户 2026-10-15 定，危战 n6/n7 剥离）：
    * `parseRaidArgs` 新增 `tier` 字段（服务 `#危战 矮灵 n7`），比合并前快照多一个键；

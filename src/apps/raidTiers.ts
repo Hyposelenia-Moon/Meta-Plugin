@@ -13,10 +13,12 @@
  */
 import { getPluginConfig, getProxy } from '../components/config.js'
 import { DPS_COPYRIGHT, COMMANDS, RULES, SITE_NAME, formatTime } from '../components/constants.js'
-import { parseRaidArgs } from '../modules/queryArgs.js'
+import { parseRaidArgs, takeVideoToken } from '../modules/queryArgs.js'
 import { N7_SECONDS_LIMIT, queryRaidTiers } from '../modules/raidTiersQuery.js'
 import type { RaidTiersResult } from '../modules/raidTiersQuery.js'
 import { respond, suggestLine } from '../modules/respond.js'
+import { stripQuotedArgs } from '../modules/quoteGuard.js'
+import { replyRaidVideo } from '../modules/videoLookup.js'
 
 // @ts-expect-error 框架文件不在 tsc 解析范围，运行时相对 lib/ 解析（见 components/render.ts 文件头 T1 / T2）
 import plugin from '../../../../lib/plugins/plugin.js'
@@ -84,7 +86,22 @@ export class MetaRaidTiers extends plugin {
     if (await moduleGateReply('raidTiers', e)) return true
     const match = String(e.msg).match(RULES.raidTiers) || []
     const tier = (match[2] || '') === '7' ? 'n7' : 'n6'
-    const args = parseRaidArgs(match[1] || '')
+
+    /*
+     * 后缀式视频名次（用户 2026-10-15 定）：`#危战 矮灵 n7 视频3` —— 正则第 3 组拿到名次，
+     * 前面的筛选词（第 1 组）原样交给视频查询；档位是展示口径、与名次无关（名次按**全榜排序**，
+     * 就是档页每行标的「全榜 #N」）。
+     */
+    const videoNo = Number(match[3]) || 0
+    // 引用回复的原文会被带进参数里（用户 2026-10-15 反馈）→ 先按引用内容剔掉，再解析
+    const clean = await stripQuotedArgs(e, match[1] || '')
+    if (videoNo > 0) {
+      // 视频名次走「榜单视频」模块开关（与 `#DPS榜 … 视频N` 同一个开关）
+      if (await moduleGateReply('video', e)) return true
+      return await replyRaidVideo(e, clean, videoNo)
+    }
+
+    const args = parseRaidArgs(clean)
 
     const result = await queryRaidTiers(args, { proxy: getProxy(), tier })
 
@@ -98,10 +115,13 @@ export class MetaRaidTiers extends plugin {
       return true
     }
 
+    /*
+     * 页面数据：**不传 `subtitle`** —— 2026-10-15 用户定，危战页不渲染副标题行。
+     * `result.subtitle` 仍保留给文本回退与「请选档」提示用（那里没有 page-meta，需要它交代口径）。
+     */
     const data = {
       siteName: SITE_NAME,
       title: titleOf(result),
-      subtitle: result.subtitle,
       fetchedAt: formatTime(result.fetchedAt),
       total: result.total,
       tiers: result.tiers,
@@ -119,7 +139,17 @@ export class MetaRaidTiers extends plugin {
   async handlePickTier (e: YunzaiEvent): Promise<boolean> {
     if (await moduleGateReply('raidTiers', e)) return true
     const match = String(e.msg).match(RULES.raidTiersPrompt) || []
-    const args = parseRaidArgs(match[1] || '')
+    /*
+     * 视频名次写在档位前面（`#危战 矮灵 视频3 n7`）或没写档位（`#危战 矮灵 视频3`）时会落到这条兜底规则：
+     * 名次查询与档位无关，直接按视频名次走（`视频N` 之外的部分照常当筛选词）。
+     */
+    const clean = await stripQuotedArgs(e, match[1] || '')
+    const { videoNo, rest } = takeVideoToken(clean)
+    if (videoNo > 0) {
+      if (await moduleGateReply('video', e)) return true
+      return await replyRaidVideo(e, rest, videoNo)
+    }
+    const args = parseRaidArgs(clean)
 
     const result = await queryRaidTiers(args, { proxy: getProxy() })
 

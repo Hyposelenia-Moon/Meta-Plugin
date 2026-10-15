@@ -6,8 +6,11 @@
  *   - 本模块给的是**同一角色在每个金档各取前几条** —— 实测同金最高分的阵容每档都不同
  *     （4 金 = 玛薇卡C2队、12 金 = 莱欧斯利C6队、48 金 = 玛薇卡C6队），所以"全局同金第一"对用户没意义
  *
+ * 分档口径（用户 2026-10-15 定）：**每 4 金一档** —— `≤ 4 金` / `5-8 金` / `9-12 金` …，
+ * 每档最多 4 条（该档记录不足就少列）；不再是"每个整数金数各一档"。
+ *
  * 数据口径与 `rankQuery` 完全一致（同一份 `/api/teams` 缓存、同一套筛选与视图），
- * 本模块只多做一件事：**按 `cost`（总金数）分组，每组内部按 damage 降序取前 N 条**。
+ * 本模块只多做一件事：**按金数区间分组，每组内部按 damage 降序取前 N 条**。
  */
 import { cacheInfo, ensureFresh, getSnapshot } from '../model/TeamStore.js'
 import type { TeamRecord } from '../model/TeamStore.js'
@@ -15,22 +18,44 @@ import { findCharacter, searchCharacters } from '../model/CharacterIndex.js'
 import { ensureAvatars } from '../model/AvatarStore.js'
 import { getPluginConfig } from '../components/config.js'
 import { avatarIdsOf } from './teamView.js'
-import { buildRows, filterTeams, sortTeams } from './rankQuery.js'
-import type { QueryFailure, QueryOptions, RankFilters } from './rankQuery.js'
+import { buildRows, filterSummary, filterTeams, resolveTags, sortTeams } from './rankQuery.js'
+import type { QueryFailure, QueryOptions, RankFilters, TagResolution } from './rankQuery.js'
 
-/** 每个金档默认取前几条（页面高度与可读性的折中） */
-export const DEFAULT_PER_TIER = 2
+/** 每个金档默认取前几条（用户 2026-10-15 定：**每档最多 4 条**；该档记录不足就少列几条） */
+export const DEFAULT_PER_TIER = 4
+
+/** 金数分档步长（用户 2026-10-15 定：**每 4 金一档** —— ≤4 / 5-8 / 9-12 …） */
+export const COST_STEP = 4
 
 /** 金档过多时最多保留几档（超出时优先保留记录更多的档，并如实告知丢弃了几档） */
 export const DEFAULT_MAX_TIERS = 8
 
 export interface CharDpsTier {
-  /** 总金数 */
-  cost: number
+  /** 区间下界（第一档是 0，含无金队） */
+  min: number
+  /** 区间上界 */
+  max: number
+  /** 区间标题：`≤ 4 金` / `5-8 金` / `9-12 金` … */
+  label: string
   /** 该档的记录总数 */
   count: number
   /** 该档取到的前 N 条（视图行，与榜单页同一个 ViewRow 形状） */
   rows: ReturnType<typeof buildRows>
+}
+
+/** 金数 → 档序号（≤4 → 0、5-8 → 1、9-12 → 2 …；用户 2026-10-15 定的"每 4 金一档"） */
+export function costBucketOf (cost: number): number {
+  const n = Math.max(0, Number(cost) || 0)
+  return Math.max(0, Math.ceil(n / COST_STEP) - 1)
+}
+
+/** 档序号 → 区间与标题（`0` → `≤ 4 金`、`1` → `5-8 金` …） */
+export function costRangeOf (bucket: number): { min: number, max: number, label: string } {
+  const b = Math.max(0, Math.floor(Number(bucket) || 0))
+  if (b === 0) return { min: 0, max: COST_STEP, label: `≤ ${COST_STEP} 金` }
+  const min = b * COST_STEP + 1
+  const max = (b + 1) * COST_STEP
+  return { min, max, label: `${min}-${max} 金` }
 }
 
 export interface CharDpsResult {
@@ -48,6 +73,8 @@ export interface CharDpsResult {
   stale: boolean
   refreshed: boolean
   subtitle: string
+  /** 标签解析结果（显式/裸词/生效条件/诊断） */
+  tags: TagResolution
 }
 
 /**
@@ -73,33 +100,35 @@ export async function queryCharDps (
   const fresh = await ensureFresh(opts)
   const { teams } = getSnapshot()
 
-  const filtered = filterTeams(teams, { ...q, character })
+  // 标签与榜单同一口径（显式原样、裸词核实），筛选与副标题摘要都用这一份
+  const tags = resolveTags(teams, q)
+  const filtered = filterTeams(teams, { ...q, character, tag: tags.effective })
 
-  // 按总金数分组（金档升序）
-  const byCost = new Map<number, TeamRecord[]>()
+  // 按金数**区间**分组（每 `COST_STEP` 金一档，档序号升序）
+  const byBucket = new Map<number, TeamRecord[]>()
   for (const team of filtered) {
-    const cost = Number(team.cost) || 0
-    const list = byCost.get(cost)
+    const bucket = costBucketOf(Number(team.cost) || 0)
+    const list = byBucket.get(bucket)
     if (list) list.push(team)
-    else byCost.set(cost, [team])
+    else byBucket.set(bucket, [team])
   }
 
   const maxTiers = Math.max(1, Number(opts.maxTiers) || DEFAULT_MAX_TIERS)
-  let costs = [...byCost.keys()].sort((a, b) => a - b)
+  let buckets = [...byBucket.keys()].sort((a, b) => a - b)
   let droppedTiers = 0
-  if (costs.length > maxTiers) {
+  if (buckets.length > maxTiers) {
     // 记录更多的档优先；同数量时保留低金档（更贴近多数玩家），最后仍按金档升序展示
-    costs = costs
+    buckets = buckets
       .slice()
-      .sort((a, b) => (byCost.get(b)!.length - byCost.get(a)!.length) || (a - b))
+      .sort((a, b) => (byBucket.get(b)!.length - byBucket.get(a)!.length) || (a - b))
       .slice(0, maxTiers)
       .sort((a, b) => a - b)
-    droppedTiers = byCost.size - costs.length
+    droppedTiers = byBucket.size - buckets.length
   }
 
   const perTier = Math.max(1, Number(opts.perTier) || DEFAULT_PER_TIER)
   // 每档先选出前 N 条（后面补立绘、组装视图都用这一批，避免重复排序）
-  const tops = costs.map(cost => sortTeams(byCost.get(cost)!, 'damage').slice(0, perTier))
+  const tops = buckets.map(bucket => sortTeams(byBucket.get(bucket)!, 'damage').slice(0, perTier))
 
   // 先补立绘再组装视图（与 rankQuery 同一顺序：memberViews 依赖本地是否已有立绘）
   const avatarIds = avatarIdsOf(tops.flat())
@@ -107,14 +136,23 @@ export async function queryCharDps (
     await ensureAvatars(avatarIds, opts).catch(() => {})
   }
 
-  const tiers: CharDpsTier[] = costs.map((cost, idx) => ({
-    cost,
-    count: byCost.get(cost)!.length,
+  const tiers: CharDpsTier[] = buckets.map((bucket, idx) => ({
+    ...costRangeOf(bucket),
+    count: byBucket.get(bucket)!.length,
     rows: buildRows(tops[idx], 1)
   }))
 
   const info = cacheInfo()
-  const subtitle = `#${character.name} · 各金档最高伤害队伍（每档最多 ${perTier} 条）｜命中 ${filtered.length} 条 / ${byCost.size} 个金档` +
+  /*
+   * 副标题里**写明筛选条件**：命中 0 时页面换成文本（见 `modules/respond.ts`），
+   * 那时这段就是"为什么是 0"的唯一线索（例如 `视频1` 被当成标签筛掉了全部记录）。
+   */
+  const filters = filterSummary({ ...q, tag: tags.effective, sort: 'damage' })
+  const subtitle = `#${character.name} · 每 ${COST_STEP} 金一档的最高伤害队伍（每档最多 ${perTier} 条）` +
+    (filters ? `｜筛选：${filters}` : '') +
+    `｜命中 ${filtered.length} 条 / ${byBucket.size} 个金档` +
+    // 条件被忽略/无法核实时如实说明（审核 Q5：不能静默放宽，也不能只改过滤不改摘要）
+    (tags.notice ? `｜${tags.notice}` : '') +
     (droppedTiers ? `｜金档过多，仅展示记录最多的 ${tiers.length} 档（另有 ${droppedTiers} 档未展示）` : '') +
     '｜数据来自 mhydps.cn 的匿名配队记录（期望 DPS），非官方数值'
 
@@ -128,6 +166,7 @@ export async function queryCharDps (
     fetchedAt: info.fetchedAt,
     stale: info.stale,
     refreshed: fresh.refreshed,
-    subtitle
+    subtitle,
+    tags
   }
 }

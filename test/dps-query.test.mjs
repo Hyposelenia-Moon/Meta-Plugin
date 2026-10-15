@@ -53,7 +53,7 @@ const raids = TS.normalizeTeams2(fixture('teams2.sample.json'))
   ok('“第3页” → page', QA.parseRankArgs('胡桃 第3页').page === 3)
   ok('“页:4” → page', QA.parseRankArgs('胡桃 页:4').page === 4)
   a = QA.parseRankArgs('胡桃 总伤杯S3.N')
-  ok('多词标签归并到 tag', a.char === '胡桃' && a.tag === '总伤杯S3.N')
+  ok('多词裸词归并到 tagBare（显式 tag 保持为空）', a.char === '胡桃' && a.tagBare === '总伤杯S3.N' && a.tag === '')
   a = QA.parseRankArgs('角色:胡桃 金:12 标签:宏 页:5 绿玩 主C')
   ok('显式键值全字段', a.char === '胡桃' && a.costMax === 12 && a.tag === '宏' && a.page === 5 && a.cleanOnly && a.mainOnly)
   ok('全角冒号可解析', QA.parseRankArgs('角色：胡桃').char === '胡桃')
@@ -120,6 +120,32 @@ const raids = TS.normalizeTeams2(fixture('teams2.sample.json'))
   ok('标签筛选', RQ.filterTeams(teams, { tag: '宏' }).length === 2)
   hit = RQ.filterTeams(teams, { tag: '总伤杯' })
   ok('标签子串筛选', hit.length === 1 && hit[0].id === 't-003')
+
+  /*
+   * 标签严格语义（2026-10-15 审核意见 2.4）：
+   *   ① 显式条件**不得静默放宽** —— 显式写了数据集没有的词，就按原条件给 0 命中并提示；
+   *   ② 字典**不可用**（数据集一条标签都没有）与"已确认没这个标签"要分开 ——
+   *      不可核实时裸词不参与筛选。
+   */
+  {
+    const ex = RQ.resolveTags(teams, { tag: '总伤杯S3 不存在的标签', tagExplicit: true })
+    ok('显式条件原样保留、不放宽', ex.explicit === '总伤杯S3 不存在的标签' && ex.effective === ex.explicit)
+    ok('显式里的未知词被单独指出', ex.unknownExplicit.join(',') === '不存在的标签' && /没有标签/.test(ex.notice))
+    ok('显式未知词确实参与筛选（0 命中，不是被悄悄缩小）',
+      RQ.filterTeams(teams, { tag: '总伤杯S3 不存在的标签', tagExplicit: true }).length === 0)
+
+    const known = RQ.resolveTags(teams, { tagBare: '总伤杯S3.N 垃圾词' })
+    ok('裸词只留可核实的、并列出被忽略的',
+      known.bare === '总伤杯S3.N' && known.ignoredBare.join(',') === '垃圾词' &&
+      known.effective === '总伤杯S3.N' && /已忽略无法核实的词/.test(known.notice))
+
+    const noDict = RQ.resolveTags([{ id: 'x', tags: [] }], { tagBare: '视频1 满级' })
+    ok('字典不可用 → 裸词不参与筛选，并提示无法核实',
+      noDict.dictionary === false && noDict.effective === '' && /无法核实/.test(noDict.notice))
+    const noDictExplicit = RQ.resolveTags([{ id: 'x', tags: [] }], { tag: '宏', tagExplicit: true })
+    ok('字典不可用时显式条件仍然生效（不放宽、也不假装核实过）',
+      noDictExplicit.effective === '宏' && noDictExplicit.unknownExplicit.length === 0 && /无法核实/.test(noDictExplicit.notice))
+  }
   hit = RQ.filterTeams(teams, { cleanOnly: true })
   ok('绿玩筛选', hit.length === 4 && hit.every(t => t.clean))
   hit = RQ.filterTeams(teams, { character: CI.findCharacter('玛薇卡'), cleanOnly: true, costMax: 10 })
@@ -302,9 +328,9 @@ const raids = TS.normalizeTeams2(fixture('teams2.sample.json'))
   ok('版本不存在 → ok:false + 版本候选', badVer.ok === false && Array.isArray(badVer.suggestions))
 
   const r1 = await RQ.findRankEntry({}, 0)
-  ok('名次非正整数 → 报错文案为 #视频', r1.ok === false && r1.error.includes('#视频 3'))
+  ok('名次非正整数 → 报错文案给后缀式示例', r1.ok === false && r1.error.includes('视频1'))
   const r2 = await DQ.findRaidEntry({}, 0)
-  ok('危战名次非正整数 → 文案为 #危战视频', r2.ok === false && r2.error.includes('#危战视频 3'))
+  ok('危战名次非正整数 → 文案给后缀式示例', r2.ok === false && r2.error.includes('视频3'))
   const r3 = await RQ.findRankEntry({}, 5, { downloadAvatars: false })
   ok('无数据时按名次查询 → 明确报"没有任何记录"', r3.ok === false && r3.error.includes('没有任何记录'))
 }

@@ -35,7 +35,19 @@ fs.writeFileSync(process.env.META_CONFIG_FILE, [
 ].join('\n') + '\n', 'utf8')
 
 const C = await import(pathToFileURL(path.join(libDir, 'components', 'constants.js')).href)
-const { queryCharDps, DEFAULT_PER_TIER } = await import(pathToFileURL(path.join(libDir, 'modules', 'charDpsQuery.js')).href)
+const { queryCharDps, DEFAULT_PER_TIER, COST_STEP, costBucketOf, costRangeOf } = await import(pathToFileURL(path.join(libDir, 'modules', 'charDpsQuery.js')).href)
+
+// ---------- 0. 分档口径：每 4 金一档（2026-10-15 用户定） ----------
+{
+  push('步长常量是 4 金', COST_STEP, 4)
+  push('档序号：≤4 → 0、5-8 → 1、9-12 → 2（含 0 金也归第一档）',
+    [0, 1, 4, 5, 8, 9, 12, 13].map(c => costBucketOf(c)), [0, 0, 0, 1, 1, 2, 2, 3])
+  push('区间标题：第一档写 ≤4 金，其余写 a-b 金',
+    [0, 1, 2].map(b => costRangeOf(b).label), ['≤ 4 金', '5-8 金', '9-12 金'])
+  push('区间上下界与档序号自洽',
+    [0, 1, 2].map(b => `${costRangeOf(b).min}-${costRangeOf(b).max}`), ['0-4', '5-8', '9-12'])
+  push('每档默认最多 4 条', DEFAULT_PER_TIER, 4)
+}
 
 // ---------- 1. 路由（2026-10-15 合并：`#DPS榜 胡桃` 即角色档位视图） ----------
 {
@@ -53,14 +65,22 @@ ok('查到了胡桃的记录', hu.ok === true)
 if (hu.ok) {
   const raw = fixture.filter(t => (t.members || []).some(m => m.charId === '胡桃' || m.charId === '胡桃'))
   ok('命中条数与夹具里含胡桃的记录数一致', hu.total === raw.length, `${hu.total} vs ${raw.length}`)
-  ok('每个金档只出现一次且按金数升序',
-    hu.tiers.length > 0 && new Set(hu.tiers.map(t => t.cost)).size === hu.tiers.length &&
-    hu.tiers.every((t, i) => i === 0 || hu.tiers[i - 1].cost < t.cost))
+  ok('每个金档只出现一次且按区间升序',
+    hu.tiers.length > 0 && new Set(hu.tiers.map(t => `${t.min}-${t.max}`)).size === hu.tiers.length &&
+    hu.tiers.every((t, i) => i === 0 || hu.tiers[i - 1].max < t.min))
+  ok('每档区间都与"每 4 金一档"口径一致（标题与上下界对得上）',
+    hu.tiers.every(t => {
+      const want = costRangeOf(costBucketOf(t.min || t.max))
+      return t.min === want.min && t.max === want.max && t.label === want.label
+    }))
+  ok('每档计数 = 命中记录里金数落在该区间的条数（区间不重不漏）',
+    hu.tiers.every(t => raw.filter(x => { const c = Number(x.cost) || 0; return c >= t.min && c <= t.max }).length === t.count) &&
+    hu.tiers.reduce((s, t) => s + t.count, 0) === raw.length)
   ok('每档条数不超过每档上限', hu.tiers.every(t => t.rows.length <= DEFAULT_PER_TIER), String(DEFAULT_PER_TIER))
   ok('各档记录数之和等于命中条数', hu.tiers.reduce((s, t) => s + t.count, 0) === hu.total)
   ok('档内按伤害降序',
     hu.tiers.every(t => t.rows.every((r, i) => i === 0 || (t.rows[i - 1].damage || 0) >= (r.damage || 0))))
-  ok('副标题写明了口径与来源', /各金档/.test(hu.subtitle) && /mhydps\.cn/.test(hu.subtitle))
+  ok('副标题写明了分档口径与来源', /每 4 金一档/.test(hu.subtitle) && /mhydps\.cn/.test(hu.subtitle))
   ok('每档的 rank 从 1 开始连续', hu.tiers.every(t => t.rows.every((r, i) => r.rank === i + 1)))
 }
 
@@ -74,12 +94,78 @@ if (hu.ok) {
     rows.filter(r => !r.video).length + ' 行为空')
 }
 
-// ---------- 4. 别名与筛选复用 ----------
+// ---------- 3c. 后缀式视频名次（`#DPS榜 胡桃 48金视频1`） ----------
+{
+  const { takeVideoToken } = await import(pathToFileURL(path.join(libDir, 'modules', 'queryArgs.js')).href)
+  const { findRankEntry } = await import(pathToFileURL(path.join(libDir, 'modules', 'rankQuery.js')).href)
+
+  push('摘出 `视频N`：贴在前一个词后面也认', takeVideoToken('胡桃 48金视频1'), { videoNo: 1, rest: '胡桃 48金' })
+  push('摘出 `视频N`：独立成词也认', takeVideoToken('胡桃 12金 视频3'), { videoNo: 3, rest: '胡桃 12金' })
+  push('没有视频名次时原样返回', takeVideoToken('胡桃 12金'), { videoNo: 0, rest: '胡桃 12金' })
+
+  /*
+   * 用户 2026-10-15 澄清：**序号 = 在"限定金数"之后按伤害排名的第 N 名**。
+   * 金数沿用榜单口径（`48金` = ≤48 金，要"正好 48 金"用区间写法 `48-48金`）。
+   */
+  const huRecords = fixture.filter(t => (t.members || []).some(m => m.charId === '胡桃'))
+  const damages = huRecords.map(t => Number(t.damage) || 0).sort((a, b) => b - a)
+  const first = await findRankEntry({ char: '胡桃' }, 1, { downloadAvatars: false })
+  const second = await findRankEntry({ char: '胡桃' }, 2, { downloadAvatars: false })
+  ok('视频名次 = 当前筛选内按伤害排名的第 N 名（第 1 名伤害最高、第 2 名次之）',
+    first.ok === true && second.ok === true &&
+    Number(first.row.damage) === damages[0] && Number(second.row.damage) === damages[1],
+    `${first.ok ? first.row.damage : first.error} / ${second.ok ? second.row.damage : second.error}`)
+  ok('筛选叠加后名次重新从 1 起（不是全局榜序号）',
+    first.ok === true && first.total === huRecords.length && first.rank === 1)
+
+  /*
+   * 2026-10-15 用户反馈（第一次）：`#dps 七七 48金 视频1` 里的 `视频1` 被当成**隐式标签**筛掉了全部记录。
+   * 隐式标签现在先与数据集核对：一个都不存在就整段忽略；显式 `标签:X` 仍按原样筛（匹配不到给 0）。
+   */
+  const strayImplicit = await queryCharDps('胡桃', { tag: '视频1' }, { downloadAvatars: false })
+  const noTag = await queryCharDps('胡桃', {}, { downloadAvatars: false })
+  ok('隐式标签里全是垃圾词 → 整段忽略（结果为不带标签的查询）',
+    strayImplicit.ok === true && noTag.ok === true && strayImplicit.total === noTag.total)
+  /*
+   * 审核意见 Q5："已忽略"必须能看见，但不能被当成筛选条件 ——
+   * 摘要里允许出现被忽略词的说明，**不允许**出现在「筛选：标签「…」」里。
+   */
+  ok('垃圾词不进入筛选条件（只出现在"已忽略"说明里）',
+    strayImplicit.ok === true && !/筛选：[^\n]*标签「[^\n]*视频1/.test(strayImplicit.subtitle))
+  ok('被忽略的词在副标题里如实说明', strayImplicit.ok === true && strayImplicit.subtitle.includes('已忽略无法核实的词'))
+
+  const strayExplicit = await queryCharDps('胡桃', { tag: '视频1', tagExplicit: true }, { downloadAvatars: false })
+  ok('显式 `标签:视频1` 仍按原样筛 → 命中 0', strayExplicit.ok === true && strayExplicit.total === 0)
+  ok('显式标签命中 0 时副标题写明标签',
+    strayExplicit.ok === true && strayExplicit.subtitle.includes('标签「视频1」'))
+
+  /*
+   * 2026-10-15 第二次反馈的现场：**引用机器人上一条回复**时，那段文字跟着进了 e.msg，
+   * 被当成隐式标签 → 命中 0、回复与命令完全无关。
+   */
+  const pollutedTag = '满级 视频https://www.bilibili.com/video/BV14baT6EE7i 数据:原神DPS数据库 · 抓取于 2026-10-15 22:26'
+  const polluted = await queryCharDps('胡桃', { tag: pollutedTag }, { downloadAvatars: false })
+  ok('引用回复带进来的整段垃圾不再把结果筛成 0',
+    polluted.ok === true && polluted.total === noTag.total, String(polluted.ok ? polluted.total : polluted.error))
+  ok('整段垃圾不进入筛选条件（审核 Q5：只作"已忽略"说明）',
+    polluted.ok === true && !/筛选：[^\n]*视频https/.test(polluted.subtitle) &&
+    polluted.subtitle.includes('已忽略无法核实的词'))
+
+  // 真实存在过的标签仍然照常筛（隐式裸词）
+  const realTag = fixture.flatMap(t => t.tags || [])[0]
+  if (realTag) {
+    const byTag = await queryCharDps('胡桃', { tag: realTag }, { downloadAvatars: false })
+    ok(`隐式标签「${realTag}」是真实标签 → 照常参与筛选`,
+      byTag.ok === true && byTag.subtitle.includes(`标签「${realTag}」`))
+  }
+}
+
+
 {
   const huo = await queryCharDps('火神', {}, { downloadAvatars: false })
   ok('别名「火神」解析为玛薇卡', huo.ok === true && huo.charName === '玛薇卡')
   const low = await queryCharDps('胡桃', { costMax: 12 }, { downloadAvatars: false })
-  ok('金数上限筛选生效（所有档 ≤ 12）', low.ok === true && low.tiers.every(t => t.cost <= 12))
+  ok('金数上限筛选生效（所有档上界 ≤ 12）', low.ok === true && low.tiers.every(t => t.max <= 12))
   const none = await queryCharDps('不存在的角色', {}, { downloadAvatars: false })
   ok('角色不存在时返回可用的失败结果', none.ok === false && !!none.error)
 }

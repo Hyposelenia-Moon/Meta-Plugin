@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/meta-ui.css"/>
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
   <style>
     /* 队伍伤害页：每人一张卡（关键伤害）+ 同阵容参考表 */
@@ -60,7 +61,6 @@
 </head>
 <body style="zoom:{{renderScale}}">
   <div class="page">
-    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-rank.jpg')"></div>
     <div class="page-inner">
       <!-- 页头 -->
       <div class="card head-card">
@@ -77,75 +77,80 @@
         </div>
       </div>
 
-      <!-- 参考 DPS（P4）：轴 + 窗口 + 各队员贡献 -->
-      <div class="card body-card">
-        <div class="card-title">参考 DPS{{if !axisManual}}（默认轴）{{/if}}</div>
-        <div class="tm-hero">
-          <div class="tm-cost num">{{referenceDps}}</div>
-          <div class="tm-cost-note">窗口 {{window}}s｜窗口内总伤 {{referenceTotal}}</div>
-        </div>
-        <div class="dmg-row">
-          <div class="dmg-title">{{axisLabel}}</div>
-        </div>
-        {{if patchLabel}}<div class="dmg-row"><div class="dmg-title">可调节词条：{{patchLabel}}</div></div>{{/if}}
-        {{each contributions c}}
-        <div class="dmg-row">
-          <div class="dmg-title">{{c.charName}}</div>
-          <div class="dmg-value num">{{c.damageText}}</div>
-        </div>
-        {{/each}}
-      </div>
+      <!-- 参考 DPS（P4）：轴 + 窗口 + 各队员贡献 —— 数据区统一走共享章节组件 -->
+      <main class="mx-content">
+        <section class="mx-section mx-section--first">
+          <header class="mx-section__head">
+            <span class="mx-section__index">01</span>
+            <h2 class="mx-section__title">参考 DPS</h2>
+            <span class="mx-section__hint">{{if axisManual}}手动轴{{else}}默认轴{{/if}}｜窗口 {{window}}s</span>
+          </header>
+          <div class="tm-hero">
+            <div class="tm-cost num">{{referenceDps}}</div>
+            <div class="tm-cost-note">窗口内总伤 {{referenceTotal}}</div>
+          </div>
+          <div class="dmg-row"><div class="dmg-title">{{axisLabel}}</div></div>
+          {{if patchLabel}}<div class="dmg-row"><div class="dmg-title">可调节词条：{{patchLabel}}</div></div>{{/if}}
+          {{each contributions c}}
+          <div class="dmg-row">
+            <div class="dmg-title">{{c.charName}}</div>
+            <div class="dmg-value num">{{c.damageText}}</div>
+          </div>
+          {{/each}}
+        </section>
 
-      <!-- 每个队员：关键伤害 -->
-      {{each members m}}
-      <div class="card body-card tm-card">
-        <div class="tm-head">
-          <span class="tm-name">{{m.charName}}</span>
-          <span class="tm-sub">C{{m.cons}}｜{{m.weaponText}}｜天赋 A{{m.talent.A}}/E{{m.talent.E}}/Q{{m.talent.Q}}</span>
-          {{if m.ruleBy}}<span class="tm-rule">规则：{{m.ruleBy}}</span>{{/if}}
-        </div>
-        {{if m.rowsText && m.rowsText.length > 0}}
-        {{each m.rowsText r}}
-        <div class="dmg-row">
-          <div class="dmg-title">{{r.title}}</div>
-          <div class="dmg-value num">{{r.valueText}}</div>
-        </div>
+        <!-- 每个队员：关键伤害 -->
+        {{each members m}}
+        <section class="mx-section tm-card">
+          <header class="mx-section__head">
+            <span class="mx-section__index">02</span>
+            <h2 class="mx-section__title">{{m.charName}}</h2>
+            <span class="mx-section__hint">C{{m.cons}}｜{{m.weaponText}}</span>
+          </header>
+          <div class="tm-head">
+            <span class="tm-sub">天赋 A{{m.talent.A}}/E{{m.talent.E}}/Q{{m.talent.Q}}</span>
+            {{if m.ruleBy}}<span class="tm-rule">规则：{{m.ruleBy}}</span>{{/if}}
+          </div>
+          {{if m.rowsText && m.rowsText.length > 0}}
+          {{each m.rowsText r}}
+          <div class="dmg-row">
+            <div class="dmg-title">{{r.title}}</div>
+            <div class="dmg-value num">{{r.valueText}}</div>
+          </div>
+          {{/each}}
+          {{else}}
+          <div class="mx-empty">该角色没有取到伤害行（可能缺少 miao 伤害规则）</div>
+          {{/if}}
+        </section>
         {{/each}}
-        {{else}}
-        <div class="empty-hint">该角色没有取到伤害行（可能缺少 miao 伤害规则）</div>
-        {{/if}}
-      </div>
-      {{/each}}
 
-      <!-- 同阵容参考 -->
-      <div class="card body-card">
-        <div class="card-title">同阵容参考（mhydps · 累计 {{refTotal}} 条，按金数最接近排序）</div>
-        {{if refs && refs.length > 0}}
-        {{each refs r}}
-        <div class="ref-row">
-          <div class="ref-cost">{{r.cost}} 金 <span class="tm-cost-note">限{{r.limitcost}}/常{{r.normalcost}}｜差 {{r.costDiff}}</span></div>
-          <div class="ref-team">{{r.membersText}}{{if r.video}} <span class="tag">B站视频</span>{{/if}}</div>
-          <div class="ref-dmg num">{{r.damageText}}</div>
-        </div>
-        {{/each}}
-        {{else}}
-        <div class="empty-hint">这份榜单里暂时没有这套四人阵容的记录</div>
-        {{/if}}
-      </div>
+        <!-- 同阵容参考 -->
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">03</span>
+            <h2 class="mx-section__title">同阵容参考</h2>
+            <span class="mx-section__hint">mhydps · 累计 {{refTotal}} 条｜按金数最接近排序</span>
+          </header>
+          {{if refs && refs.length > 0}}
+          {{each refs r}}
+          <div class="ref-row">
+            <div class="ref-cost">{{r.cost}} 金 <span class="tm-cost-note">限{{r.limitcost}}/常{{r.normalcost}}｜差 {{r.costDiff}}</span></div>
+            <div class="ref-team">{{r.membersText}}{{if r.video}} <span class="tag">B站视频</span>{{/if}}</div>
+            <div class="ref-dmg num">{{r.damageText}}</div>
+          </div>
+          {{/each}}
+          {{else}}
+          <div class="mx-empty">这份榜单里暂时没有这套四人阵容的记录</div>
+          {{/if}}
+        </section>
 
-      <!-- 脚注 -->
-      {{if notes && notes.length > 0}}
-      <div class="card foot-card">
-        {{each notes n}}
-        <div class="note-row">注：{{n}}</div>
-        {{/each}}
-        <div class="copyright">{{copyright}}</div>
-      </div>
-      {{else}}
-      <div class="card foot-card">
-        <div class="copyright">{{copyright}}</div>
-      </div>
-      {{/if}}
+        <!-- 脚注：口径 + 说明 + 版权（说明可能多行，两行正文约束只针对出图常规页） -->
+        <footer class="mx-footer">
+          <p class="mx-footer__method">口径：参考 DPS 按当前轴与窗口计算，同阵容记录来自 mhydps 榜单。</p>
+          {{each notes n}}<p>注：{{n}}</p>{{/each}}
+          <p class="mx-copyright">{{copyright}}</p>
+        </footer>
+      </main>
     </div>
   </div>
 </body>

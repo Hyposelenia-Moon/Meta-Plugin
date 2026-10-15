@@ -22,27 +22,30 @@ const tplDir = path.join(resDir, 'dps')
 const commonDir = path.join(resDir, 'common')
 
 const TEMPLATES = {
-  rank: { app: 'rank', bg: 'bg-rank.jpg' },
-  raid: { app: 'raid', bg: 'bg-raid.jpg' },
-  status: { app: 'status', bg: 'bg-status.jpg' },
-  help: { app: 'help', bg: 'bg-help.jpg' },
-  'char-dps': { app: 'char-dps', bg: 'bg-rank.jpg' },
-  tiers: { app: 'tiers', bg: 'bg-raid.jpg' },
-  grade: { app: 'grade', bg: 'bg-rank.jpg' },
-  'team-damage': { app: 'team-damage', bg: 'bg-rank.jpg' },
-  'akasha-build': { app: 'akasha-build', bg: 'bg-rank.jpg' }
+  rank: { app: 'rank' },
+  raid: { app: 'raid' },
+  status: { app: 'status' },
+  help: { app: 'help' },
+  'char-dps': { app: 'char-dps' },
+  tiers: { app: 'tiers' },
+  grade: { app: 'grade' },
+  'team-damage': { app: 'team-damage' },
+  'akasha-build': { app: 'akasha-build' }
 }
 
-// ---------- 1. 模板与背景图 ----------
-for (const [tpl, meta] of Object.entries(TEMPLATES)) {
+// ---------- 1. 模板 ----------
+for (const [tpl] of Object.entries(TEMPLATES)) {
   const file = path.join(tplDir, `${tpl}.html`)
   ok(`${tpl}.html 已迁入`, fs.existsSync(file))
   const html = readText(file)
   ok(`${tpl}: 引用公共样式`, html.includes('{{_res_path}}/common/base.css') && html.includes('{{_res_path}}/common/components.css'))
-  ok(`${tpl}: 用自己那张背景图`, html.includes(`{{_res_path}}/common/${meta.bg}`))
+  /*
+   * 2026-10-15 用户定：**移除原先的背景图**（`bg-rank/bg-raid/bg-status/bg-help.jpg` 不再铺整页）。
+   * 新的美观底图 + 模糊（亚克力/云母主题）另行设计，落地前这里守"不得再引旧底图"。
+   */
+  ok(`${tpl}: 不再引用旧背景图`, !/bg-(rank|raid|status|help)\.jpg/.test(html) && !html.includes('class="page-bg"'))
   ok(`${tpl}: 保留合并前的缩放与版权写法`,
     html.includes('{{renderScale}}') && html.includes('{{copyright}}'))
-  ok(`${tpl}: 背景图文件在`, fs.existsSync(path.join(commonDir, meta.bg)))
 }
 
 // 榜单/危战页引用头像缓存（练度/状态页不需要）
@@ -88,6 +91,21 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   }
 }
 
+// ---------- 2c. 当前配装的圣遗物行：评分块独占次行、右对齐 ----------
+{
+  const html = readText(path.join(tplDir, 'grade.html'))
+  const css = readText(path.join(resDir, 'common', 'meta-ui.css'))
+  /*
+   * 2026-10-15 用户定：套装名独占一行、`评分 X.Y SSS　词条数：N` 换到次行右对齐
+   * （当时评分块固定 330px 把「晨星与月的晓歌×4」挤成两行、整行看着错位）。
+   * UI 重构后组件换成 `.mx-equipment` + `.mx-meta-line`，这条排版要求不变。
+   */
+  ok('圣遗物行的评分/词条走 .mx-meta-line（独占次行）', /class="mx-meta-line"/.test(html))
+  ok('次行右对齐且不换行', /\.mx-meta-line \{[^}]*text-align: right/.test(css) && /\.mx-meta-line \{[^}]*white-space: nowrap/.test(css))
+  ok('套装名与评分不在同一行（两行结构）',
+    /<span class="mx-equipment__text">圣遗物：/.test(html) && html.indexOf('mx-meta-line') > html.indexOf('mx-equipment__text">圣遗物：'))
+}
+
 // ---------- 3. 数据契约（模板根字段 ⊆ app 传入的数据） ----------
 {
   const INJECTED = new Set(['_res_path', '_data_path', '_miao_path', 'renderScale', 'copyright', 'sys', 'elemLayout', 'defaultLayout', 'pluResPath', 'tplFile', 'saveId', 'imgType'])
@@ -100,9 +118,9 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   'char-dps': ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tierCount', 'tiers'],
   tiers: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tiers'],
   // 2026-10-15：新增「当前配装 / 参考 DPS / 角色立绘」三块（后两块可缺省 → 模板用 {{if}} 兜着）
-  grade: ['title', 'subtitle', 'charName', 'ranks', 'rankClass', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'buildInfo', 'panelRows', 'uidText', 'consIcons', 'talentIcons', 'elemClass', 'splashRel', 'refDps', 'portrait', 'notes'],
+  grade: ['title', 'subtitle', 'charName', 'ranks', 'rankClass', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'buildInfo', 'panelRows', 'uidText', 'consIcons', 'talentIcons', 'elemClass', 'heroImg', 'refDps', 'mx', 'assessable', 'notes'],
   'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes', 'referenceDps', 'referenceTotal', 'window', 'axisLabel', 'axisManual', 'patchLabel', 'contributions'],
-  'akasha-build': ['title', 'subtitle', 'charName', 'rank', 'uid', 'nickname', 'cons', 'damageText', 'critValueText', 'talent', 'weapon', 'artis', 'sets', 'panel'],
+  'akasha-build': ['title', 'subtitle', 'charName', 'rank', 'uid', 'nickname', 'cons', 'damageText', 'critValueText', 'talent', 'weapon', 'artis', 'sets', 'panel', 'mx'],
     status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'disabledModules', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
   }
   const LOOP = new Set(['row', 'rows', 'c', 'item', 's', 'r', '$data', 'member', 'team'])
@@ -211,10 +229,10 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
       }
       push(`${tpl}: 真渲染无 {{}} 残留、无 undefined`, [/[{]{2}|[}]{2}/.test(html) ? '残留 {{}}' : '', html.includes('undefined') ? '含 undefined' : ''].filter(Boolean), [])
       if (tpl === 'rank') {
-        ok('rank 渲染含背景图与样式', html.includes('bg-rank.jpg') && html.includes('base.css'))
+        ok('rank 渲染含样式且不再铺旧底图', html.includes('base.css') && !html.includes('bg-rank.jpg'))
         ok('rank 渲染含数据来源', html.includes('原神DPS数据库'))
       }
-      if (tpl === 'raid') ok('raid 渲染含背景图', html.includes('bg-raid.jpg'))
+      if (tpl === 'raid') ok('raid 渲染不再铺旧底图', !html.includes('bg-raid.jpg'))
       if (tpl === 'status') ok('status 渲染含版本行', html.includes('Mhydps-Plugin'))
     }
   }

@@ -10,6 +10,7 @@
  */
 import type { Guide } from '../model/CodexStore.js'
 import { characterSplash, iconForRef } from '../model/IconResolver.js'
+import { buildCodexPresentation, normalizeMetaValue, type CodexMeta } from '../components/presentation.js'
 import {
   EMPTY_TEXT,
   WEAPON_REFINE_HINT,
@@ -66,8 +67,13 @@ export function buildCodexView (guide: Guide | null, opts: BuildViewOptions = {}
     ? guide.meta as Record<string, unknown>
     : {}
 
+  /*
+   * meta 行：占位值（`___%`）不进模板（2026-10-15 审核意见 4.4：图片与文本回退同一份来源），
+   * 且"占位值"不算攻略内容 —— `hasContent` 沿用「meta 有非空值」这一条（与维护者流水线的
+   * `isFilled` 同口径），否则空档角色会因为一个未填字段被当成"有攻略"。
+   */
   const metaRows = Object.entries(meta)
-    .map(([label, value]) => ({ label, value: String(value ?? '').trim() }))
+    .map(([label, value]) => ({ label, value: normalizeMetaValue(value) }))
     .filter(row => row.value.length > 0)
 
   const sections = buildV2Sections(guide, {
@@ -111,6 +117,8 @@ export interface CodexPageData extends CodexView {
   portrait: string
   subTitle: string
   element: string
+  /** 展示层投影（2026-10-15 UI 重构：章节序号 + 共享行组件 + 来源条；旧字段全部保留） */
+  mx: CodexMeta
 }
 
 /** 视图 → 模板数据（模板只读这里给出的字段） */
@@ -121,7 +129,8 @@ export function toPageData (view: CodexView, opts: PageOptions = {}): CodexPageD
     renderScale: opts.renderScale ?? 1,
     portrait: opts.portrait ?? '',
     subTitle: opts.subTitle ?? '角色攻略',
-    element: opts.element ?? ''
+    element: opts.element ?? '',
+    mx: buildCodexPresentation(view, { copyright: opts.copyright ?? '' })
   }
 }
 

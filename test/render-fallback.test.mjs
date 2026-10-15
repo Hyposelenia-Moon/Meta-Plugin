@@ -13,6 +13,7 @@
  * （模板用仓库里真实存在的 `resources/codex/codex.html`）。
  */
 import path from 'node:path'
+import { readFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { createChecks, pluginRoot } from './_helper.mjs'
 
@@ -94,6 +95,27 @@ for (const [name, value] of [['false', false], ['undefined', undefined], ['空�
   ok('⑦ 缺少 e.runtime.render → false', (await renderPage(e, 'codex', {}, { app: 'codex' })) === false)
   const { e: e2, calls } = fakeEvent(async () => seg('x'))
   ok('⑦ 模板不存在 → false 且不调用框架渲染', (await renderPage(e2, 'does-not-exist', {}, { app: 'codex' })) === false && calls.render.length === 0)
+}
+
+// ⑧ 0 命中不出空图（2026-10-15 用户反馈：`视频1` 被当标签筛掉全部记录时弹出一张空图）
+{
+  const { isEmptyResult, respond } = await import(pathToFileURL(path.join(pluginRoot, 'lib', 'modules', 'respond.js')).href)
+  ok('⑧ 榜单页：rows 为空 → 空结果', isEmptyResult({ total: 0, rows: [] }) === true)
+  ok('⑧ 榜单页：有行 → 非空', isEmptyResult({ total: 3, rows: [{ rank: 1 }] }) === false)
+  ok('⑧ 档位页：没有档位 → 空结果', isEmptyResult({ total: 0, tierCount: 0, tiers: [] }) === true)
+  ok('⑧ 档位页：有档位但每档都没行 → 空结果', isEmptyResult({ tiers: [{ rows: [] }, { rows: [] }] }) === true)
+  ok('⑧ 档位页：有档位也有行 → 非空', isEmptyResult({ tiers: [{ rows: [{ rank: 1 }] }] }) === false)
+  ok('⑧ 练度页：total 是分数、不看它 → 非空', isEmptyResult({ total: 0, panelRows: [], dims: [] }) === false)
+
+  // 行为：0 命中时只发文本，不去碰渲染后端
+  const replied = []
+  const e = { reply: async (msg) => { replied.push(msg); return true } }
+  const ret = await respond(e, 'char-dps', { total: 0, tierCount: 0, tiers: [] }, () => '[Meta] 没有命中：标签「视频1」')
+  ok('⑧ 0 命中 → 发文本、返回 true、只发一条', ret === true && replied.length === 1 && String(replied[0]).includes('标签「视频1」'))
+
+  // 顺序门禁：空结果判定必须在渲染调用之前（否则空图照样会发出去）
+  const src = readFileSync(path.join(pluginRoot, 'lib', 'modules', 'respond.js'), 'utf8')
+  ok('⑧ respond 里先判空结果、后渲染', src.indexOf('isEmptyResult(data)') > -1 && src.indexOf('isEmptyResult(data)') < src.indexOf('renderDps('))
 }
 
 const bad = report()

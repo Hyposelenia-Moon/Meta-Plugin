@@ -134,7 +134,8 @@ if (rank.html) {
   check('rank：渲染了伤害与金数', rank.html.includes('323.0 万') && rank.html.includes('48'))
   check('rank：渲染了名次', rank.html.includes('rank-badge') || rank.html.includes('rank'))
   check('rank：页脚带版权行', rank.html.includes('mhydps.cn'))
-  check('rank：插画整页覆盖', rank.html.includes('bg-rank.jpg') && rank.html.includes('page-bg'))
+  /* 2026-10-15 用户定：移除原先的背景图（新的美观底图/模糊主题另行设计） */
+  check('rank：不再铺旧插画底图', !rank.html.includes('bg-rank.jpg') && !rank.html.includes('page-bg'))
   check('rank：文字都落在深色内容条上', rank.html.includes('head-card') && rank.html.includes('body-card') && rank.html.includes('foot-card'))
   check('rank：已移除行尾视频列', !rank.html.includes('rank-side') && !rank.html.includes('video-mark'))
   check('rank：不残留浅色主题的蒙版令牌', !rank.html.includes('page-veil') && !rank.html.includes('hero-scrim'))
@@ -207,7 +208,7 @@ if (help.html) {
   check('help：条目含命令与说明', help.html.includes('entry-cmd') && help.html.includes('entry-desc'))
   check('help：说明文案来自配置', help.html.includes('只看无宏、无连点的记录'))
   check('help：页头只有插件名/标题/副标题（版本行按需求已移除）', help.html.includes('game-name') && !help.html.includes('page-meta'))
-  check('help：插画整页覆盖', help.html.includes('bg-help.jpg') && help.html.includes('page-bg'))
+  check('help：不再铺旧插画底图', !help.html.includes('bg-help.jpg') && !help.html.includes('page-bg'))
   check('help：文字都落在深色内容条上', help.html.includes('head-card') && help.html.includes('body-card') && help.html.includes('foot-card'))
   check('help：不残留横幅版式的类名', !help.html.includes('page-hero') && !help.html.includes('sheet-head') && !help.html.includes('hero-body'))
   check('help：不残留浅色主题的蒙版令牌', !help.html.includes('page-veil') && !help.html.includes('row-veil'))
@@ -264,11 +265,10 @@ for (const f of ['help.html', 'rank.html', 'raid.html', 'status.html']) {
 }
 check('模板不硬编码字体（统一由 base.css 决定）', fontHardcode.length === 0, fontHardcode.join(','))
 
-// ---- 四个页面铺了整页插画底（练度页是 akasha 表格视图，不放底图） ----
+// ---- 原先的整页插画底图已移除（2026-10-15 用户定；新的底图/模糊主题另行设计） ----
 const renderedPages = { rank, raid, status, help }
-const bgFiles = { rank: 'bg-rank.jpg', raid: 'bg-raid.jpg', status: 'bg-status.jpg', help: 'bg-help.jpg' }
 for (const [name, page] of Object.entries(renderedPages)) {
-  check(`${name}：整页插画底已铺上（${bgFiles[name]}）`, Boolean(page.html) && page.html.includes(bgFiles[name]) && page.html.includes('class="page-bg"'))
+  check(`${name}：不再铺旧插画底图`, Boolean(page.html) && !/bg-(rank|raid|status|help)\.jpg/.test(page.html) && !page.html.includes('class="page-bg"'))
 }
 
 // ---- 渲染缩放：由配置注入模板（调用方传的值不生效，避免绕过配置） ----

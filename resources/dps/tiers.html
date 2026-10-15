@@ -29,16 +29,13 @@
 </head>
 <body style="zoom:{{renderScale}}">
   <div class="page">
-    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-raid.jpg')"></div>
     <div class="page-inner">
       <!-- 页头：标题 + 元信息 -->
       <div class="card head-card">
         <div class="header">
           <div class="game-name">Meta-Plugin · 危战</div>
           <div class="title">{{if title}}{{title}}{{else}}幽境危战 n6 / n7{{/if}}</div>
-          {{if subtitle}}
-          <div class="subtitle">{{subtitle}}</div>
-          {{/if}}
+          <!-- 2026-10-15 用户定：**不渲染副标题行**（那行长文本里 首领/版本 每行标签都有、命中数在 page-meta，属重复） -->
         </div>
         <div class="page-meta">
           {{if total || total === 0}}<span>命中 {{total}} 条</span>{{/if}}

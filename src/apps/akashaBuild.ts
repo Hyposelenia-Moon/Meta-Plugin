@@ -103,6 +103,21 @@ export class MetaAkashaBuild extends plugin {
       artis: entry.artis,
       sets: entry.sets,
       panel: panelSummary(entry),
+      /*
+       * 展示层投影（2026-10-15 UI 重构「档案批注」）：章节 + 来源条。
+       *
+       * 来源时间**暂时留空**（页面写"时间未提供"）：阿卡莎条目的字段单位（秒/毫秒/原文）还没核对，
+       * 按设计规格的口径，宁可不写也不能拿本次抓取时间冒充数据更新时间（现场核对 §一）。
+       */
+      mx: {
+        sections: [
+          { index: '01', title: '伤害与评分' },
+          { index: '02', title: '配装' },
+          { index: '03', title: '面板' }
+        ],
+        sources: [{ source: 'akasha', name: '阿卡莎角色榜', mode: 'cache', modeText: '缓存数据', updatedAt: '', observedAt: 0 }],
+        hint: '伤害、双爆分与名次是不同量纲，分别成槽，不互相换算。'
+      },
       copyright: COPYRIGHT
     }
 

@@ -33,6 +33,10 @@ export interface RankFilters {
   costMax?: number | null
   /** 标签包含匹配（不区分大小写），空格分隔的多个标签需全部命中 */
   tag?: string
+  /** 标签是不是**显式**写的（`标签:X`）。显式原样筛选、裸词才与数据集核对，见 `resolveTags()` */
+  tagExplicit?: boolean
+  /** 角色名之后的**裸词**（与显式 `标签:X` 分开存，2026-10-15 审核意见） */
+  tagBare?: string
   /** 只看绿玩 */
   cleanOnly?: boolean
   /** 只匹配主 C（阵容第一位） */
@@ -73,6 +77,8 @@ export interface RankResult {
   rows: ViewRow[]
   avatarIds: string[]
   subtitle: string
+  /** 标签解析结果（显式/裸词/生效条件/诊断）—— 回复里按需附上 `notice` */
+  tags: TagResolution
   stale: boolean
   fetchedAt: number
   refreshed: boolean
@@ -87,16 +93,100 @@ export interface RankEntry {
   total: number
   rank: number
   subtitle: string
+  /** 标签解析结果（显式/裸词/生效条件/诊断） */
+  tags: TagResolution
   stale: boolean
   fetchedAt: number
   refreshed: boolean
 }
 
 /**
+ * 标签解析结果（2026-10-15 审核意见后定）
+ *
+ * 一次解析出**显式条件 / 裸词 / 实际生效条件 / 诊断**四份，筛选与回复摘要消费同一份 ——
+ * 不允许"过滤时放宽了、摘要还显示原条件"这种不一致。
+ */
+export interface TagResolution {
+  /** 数据集里是否**有**标签字典（没有 ≠ 没有这个标签） */
+  dictionary: boolean
+  /** 显式 `标签:X` 的原文：**原样保留，绝不静默放宽** */
+  explicit: string
+  /** 裸词（角色名之后的词）里能核实的部分 */
+  bare: string
+  /** 显式条件里数据集不认识的词（可核实时才非空） */
+  unknownExplicit: string[]
+  /** 裸词里不认识、被忽略的词 */
+  ignoredBare: string[]
+  /** 实际生效的筛选串（= 显式 + 核实过的裸词） */
+  effective: string
+  /** 给用户看的一行诊断（无需说明时为空串） */
+  notice: string
+}
+
+/** 数据集里真实出现过的标签词（子串匹配）；**字典不可用时返回空数组**（不可核实 ≠ 全部可用） */
+export function knownTagTokens (teams: TeamRecord[] | undefined, tag: string): string[] {
+  const tokens = String(tag || '').split(/\s+/).filter(Boolean)
+  if (!tokens.length) return []
+  const all = (teams || []).flatMap(t => (t.tags || []).map(x => String(x).toLowerCase()))
+  if (!all.length) return []
+  return tokens.filter(t => all.some(o => o.includes(t.toLowerCase())))
+}
+
+/**
+ * 解析标签条件（严进口径）
+ *
+ * 背景（2026-10-15 用户与审核双方面）：引用 / 粘贴机器人上一条回复时，那段文字会跟着进 `e.msg`，
+ * 多出来的词被当成标签 → 命中 0、回复看着与命令无关。
+ *
+ * 口径：
+ *  - **显式** `标签:X`：原样使用。**不放宽** —— 显式写了数据集没有的标签，就按原条件给 0 命中，
+ *    并明确提示"数据里没有标签 X"（审核 2.4：旧实现会把 `总伤杯S3 不存在的标签` 悄悄缩成
+ *    `总伤杯S3`，错误命中 1 条）；
+ *  - **裸词**：字典可用时只留真实存在的词；字典**不可用**时一律不参与筛选（不可核实），
+ *    两种情况都在 `notice` 里说明；
+ *  - 显式与裸词来自不同字段（`queryArgs` 已把 `tag` / `tagBare` 分开）。
+ */
+export function resolveTags (
+  teams: TeamRecord[] | undefined,
+  q: { tag?: string, tagBare?: string, tagExplicit?: boolean } = {}
+): TagResolution {
+  // 兼容旧调用：没写 `tagExplicit` 时，`tag` 里的词视为裸词（历史语义）
+  const explicitRaw = q.tagExplicit === true ? String(q.tag || '').trim() : ''
+  const bareRaw = [q.tagExplicit === true ? '' : String(q.tag || ''), String(q.tagBare || '')]
+    .filter(Boolean).join(' ').trim()
+
+  const all = (teams || []).flatMap(t => (t.tags || []).map(x => String(x).toLowerCase()))
+  const dictionary = all.length > 0
+  const isKnown = (t: string) => all.some(o => o.includes(t.toLowerCase()))
+
+  const explicitTokens = explicitRaw.split(/\s+/).filter(Boolean)
+  const bareTokens = bareRaw.split(/\s+/).filter(Boolean)
+  const knownBare = dictionary ? bareTokens.filter(isKnown) : []
+  const unknownExplicit = dictionary ? explicitTokens.filter(t => !isKnown(t)) : []
+  const ignoredBare = bareTokens.filter(t => !knownBare.includes(t))
+
+  const effective = [explicitRaw, knownBare.join(' ')].filter(Boolean).join(' ')
+  const notes: string[] = []
+  if (!dictionary) notes.push('该数据集没有标签信息，标签无法核实')
+  if (unknownExplicit.length) notes.push(`数据里没有标签「${unknownExplicit.join('、')}」，已按原条件筛选`)
+  if (ignoredBare.length) notes.push(`已忽略无法核实的词：${ignoredBare.join('、')}`)
+
+  return {
+    dictionary,
+    explicit: explicitRaw,
+    bare: knownBare.join(' '),
+    unknownExplicit,
+    ignoredBare,
+    effective,
+    notice: notes.join('；')
+  }
+}
+
+/**
  * 按条件筛选配队
  */
 export function filterTeams (teams: TeamRecord[] | undefined, q: RankFilters = {}): TeamRecord[] {
-  const tags = String(q.tag || '').split(/\s+/).filter(Boolean).map(s => s.toLowerCase())
+  const tags = resolveTags(teams, q).effective.split(/\s+/).filter(Boolean).map(s => s.toLowerCase())
 
   return (teams || []).filter(team => {
     if (q.character) {
@@ -137,15 +227,30 @@ export function buildRows (teams: TeamRecord[] | undefined, startRank = 1): View
   }))
 }
 
-/** 查询摘要（页脚与副标题用） */
-function describe (q: RankQuery, character: CharacterRecord | null): string {
+/**
+ * 筛选条件摘要（不含角色与排序）
+ *
+ * 用在「0 命中」的文本提示与角色档位页副标题上：让用户一眼看出是**哪个筛选**把结果筛没了
+ * （2026-10-15 用户反馈：`#dps 七七 48金 视频1` 在新写法生效前，`视频1` 被当成"标签"筛选 →
+ * 命中 0 → 页面就是一张"没有查询到…"的空图，看不出原因）。
+ */
+export function filterSummary (q: RankQuery): string {
   const parts: string[] = []
-  if (character) parts.push(`${character.name}${q.mainOnly ? '（主C）' : ''}`)
   if (Number.isFinite(q.costMin) && Number.isFinite(q.costMax)) parts.push(`${q.costMin}~${q.costMax}金`)
   else if (Number.isFinite(q.costMax)) parts.push(`≤${q.costMax}金`)
   else if (Number.isFinite(q.costMin)) parts.push(`≥${q.costMin}金`)
   if (q.tag) parts.push(`标签「${q.tag}」`)
   if (q.cleanOnly) parts.push('仅绿玩')
+  return parts.join(' · ')
+}
+
+/** 查询摘要（页脚与副标题用） */
+function describe (q: RankQuery, character: CharacterRecord | null): string {
+  const parts: string[] = []
+  if (character) parts.push(`${character.name}${q.mainOnly ? '（主C）' : ''}`)
+  // 逐段顺序与拆分前一致，输出字符串不变（`test/mhydps-parity` 的快照会逐字比对）
+  const filters = filterSummary(q)
+  if (filters) parts.push(filters)
   if (q.sort === 'costAsc') parts.push('按金数升序')
   else if (q.sort === 'costDesc') parts.push('按金数降序')
   else parts.push('按期望DPS降序')
@@ -171,7 +276,10 @@ export async function queryRank (q: RankQuery = {}, opts: QueryOptions = {}): Pr
   const fresh = await ensureFresh(opts)
   const { teams } = getSnapshot()
 
-  const filtered = filterTeams(teams, { ...q, character })
+  // 标签先解析（显式原样、裸词核实；筛选与摘要都用同一份 effective）
+  const tags = resolveTags(teams, q)
+  const query = { ...q, tag: tags.effective }
+  const filtered = filterTeams(teams, { ...query, character })
   const sorted = sortTeams(filtered, opts.sort || q.sort || 'damage')
 
   const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(opts.pageSize || getPageSize())))
@@ -197,6 +305,7 @@ export async function queryRank (q: RankQuery = {}, opts: QueryOptions = {}): Pr
     rows: buildRows(slice, start + 1),
     avatarIds,
     subtitle: describe({ ...q, sort: opts.sort || q.sort || 'damage' }, character),
+    tags,
     stale: info.stale,
     fetchedAt: info.fetchedAt,
     refreshed: fresh.refreshed,
@@ -217,7 +326,7 @@ export async function findRankEntry (
 ): Promise<RankEntry | QueryFailure> {
   const rank = Number(rankNo)
   if (!Number.isFinite(rank) || rank < 1 || !Number.isInteger(rank)) {
-    return { ok: false, error: '名次需要是正整数，例如 #视频 3' }
+    return { ok: false, error: '名次需要是正整数，例如 #DPS榜 胡桃 48金视频1' }
   }
 
   const character = q.char ? findCharacter(q.char) : null
@@ -231,8 +340,10 @@ export async function findRankEntry (
 
   const fresh = await ensureFresh(opts)
   const { teams } = getSnapshot()
+  const tags = resolveTags(teams, q)
+  const query = { ...q, tag: tags.effective }
   const sorted = sortTeams(
-    filterTeams(teams, { ...q, character }),
+    filterTeams(teams, { ...query, character }),
     opts.sort || q.sort || 'damage'
   )
 
@@ -246,7 +357,8 @@ export async function findRankEntry (
     row: buildRows([sorted[rank - 1]], rank)[0],
     total,
     rank,
-    subtitle: describe({ ...q, sort: opts.sort || q.sort || 'damage' }, character),
+    subtitle: describe({ ...query, sort: opts.sort || q.sort || 'damage' }, character),
+    tags,
     stale: info.stale,
     fetchedAt: info.fetchedAt,
     refreshed: fresh.refreshed

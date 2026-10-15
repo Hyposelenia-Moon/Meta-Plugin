@@ -28,16 +28,13 @@
 </head>
 <body style="zoom:{{renderScale}}">
   <div class="page">
-    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-rank.jpg')"></div>
     <div class="page-inner">
       <!-- 页头：标题 + 元信息 -->
       <div class="card head-card">
         <div class="header">
           <div class="game-name">Meta-Plugin · 角色金档</div>
           <div class="title">{{if title}}{{title}}{{else}}各金档 DPS{{/if}}</div>
-          {{if subtitle}}
-          <div class="subtitle">{{subtitle}}</div>
-          {{/if}}
+          <!-- 2026-10-15 用户定：**不渲染副标题行**（口径/来源那句长文本；页头已有命中条数、金档数与数据时间） -->
         </div>
         <div class="page-meta">
           {{if total || total === 0}}<span>命中 {{total}} 条</span>{{/if}}
@@ -51,7 +48,7 @@
       {{each tiers tier}}
       <div class="card body-card tier-card">
         <div class="tier-head">
-          <span class="card-title tier-cost">{{if tier.cost || tier.cost === 0}}{{tier.cost}} 金{{else}}无金数{{/if}}</span>
+          <span class="card-title tier-cost">{{tier.label}}</span>
           <span class="tier-count">该档共 {{if tier.count || tier.count === 0}}{{tier.count}}{{else}}0{{/if}} 条</span>
         </div>
         <div class="tier-rows">
@@ -82,7 +79,7 @@
 
             <div class="rank-main">
               <div class="rank-value num">{{if row.damageText}}{{row.damageText}}{{else if row.damage}}{{row.damage}}{{else}}—{{/if}}</div>
-              <div class="rank-unit">伤害</div>
+              <div class="rank-unit">DPS</div>
             </div>
 
             <div class="cost-box">

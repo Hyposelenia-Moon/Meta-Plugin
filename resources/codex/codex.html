@@ -12,6 +12,7 @@
 <link rel="stylesheet" type="text/css" href="{{_miao_path}}common/tpl.css"/>
 <link rel="stylesheet" type="text/css" href="{{_miao_path}}character/profile-detail.css"/>
 <link rel="stylesheet" type="text/css" href="{{_miao_path}}wiki/character-wiki.css"/>
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/common/meta-ui.css"/>
 <style>
   /* ===== 数据区版式：按旧攻略页（Atlas codex 页）的比例折算到 600px 单列 =====
      旧页的行 24px / 条目图标 34px / 天赋图标 44px / 卡片内边距 22px 是在更宽画布上量的，
@@ -88,60 +89,84 @@
 </div>
 
 <div class="wiki-cont">
-  {{each sections section}}
-  <div class="cont">
-    <div class="cont-title">{{section.title}}</div>
+  <!--
+    数据区（2026-10-15 UI 重构「档案批注」）：章节序号 + 共享 `.mx-*` 行组件 + 来源条。
+    上面 miao 的页头 / 立绘 / metaRows 与 miao 的 CSS、字体、图标引用**一律未动**，
+    天赋仍用 miao 的 `.talent-icon` 组件（元素环 + 图标 + 等级牌 + 皇冠）。
+  -->
+  <main class="mx-content">
+    <div class="mx-reading-key">阅读键：{{mx.legend}}</div>
 
-    {{if section.empty}}
-    <div class="codex-row"><span class="codex-empty">{{emptyText}}</span></div>
+    {{each mx.sections section}}
+    <section class="mx-section">
+      <header class="mx-section__head">
+        <span class="mx-section__index">{{section.index}}</span>
+        <h2 class="mx-section__title">{{section.title}}</h2>
+        {{if section.hint}}<span class="mx-section__hint">{{section.hint}}</span>{{/if}}
+      </header>
 
-    {{else if section.kind === 'teams'}}
-    {{each section.teams team}}
-    <div class="codex-row codex-team">
-      {{if team.tag}}<span class="team-tag">{{team.tag}}</span>{{/if}}
-      <span>{{each team.members member}}<span class="codex-member">{{if member.icon}}<span class="codex-face" style="background-image:url({{_miao_path}}{{member.icon}})"></span>{{/if}}{{member.name}}{{if member.note}}<span class="codex-note">（{{member.note}}）</span>{{/if}}</span>{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}</span>
-      {{if team.text}}<span class="team-note">{{team.text}}</span>{{/if}}
-    </div>
-    {{/each}}
+      {{if section.empty}}
+      <div class="mx-empty">{{section.emptyText}}</div>
 
-    {{else}}
-    <!-- 数据区：与旧攻略页同比例的内边距容器（卡片本身不动） -->
-    <div class="codex-body">
-    {{each section.rows row}}
-
-    {{if row.kind === 'talents'}}
-    <!-- 天赋：沿用 miao 面板的 .talent-icon 组件（元素环 + 图标 + 等级牌 + 皇冠角标），按数据区比例缩小 -->
-    <div class="codex-talents">
-      {{each row.items item}}
-      <div class="talent-icon{{if item.crown}} talent-crown{{/if}}">
-        {{if item.icon}}
-        <img src="{{_miao_path}}{{item.icon}}"/>
-        {{else}}
-        <span class="codex-talent-letter">{{item.text}}</span>
-        {{/if}}
-        <strong>{{item.talentLevel}}</strong>
+      {{else if section.teams.length > 0}}
+      {{each section.teams team}}
+      <div class="mx-team">
+        {{if team.tag}}<span class="mx-team__tag">{{team.tag}}</span>{{/if}}
+        <span class="mx-team__members">{{each team.members member}}<span class="mx-unit">{{if member.icon}}<span class="mx-face" style="background-image:url({{_miao_path}}{{member.icon}})"></span>{{/if}}{{member.name}}{{if member.note}}<span class="mx-inline-note">（{{member.note}}）</span>{{/if}}</span>{{if $index < team.members.length - 1}}<span class="mx-sep">+</span>{{/if}}{{/each}}</span>
+        {{if team.text}}<span class="mx-team__note">{{team.text}}</span>{{/if}}
       </div>
       {{/each}}
-    </div>
 
-    {{else}}
-    {{set rowCls = row.kind === 'stats' ? 'codex-row codex-stats-row' : (row.label ? 'codex-row' : 'codex-row codex-row-nolabel')}}
-    <div class="{{rowCls}}">
-      {{if row.label}}<span class="row-label">{{row.label}}</span>{{/if}}
-      <span class="codex-value">
+      {{else}}
+      {{each section.rows row}}
+
+      {{if row.kind === 'talents'}}
+      <!-- 天赋三格：沿用 miao 的 .talent-icon（元素环 + 图标 + 等级牌 + 皇冠角标），尺寸由本页 <style> 缩放 -->
+      <div class="mx-talents">
         {{each row.items item}}
-        <span class="codex-unit"><span class="codex-item{{if item.sig}} sig-strict{{/if}}{{if item.sigAlt}} sig-alt{{/if}}">{{if item.icon}}<span class="codex-icon" style="background-image:url({{_miao_path}}{{item.icon}})"></span>{{/if}}{{item.text}}{{if item.note}}<span class="codex-note">{{item.note}}</span>{{/if}}</span>{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}</span>
+        <div class="talent-icon{{if item.crown}} talent-crown{{/if}}">
+          {{if item.icon}}
+          <img src="{{_miao_path}}{{item.icon}}"/>
+          {{else}}
+          <span class="codex-talent-letter">{{item.text}}</span>
+          {{/if}}
+          <strong>{{item.talentLevel}}</strong>
+        </div>
         {{/each}}
-      </span>
-    </div>
-    {{/if}}
+      </div>
 
+      {{else}}
+      <div class="mx-guide-row{{if row.kind === 'stats'}} mx-guide-row--stats{{/if}}{{if !row.label}} mx-guide-row--nolabel{{/if}}{{if row.longLabel}} mx-guide-row--longlabel{{/if}}">
+        {{if row.longLabel}}
+        <span class="mx-guide-label">{{each row.labelLines l}}<span class="mx-guide-label__line">{{l}}</span>{{/each}}</span>
+        {{else if row.label}}<span class="mx-guide-label">{{row.label}}</span>{{/if}}
+        <span class="mx-guide-value">
+          {{each row.items item}}
+          <span class="mx-unit"><span class="mx-item{{if item.tone}} mx-item--{{item.tone}}{{/if}}">{{if item.marker}}<span class="mx-marker">{{item.marker}}</span>{{/if}}{{if item.icon}}<span class="mx-icon" style="background-image:url({{_miao_path}}{{item.icon}})"></span>{{/if}}{{item.text}}{{if item.note}}<span class="mx-inline-note">{{item.note}}</span>{{/if}}</span>{{if item.sepAfter}}<span class="mx-sep">{{item.sepAfter}}</span>{{/if}}</span>
+          {{/each}}
+        </span>
+      </div>
+      {{/if}}
+
+      {{/each}}
+      {{/if}}
+    </section>
     {{/each}}
-    </div>
-    {{/if}}
 
-    {{if section.title === '武器'}}<div class="codex-hint">{{refineHint}}</div>{{/if}}
-  </div>
-  {{/each}}
+    <aside class="mx-source-list">
+      {{each mx.sources s}}
+      <div class="mx-source">
+        <strong class="mx-source__name">{{s.name}}</strong>
+        <span class="mx-source__time">{{if s.updatedAt}}更新时间 {{s.updatedAt}}{{else}}时间未提供{{/if}}</span>
+        <span class="mx-source__state">{{s.modeText}}</span>
+      </div>
+      {{/each}}
+    </aside>
+
+    <footer class="mx-footer">
+      <p class="mx-footer__method">口径：攻略内容以本仓库数据为准，图片与图标引用 miao-plugin 资源。</p>
+      <!-- 版权由 miao 布局（{{extend elemLayout}}）统一输出，这里不重复 -->
+    </footer>
+  </main>
 </div>
 {{/block}}

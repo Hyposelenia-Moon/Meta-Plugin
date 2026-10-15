@@ -42,7 +42,7 @@ fs.writeFileSync(process.env.META_CONFIG_FILE, [
 ].join('\n') + '\n', 'utf8')
 
 const C = await import(pathToFileURL(path.join(libDir, 'components', 'constants.js')).href)
-const { queryRaidTiers, N7_SECONDS_LIMIT, RAID_SPEED_CAP } = await import(pathToFileURL(path.join(libDir, 'modules', 'raidTiersQuery.js')).href)
+const { queryRaidTiers, N7_SECONDS_LIMIT, RAID_SPEED_CAP, DEFAULT_TIER_ROWS } = await import(pathToFileURL(path.join(libDir, 'modules', 'raidTiersQuery.js')).href)
 const { resetStore } = await import(pathToFileURL(path.join(libDir, 'model', 'TeamStore.js')).href)
 const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFileURL(path.join(libDir, 'modules', 'bossAlias.js')).href)
 
@@ -75,6 +75,7 @@ const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFi
     const n7 = r.tiers.find(t => t.key === 'n7')
     const n6 = r.tiers.find(t => t.key === 'n6')
     ok('n7 上限常量是 70s（65s + 最多 5s 浮动）', N7_SECONDS_LIMIT === 70)
+    ok('单档默认最多列 10 条（2026-10-15 用户定）', DEFAULT_TIER_ROWS === 10)
     ok('n7 收录 69s 与 70s（各档计数正确）', n7.count === 2 && n7.rows.map(x => x.speed).join(',') === '70,69')
     ok('n7 也按耗时降序（2026-10-15：时间越长越靠前）', n7.rows[0].speed === 70 && n7.rows[1].speed === 69)
     ok('n6 收录 71s 与 120s', n6.count === 2)

@@ -34,7 +34,12 @@ export interface RankArgs {
   char: string
   costMin: number | null
   costMax: number | null
+  /** **显式** `标签:X` 的值（原样筛选，不放宽） */
   tag: string
+  /** 标签是不是**显式**写的（`标签:X`）；裸词才与数据集核对，见 `rankQuery.resolveTags()` */
+  tagExplicit?: boolean
+  /** 角色名之后的**裸词**（与 `tag` 分开存） */
+  tagBare?: string
   cleanOnly: boolean
   mainOnly: boolean
   page: number
@@ -110,6 +115,7 @@ export function parseRankArgs (text: unknown): RankArgs {
     costMin: null,
     costMax: null,
     tag: '',
+    tagBare: '',
     cleanOnly: false,
     mainOnly: false,
     page: 1,
@@ -123,7 +129,7 @@ export function parseRankArgs (text: unknown): RankArgs {
       const value = kv[2].trim()
       if (['角色', '名称', 'name'].includes(key)) args.char = value
       else if (['金', '成本', 'cost'].includes(key)) args.costMax = Number(value.replace(/[^\d]/g, '')) || null
-      else if (['标签', 'tag'].includes(key)) args.tag = value
+      else if (['标签', 'tag'].includes(key)) { args.tag = value; args.tagExplicit = true }
       else if (['页', 'page'].includes(key)) args.page = Number(value.replace(/[^\d]/g, '')) || 1
       continue
     }
@@ -134,10 +140,16 @@ export function parseRankArgs (text: unknown): RankArgs {
       continue
     }
 
-    // 剩余 token：第一个当角色名，其余当标签（标签里常含点号/字母，如 总伤杯S3.N）
+    /*
+     * 剩余 token：第一个当角色名，其余当**裸词**（常含点号/字母，如 总伤杯S3.N）
+     *
+     * ⚠ 裸词与显式 `标签:X` **分开存**（2026-10-15 审核意见 2.3/2.4）：引号 / 粘贴机器人上一条回复时，
+     *    那段文字会跟着进 `e.msg`；两类来源的可信度不同 —— 显式条件原样筛选（不放宽），
+     *    裸词先与数据集核对（不可核实时不参与筛选）。最终由 `rankQuery.resolveTags()` 统一解析。
+     */
     if (!args.char && findCharacter(token)) args.char = token
     else if (!args.char) args.unknown.push(token)
-    else args.tag = args.tag ? `${args.tag} ${token}` : token
+    else args.tagBare = args.tagBare ? `${args.tagBare} ${token}` : token
   }
 
   return args
@@ -260,4 +272,24 @@ export function takeRankNo (text: unknown): { rankNo: number, rest: string } {
     rest.push(token)
   }
   return { rankNo, rest: rest.join(' ') }
+}
+
+/**
+ * 摘出**后缀式**视频名次（用户 2026-10-15 定）
+ *
+ * 写法：`#危战 矮灵 n7 视频3`、`#dps 刻晴 48金视频1` —— `视频N` 可以独立成词，
+ * 也可以像 `48金视频1` 那样贴在前一个筛选词后面。序号的含义是"**在当前筛选（含金数）之内、
+ * 按伤害排名**的第 N 名"，与榜单图的编号同口径（`findRankEntry` 就是在这个集合上取第 N 条）。
+ *
+ * `视频N` 与任何筛选词都不冲突（"视频" 只出现在视频名次里），所以直接全局摘掉，剩下的文本交给
+ * `parseRankArgs` / `parseRaidArgs`。
+ */
+export function takeVideoToken (text: unknown): { videoNo: number, rest: string } {
+  const src = String(text || '')
+  const m = /视频\s*(\d+)/.exec(src)
+  if (!m) return { videoNo: 0, rest: src.trim() }
+  return {
+    videoNo: Number(m[1]) || 0,
+    rest: src.replace(/视频\s*\d+/g, ' ').replace(/\s+/g, ' ').trim()
+  }
 }

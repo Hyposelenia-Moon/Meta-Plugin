@@ -101,11 +101,26 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
 
   const tpl = readText(path.join(pluginRoot, 'resources', 'dps', 'grade.html'))
   ok('模板已就位', fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'grade.html')))
-  ok('模板引用公共样式与缩放/版权写法',
+  ok('模板引用公共样式（含数据区共享组件）与缩放/版权写法',
     tpl.includes('{{_res_path}}/common/base.css') && tpl.includes('{{_res_path}}/common/components.css') &&
+    tpl.includes('{{_res_path}}/common/meta-ui.css') &&
     tpl.includes('{{renderScale}}') && tpl.includes('{{copyright}}'))
-  ok('模板用四条细进度条（dims）呈现四维达成度', tpl.includes('{{each dims d}}') && tpl.includes('gd-dim-fill'))
-  ok('模板渲染对比表与建议', tpl.includes('{{each missRows r}}') && tpl.includes('{{each suggestions s idx}}'))
+  /*
+   * 2026-10-15 UI 重构（档案批注）：数据区换成 `.mx-*` 组件 —— 三维达成度走 `mx.dims`（未知/不计分不画条），
+   * 差距证据与建议走 `mx.evidence` / `mx.suggestions`（带证据号）；**立绘行 `.gd-basic` 必须一字不动**。
+   */
+  ok('模板用 mx.dims 呈现三维达成度（四态 + 不画零长度条）',
+    tpl.includes('{{each mx.dims d}}') && tpl.includes('mx-meter__fill') && tpl.includes('mx-meter--'))
+  ok('模板渲染差距证据与建议（带证据号）',
+    tpl.includes('{{each mx.evidence r}}') && tpl.includes('{{each mx.suggestions s}}') && tpl.includes('mx-evidence-ref'))
+  const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css')).replace(/\/\*[\s\S]*?\*\//g, '')
+  ok('冻结立绘行仍在且共享样式不碰它',
+    tpl.includes('class="gd-basic"') && tpl.includes('gd-main-pic') && !/\.gd-/.test(css))
+  ok('参考项与计分项分开（参考不计分）', tpl.includes('mx.references') && tpl.includes('面板与命座只作参考，不计分'))
+  /* 用户 2026-10-15 定：圣遗物行「套装名独占一行、评分与词条次行右对齐」——换组件后仍要守住 */
+  ok('圣遗物行：套装名与评分/词条分行、次行右对齐',
+    tpl.includes('mx-equipment') && tpl.includes('mx-meta-line') &&
+    /\.mx-meta-line \{[^}]*text-align: right/.test(css) && /\.mx-meta-line \{[^}]*white-space: nowrap/.test(css))
 }
 
 // ---------- 5. 帮助页收录 ----------

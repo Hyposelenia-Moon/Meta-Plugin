@@ -4,6 +4,7 @@
   <meta charset="utf-8"/>
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/meta-ui.css"/>
   <style>
     /* 榜上配装页：名次卡 + 面板 + 武器 / 圣遗物 / 天赋 */
     .bd-hero { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
@@ -19,7 +20,6 @@
 </head>
 <body style="zoom:{{renderScale}}">
   <div class="page">
-    <div class="page-bg" style="background-image: url('{{_res_path}}/common/bg-rank.jpg')"></div>
     <div class="page-inner">
       <div class="card head-card">
         <div class="header">
@@ -36,44 +36,76 @@
         </div>
       </div>
 
-      <div class="card body-card">
-        <div class="card-title">伤害与评分</div>
-        <div class="kv-row"><div class="kv-k">伤害</div><div class="kv-v num">{{damageText}}</div></div>
-        <div class="kv-row"><div class="kv-k">双爆分</div><div class="kv-v num">{{critValueText}}</div></div>
-        <div class="kv-row"><div class="kv-k">天赋</div><div class="kv-v">A{{talent.A}} / E{{talent.E}} / Q{{talent.Q}}</div></div>
-        <div class="kv-row"><div class="kv-k">武器</div><div class="kv-v">{{if weapon}}{{weapon.text}}{{else}}—{{/if}}</div></div>
-      </div>
+      <!--
+        数据区（2026-10-15 UI 重构「档案批注」）：章节序号 + 共享 `.mx-*` 组件 + 来源条。
+        伤害 / 双爆分 / 名次是**不同量纲**，分别成槽，不做进度条、不互相换算。
+      -->
+      <main class="mx-content">
+        <section class="mx-section mx-section--first">
+          <header class="mx-section__head">
+            <span class="mx-section__index">01</span>
+            <h2 class="mx-section__title">伤害与评分</h2>
+            <span class="mx-section__hint">{{mx.hint}}</span>
+          </header>
+          <div class="mx-guide-row"><span class="mx-guide-label">伤害</span><span class="mx-guide-value num">{{damageText}}</span></div>
+          <div class="mx-guide-row"><span class="mx-guide-label">双爆分</span><span class="mx-guide-value num">{{critValueText}}</span></div>
+          <div class="mx-guide-row"><span class="mx-guide-label">天赋</span><span class="mx-guide-value">A{{talent.A}} / E{{talent.E}} / Q{{talent.Q}}</span></div>
+          <div class="mx-guide-row"><span class="mx-guide-label">名次</span><span class="mx-guide-value">第 {{rank}} 名（同角色同规则）</span></div>
+        </section>
 
-      {{if panel && panel.length > 0}}
-      <div class="card body-card">
-        <div class="card-title">面板</div>
-        {{each panel p}}
-        <div class="kv-row"><div class="kv-k">{{p.label}}</div><div class="kv-v num">{{p.value}}</div></div>
-        {{/each}}
-      </div>
-      {{/if}}
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">02</span>
+            <h2 class="mx-section__title">配装</h2>
+          </header>
+          <div class="mx-guide-row">
+            <span class="mx-guide-label">武器</span>
+            <span class="mx-guide-value">{{if weapon}}{{weapon.text}}{{else}}未提供{{/if}}</span>
+          </div>
+          {{if sets && sets.length > 0}}
+          <div class="mx-guide-row">
+            <span class="mx-guide-label">套装</span>
+            <span class="mx-guide-value">{{each sets s}}<span class="mx-unit">{{s.nameCn}} ×{{s.count}}</span>{{/each}}</span>
+          </div>
+          {{/if}}
+          {{if artis && artis.length > 0}}
+          <div class="mx-guide-row">
+            <span class="mx-guide-label">主词条</span>
+            <span class="mx-guide-value">{{each artis a}}<span class="mx-unit">{{a.slotCn}}：{{a.mainCn}}</span>{{/each}}</span>
+          </div>
+          {{/if}}
+        </section>
 
-      {{if artis && artis.length > 0}}
-      <div class="card body-card">
-        <div class="card-title">圣遗物主词条</div>
-        {{each artis a}}
-        <div class="kv-row"><div class="kv-k">{{a.slotCn}}</div><div class="kv-v">{{a.mainCn}}</div></div>
-        {{/each}}
-      </div>
-      {{/if}}
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">03</span>
+            <h2 class="mx-section__title">面板</h2>
+            <span class="mx-section__hint">同源已格式化单位</span>
+          </header>
+          {{if panel && panel.length > 0}}
+          {{each panel p}}
+          <div class="mx-guide-row"><span class="mx-guide-label">{{p.label}}</span><span class="mx-guide-value num">{{p.value}}</span></div>
+          {{/each}}
+          {{else}}
+          <div class="mx-empty">该条目未提供面板数据</div>
+          {{/if}}
+        </section>
 
-      {{if sets && sets.length > 0}}
-      <div class="card body-card">
-        <div class="card-title">套装</div>
-        {{each sets s}}
-        <div class="kv-row"><div class="kv-k">{{s.nameCn}}</div><div class="kv-v">{{s.count}} 件</div></div>
-        {{/each}}
-      </div>
-      {{/if}}
+        <aside class="mx-source-list">
+          {{each mx.sources s}}
+          <div class="mx-source">
+            <strong class="mx-source__name">{{s.name}}</strong>
+            <span class="mx-source__time">{{if s.updatedAt}}更新时间 {{s.updatedAt}}{{else}}时间未提供{{/if}}</span>
+            <span class="mx-source__state">{{s.modeText}}</span>
+          </div>
+          {{/each}}
+        </aside>
 
-      <div class="card foot-card">
-        <div class="copyright">{{copyright}}</div>
-      </div>
+        <footer class="mx-footer">
+          <p class="mx-footer__method">口径：数据来自阿卡莎角色榜，配装与面板按该条目原样展示。</p>
+          <p class="mx-copyright">{{copyright}}</p>
+        </footer>
+      </main>
     </div>
   </div>
 </body>

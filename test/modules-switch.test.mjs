@@ -117,13 +117,19 @@ const { moduleGateReply, moduleOff } = await load('modules/moduleGate.js')
   }
 }
 
-// ---------- ⑤ 接线：13 个 app 都接上了；接管类 accept 也认开关 ----------
+// ---------- ⑤ 接线：app 都接上了；接管类 accept 也认开关 ----------
 {
   const files = fs.readdirSync(path.join(pluginRoot, 'src', 'apps')).filter(f => f.endsWith('.ts'))
   const gateCallers = files.filter(f => readText(path.join(pluginRoot, 'src', 'apps', f)).includes('moduleGateReply('))
-  ok('⑤ 非接管类 9 个 app 都接了闸门', gateCallers.length === 9, gateCallers.join(','))
-  ok('⑤ video 的两个 handler 都接了',
-    (readText(path.join(pluginRoot, 'src', 'apps', 'video.ts')).match(/moduleGateReply\('video'/g) || []).length === 2)
+  ok('⑤ 非接管类 8 个 app 都接了闸门', gateCallers.length === 8, gateCallers.join(','))
+  /*
+   * 2026-10-15 用户定：视频名次改成后缀式、原 `#视频` / `#危战视频` 前缀式废除（video app 已删除），
+   * 于是「榜单视频」模块开关的拦截点搬到榜单/危战两个 app 的后缀分发处
+   * （榜单 1 处、危战 2 处 —— `raidTiers` 主规则与"请选档"兜底各一处）。
+   */
+  ok('⑤ 后缀式视频名次都接了 video 开关',
+    (readText(path.join(pluginRoot, 'src', 'apps', 'rank.ts')).match(/moduleGateReply\('video'/g) || []).length === 1 &&
+    (readText(path.join(pluginRoot, 'src', 'apps', 'raidTiers.ts')).match(/moduleGateReply\('video'/g) || []).length === 2)
 
   const codex = readText(path.join(pluginRoot, 'src', 'apps', 'codex.ts'))
   const help = readText(path.join(pluginRoot, 'src', 'apps', 'help.ts'))
