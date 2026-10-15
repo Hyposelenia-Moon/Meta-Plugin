@@ -71,7 +71,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 6. **测试不得写 `data/`** — 路径一律走 `test/.test-tmp/` 自建子目录或环境变量覆盖（`META_CONFIG_FILE` / `META_MIAO_DIR` / `META_ATLAS_DIR`）。
 7. **miao 必需、Atlas 可选** — 缺 miao 给可读提示；Atlas 缺失或异常**只降级不报错**，且**不 import 它的内部模块**（走稳定导出，见 [docs/待办与规划.md](./docs/待办与规划.md)）。
    读面板必须走 miao 的对象契约：`Avatar.artis` 是 **`Artis` 实例**（`getArtisDetail()` 按部位 1..5、`artis.sets` 给件数、`artis.hasAttr` 判词条、`getArtisMark()` 给评分），**不要 `Array.isArray`、不要用 `names` 计件**；刷新成功只看**目标角色**（别拿账号级 `player.hasProfile` 当成功）。
-8. **联网默认关** — 仓库侧 `networkEnabled` 默认 `false`，**所有**远程刷新点（mhydps / akasha / miao 面板 / 队伍）都要先读开关；榜单 / 危战 / 练度需代理（国内直连 `mhydps.cn` 会在 TLS 握手阶段失败）；米游社 ck 由 miao 保存，本插件不保存任何凭据。
+8. **联网默认关** — 仓库侧 `networkEnabled` 默认 `false`，用于控制 DPS 榜单、危战榜、练度查询等业务查询中的远程数据访问与刷新；相关远程刷新点（mhydps / akasha / miao 面板 / 队伍）都要先读开关，关闭时不得发起受该开关管理的远程请求。**该开关不是整个插件的全局联网禁令**，不自动限制别名服务、可选插件探测、依赖安装及其他非上述业务查询的网络操作；这些操作仍须遵守各自的安全与错误处理约束。榜单 / 危战 / 练度需代理（国内直连 `mhydps.cn` 会在 TLS 握手阶段失败）；米游社 ck 由 miao 保存，本插件不保存任何凭据。
 9. **锅巴模板替换必须用回调** — `template.replace(re, () => String(value))`：直接传字符串会把值里的 `$&` / `$1` 当替换语法（`src/guoba/index.ts`）。
 10. **编辑器静默陷阱** — 事件委托必须 `closest('[data-act]')` 往上找（行尾图标是内联 SVG，`e.target` 常是 `<path>`）；保存失败（`res` 为 `null`）时**先返回**，否则会清掉未落盘草稿；`git diff --cached` 必须带 `-z`（默认 `quotePath` 会把中文路径转义，逐行比较会把自己人判成"范围外"而阻止提交）；改过共享层**必须重启编辑器进程**（长驻进程会缓存旧模块）。
 11. **框架截图契约** — `runtime.render(plugin, path, data, cfg)` 的 `retType` 属于**第 4 参**；本版 `puppeteer.screenshot` 返回**图片消息段**（不是 base64），拿到段要直接 `e.reply` 发送；只有当框架已经自己发图（返回 `true`）或我们确实拿到图时才 `return true`，否则一律 `false` 交同源文本回退。
