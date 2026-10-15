@@ -125,7 +125,7 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
   --mx-acc: #e8d9b4;
   --mx-focus: #a9d1ff;
   --mx-pass: #a4e483;
-  --mx-warn: #ffc4bf;
+  --mx-warn: #ff6b66;
   --mx-excluded: #dcc8ff;
   --mx-unknown: #cdd6e4;
   --mx-tier-max: #ffc4bf;
@@ -145,8 +145,10 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
  */
 .mx-content--glass .mx-section {
   border-top: none;
+  /* 兜底：与 miao card-bg.png 恒定色一致（纹理正常时被完全覆盖，纹理取不到时不会出现黑底） */
+  background-color: #2b343d;
   /* miao .cont 的外边距原样：5px 15px 5px 10px */
-  margin: 5px 15px 5px 10px;
+  margin: 2px 6px;
   padding: 0 0 var(--mx-space-3);
   background-image: url("../../../../plugins/miao-plugin/resources/common/cont/card-bg.png");
   background-repeat: repeat-x;
@@ -161,7 +163,7 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content--glass .mx-section__head {
   background: rgba(0, 0, 0, .40);
   box-shadow: 0 0 1px 0 rgba(255, 255, 255, .55);
-  padding: 9px var(--mx-space-5);
+  padding: 9px 12px;
   margin-bottom: var(--mx-space-3);
   border-radius: 10px 10px 0 0;
 }
@@ -169,13 +171,13 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content--glass .mx-section__hint { color: var(--mx-muted); }
 /* 进度尺：miao 的金色权重牌口径 */
 .mx-content--glass .mx-meter { background: rgba(0, 0, 0, .5); border-radius: 5px; }
-.mx-content--glass .mx-meter__fill { background: linear-gradient(90deg, var(--mx-gold), #ffc861); }
+.mx-content--glass .mx-meter__fill { background: #ffd76a; }
 /* 行：去掉斑马底，改为细分隔线（miao 图鉴模块的做法），行高留呼吸 */
 .mx-content--glass .mx-dimension,
 .mx-content--glass .mx-guide-row,
 .mx-content--glass .mx-reference-row {
   min-height: 30px;
-  padding: 4px var(--mx-space-5);
+  padding: 6px 12px;
   text-shadow: 0 0 1px rgba(0, 0, 0, .8), 1px 1px 3px rgba(0, 0, 0, .5);
 }
 .mx-content--glass .mx-dimension + .mx-dimension,
@@ -185,13 +187,13 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content--glass .mx-dimensions,
 .mx-content--glass .mx-source-list,
 .mx-content--glass .mx-recommendations { padding: 0; }
-.mx-content--glass .mx-source { padding: 4px var(--mx-space-5); }
+.mx-content--glass .mx-source { padding: 6px 12px; }
 .mx-content--glass .mx-source + .mx-source { border-top: 1px solid var(--mx-rule); }
 .mx-content--glass .mx-compare,
-.mx-content--glass .mx-recommendation { padding: var(--mx-space-2) var(--mx-space-5); }
+.mx-content--glass .mx-recommendation { padding: var(--mx-space-2) 12px; }
 .mx-content--glass .mx-compare + .mx-compare,
 .mx-content--glass .mx-recommendation + .mx-recommendation { border-top: 1px solid var(--mx-rule); }
-.mx-content--glass .mx-footer { margin: 0; padding: var(--mx-space-3) var(--mx-space-5) var(--mx-space-4); border-top: 1px solid var(--mx-rule); }
+.mx-content--glass .mx-footer { margin: 0; padding: var(--mx-space-3) 12px var(--mx-space-4); border-top: 1px solid var(--mx-rule); }
 .mx-content--glass .mx-dimensions,
 .mx-content--glass .mx-source-list,
 .mx-content--glass .mx-recommendations { border-radius: 8px; overflow: hidden; }
@@ -278,7 +280,7 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content .mx-dimension__value { flex: 0 0 96px; text-align: right; color: var(--mx-secondary); }
 .mx-content .mx-dimension__detail { flex: 1 1 100%; margin: 0 0 4px 84px; font-size: var(--mx-note-size); color: var(--mx-muted); }
 .mx-content .mx-meter { flex: 1 1 auto; height: 8px; border-radius: 4px; background: var(--mx-surface-2); overflow: hidden; }
-.mx-content .mx-meter__fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--mx-accent), var(--mx-focus)); }
+.mx-content .mx-meter__fill { height: 100%; border-radius: 4px; background: #ffd76a; }
 .mx-content .mx-meter--unscored,
 .mx-content .mx-meter--unknown { background: transparent; box-shadow: inset 0 0 0 1px var(--mx-rule); }
 
@@ -421,3 +423,16 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content .mx-team + .mx-team { border-top: 1px solid var(--mx-rule); }
 .mx-content .mx-team__tag { font-weight: 700; margin-right: var(--mx-space-2); color: var(--mx-accent); }
 .mx-content .mx-team__note { font-size: 0.82em; color: var(--mx-muted); }
+
+/* ===== 数据区行样式：照抄面板图 `.char-attr li` 的斑马行（2026-10-15） ===== */
+/* 面板图斑马行：奇数 rgbrgba(50,50,50,.4) / 偶数 rgba(0,0,0,.4)，无分隔线 */
+.mx-content--glass .mx-dimension:nth-child(odd),
+.mx-content--glass .mx-reference-row:nth-child(odd),
+.mx-content--glass .mx-compare:nth-child(odd),
+.mx-content--glass .mx-recommendation:nth-child(odd),
+.mx-content--glass .mx-source:nth-child(odd) { background: rgba(50, 50, 50, .4); }
+.mx-content--glass .mx-dimension:nth-child(even),
+.mx-content--glass .mx-reference-row:nth-child(even),
+.mx-content--glass .mx-compare:nth-child(even),
+.mx-content--glass .mx-recommendation:nth-child(even),
+.mx-content--glass .mx-source:nth-child(even) { background: rgba(0, 0, 0, .4); }

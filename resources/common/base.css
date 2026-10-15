@@ -208,36 +208,36 @@ img {
     linear-gradient(180deg, var(--page-base-1) 0%, var(--page-base-2) 100%);
 }
 
-/* 元素底（`--page-art` 由各元素类给出；取不到就只用渐变）
-   —— 柔化成"氛围底"：模糊 + 轻微放大，避免星空/云层纹理与文字抢注意力（2026-10-15 成品版） */
-.page--elem { position: relative; }
-.page--elem::before {
-  content: '';
-  position: absolute;
-  inset: 0;
+/*
+ * 元素底：照 miao 的 `.container.elem-bg` —— **直接画在页面容器本身上**（不另做绝对定位的伪元素层），
+ * 容器与 body 同宽同高，所以不会出现"底图一块 + 四周黑边"。
+ * 同时给 body 也铺同一张（body 自带 padding，用于把边框区域一起填满）。
+ * `--page-art` 由各元素类给出；取不到就只用下面的柔和渐变兜底。
+ */
+.page--elem { background-image: none; }
+body.elem-pyro, body.gd-elem-pyro, body.elem-hydro, body.gd-elem-hydro,
+body.elem-anemo, body.gd-elem-anemo, body.elem-electro, body.gd-elem-electro,
+body.elem-dendro, body.gd-elem-dendro, body.elem-cryo, body.gd-elem-cryo,
+body.elem-geo, body.gd-elem-geo {
   background-image: var(--page-art, none), var(--page-gradients);
   background-size: cover, auto, auto, auto;
-  background-position: center top, center, center, center;
   background-repeat: no-repeat;
-}
-.page--elem::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--page-scrim);
+  background-color: var(--bg);
 }
 
 /* 元素底资源（照 miao 的面板页；只引用，不复制） */
-.gd-elem-pyro.page--elem, .elem-pyro.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-pyro.webp"); }
-.gd-elem-hydro.page--elem, .elem-hydro.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-hydro.webp"); }
-.gd-elem-anemo.page--elem, .elem-anemo.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-anemo.webp"); }
-.gd-elem-electro.page--elem, .elem-electro.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-electro.webp"); }
-.gd-elem-dendro.page--elem, .elem-dendro.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-dendro.webp"); }
-.gd-elem-cryo.page--elem, .elem-cryo.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-cryo.webp"); }
-.gd-elem-geo.page--elem, .elem-geo.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-geo.webp"); }
+body.gd-elem-pyro, body.elem-pyro { --page-art: url("./bg/page-pyro.webp"); }
+body.gd-elem-hydro, body.elem-hydro { --page-art: url("./bg/page-hydro.webp"); }
+body.gd-elem-anemo, body.elem-anemo { --page-art: url("./bg/page-anemo.webp"); }
+body.gd-elem-electro, body.elem-electro { --page-art: url("./bg/page-electro.webp"); }
+body.gd-elem-dendro, body.elem-dendro { --page-art: url("./bg/page-dendro.webp"); }
+body.gd-elem-cryo, body.elem-cryo { --page-art: url("./bg/page-cryo.webp"); }
+body.gd-elem-geo, body.elem-geo { --page-art: url("./bg/page-geo.webp"); }
 /* 物理 / 未识别元素：不冒充元素色，只用柔和渐变底 */
-.gd-elem-sr.page--elem, .elem-sr.page--elem,
-.gd-elem-phy.page--elem, .elem-phy.page--elem { --page-art: none; }
+body.gd-elem-sr, body.elem-sr,
+body.gd-elem-phy, body.elem-phy { --page-art: none; }
+body.gd-elem-quantum, body.elem-quantum { --page-art: url("./bg/page-quantum.webp"); }
+body.gd-elem-sr, body.elem-sr { --page-art: url("./bg/page-sr.webp"); }
 
 /* ===== 弱化文本 .dim：次级说明文字统一使用 ===== */
 .dim {

@@ -77,8 +77,15 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
     [...refs].filter(rel => !fs.existsSync(path.join(resDir, rel))), [])
   push('越出插件目录的引用只能是 miao 资源（不复制素材）',
     [...outside].filter(ref => !/^\.\.\/\.\.\/\.\.\/\.\.\/plugins\/miao-plugin\/resources\//.test(ref)), [])
-  ok('元素底确实引用了 miao 的 bg-{元素}.webp',
-    [...outside].some(ref => /miao-plugin\/resources\/common\/bg\/bg-hydro\.webp$/.test(ref)))
+  /*
+   * 2026-10-15 起：元素底用**我们自己的裁切件** `resources/common/bg/page-{元素}.webp`
+   * （由 miao `common/bg/bg-{元素}.webp` 裁上带得到，见 README 许可说明），不再直接引 miao 原图。
+   */
+  const pageBg = ['pyro', 'hydro', 'anemo', 'electro', 'dendro', 'cryo', 'geo', 'quantum', 'sr']
+  push('元素底裁切件齐备（resources/common/bg/page-{元素}.webp）',
+    pageBg.filter(e => !fs.existsSync(path.join(resDir, 'common', 'bg', `page-${e}.webp`))), [])
+  push('base.css 引用的都是本地裁切件',
+    [...refs].filter(rel => /common[\\/]bg[\\/]bg-/.test(rel)), [])
 }
 
 // ---------- 2b. 立绘行图标：元素圆环底图 + 层级 ----------
