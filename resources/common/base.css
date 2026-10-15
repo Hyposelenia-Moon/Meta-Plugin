@@ -159,6 +159,86 @@ img {
   border: 0;
 }
 
+/* ==========================================================================
+   浅色底图主题（2026-10-15 用户选定的 B+C 方案，审核 Q6/Q7 口径）
+   --------------------------------------------------------------------------
+   * **opt-in**：只有加了 `.page--soft` 的页面才铺这层，其余模板（榜单/危战/状态/帮助）行为不变；
+   * 底层是**程序生成的低频柔和渐变**（不引第三方素材、不从立绘取色），文字仍落在不透明纸面上；
+   * 元素强调色令牌（`--page-acc*`）与纸面组件同在 `meta-ui.css`（攻略页不引本文件也能拿到）；
+     这里只留底层自己的三个渐变色，并给强调色留回落值。
+   ========================================================================== */
+:root {
+  --page-base-1: #eef1f7;
+  --page-base-2: #e7ecf4;
+  --page-base-warm: #ece7dd;
+}
+
+/* 底层：三层低频渐变（顶部元素色微光 + 左下暖灰 + 竖向浅色渐变） */
+.page--soft { position: relative; }
+.page--soft::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 55% at 50% -10%, var(--page-acc-soft, rgba(125, 90, 28, .10)) 0%, rgba(255, 255, 255, 0) 62%),
+    radial-gradient(70% 45% at 8% 104%, var(--page-base-warm) 0%, rgba(236, 231, 221, 0) 70%),
+    linear-gradient(180deg, var(--page-base-1) 0%, var(--page-base-2) 100%);
+}
+
+/* ==========================================================================
+   元素底主题（2026-10-15 用户选定的 M1「miao 面板同款」）
+   --------------------------------------------------------------------------
+   * **opt-in**：只有加了 `.page--elem` 的页面才铺；资源**引用 miao**（不复制、不新增素材）：
+     `<Yunzai>/plugins/miao-plugin/resources/common/bg/bg-{元素}.webp`（面板页同款元素底）。
+     CSS 里的相对路径按**本文件位置**解析：base.css 在 `Meta-Plugin/resources/common/`，
+     向上四级即 `<Yunzai>/`，再接 `plugins/miao-plugin/...`。
+   * 元素底上面盖一层 **scrim**（适度压暗、保留星点），文字再落在数据区自己的**深色玻璃**上；
+     两层不透明度是"对比度门禁"的输入（`test/presentation.test.mjs` 用实测最亮像素算合成色）。
+   * miao 不在场时图片 404 → 自动回落到下面那套柔和渐变（同一 `background-image` 栈的第二层起）。
+   ========================================================================== */
+:root {
+  --page-base-1: #eef1f7;
+  --page-base-2: #e7ecf4;
+  --page-base-warm: #ece7dd;
+  /* 元素底之上的压暗层（保留星点：不要压到看不见纹理） */
+  --page-scrim: transparent;
+  --page-gradients:
+    radial-gradient(120% 55% at 50% -10%, var(--page-acc-soft, rgba(125, 90, 28, .10)) 0%, rgba(255, 255, 255, 0) 62%),
+    radial-gradient(70% 45% at 8% 104%, var(--page-base-warm) 0%, rgba(236, 231, 221, 0) 70%),
+    linear-gradient(180deg, var(--page-base-1) 0%, var(--page-base-2) 100%);
+}
+
+/* 元素底（`--page-art` 由各元素类给出；取不到就只用渐变）
+   —— 柔化成"氛围底"：模糊 + 轻微放大，避免星空/云层纹理与文字抢注意力（2026-10-15 成品版） */
+.page--elem { position: relative; }
+.page--elem::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--page-art, none), var(--page-gradients);
+  background-size: cover, auto, auto, auto;
+  background-position: center top, center, center, center;
+  background-repeat: no-repeat;
+}
+.page--elem::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--page-scrim);
+}
+
+/* 元素底资源（照 miao 的面板页；只引用，不复制） */
+.gd-elem-pyro.page--elem, .elem-pyro.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-pyro.webp"); }
+.gd-elem-hydro.page--elem, .elem-hydro.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-hydro.webp"); }
+.gd-elem-anemo.page--elem, .elem-anemo.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-anemo.webp"); }
+.gd-elem-electro.page--elem, .elem-electro.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-electro.webp"); }
+.gd-elem-dendro.page--elem, .elem-dendro.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-dendro.webp"); }
+.gd-elem-cryo.page--elem, .elem-cryo.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-cryo.webp"); }
+.gd-elem-geo.page--elem, .elem-geo.page--elem { --page-art: url("../../../../plugins/miao-plugin/resources/common/bg/bg-geo.webp"); }
+/* 物理 / 未识别元素：不冒充元素色，只用柔和渐变底 */
+.gd-elem-sr.page--elem, .elem-sr.page--elem,
+.gd-elem-phy.page--elem, .elem-phy.page--elem { --page-art: none; }
+
 /* ===== 弱化文本 .dim：次级说明文字统一使用 ===== */
 .dim {
   color: var(--muted);

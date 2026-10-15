@@ -44,11 +44,41 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 >     **稳定键**（`talent:A` / `artifact:main:时之沙` / `weapon:choice`）绑定证据，不靠中文名；
 >   - 来源时间只写可核实的源时间（miao 的 `dataSource` / `updateTime`），缺失写"时间未提供"；
 >     **不得用 `Date.now()` 冒充面板更新时间**；`assessable=false`（关键数据未知）时页面显示"待评"、不出 0 分字母档。
-> 共享样式一律进 `resources/common/meta-ui.css`（**浅色底**，全部规则限定在 `.mx-content` 作用域内，
-> **不出现 `.gd-` 选择器**），四张图都消费 `mx`：练度 `grade.html`、攻略 `codex.html`（miao 外壳与
+> 共享样式一律进 `resources/common/meta-ui.css`（**浅色底**；组件规则限定在 `.mx-content` 作用域内，
+> 页面级只允许 `:root` / `body.elem-*` 这类**令牌块**；**不给立绘行内部类写规则** —— `.gd-basic` / `.gd-main-pic` /
+> `.gd-char-` / `.gd-talent` / `.gd-cons` 一个都不许出现，`body.gd-elem-*` 是元素标记、放行），
+> 四张图都消费 `mx`：练度 `grade.html`、攻略 `codex.html`（miao 外壳与
 > `.talent-icon` 不动）、榜上配装 `akasha-build.html`、队伍伤害 `team-damage.html`。
 > 练度页的冻结立绘行 `.gd-basic` 子树与 miao 原生名次面板不受影响。设计规格与离线预览包：
 > `D:\Downloads\QQ\Meta-UI设计包.zip`（落地范围：阶段 1–4、不新增维度、§12 各条按规格默认）。
+
+> **浅色主题（B+C 方案，2026-10-15 用户选定；审核 Q6/Q7 口径）**：
+> ① 页面底层在 `resources/common/base.css` 的 `.page--soft::before`（**opt-in**，程序生成的三层低频渐变，不引素材）；
+>    元素强调色令牌 `--page-acc` / `--page-acc-soft` 定义在 `meta-ui.css`（攻略页不引 base.css 也要用），
+>    两套元素类名都认：自有模板 `body.gd-elem-{element}`、miao 布局 `body.elem-{element}`；未识别元素退回中性灰；
+>    每个元素色都是"不透明浅底上的正文色"，三档浅底均 ≥4.5:1（`test/presentation.test.mjs` 守着）。
+> ② 纸面（`.mx-content`）是**不透明**白 + 1px 描边 + 柔和投影 + 极轻噪点（data-URI）＝Mica 风格，**不做半透明**；
+>    元素色只作**弱点缀**：章节号 / 总分 / 证据号 + 纸面顶部 3px 细条（`.mx-content::after`）。
+> ③ 立绘→纸面过渡带是 `.page--soft .mx-content::before`（高度 `--mx-hero-fade`，默认 96px，置 0 即关闭）；
+>    **只在浅色主题页生效** —— 攻略页继承 miao 外壳，不得被这层雾盖住页头。立绘行 `.gd-basic` 的 DOM/样式一行未动。
+> ④ 已启用：`dps/grade.html`、`dps/akasha-build.html`、`dps/team-damage.html`（`class="page page--soft"`）；
+>    榜单/危战/状态/帮助系列**未启用**（密集表格结构不动，按审核 Q10 先验证再扩展）。
+> ⑤ 后续（审核 §4.2）：要上亚克力/半透明主题，必须先补 alpha 合成 + 实际渲染背景的对比度门禁，
+>    并在含立绘整页与真实发送格式上测图积/耗时。
+
+> **元素底 + miao 图鉴式模块卡（成品版，2026-10-15 定稿）**：
+> ① 页面背景 = miao 的元素底 `common/bg/bg-{元素}.webp`（**只引用不复制**，见 `base.css` 的 `.page--elem` / `--page-art`），
+>    并柔化成"氛围底"：`filter: blur(16px) saturate(1.35) brightness(1.18)` + `--page-scrim` 压暗；
+>    未识别元素退回柔和渐变（同一 `background-image` 栈的第二层起）。
+> ② 数据区（练度 / 榜上配装 / 队伍伤害）= `.mx-content--glass`：**miao 图鉴模块卡**的表层
+>    （10px 圆角 + 柔和外阴影 + 1px 浅环；标题条 `rgba(0,0,0,.4)` + 金色 `#d3bc8e`，照 `common.css` 的 `.cont`/`.cont-title`），
+>    内部行**不用斑马底**，靠细分隔线 + 行高；数值/进度条用 miao 金渐变，达标用绿 `#90e800`。
+>    文字不透明度按"元素底最亮像素 → 压暗层 → 卡片"的 alpha 合成验 ≥4.5:1（`test/presentation.test.mjs`）。
+> ③ 攻略页**排版回到本插件迭代前的自绘版式**（`card` + `codex-row`，不继承 miao 图鉴外壳），
+>    仍走同一张元素底；长标签独占一行、占位值在视图层归一。
+> ④ 已启用元素底的页面：练度 / 榜上配装 / 队伍伤害 用 `class="page page--elem"`；攻略页用 `gd-elem-*` + `page--elem`；
+>    榜单/危战/状态/帮助系列**未启用**（密集表格结构保持原样，按审核 Q10 先验证再扩展）。
+> ⑤ 要上半透明亚克力主题前，先按审核 §4.2 补 alpha 合成 + 实际渲染背景门禁与含立绘整页的图积/耗时实测。
 
 > **审核意见落地的三条展示规则**（2026-10-15，见 `D:\Downloads\QQ\Meta-污染消息与UI美化-审核意见.md` §4.3/4.4）：
 > ① 参考项必须保留**方向**（`输出向`/`辅助向`，跨方向同值合并成 `输出向/辅助向` 一条），稳定键 `panel:<方向>:<attr>`，

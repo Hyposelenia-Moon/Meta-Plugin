@@ -30,45 +30,42 @@ const tpl = readText(tplFile)
 const miaoDir = process.env.META_MIAO_DIR || path.resolve(pluginRoot, '..', 'miao-plugin')
 const hasMiao = fs.existsSync(path.join(miaoDir, 'resources', 'common', 'layout', 'elem.html'))
 
-// ---------- 1. 结构约定 ----------
-ok('继承 miao 布局（{{extend elemLayout}}）', tpl.includes('{{extend elemLayout}}'))
-ok('定义 {{block \'css\'}}', tpl.includes("{{block 'css'}}"))
-ok('定义 {{block \'main\'}}', tpl.includes("{{block 'main'}}"))
-for (const css of ['common/tpl.css', 'character/profile-detail.css', 'wiki/character-wiki.css']) {
-  ok(`样式引 miao 资源：${css}`, tpl.includes(`{{_miao_path}}${css}`))
+// ---------- 1. 结构约定（2026-10-15 用户定：回到本插件迭代前的自绘版式） ----------
+ok('不再继承 miao 图鉴外壳（无 {{extend elemLayout}} / {{block}}）',
+  !tpl.includes('{{extend elemLayout}}') && !tpl.includes("{{block '") )
+ok('用本插件自己的样式表', tpl.includes('{{_res_path}}/common/base.css') && tpl.includes('{{_res_path}}/common/components.css'))
+for (const css of ['common/tpl.css', 'character/profile-detail.css']) {
+  ok(`天赋图标引 miao 组件样式：${css}`, tpl.includes(`{{_miao_path}}${css}`))
 }
+ok('不引 miao 图鉴卡片样式（wiki/character-wiki.css）', !tpl.includes('wiki/character-wiki.css'))
 /*
- * 「不复制 miao 的样式」：我们可以追加**自己写的**共享组件（`.mx-*`），
- * 但 miao 的样式必须直接引 `{{_miao_path}}` 的三个文件 —— 本插件自己的 CSS 里
- * 不得出现 miao 的类名（否则等于把 miao 的样式抄了一份）。
+ * 「不复制 miao 的样式」：自有 CSS 里不得出现 miao 的类名（只引用不复制）。
+ * `.talent-icon` 只在**本页 `<style>`** 里做尺寸覆盖（组件本体仍来自 miao 的 profile-detail.css）。
  */
-ok('不复制 miao 的样式（自有 CSS 里没有 miao 类名）', (() => {
+ok('不复制 miao 的样式（自有共享 CSS 里没有 miao 类名）', (() => {
   const own = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css')).replace(/\/\*[\s\S]*?\*\//g, '')
   return !/\.(basic|detail|char-|cont|wiki-|talent-icon)\b/.test(own)
 })())
-ok('自有共享组件只追加 .mx-*（引 _res_path，不覆盖 miao 资源）',
-  tpl.includes('{{_res_path}}/common/meta-ui.css') &&
-  /\.mx-content \./.test(readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css'))))
-ok('沿用 miao 图鉴的结构类', ['class="basic"', 'main-pic', 'class="detail"', 'char-title', 'char-name', 'char-meta', 'class="cont"', 'cont-title', 'char-attr', 'wiki-cont'].every(k => tpl.includes(k)))
-ok('遍历六个模块（章节序号来自投影，不写死章节数）', tpl.includes('{{each mx.sections section}}') && tpl.includes('{{section.index}}'))
+ok('迭代前版式的结构类齐全（页头 + 单张内容卡 + 分块）',
+  ['codex-head', 'codex-portrait', 'codex-name', 'codex-meta', 'card-title', 'codex-section', 'codex-row', 'codex-row-label', 'codex-row-items', 'foot-card'].every(k => tpl.includes(k)))
+ok('页头字段：立绘 / 名字 / 副标题 / 定位 / 属性行',
+  tpl.includes('{{if portrait}}') && tpl.includes('{{name}}') && tpl.includes('{{subTitle}}') &&
+  tpl.includes("meta['定位']") && tpl.includes('{{each metaRows row}}'))
+ok('遍历六个模块（数据来自投影，不写死章节数）', tpl.includes('{{each mx.sections section}}'))
 ok('空模块分支', tpl.includes('{{if section.empty}}') && tpl.includes('{{section.emptyText}}'))
 ok('配队分支', tpl.includes('section.teams.length > 0'))
 ok('行分支（rows/items）', tpl.includes('{{each section.rows row}}') && tpl.includes('{{each row.items item}}'))
-ok('专武 / 可选档：颜色 + 固定图形两通道（★ / ◇）', (() => {
-  const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css'))
-  return tpl.includes('mx-item--{{item.tone}}') && tpl.includes('{{item.marker}}') && tpl.includes('{{mx.legend}}') &&
-    css.includes('.mx-item--sig') && css.includes('.mx-item--alt')
-})())
-ok('活动标签走 note', tpl.includes('mx-inline-note') && tpl.includes('{{item.note}}'))
-ok('武器精炼提示（挂在武器章节标题行）', tpl.includes('{{section.hint}}'))
-ok('来源条与两行脚注', tpl.includes('{{each mx.sources s}}') && tpl.includes('mx-footer'))
-ok('立绘可选（{{if portrait}}）', tpl.includes('{{if portrait}}'))
+ok('专武 / 可选档沿用旧版标色（sig-strict / sig-alt）',
+  tpl.includes("item.tone === 'sig'") && tpl.includes('sig-strict') &&
+  tpl.includes("item.tone === 'alt'") && tpl.includes('sig-alt'))
+ok('活动标签走 note', tpl.includes('codex-note-inline') && tpl.includes('{{item.note}}'))
+ok('武器精炼提示', tpl.includes('{{section.hint}}') && tpl.includes('codex-hint'))
+ok('长标签独占一行（审核 4.4：不加宽标签列）', tpl.includes('codex-row--long') && tpl.includes('{{each row.labelLines l}}'))
+ok('数据来源一行 + 版权', tpl.includes('{{each mx.sources s}}') && tpl.includes('codex-source') && tpl.includes('{{copyright}}'))
+ok('元素底主题（page--elem + gd-elem-*）', tpl.includes('class="page page--elem"') && tpl.includes('gd-elem-{{element}}'))
 {
-  const blocks = (tpl.match(/\{\{block '/g) || []).length
-  const blockEnds = (tpl.match(/\{\{\/block\}\}/g) || []).length
   const ifEachOpens = (tpl.match(/\{\{(?:if|each)\b/g) || []).length
   const ifEachEnds = (tpl.match(/\{\{\/(?:if|each)\}\}/g) || []).length
-  ok('block 开闭配对', blocks === blockEnds)
   ok('if/each 开闭配对', ifEachOpens === ifEachEnds)
 }
 

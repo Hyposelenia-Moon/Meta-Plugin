@@ -56,16 +56,29 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
 // ---------- 2. CSS 引用的资源都能解析 ----------
 {
   const refs = new Set()
+  const outside = new Set()
   for (const f of ['base.css', 'components.css']) {
     const css = readText(path.join(commonDir, f))
     for (const m of css.matchAll(/url\(["']?([^"')]+)["']?\)/g)) {
       const ref = m[1].trim()
       if (/^(data:|https?:)/.test(ref)) continue
+      /*
+       * miao 资源（元素底 `bg-{元素}.webp` 等）**只引用不复制**：路径向上越出本插件目录，
+       * 落到 `<Yunzai>/plugins/miao-plugin/resources/...`。这类引用单独核对，不参与"必须在 resources/ 内"的检查。
+       */
+      if (ref.includes('plugins/miao-plugin/')) {
+        outside.add(ref)
+        continue
+      }
       refs.add(path.normalize(path.join('common', ref)))
     }
   }
   push('CSS 里 url(...) 引用的资源都在（相对 resources/）',
     [...refs].filter(rel => !fs.existsSync(path.join(resDir, rel))), [])
+  push('越出插件目录的引用只能是 miao 资源（不复制素材）',
+    [...outside].filter(ref => !/^\.\.\/\.\.\/\.\.\/\.\.\/plugins\/miao-plugin\/resources\//.test(ref)), [])
+  ok('元素底确实引用了 miao 的 bg-{元素}.webp',
+    [...outside].some(ref => /miao-plugin\/resources\/common\/bg\/bg-hydro\.webp$/.test(ref)))
 }
 
 // ---------- 2b. 立绘行图标：元素圆环底图 + 层级 ----------

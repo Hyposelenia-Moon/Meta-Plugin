@@ -146,9 +146,24 @@ const fullBuild = {
   const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css')).replace(/\/\*[\s\S]*?\*\//g, '')
   ok('练度页仍保留冻结立绘行（.gd-basic + .gd-main-pic）',
     tpl.includes('class="gd-basic"') && tpl.includes('gd-main-pic'))
-  ok('共享组件样式不出现 .gd- 选择器（不覆盖冻结区）', !/\.gd-/.test(css))
-  ok('共享样式全部限定在 .mx-content 内（不污染其它模板）',
-    css.split('\n').filter(l => /^\.[a-z]/.test(l.trim())).every(l => l.includes('.mx-content')))
+  /*
+   * 冻结区守卫（2026-10-15 收紧）：共享样式不得给**立绘行内部**的类写规则。
+   * `.gd-elem-*` 是 `<body>` 上的元素标记（不是立绘行内部），要放行 —— 旧的 `.gd-` 一刀切会把令牌块误判。
+   */
+  const FROZEN = ['.gd-basic', '.gd-main-pic', '.gd-char-', '.gd-talent', '.gd-cons']
+  push('共享组件样式不碰冻结立绘行的类', FROZEN.filter(sel => css.includes(sel)), [])
+  /*
+   * 组件规则必须限定在 `.mx-content` 内；文件顶部的**令牌块**（`:root` / `body.elem-*`）只声明自定义属性，
+   * 不算组件规则，允许在页面层。
+   */
+  const unscoped = []
+  for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selector = m[1].trim()
+    const body = m[2]
+    const isComponent = /(^|[;\s])(color|background|border|box-shadow|padding|margin|font-size|display|position|height|min-width|text-align)\s*:/.test(body)
+    if (isComponent && !selector.includes('.mx-content')) unscoped.push(selector.replace(/\s+/g, ' ').slice(0, 60))
+  }
+  push('组件规则全部限定在 .mx-content 内（令牌块除外）', unscoped, [])
   ok('数据区章节消费 mx 投影（dims/evidence/suggestions/references/sources）',
     ['mx.dims', 'mx.evidence', 'mx.suggestions', 'mx.references', 'mx.sources'].every(k => tpl.includes(`{{each ${k}`) || tpl.includes(k)))
   ok('meta-ui.css 已随模板引用', tpl.includes('{{_res_path}}/common/meta-ui.css') && fs.existsSync(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css')))
@@ -167,10 +182,9 @@ const fullBuild = {
   push('短标签不分行', P.labelLinesOf('主词条'), ['主词条'])
   const tpl = readText(path.join(pluginRoot, 'resources', 'codex', 'codex.html'))
   const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css'))
-  ok('攻略页长标签走独占一行版式（不加宽标签列）',
-    tpl.includes('mx-guide-row--longlabel') && tpl.includes('mx-guide-label__line') &&
-    /\.mx-guide-row--longlabel \{ grid-template-columns: minmax\(0, 1fr\); \}/.test(css) &&
-    !/grid-template-columns: 1[2-9]\dpx/.test(css))
+  ok('攻略页长标签独占一行（迭代前版式下也不挤断右列）',
+    tpl.includes('codex-row--long') && tpl.includes('{{each row.labelLines l}}') &&
+    /\.codex-row--long \{[^}]*flex-direction: column/.test(tpl))
   ok('参考区有"当前 / 参考目标"列语义',
     readText(path.join(pluginRoot, 'resources', 'dps', 'grade.html')).includes('参考目标'))
 }
@@ -178,8 +192,14 @@ const fullBuild = {
 // ---------- 8. 浅色底对比度门禁（普通文字 ≥ 4.5:1，图形 ≥ 3:1） ----------
 {
   const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css'))
+  /*
+   * 浅色门禁只认**默认（浅色）令牌块**：`meta-ui.css` 里还有深色玻璃变体（`.mx-content--glass`），
+   * 全文件扫 token 会被后出现的深色值覆盖（2026-10-15 实测：正文被读成深色玻璃的浅字 → 假失败）。
+   */
+  const lightBlock = (css.match(/\n\.mx-content \{([\s\S]*?)\n\}/) || ['', ''])[1]
   const tok = {}
-  for (const m of css.matchAll(/--mx-([\w-]+):\s*(#[0-9a-fA-F]{3,8});/g)) tok[m[1]] = m[2]
+  for (const m of lightBlock.matchAll(/--mx-([\w-]+):\s*(#[0-9a-fA-F]{3,8});/g)) tok[m[1]] = m[2]
+  ok('默认（浅色）令牌块读到了主底/正文', !!tok.bg && !!tok.text)
   const rgb = (hex) => {
     const h = hex.replace('#', '')
     const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h
@@ -205,6 +225,110 @@ const fullBuild = {
   push('浅色底：正文/次级/辅助/章节号/四态/评级色 全部 ≥ 4.5:1', bad, [])
   ok('底色确实是浅色（正文比主底深得多）', ratio(tok.text, tok.bg) > 10)
   ok('进度条填充与轨道可区分（图形 ≥ 3:1）', ratio(tok.accent, tok['surface-2']) >= 3)
+
+  /*
+   * 元素强调色（2026-10-15 用户选定的 B+C 方案，审核 Q7：统一浅色基底 + 元素令牌弱点缀）
+   * 它用在章节号/总分/证据号这些**正文**位置，所以每个元素色都必须在三档浅底上 ≥4.5:1。
+   * 令牌定义在 `meta-ui.css`（攻略页不引 base.css，也要拿到元素色）。
+   */
+  const accTokens = {}
+  for (const m of css.matchAll(/--page-acc:\s*(#[0-9a-fA-F]{3,8});/g)) accTokens[m[1]] = true
+  const accentList = Object.keys(accTokens)
+  ok('元素强调色令牌齐备（默认 + 7 元素 + 物理回落 ≥ 8 个）', accentList.length >= 8, accentList.join(','))
+  const badAcc = []
+  for (const hex of accentList) {
+    for (const [bname, bg] of Object.entries(bgs)) {
+      const r = ratio(hex, bg)
+      if (r < 4.5) badAcc.push(`${hex} on ${bname} = ${r.toFixed(2)}`)
+    }
+  }
+  push('元素强调色在三档浅底上均 ≥4.5:1', badAcc, [])
+  const elemClasses = ['pyro', 'hydro', 'anemo', 'electro', 'dendro', 'cryo', 'geo', 'sr']
+  push('元素类覆盖（自有 gd-elem-* 与 miao elem-* 两套名）',
+    elemClasses.filter(e => !(css.includes(`body.elem-${e}`) && css.includes(`body.gd-elem-${e}`))), [])
+  const baseCss = readText(path.join(pluginRoot, 'resources', 'common', 'base.css'))
+  ok('浅色底层是 opt-in（只有 .page--soft 才铺）',
+    baseCss.includes('.page--soft::before') && !/^\.page::before/m.test(baseCss))
+  push('三张自有图铺元素底（page--elem；攻略页由 miao 侧元素底 + 自带元素类）',
+    ['dps/grade.html', 'dps/akasha-build.html', 'dps/team-damage.html']
+      .filter(f => !readText(path.join(pluginRoot, 'resources', f)).includes('class="page page--elem"')), [])
+  /*
+   * 数据区两种排版并存（2026-10-15 用户定）：
+   *   · 练度 / 榜上配装 / 队伍伤害 → 共享 `.mx-*` 组件 + 深色玻璃（M1，向 miao 面板靠）
+   *   · 攻略页 → **回到本插件迭代前的自绘版式**（`card` + `codex-row`，仍走元素底）
+   */
+  push('三张图的数据区用深色玻璃（.mx-content--glass）',
+    ['dps/grade.html', 'dps/akasha-build.html', 'dps/team-damage.html']
+      .filter(f => !readText(path.join(pluginRoot, 'resources', f)).includes('mx-content--glass')), [])
+  {
+    const codex = readText(path.join(pluginRoot, 'resources', 'codex', 'codex.html'))
+    ok('攻略页回到迭代前自绘版式（自绘页头 + 单张内容卡 + codex-row），不继承 miao 图鉴外壳',
+      codex.includes('codex-head') && codex.includes('codex-row') && codex.includes('card-title') &&
+      !/\{\{extend/.test(codex) && !codex.includes('class="wiki-cont"') && !codex.includes('class="cont"'))
+    ok('攻略页同样落在元素底上（page--elem + gd-elem-*）',
+      codex.includes('class="page page--elem"') && codex.includes('gd-elem-{{element}}'))
+  }
+
+  /*
+   * 元素底 + 深色玻璃的 alpha 合成对比度门禁（审核 §4.2）
+   *
+   * 半透明叠底时"令牌色 vs 不透明底"的算法不成立，必须按**实际层序**合成：
+   *   元素底像素 → 压暗层 scrim → 数据区玻璃 → 文字
+   * 元素底最亮像素取实测值（脚本：Pillow 逐像素求 sRGB 相对亮度，取全图最大值）：
+   *   anemo 1.00 / cryo 1.00 / dendro 1.00 / hydro 1.00 / quantum 1.00 / sr 1.00 / geo 0.93 / pyro 0.93 / electro 0.57
+   * 这里**按 1.00（纯白像素）+ p99.9 两档**都算一遍：最亮像素是最坏情况，p99.9 代表"实际有意义的亮部"。
+   */
+  const comp = (fg, alpha, bg) => fg.map((f, i) => alpha * f + (1 - alpha) * bg[i])
+  const rgbOf = (hex) => rgb(hex).map(v => v * 255)
+  const lumOfRgb = (arr) => arr.map(v => v / 255).map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+    .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0)
+  const ratioRgb = (a, b) => {
+    const [x, y] = [lumOfRgb(a), lumOfRgb(b)].sort((p, q) => q - p)
+    return (x + 0.05) / (y + 0.05)
+  }
+  /*
+   * 2026-10-15 定稿：容器不画底（照 miao 的 `.wiki-cont`），文字落在**模块卡**上；
+   * 卡片底 = miao 的 `card-bg.png`（恒定色 + alpha 渐变）**垫同色实底 `--mx-card`** → 合成后就是该实色。
+   */
+  /*
+   * 卡片模板 1:1 照 miao（`card-bg.png`：恒定色 rgb(43,52,61) + alpha 95%→40%），
+   * 文字侧是我们自己的：卡内内容垫一层 `--mx-text-bg`。门禁按**最坏合成**算 ——
+  /*
+   * 卡片模板 1:1 照 miao（`card-bg.png` = 恒定色 rgb(43,52,61) + alpha 95%→40%）——只做**短卡**，
+   * 所以文字落在 alpha 最高的那一段。门禁按"卡内最坏段（alpha 0.70）+ 元素底亮部（各元素 p99.9 均值 0.40）"
+   * 合成出实际底色，再验我们自己的文字色 ≥4.5:1。
+   */
+  const darkBlock = (css.match(/\.mx-content--glass \{([\s\S]*?)\n\}/) || ['', ''])[1]
+  const darkTokens = {}
+  for (const m of darkBlock.matchAll(/--mx-([\w-]+):\s*(#[0-9a-fA-F]{6});/g)) darkTokens[m[1]] = m[2]
+  const artGray = Math.round(255 * Math.sqrt(0.40))
+  const afterCard = [43, 52, 61].map(v => 0.70 * v + 0.30 * artGray)
+  const badCard = []
+  for (const [k, hex] of Object.entries(darkTokens)) {
+    if (!/^(text|secondary|muted|accent|acc|focus|pass|warn|excluded|unknown|tier-)/.test(k)) continue
+    if (ratioRgb(rgbOf(hex), afterCard) < 4.5) badCard.push(`${k} = ${ratioRgb(rgbOf(hex), afterCard).toFixed(2)}`)
+  }
+  push('短卡区段（alpha≥0.70）上的文字全部 ≥4.5:1', badCard, [])
+  console.log(`     卡内最坏底 rgb(${afterCard.map(v => Math.round(v)).join(',')})：正文 ${ratioRgb(rgbOf(darkTokens.text || '#fff'), afterCard).toFixed(2)}:1 ／ 辅助 ${ratioRgb(rgbOf(darkTokens.muted || '#fff'), afterCard).toFixed(2)}:1`)
+  const tplNow = readText(path.join(pluginRoot, 'resources', 'dps', 'grade.html'))
+  ok('数据区拆成≥6张短卡（避免长卡踩底片下半段的 alpha 衰减）',
+    (tplNow.match(/<section class="mx-section/g) || []).length >= 6,
+    String((tplNow.match(/<section class="mx-section/g) || []).length))
+  ok('数据区容器不画底（照 miao 的 .wiki-cont）',
+    /\.mx-content--glass \{[\s\S]*?--mx-paper: transparent;/.test(css) && /\.mx-content--glass \{[\s\S]*?border: none;/.test(css))
+    /* 纸面必须是**不透明**底（Mica 风格）：取 `.mx-content { … }` 本体判断，别扫到后面的伪元素 */
+  const faceBlock = (css.match(/\.mx-content \{([\s\S]*?)\n\}/) || ['', ''])[1]
+  ok('浅色默认纸面仍是**不透明**底（背景不给半透明）',
+    faceBlock.includes('background: var(--mx-paper, var(--mx-bg));') &&
+    !/background:\s*rgba\(/.test(faceBlock) && !/background:\s*#[0-9a-fA-F]{8}/.test(faceBlock))
+  ok('纸面带细描边与柔和投影 + 极轻噪点（程序生成）',
+    /\.mx-content \{[\s\S]*?border: 1px solid/.test(css) && /\.mx-content \{[\s\S]*?box-shadow:/.test(css) &&
+    /\.mx-content \{[\s\S]*?data:image\/svg\+xml/.test(css))
+  ok('过渡带只在浅色主题页生效（不糊 miao 攻略页页头）',
+    /\.page--soft \.mx-content::before \{/.test(css) && !/^\.mx-content::before/m.test(css))
+  ok('元素色细条 + 过渡带都在纸面自己的伪元素上',
+    /\.mx-content::after \{[^}]*var\(--mx-acc\)/.test(css) && /\.mx-content::before \{[^}]*--mx-hero-fade/.test(css))
+  ok('过渡带高度可一键关闭（--mx-hero-fade）', css.includes('--mx-hero-fade: 96px'))
   push('对比度实测（正文/辅助/未达标/达标 vs 内容底）',
     ['text', 'muted', 'warn', 'pass'].map(t => `${t}=${ratio(tok[t], tok.surface).toFixed(2)}`),
     ['text=15.11', 'muted=5.71', 'warn=5.98', 'pass=5.99'])

@@ -1,172 +1,167 @@
-{{extend elemLayout}}
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+  <!-- 天赋图标（元素环 + 等级牌 + 皇冠）沿用 miao 的组件样式：只引用，不复制 -->
+  <link rel="stylesheet" type="text/css" href="{{_miao_path}}common/tpl.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_miao_path}}character/profile-detail.css"/>
+  <style>
+    /* 攻略页版式：**回到本插件迭代前的自绘攻略页**（2026-10-15 用户定）
+       页头（立绘 + 名字 + 定位 + 属性行）→ 单张内容卡里分块 → 版权；
+       类名与配色走本项目自己的规范（components.css 的 card/card-title/kv-item + base.css 的 :root 令牌），
+       不沿用 miao 图鉴的卡片外壳（`wiki-cont`/`cont`）；只有天赋图标用 miao 的 `.talent-icon`。 */
+    .codex-head { display: flex; gap: 14px; align-items: flex-start; }
+    .codex-portrait {
+      flex: 0 0 auto;
+      width: 148px;
+      height: 148px;
+      border-radius: 12px;
+      border: 1px solid var(--line-soft);
+      background: var(--card-2) center top / cover no-repeat;
+    }
+    .codex-head-main { flex: 1 1 auto; min-width: 0; }
+    .codex-name { font-size: 30px; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .codex-name .codex-name-sub { margin-left: 8px; font-size: 17px; font-weight: 400; color: var(--muted); }
+    .codex-desc { margin-top: 4px; font-size: 18px; color: var(--muted); }
+    .codex-meta { margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 3px 20px; }
 
-{{block 'css'}}
-<!--
-  攻略页：版式与类名**取自 miao-plugin 的角色图鉴页**（resources/wiki/character-wiki.html），
-  样式与字体、图标一律在运行时引用 miao 的资源（{{_miao_path}}）——
-  即「界面与 miao 图鉴一致」，但本仓库不复制/再分发 miao 的 CSS 与字体资产。
+    .codex-section { margin-top: 10px; }
+    .codex-section:first-child { margin-top: 0; }
+    .codex-row { display: flex; gap: 10px; align-items: baseline; padding: 3px 0; }
+    .codex-row + .codex-row { border-top: 1px dashed var(--line-soft); }
+    .codex-row-label { flex: 0 0 auto; min-width: 72px; font-size: 17px; font-weight: 700; color: var(--muted); }
+    .codex-row-items { flex: 1 1 auto; min-width: 0; font-size: 19px; line-height: 1.5; color: var(--text); }
+    .codex-tier { font-weight: 700; }
+    .codex-tier.label-推荐 { color: var(--gold); }
+    .codex-tier.label-可选 { color: var(--accent); }
+    .codex-tier.label-过渡 { color: var(--muted); }
+    /* 长标签（「月结晶/月感电」）：标签独占一行并按语义边界分行，右列不挤断（2026-10-15 审核 4.4） */
+    .codex-row--long { flex-direction: column; gap: 2px; }
+    .codex-row--long .codex-row-label { min-width: 0; }
+    .codex-tier-line { display: block; }
 
-  miao-plugin 为 MIT License（Copyright (c) 2023 Yoimiya），本机部署的是 AxiuCN 维护的 fork 改版。
-  本模板的衍生关系与许可见仓库 README 的「模板来源与许可」一节。
--->
-<link rel="stylesheet" type="text/css" href="{{_miao_path}}common/tpl.css"/>
-<link rel="stylesheet" type="text/css" href="{{_miao_path}}character/profile-detail.css"/>
-<link rel="stylesheet" type="text/css" href="{{_miao_path}}wiki/character-wiki.css"/>
-<link rel="stylesheet" type="text/css" href="{{_res_path}}/common/meta-ui.css"/>
-<style>
-  /* ===== 数据区版式：按旧攻略页（Atlas codex 页）的比例折算到 600px 单列 =====
-     旧页的行 24px / 条目图标 34px / 天赋图标 44px / 卡片内边距 22px 是在更宽画布上量的，
-     这里按「条目图标 ≈ 1.4× 行字号、天赋图标 ≈ 2× 行字号、内边距 ≈ 行字号」折算。
-     卡片本体（.cont 的底纹、圆角、标题条）保持 miao 的，不动。 */
-  .codex-body { padding: 12px 20px 14px; }
-  .codex-row { display: grid; grid-template-columns: 100px minmax(0, 1fr); column-gap: 10px; align-items: start; font-size: 22px; line-height: 1.7; margin: 0; }
-  .codex-row-nolabel { grid-template-columns: minmax(0, 1fr); }
-  .codex-row + .codex-row { margin-top: 8px; }
-  .codex-row .row-label { font-size: 20px; font-weight: 700; line-height: 1.8; }
-  .codex-value { min-width: 0; overflow-wrap: break-word; }
-  /* 面板行：数值加粗放大（旧页 `.codex-stats` 的同一处理），标签弱化 */
-  .codex-stats-row { font-size: 25px; font-weight: 700; }
-  .codex-stats-row .row-label { font-size: 19px; font-weight: 400; opacity: .8; }
-  .codex-item { white-space: nowrap; }
-  /* 条目 + 其后的分隔符绑成整体（旧页 `.rank-unit` 的做法）：换行时「›」不会跑到行首，名字也不会被拆开 */
-  .codex-unit { display: inline-block; white-space: nowrap; }
-  .codex-unit + .codex-unit { margin-left: 6px; }
-  /* 配队成员同理：头像 + 名字不拆行 */
-  .codex-member { display: inline-block; white-space: nowrap; }
-  .codex-item.sig-strict { color: #ff7b7b; font-weight: 600; }
-  .codex-item.sig-alt { color: #7fe0b0; font-weight: 600; }
-  .codex-sep { margin: 0 4px; font-size: 20px; opacity: .6; }
-  .codex-note { margin-left: 3px; font-size: .82em; opacity: .75; }
-  .codex-empty { font-size: 21px; opacity: .7; }
-  .codex-hint { margin-top: 4px; padding: 0 20px; font-size: 19px; font-style: italic; opacity: .7; }
-  .codex-team .team-tag { font-weight: 700; margin-right: 8px; }
-  .codex-team .team-note { font-size: .82em; font-style: italic; opacity: .75; }
-  /* 图标：条目图标 30px、配队头像 40px（旧页为 34 / 44 级，我们列更窄故略收）——绝对值，不再随字号缩放 */
-  .codex-icon { display: inline-block; width: 30px; height: 30px; margin-right: 6px; vertical-align: middle; border-radius: 6px; background-size: cover; background-position: center; }
-  .codex-face { display: inline-block; width: 40px; height: 40px; margin-right: 6px; vertical-align: middle; border-radius: 50%; background-size: cover; background-position: center top; }
-  /* 页脚留白：miao 默认 `margin: 10px 0` 贴得太近，正文块与版权之间补开 */
-  .copyright { margin: 18px 0 10px; }
-  .wiki-cont { padding-bottom: 4px; }
+    .codex-item { white-space: nowrap; }
+    .codex-item-text { color: var(--text); }
+    /* 专武标色：严格专武红、实际专属绿（`_signature.json` 的 专武 / 实际） */
+    .codex-item.sig-strict .codex-item-text { color: var(--red); font-weight: 700; }
+    .codex-item.sig-alt .codex-item-text { color: var(--green); font-weight: 700; }
+    .codex-note-inline { margin-left: 2px; font-size: 16px; color: var(--muted-2); }
+    .codex-sep { margin: 0 4px; color: var(--muted-2); font-size: 16px; }
+    .codex-empty { font-size: 18px; color: var(--muted-2); }
+    .codex-hint { margin-top: 4px; font-size: 16px; color: var(--muted-2); }
 
-  /* ===== 页头比例：立绘区收小（miao 把 .basic 也固定成 500px，必须连它一起收） ===== */
-  .basic { height: auto; }
-  .basic .main-pic { height: 340px; }
-  .wiki-cont .cont { font-size: 22px; }
-  .wiki-cont .cont-title { font-size: 23px; padding: 10px 20px; }
+    .codex-teams { display: flex; flex-direction: column; gap: 3px; }
+    .codex-team { font-size: 19px; color: var(--text); }
+    .codex-team-tag { font-weight: 700; margin-right: 6px; }
+    .codex-team-tag.label-推荐 { color: var(--gold); }
+    .codex-team-tag.label-可选 { color: var(--accent); }
+    .codex-team-tag.label-过渡 { color: var(--muted); }
+    .codex-team-note { font-size: 16px; color: var(--muted-2); }
 
-  /* ===== 天赋：沿用 miao 面板的 .talent-icon 组件（元素环 + 图标 + 等级牌 + 皇冠角标），
-     按数据区比例从 100px 缩到 44px（旧页天赋图标即 44px 级） ===== */
-  .codex-talents { display: flex; gap: 18px; align-items: flex-start; padding: 2px 0; }
-  .codex-talents .talent-icon { width: 44px; height: 44px; padding: 2px; }
-  .codex-talents .talent-icon strong { min-width: 24px; height: 17px; line-height: 17px; font-size: 13px; margin-left: -12px; bottom: -3px; border-radius: 4px; }
-  .codex-talents .talent-icon.talent-crown:after { width: 16px; height: 16px; top: -4px; }
-  /* 无图标的天赋（如胡桃 A：miao 目录里没有 talent-a 且 talentCons.a=0）用字母占位，位置与 miao 的 img 对齐 */
-  .codex-talent-letter { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; font-weight: 700; color: #fff; text-shadow: 0 0 5px #000; }
-</style>
-{{/block}}
+    /* 条目图标 / 配队头像（引用 miao 资源，尺寸按数据区比例） */
+    .codex-icon { display: inline-block; width: 26px; height: 26px; margin-right: 6px; vertical-align: middle; border-radius: 6px; background-size: cover; background-position: center; }
+    .codex-face { display: inline-block; width: 32px; height: 32px; margin-right: 6px; vertical-align: middle; border-radius: 50%; background-size: cover; background-position: center top; }
 
-{{block 'main'}}
-<div class="basic">
-  {{if portrait}}
-  <div class="main-pic" style="background-image:url({{_miao_path}}{{portrait}})"></div>
-  {{/if}}
-  <div class="detail">
-    <div class="char-title">
-      <div class="char-name">{{name}}<span> · 攻略</span></div>
-    </div>
-    <div class="char-meta">
-      {{if metaRows.length > 0}}
-      <div class="cont">
-        <ul class="attr char-attr">
-          {{each metaRows row}}
-          <li><strong>{{row.label}}</strong> <span>{{row.value}}</span></li>
-          {{/each}}
-        </ul>
-      </div>
-      {{/if}}
-    </div>
-  </div>
-</div>
+    /* 天赋：沿用 miao 面板的 .talent-icon 组件（元素环 + 图标 + 等级牌 + 皇冠角标），按数据区比例缩小 */
+    .codex-talents { display: flex; gap: 18px; align-items: flex-start; padding: 2px 0; }
+    .codex-talents .talent-icon { width: 44px; height: 44px; padding: 2px; }
+    .codex-talents .talent-icon strong { min-width: 24px; height: 17px; line-height: 17px; font-size: 13px; margin-left: -12px; bottom: -3px; border-radius: 4px; }
+    .codex-talents .talent-icon.talent-crown:after { width: 16px; height: 16px; top: -4px; }
+    .codex-talent-letter { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; font-weight: 700; color: #fff; text-shadow: 0 0 5px #000; }
 
-<div class="wiki-cont">
-  <!--
-    数据区（2026-10-15 UI 重构「档案批注」）：章节序号 + 共享 `.mx-*` 行组件 + 来源条。
-    上面 miao 的页头 / 立绘 / metaRows 与 miao 的 CSS、字体、图标引用**一律未动**，
-    天赋仍用 miao 的 `.talent-icon` 组件（元素环 + 图标 + 等级牌 + 皇冠）。
-  -->
-  <main class="mx-content">
-    <div class="mx-reading-key">阅读键：{{mx.legend}}</div>
-
-    {{each mx.sections section}}
-    <section class="mx-section">
-      <header class="mx-section__head">
-        <span class="mx-section__index">{{section.index}}</span>
-        <h2 class="mx-section__title">{{section.title}}</h2>
-        {{if section.hint}}<span class="mx-section__hint">{{section.hint}}</span>{{/if}}
-      </header>
-
-      {{if section.empty}}
-      <div class="mx-empty">{{section.emptyText}}</div>
-
-      {{else if section.teams.length > 0}}
-      {{each section.teams team}}
-      <div class="mx-team">
-        {{if team.tag}}<span class="mx-team__tag">{{team.tag}}</span>{{/if}}
-        <span class="mx-team__members">{{each team.members member}}<span class="mx-unit">{{if member.icon}}<span class="mx-face" style="background-image:url({{_miao_path}}{{member.icon}})"></span>{{/if}}{{member.name}}{{if member.note}}<span class="mx-inline-note">（{{member.note}}）</span>{{/if}}</span>{{if $index < team.members.length - 1}}<span class="mx-sep">+</span>{{/if}}{{/each}}</span>
-        {{if team.text}}<span class="mx-team__note">{{team.text}}</span>{{/if}}
-      </div>
-      {{/each}}
-
-      {{else}}
-      {{each section.rows row}}
-
-      {{if row.kind === 'talents'}}
-      <!-- 天赋三格：沿用 miao 的 .talent-icon（元素环 + 图标 + 等级牌 + 皇冠角标），尺寸由本页 <style> 缩放 -->
-      <div class="mx-talents">
-        {{each row.items item}}
-        <div class="talent-icon{{if item.crown}} talent-crown{{/if}}">
-          {{if item.icon}}
-          <img src="{{_miao_path}}{{item.icon}}"/>
-          {{else}}
-          <span class="codex-talent-letter">{{item.text}}</span>
+    /* 数据来源一行（视图层投影给出；版权照旧） */
+    .codex-source { font-size: 16px; color: var(--muted-2); padding: 2px 0; }
+  </style>
+</head>
+<body class="gd-elem-{{element}}" style="zoom:{{renderScale}}">
+  <div class="page page--elem">
+    <div class="page-inner">
+      <div class="card head-card">
+        <div class="codex-head">
+          {{if portrait}}
+          <div class="codex-portrait" style="background-image: url('{{_miao_path}}{{portrait}}')"></div>
           {{/if}}
-          <strong>{{item.talentLevel}}</strong>
+          <div class="codex-head-main">
+            <div class="codex-name">{{name}}<span class="codex-name-sub">{{subTitle}}</span></div>
+            {{if meta['定位']}}
+            <div class="codex-desc">{{meta['定位']}}</div>
+            {{/if}}
+            {{if metaRows.length > 0}}
+            <div class="codex-meta">
+              {{each metaRows row}}
+              {{if row.label !== '定位'}}
+              <div class="kv-item"><span class="kv-label">{{row.label}}</span><span class="kv-value">{{row.value}}</span></div>
+              {{/if}}
+              {{/each}}
+            </div>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+
+      <div class="card body-card">
+        {{each mx.sections section}}
+        <div class="codex-section">
+          <div class="card-title">{{section.title}}</div>
+
+          {{if section.empty}}
+          <div class="codex-empty">{{section.emptyText}}</div>
+
+          {{else if section.teams.length > 0}}
+          <div class="codex-teams">
+            {{each section.teams team}}
+            <div class="codex-team">
+              {{if team.tag}}<span class="codex-team-tag">{{team.tag}}</span>{{/if}}
+              {{each team.members member}}{{if member.icon}}<span class="codex-face" style="background-image:url({{_miao_path}}{{member.icon}})"></span>{{/if}}{{member.name}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}
+              {{if team.text}}<span class="codex-team-note">{{team.text}}</span>{{/if}}
+            </div>
+            {{/each}}
+          </div>
+
+          {{else}}
+          {{each section.rows row}}
+          {{if row.kind === 'talents'}}
+          <div class="codex-talents">
+            {{each row.items item}}
+            <div class="talent-icon{{if item.crown}} talent-crown{{/if}}">
+              {{if item.icon}}
+              <img src="{{_miao_path}}{{item.icon}}"/>
+              {{else}}
+              <span class="codex-talent-letter">{{item.text}}</span>
+              {{/if}}
+              <strong>{{item.talentLevel}}</strong>
+            </div>
+            {{/each}}
+          </div>
+          {{else}}
+          <div class="codex-row{{if row.longLabel}} codex-row--long{{/if}}">
+            {{if row.longLabel}}
+            <div class="codex-row-label"><span class="codex-tier">{{each row.labelLines l}}<span class="codex-tier-line">{{l}}</span>{{/each}}</span></div>
+            {{else if row.label}}<div class="codex-row-label"><span class="codex-tier">{{row.label}}</span></div>{{/if}}
+            <div class="codex-row-items">
+              {{each row.items item}}
+              <span class="codex-item{{if item.tone === 'sig'}} sig-strict{{/if}}{{if item.tone === 'alt'}} sig-alt{{/if}}">{{if item.icon}}<span class="codex-icon" style="background-image:url({{_miao_path}}{{item.icon}})"></span>{{/if}}<span class="codex-item-text">{{item.text}}</span>{{if item.note}}<span class="codex-note-inline">{{item.note}}</span>{{/if}}</span>{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}
+              {{/each}}
+            </div>
+          </div>
+          {{/if}}
+          {{/each}}
+          {{/if}}
+
+          {{if section.title === '武器' && section.hint}}<div class="codex-hint">{{section.hint}}</div>{{/if}}
         </div>
         {{/each}}
       </div>
 
-      {{else}}
-      <div class="mx-guide-row{{if row.kind === 'stats'}} mx-guide-row--stats{{/if}}{{if !row.label}} mx-guide-row--nolabel{{/if}}{{if row.longLabel}} mx-guide-row--longlabel{{/if}}">
-        {{if row.longLabel}}
-        <span class="mx-guide-label">{{each row.labelLines l}}<span class="mx-guide-label__line">{{l}}</span>{{/each}}</span>
-        {{else if row.label}}<span class="mx-guide-label">{{row.label}}</span>{{/if}}
-        <span class="mx-guide-value">
-          {{each row.items item}}
-          <span class="mx-unit"><span class="mx-item{{if item.tone}} mx-item--{{item.tone}}{{/if}}">{{if item.marker}}<span class="mx-marker">{{item.marker}}</span>{{/if}}{{if item.icon}}<span class="mx-icon" style="background-image:url({{_miao_path}}{{item.icon}})"></span>{{/if}}{{item.text}}{{if item.note}}<span class="mx-inline-note">{{item.note}}</span>{{/if}}</span>{{if item.sepAfter}}<span class="mx-sep">{{item.sepAfter}}</span>{{/if}}</span>
-          {{/each}}
-        </span>
+      <div class="card foot-card">
+        {{each mx.sources s}}
+        <div class="codex-source">{{s.name}} · {{if s.updatedAt}}更新时间 {{s.updatedAt}}{{else}}时间未提供{{/if}} · {{s.modeText}}</div>
+        {{/each}}
+        <div class="copyright">{{copyright}}</div>
       </div>
-      {{/if}}
-
-      {{/each}}
-      {{/if}}
-    </section>
-    {{/each}}
-
-    <aside class="mx-source-list">
-      {{each mx.sources s}}
-      <div class="mx-source">
-        <strong class="mx-source__name">{{s.name}}</strong>
-        <span class="mx-source__time">{{if s.updatedAt}}更新时间 {{s.updatedAt}}{{else}}时间未提供{{/if}}</span>
-        <span class="mx-source__state">{{s.modeText}}</span>
-      </div>
-      {{/each}}
-    </aside>
-
-    <footer class="mx-footer">
-      <p class="mx-footer__method">口径：攻略内容以本仓库数据为准，图片与图标引用 miao-plugin 资源。</p>
-      <!-- 版权由 miao 布局（{{extend elemLayout}}）统一输出，这里不重复 -->
-    </footer>
-  </main>
-</div>
-{{/block}}
+    </div>
+  </div>
+</body>
+</html>

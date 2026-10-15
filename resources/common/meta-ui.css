@@ -12,6 +12,27 @@
  * 全部按**普通文字 ≥ 4.5:1** 验证（`test/presentation.test.mjs` 用同一套 WCAG 公式算）。
  */
 
+/*
+ * 元素强调色令牌（2026-10-15 用户选定的 B+C 方案，审核 Q7：统一浅色基底 + 元素令牌弱点缀）
+ *
+ * 放在本文件（而不是 base.css）：攻略页继承 miao 外壳、**不引** base.css，但同样要用元素色点缀数据区；
+ * 两套元素类名都要认 —— 自有模板是 `gd-elem-{element}`，miao 布局是 `elem-{element}`。
+ * 所有颜色按「不透明浅底上的正文色」选，每个都在三档浅底上 ≥4.5:1（见 test/presentation.test.mjs）。
+ */
+:root {
+  --page-acc: #7d5a1c;
+  --page-acc-soft: rgba(125, 90, 28, .10);
+}
+body.elem-pyro, body.gd-elem-pyro { --page-acc: #a8492a; --page-acc-soft: rgba(168, 73, 42, .13); }
+body.elem-hydro, body.gd-elem-hydro { --page-acc: #2a63a3; --page-acc-soft: rgba(42, 99, 163, .13); }
+body.elem-anemo, body.gd-elem-anemo { --page-acc: #1a6b4f; --page-acc-soft: rgba(26, 107, 79, .13); }
+body.elem-electro, body.gd-elem-electro { --page-acc: #6a4bbb; --page-acc-soft: rgba(106, 75, 187, .13); }
+body.elem-dendro, body.gd-elem-dendro { --page-acc: #3f6a17; --page-acc-soft: rgba(63, 106, 23, .13); }
+body.elem-cryo, body.gd-elem-cryo { --page-acc: #23707e; --page-acc-soft: rgba(35, 112, 126, .13); }
+body.elem-geo, body.gd-elem-geo { --page-acc: #7d5a1c; --page-acc-soft: rgba(125, 90, 28, .13); }
+/* 物理 / 未识别元素：退回中性灰，不用彩色冒充 */
+body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59616f; --page-acc-soft: rgba(89, 97, 111, .12); }
+
 .mx-content {
   --mx-bg: #ffffff;
   --mx-surface: #f2f5fa;
@@ -44,14 +65,174 @@
   --mx-body-leading: 1.55;
   --mx-note-size: 14px;
   --mx-score-size: 58px;
+  /* 元素强调色（弱点缀）：默认取页面令牌 `--page-acc`（base.css 按元素类给出），取不到才用中性金 */
+  --mx-acc: var(--page-acc, #7d5a1c);
+  /* 立绘 → 纸面的过渡带高度（0 = 关闭；调大调小只改这一个值） */
+  --mx-hero-fade: 96px;
 
-  background: var(--mx-bg);
-  border-radius: var(--mx-radius);
+  /*
+   * 纸面（Mica 风格：**不透明**、低对比、预先柔化）：细描边 + 柔和投影 + 极轻噪点（data-URI，程序生成）。
+   * `background-image` 必须写在 `background` 简写**之后**，否则会被简写清掉。
+   */
+  background: var(--mx-paper, var(--mx-bg));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  border: 1px solid var(--mx-paper-border, #e1e6ee);
+  box-shadow: 0 1px 0 rgba(16, 18, 25, .05), 0 14px 34px var(--mx-paper-shadow, rgba(16, 18, 25, .12));
   color: var(--mx-text);
   font-size: var(--mx-body-size);
   line-height: var(--mx-body-leading);
   margin-top: var(--mx-space-4);
   padding: var(--mx-space-4) var(--mx-space-5) var(--mx-space-3);
+  position: relative;
+}
+
+/*
+ * 元素底页的数据区（成品版，2026-10-15）：**miao 图鉴式模块卡**
+ *
+ * 表层照 miao 的图鉴模块卡（`common/common.css` 的 `.cont` / `.cont-title`）：
+ *   · 10px 圆角 + 柔和外阴影 + 1px 浅色内环；标题条 `rgba(0,0,0,.4)` + 金色 `#d3bc8e`
+ *   · 每个章节各自一张卡（miao 图鉴页的分块方式），元素底在卡片之间透出
+ * 内部行**不再用斑马底**（miao 图鉴模块里没有斑马），改为细分隔线 + 行高呼吸；
+ * 文字沿用浅色令牌 + miao 的压暗阴影；不透明度按"元素底最亮处 + 压暗层"的合成色验过
+ * （`test/presentation.test.mjs` 的 alpha 合成门禁）。
+ */
+.mx-content--glass {
+  /*
+   * 底片全部照 miao 图鉴页（2026-10-15 定稿）：
+   *   · 容器**不画底**（miao 的 `.wiki-cont` 只有 padding，整页唯一的 50% 压暗是 68px 小徽章）
+   *   · 每个章节 = 一张 miao `.cont`：`card-bg.png` 纹理 + 10px 圆角 + miao 的阴影 + 金标题条
+   *   · 纹理是"**恒定色 rgb(43,52,61) + 竖向 alpha 渐变（95%→40%）**"（逐像素实测），
+   *     拉满长卡时下半段会透出元素底、白字发虚 → 在纹理下垫**同色实底** `#2b343d`（同色，观感不变、文字稳）
+   */
+  --mx-paper: transparent;
+  /* 容器照 miao 的 `.wiki-cont`：不画底、不描边、不投影、不加圆角 */
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0 0 4px;
+  --mx-paper-border: rgba(255, 255, 255, .10);
+  --mx-paper-shadow: rgba(0, 0, 0, .40);
+  --mx-gold: #d3bc8e;
+  --mx-plus: #90e800;
+  border-radius: 10px;
+  overflow: hidden;
+  --mx-surface: rgba(255, 255, 255, .05);
+  --mx-surface-2: rgba(0, 0, 0, .35);
+  --mx-text: #f4f6fb;
+  --mx-secondary: #e8eef7;
+  --mx-muted: #cdd6e4;
+  --mx-accent: #e8d9b4;
+  --mx-acc: #e8d9b4;
+  --mx-focus: #a9d1ff;
+  --mx-pass: #a4e483;
+  --mx-warn: #ffc4bf;
+  --mx-excluded: #dcc8ff;
+  --mx-unknown: #cdd6e4;
+  --mx-tier-max: #ffc4bf;
+  --mx-tier-sss: #ffe699;
+  --mx-tier-sa: #dcc8ff;
+  --mx-rule: rgba(255, 255, 255, .10);
+  /* 元素底上不需要"立绘→纸面"的浅色过渡带（元素底本身就是连续的） */
+}
+.mx-content--glass::before { display: none; }
+/* 我们自己的顶条也不要（miao 的 .cont 没有这条） */
+.mx-content--glass::after { display: none; }
+/*
+ * 模块卡**照 miao 的 `.cont`**：底片 = miao 的 `common/cont/card-bg.png`（top left repeat-x、auto 100% 拉满卡高），
+ * 圆角 10px + 外阴影 + 1px 浅环。
+ * ⚠ 那张底片是"上深下浅"的竖向渐变，长卡拉到下半段会发白、浅字读不清 —— 所以在它下面垫一层同色深底
+ * （`--mx-card`），并按卡片实际合成色过对比度门禁（`test/presentation.test.mjs`）。
+ */
+.mx-content--glass .mx-section {
+  border-top: none;
+  /* miao .cont 的外边距原样：5px 15px 5px 10px */
+  margin: 5px 15px 5px 10px;
+  padding: 0 0 var(--mx-space-3);
+  background-image: url("../../../../plugins/miao-plugin/resources/common/cont/card-bg.png");
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position: top left;
+  border-radius: 10px;
+  box-shadow: 0 0 1px 0 rgba(255, 255, 255, .35), 2px 2px 4px rgba(0, 0, 0, .45);
+  overflow: hidden;
+}
+.mx-content--glass .mx-section--first { margin-top: 0; }
+/* 标题条：照 miao 的 `.cont-title`（细白环 + 金标题 + 上圆角） */
+.mx-content--glass .mx-section__head {
+  background: rgba(0, 0, 0, .40);
+  box-shadow: 0 0 1px 0 rgba(255, 255, 255, .55);
+  padding: 9px var(--mx-space-5);
+  margin-bottom: var(--mx-space-3);
+  border-radius: 10px 10px 0 0;
+}
+.mx-content--glass .mx-section__title { color: var(--mx-gold); font-size: 19px; }
+.mx-content--glass .mx-section__hint { color: var(--mx-muted); }
+/* 进度尺：miao 的金色权重牌口径 */
+.mx-content--glass .mx-meter { background: rgba(0, 0, 0, .5); border-radius: 5px; }
+.mx-content--glass .mx-meter__fill { background: linear-gradient(90deg, var(--mx-gold), #ffc861); }
+/* 行：去掉斑马底，改为细分隔线（miao 图鉴模块的做法），行高留呼吸 */
+.mx-content--glass .mx-dimension,
+.mx-content--glass .mx-guide-row,
+.mx-content--glass .mx-reference-row {
+  min-height: 30px;
+  padding: 4px var(--mx-space-5);
+  text-shadow: 0 0 1px rgba(0, 0, 0, .8), 1px 1px 3px rgba(0, 0, 0, .5);
+}
+.mx-content--glass .mx-dimension + .mx-dimension,
+.mx-content--glass .mx-guide-row + .mx-guide-row,
+.mx-content--glass .mx-reference-row + .mx-reference-row { border-top: 1px solid var(--mx-rule); }
+.mx-content--glass .mx-verdict { padding: 0 var(--mx-space-5) var(--mx-space-2); }
+.mx-content--glass .mx-dimensions,
+.mx-content--glass .mx-source-list,
+.mx-content--glass .mx-recommendations { padding: 0; }
+.mx-content--glass .mx-source { padding: 4px var(--mx-space-5); }
+.mx-content--glass .mx-source + .mx-source { border-top: 1px solid var(--mx-rule); }
+.mx-content--glass .mx-compare,
+.mx-content--glass .mx-recommendation { padding: var(--mx-space-2) var(--mx-space-5); }
+.mx-content--glass .mx-compare + .mx-compare,
+.mx-content--glass .mx-recommendation + .mx-recommendation { border-top: 1px solid var(--mx-rule); }
+.mx-content--glass .mx-footer { margin: 0; padding: var(--mx-space-3) var(--mx-space-5) var(--mx-space-4); border-top: 1px solid var(--mx-rule); }
+.mx-content--glass .mx-dimensions,
+.mx-content--glass .mx-source-list,
+.mx-content--glass .mx-recommendations { border-radius: 8px; overflow: hidden; }
+.mx-content--glass .mx-source { padding: 3px var(--mx-space-3); }
+.mx-content--glass .mx-source + .mx-source { border-top: 1px solid var(--mx-rule); }
+.mx-content--glass .mx-meter--unscored,
+.mx-content--glass .mx-meter--unknown { background: transparent; }
+
+/*
+ * 立绘 → 纸面的过渡带（2026-10-15 用户选定的 C 方案）
+ *
+ * 只在**浅色主题页**（`.page--soft`）生效：攻略页继承 miao 外壳，不该被这层雾盖住它的页头
+ * （2026-10-15 预渲染发现：无条件铺会把 miao 的元素底图下部糊白）。
+ * 立绘行的 DOM 与样式**一行未动**：这里只是纸面自己的上沿渐变。觉得压到立绘就调 `--mx-hero-fade`（0 = 关闭）。
+ */
+.page--soft .mx-content::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(-1 * var(--mx-hero-fade));
+  height: var(--mx-hero-fade);
+  background: linear-gradient(180deg,
+    rgba(238, 241, 247, 0) 0%,
+    rgba(238, 241, 247, .55) 52%,
+    rgba(255, 255, 255, .92) 88%,
+    #fff 100%);
+  pointer-events: none;
+}
+
+/* 纸面顶部 3px 元素色细条（弱点缀的第二处） */
+.mx-content::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  border-radius: var(--mx-radius) var(--mx-radius) 0 0;
+  background: linear-gradient(90deg, var(--mx-acc), rgba(255, 255, 255, 0));
+  pointer-events: none;
 }
 
 /********  章节  ********/
@@ -64,7 +245,7 @@
   gap: var(--mx-space-2);
   margin-bottom: var(--mx-space-2);
 }
-.mx-content .mx-section__index { color: var(--mx-accent); font-weight: 700; min-width: 24px; }
+.mx-content .mx-section__index { color: var(--mx-acc); font-weight: 700; min-width: 24px; }
 .mx-content .mx-section__title { margin: 0; font-size: 21px; line-height: 1.35; color: var(--mx-text); }
 .mx-content .mx-section__hint { margin-left: auto; font-size: var(--mx-note-size); color: var(--mx-muted); }
 .mx-content .mx-empty { color: var(--mx-muted); font-size: var(--mx-note-size); }
@@ -72,7 +253,7 @@
 /********  结论带  ********/
 .mx-content .mx-verdict { display: flex; align-items: flex-end; gap: var(--mx-space-3); flex-wrap: wrap; }
 .mx-content .mx-verdict__label { flex: 1 1 100%; font-size: var(--mx-note-size); color: var(--mx-muted); }
-.mx-content .mx-verdict__score { font-size: var(--mx-score-size); font-weight: 800; line-height: 1; color: var(--mx-text); }
+.mx-content .mx-verdict__score { font-size: var(--mx-score-size); font-weight: 800; line-height: 1; color: var(--mx-acc); }
 .mx-content .mx-verdict__score small { font-size: var(--mx-note-size); font-weight: 400; color: var(--mx-muted); margin-left: 6px; }
 .mx-content .mx-verdict__rank { font-size: 27px; font-weight: 800; line-height: 1.1; letter-spacing: 1px; }
 .mx-content .mx-verdict__tier { margin-left: auto; text-align: right; color: var(--mx-secondary); }
@@ -126,7 +307,7 @@
   padding: var(--mx-space-2) 0;
 }
 .mx-content .mx-compare + .mx-compare { border-top: 1px solid var(--mx-rule); }
-.mx-content .mx-evidence-id { flex: 0 0 40px; color: var(--mx-accent); font-weight: 700; font-size: var(--mx-note-size); padding-top: 3px; }
+.mx-content .mx-evidence-id { flex: 0 0 40px; color: var(--mx-acc); font-weight: 700; font-size: var(--mx-note-size); padding-top: 3px; }
 .mx-content .mx-compare__body { flex: 1 1 auto; min-width: 0; }
 .mx-content .mx-compare__head { display: flex; align-items: baseline; gap: var(--mx-space-2); flex-wrap: wrap; }
 .mx-content .mx-compare__group { font-size: var(--mx-note-size); color: var(--mx-muted); }

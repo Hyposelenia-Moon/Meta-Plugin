@@ -212,7 +212,7 @@
   </style>
 </head>
 <body class="gd-elem-{{elemClass}}" style="zoom:{{renderScale}}">
-  <div class="page">
+  <div class="page page--elem">
     <div class="page-inner">
       <!-- ① 结论 -->
       <div class="card head-card">
@@ -265,8 +265,13 @@
         数据区（2026-10-15 UI 重构「档案批注」）：`main.mx-content` 内的章节序号 + 证据号 + 四态章 + 来源条。
         ⚠ 上面 `.gd-basic` 整棵子树（立绘行）**一字未动**，共享样式也只作用于 `.mx-content` 内。
       -->
-      <main class="mx-content">
-        <!-- 01 结论 -->
+      <main class="mx-content mx-content--glass">
+        <!--
+          数据区（2026-10-15 定）：卡片模板**照抄 miao 图鉴页**（元素底 cover + `.cont` 卡 + 金标题条），
+          内部排版/文字颜色/字体用我们自己的。拆成多张**短卡**是必须的：miao 那张 `card-bg.png` 是
+          "恒定色 rgb(43,52,61) + alpha 95%→40%" 的底片，卡越长下半段越透明、文字越虚，
+          miao 自己的卡都短，所以我们也只用它被设计出来的区段（详见 `--mx-*` 注释与门禁）。
+        -->
         <section class="mx-section mx-section--first">
           <header class="mx-section__head">
             <span class="mx-section__index">01</span>
@@ -283,8 +288,15 @@
             <div class="mx-verdict__rank">待评</div>
             <div class="mx-verdict__tier"><strong>—</strong><small>关键数据未取到</small></div>
             {{/if}}
-            <p class="mx-verdict__note">{{if mx.score.isPartial}}计分口径：{{mx.score.scoringVersion}}{{if mx.score.targetVersion}} · 攻略目标 {{mx.score.targetVersion}}{{else}} · 攻略目标版本未提供{{/if}}；缺项不计分，未知项不计入总分{{else}}口径：{{mx.score.scoringVersion}}{{if mx.score.targetVersion}} · 攻略目标 {{mx.score.targetVersion}}{{else}} · 攻略目标版本未提供{{/if}}{{/if}}</p>
+            <p class="mx-verdict__note">{{if mx.score.isPartial}}口径：{{mx.score.scoringVersion}}{{if mx.score.targetVersion}} · 攻略目标 {{mx.score.targetVersion}}{{else}} · 攻略目标版本未提供{{/if}}；缺项不计分，未知项不计入总分{{else}}口径：{{mx.score.scoringVersion}}{{if mx.score.targetVersion}} · 攻略目标 {{mx.score.targetVersion}}{{else}} · 攻略目标版本未提供{{/if}}{{/if}}</p>
           </div>
+        </section>
+
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">02</span>
+            <h2 class="mx-section__title">三维达成</h2>
+          </header>
           <ul class="mx-dimensions">
             {{each mx.dims d}}
             <li class="mx-dimension">
@@ -302,6 +314,13 @@
             </li>
             {{/each}}
           </ul>
+        </section>
+
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">03</span>
+            <h2 class="mx-section__title">数据来源</h2>
+          </header>
           <aside class="mx-source-list">
             {{each mx.sources s}}
             <div class="mx-source">
@@ -310,15 +329,13 @@
               <span class="mx-source__state">{{s.modeText}}</span>
             </div>
             {{/each}}
-            <!-- 数据说明（来源 / 缓存 / 失败 / 刷新限制）在这里自然换行，不挤进两行脚注 -->
             {{each notes n}}<div class="mx-source mx-source--note"><span>{{n}}</span></div>{{/each}}
           </aside>
         </section>
 
-        <!-- 02 当前配装 -->
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">02</span>
+            <span class="mx-section__index">04</span>
             <h2 class="mx-section__title">当前配装</h2>
           </header>
           <div class="mx-equipment">
@@ -332,11 +349,10 @@
           {{/if}}
         </section>
 
-        <!-- 03 差距证据（未达标与未知都列出；参考项另起一组，明示不计分） -->
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">03</span>
-            <h2 class="mx-section__title">差距证据</h2>
+            <span class="mx-section__index">05</span>
+            <h2 class="mx-section__title">未达标项</h2>
             {{if consLine}}<span class="mx-section__hint">参考：{{consLine}}</span>{{/if}}
           </header>
           {{if mx.evidence.length > 0}}
@@ -364,9 +380,15 @@
           {{else}}
           <div class="mx-empty">{{if assessable}}攻略目标项均已满足{{else}}没有可比对的计分项：{{mx.score.unknownKeys.length ? '关键数据未取到' : '攻略缺该项'}}{{/if}}</div>
           {{/if}}
+        </section>
 
-          {{if mx.references.length > 0}}
-          <div class="mx-reference-row"><span class="mx-reference-row__name">参考项</span><span class="mx-reference-row__value">面板与命座只作参考，不计分</span></div>
+        {{if mx.references.length > 0}}
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">06</span>
+            <h2 class="mx-section__title">参考项</h2>
+            <span class="mx-section__hint">不计分</span>
+          </header>
           <div class="mx-reference-row mx-reference-row--head"><span class="mx-reference-row__name">　</span><span class="mx-reference-row__value">当前</span><span class="mx-reference-row__extra">参考目标</span></div>
           {{each mx.references r}}
           <div class="mx-reference-row">
@@ -375,13 +397,12 @@
             <span class="mx-reference-row__extra">{{r.target}}</span>
           </div>
           {{/each}}
-          {{/if}}
         </section>
+        {{/if}}
 
-        <!-- 04 提升建议（编号 + 依据证据号） -->
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">04</span>
+            <span class="mx-section__index">07</span>
             <h2 class="mx-section__title">提升建议</h2>
             <span class="mx-section__hint">按处理顺序</span>
           </header>
@@ -396,11 +417,10 @@
           </ol>
         </section>
 
-        <!-- 05 参考 DPS（当前金数所在档起，每 4 金一档、最多 3 档；每档取含该角色的最高伤害） -->
         {{if refDps && refDps.length > 0}}
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">05</span>
+            <span class="mx-section__index">08</span>
             <h2 class="mx-section__title">参考 DPS</h2>
             <span class="mx-section__hint">同角色投入参考</span>
           </header>
@@ -414,7 +434,6 @@
         </section>
         {{/if}}
 
-        <!-- 脚注：口径一行 + 版权一行（数据说明已上移到 01 的来源区，脚注不超过两行） -->
         <footer class="mx-footer">
           <p class="mx-footer__method">口径：综合分＝圣遗物有效词条＋套装符合度；面板与命座仅作参考。</p>
           <p class="mx-copyright">{{copyright}}</p>

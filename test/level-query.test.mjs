@@ -114,9 +114,11 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
   ok('模板渲染差距证据与建议（带证据号）',
     tpl.includes('{{each mx.evidence r}}') && tpl.includes('{{each mx.suggestions s}}') && tpl.includes('mx-evidence-ref'))
   const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css')).replace(/\/\*[\s\S]*?\*\//g, '')
+  /* 冻结区守卫：共享样式不得给立绘行内部的类写规则（`.gd-elem-*` 是 body 元素标记，放行） */
   ok('冻结立绘行仍在且共享样式不碰它',
-    tpl.includes('class="gd-basic"') && tpl.includes('gd-main-pic') && !/\.gd-/.test(css))
-  ok('参考项与计分项分开（参考不计分）', tpl.includes('mx.references') && tpl.includes('面板与命座只作参考，不计分'))
+    tpl.includes('class="gd-basic"') && tpl.includes('gd-main-pic') &&
+    ['.gd-basic', '.gd-main-pic', '.gd-char-', '.gd-talent', '.gd-cons'].every(sel => !css.includes(sel)))
+  ok('参考项与计分项分开（参考不计分）', tpl.includes('mx.references') && tpl.includes('参考项') && tpl.includes('不计分'))
   /* 用户 2026-10-15 定：圣遗物行「套装名独占一行、评分与词条次行右对齐」——换组件后仍要守住 */
   ok('圣遗物行：套装名与评分/词条分行、次行右对齐',
     tpl.includes('mx-equipment') && tpl.includes('mx-meta-line') &&
