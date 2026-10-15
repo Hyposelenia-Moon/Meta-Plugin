@@ -20,7 +20,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { getAkashaTimeoutMs, loadConfig } from '../components/config.js'
+import { getAkashaProxy, getAkashaTimeoutMs, loadConfig } from '../components/config.js'
 
 /** 本模块关心的接口前缀（`/api/textmap/` 不在拦截集里：它是页面加载后才发的，见下面的两条路） */
 const NEEDED = ['/api/user/', '/api/getCalculationsForUser/', '/api/textmap/', '/api/builds/', '/api/artifacts']
@@ -126,7 +126,9 @@ async function getBrowser (): Promise<{ browser: BrowserLike, owned: boolean }> 
         const puppeteer = await loadPuppeteer()
         const exe = chromiumPathFrom(backend)
         // 配置里的代理必须真正落到启动参数上（审核附加项：proxy 之前只被接收、没被使用）
-        const proxy = String(loadConfig().proxy || '').trim()
+        // ⚠ 阿卡莎有自己的代理键：`akashaProxy` 优先，留空才回落通用 `proxy`
+        //   （2026-10-15 复核修正：只读通用 proxy 会在两者不同时用错代理）
+        const proxy = (getAkashaProxy() || String(loadConfig().proxy || '')).trim()
         const args = ['--disable-gpu', '--no-sandbox', '--disable-setuid-sandbox', '--no-zygote']
         if (proxy) args.push(`--proxy-server=${proxy}`)
         const launchConfig: Record<string, unknown> = {

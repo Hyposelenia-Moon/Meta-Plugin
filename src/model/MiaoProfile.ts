@@ -11,6 +11,7 @@
  * 开发工作区没有 bot/miao 时，动态 import 会失败 → 同样走 `ok: false`（套件据此跳过）。
  */
 import { ENKA_PROP_CN } from '../components/constants.js'
+import { loadConfig } from '../components/config.js'
 import { miaoPluginDir } from './MiaoPanel.js'
 import type { BuildArtifact, BuildSnapshot } from '../modules/grade.js'
 import { applyStatPatch } from '../modules/statPatch.js'
@@ -109,18 +110,86 @@ function talentLevel (ds: unknown): number {
   return 0
 }
 
-/** 圣遗物 → 契约（主词条取中文名，与攻略同口径） */
-function artisOf (profile: Record<string, any>): BuildArtifact[] {
-  const list = Array.isArray(profile?.artis) ? profile.artis : []
-  return list.slice(0, 5).map((arti: Record<string, any>, idx: number) => {
-    const mainKey = String(arti?.main?.key || '')
-    return {
-      slot: SLOTS[idx] || `部位${idx + 1}`,
-      set: String(arti?.set || ''),
-      mainName: ENKA_PROP_CN[mainKey] || mainKey,
-      level: Number(arti?.level) || 0
+/**
+ * miao 原生主词条 key → 中文（`ArtisMark.getKeyTitleMap('gs')`）
+ *
+ * ⚠ 原生键是 `hp` / `cpct` / `recharge` 这类，**不是 Enka 的 `FIGHT_PROP_*`**；
+ *    `ENKA_PROP_CN` 只作兜底（Enka 来源的数据用得上）。
+ */
+function nativeKeyTitles (models: Record<string, any>): Record<string, string> {
+  try {
+    const map = models.ArtisMark?.getKeyTitleMap?.('gs')
+    return map && typeof map === 'object' ? map as Record<string, string> : {}
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * 读圣遗物明细：`Avatar.getArtisDetail()` / `artis.getDetail()` 返回**按部位 1..5 索引的对象**
+ *
+ * ⚠ 不要把 `avatar.artis` 当数组 —— 它是 miao 的 `Artis` 实例，`Array.isArray` 永远为假，
+ *    会把完整明细误判成"没有明细"，进而退化成"只有套装名"（2026-10-15 外部复核第 1 项发现）。
+ */
+export function artisDetailOf (avatar: Record<string, any> | null | undefined): Record<string, any> {
+  if (!avatar) return {}
+  try {
+    const direct = avatar.getArtisDetail?.(false)
+    if (direct && typeof direct === 'object' && Object.keys(direct).length) return direct as Record<string, any>
+  } catch { /* 换下一种读法 */ }
+  try {
+    const viaArtis = avatar.artis?.getDetail?.()
+    if (viaArtis && typeof viaArtis === 'object') return viaArtis as Record<string, any>
+  } catch { /* 没有明细 */ }
+  return {}
+}
+
+/** miao 原生判定：这份面板的**词条是否完备**（`Artis.hasAttr`） */
+export function artisHasAttr (avatar: Record<string, any> | null | undefined): boolean {
+  try {
+    return avatar?.artis?.hasAttr === true
+  } catch {
+    return false
+  }
+}
+
+/** Artis 明细 → 契约行（1..5 部位；主词条取 miao 原生中文名） */
+export function artisRowsOf (avatar: Record<string, any> | null | undefined, titles: Record<string, string>): BuildArtifact[] {
+  const detail = artisDetailOf(avatar)
+  const rows: BuildArtifact[] = []
+  for (let idx = 1; idx <= 5; idx++) {
+    const ds = (detail[idx] ?? detail[String(idx)]) as Record<string, any> | undefined
+    if (!ds || (!ds.set && !ds.name)) continue
+    const key = String(ds.main?.key || '')
+    rows.push({
+      slot: SLOTS[idx - 1] || `部位${idx}`,
+      set: String(ds.set || ''),
+      mainName: titles[key] || ENKA_PROP_CN[key] || String(ds.main?.title || key || ''),
+      level: Number(ds.level) || 0
+    })
+  }
+  return rows
+}
+
+/**
+ * 只有套装信息时（`mysPanel` 简版）→ 按 `Artis.sets` 的**件数**展开
+ *
+ * ⚠ `sets` 是 `{ 套装名: 2|4 }`（miao 自己的统计，4 件以上记 4）；`names` 是去重后的套装名，
+ *    用它计件会把 2+2 当成 5 件不同套装（2026-10-15 外部复核第 1 项发现）。
+ */
+export function setRowsOf (avatar: Record<string, any> | null | undefined): BuildArtifact[] {
+  try {
+    const sets = avatar?.artis?.sets
+    if (!sets || typeof sets !== 'object') return []
+    const rows: BuildArtifact[] = []
+    for (const [set, rawCount] of Object.entries(sets as Record<string, unknown>)) {
+      const count = Math.min(Number(rawCount) || 0, 4)
+      for (let i = 0; i < count; i++) rows.push({ slot: '套装', set: String(set), mainName: '', level: 0 })
     }
-  })
+    return rows
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -178,10 +247,38 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
      * `refreshMysDetail(2)`（无视缓存强制刷新米游社明细）能直接拿到完整面板且不走那条评分。
      */
     const notes: string[] = []
+    const titles = nativeKeyTitles(models)
+    const networkOn = loadConfig().networkEnabled === true
+
+    /**
+     * 目标角色本人当前的面板状态
+     *
+     * ⚠ 完整性**只看目标角色**：`player.hasProfile` 是"账号里任意角色有面板"，
+     *    拿它当成功条件会让"其他角色有面板 + 米游社这次失败"提前收工，跳过能补齐目标的通道
+     *    （2026-10-15 外部复核第 2 项发现）。
+     */
+    const targetState = (): { avatar: Record<string, any> | null, rows: BuildArtifact[], attrOk: boolean, complete: boolean } => {
+      const av = (player.getAvatar?.(char.id) as Record<string, any> | null) ?? null
+      const rows = artisRowsOf(av, titles)
+      const attrOk = artisHasAttr(av)
+      const mainOk = rows.length >= 5 && rows.every(r => !!r.mainName)
+      return {
+        avatar: av,
+        rows,
+        attrOk,
+        complete: av?.isProfile !== false && rows.length >= 5 && (attrOk || mainOk)
+      }
+    }
+
     const fetchPanel = async (reason: string): Promise<void> => {
-      // miao 的三条刷新通道；**每试一条就重读并检查完整性**，只有拿到完整面板才算成功
+      // miao 的三条刷新通道；**每试一条就重读目标并检查完整性**，只有拿到完整面板才算成功
       // 与 miao 的「米游社面板更新」同款：`refreshProfile(2, true)`（force=2 + fromMys=true）
       // 是 miao `ProfileList.refreshMys` 走的调用；`refresh({profile:true})` 是它的兜底
+      // ⚠ 联网总开关：关闭时**不发任何远程请求**，只用本地缓存（2026-10-15 外部复核第 5 项发现）
+      if (!networkOn) {
+        notes.push(`${reason} → 联网已关闭（networkEnabled=false）：只读本地缓存，未发起远程刷新`)
+        return
+      }
       const channels: Array<[string, () => Promise<unknown>]> = [
         ['米游社更新面板', async () => await (player as any).refreshProfile?.(2, true)],
         ['通用刷新', async () => await (player as any).refresh?.({ profile: true })],
@@ -189,35 +286,26 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
       ]
       for (const [label, run] of channels) {
         try {
-          const ret = await run()
+          await run()
           const got = player.getProfile?.(char.id)
           if (got) profile = got
-          // miao 刷新返回 false = 没取到新数据；undefined 多半是方法不存在 —— 都继续下一条
-          // miao 自己的"有没有面板"判定优先（`player.hasProfile`），再兜我们的完整性检查
-          if (ret === false || !((player as any).hasProfile || isComplete(profile))) {
-            notes.push(`${reason} → miao「${label}」未取到完整面板`)
-            continue
+          if (targetState().complete) {
+            notes.push(`${reason} → 已用 miao「${label}」更新面板`)
+            return
           }
-          notes.push(`${reason} → 已用 miao「${label}」更新面板`)
-          return
+          notes.push(`${reason} → miao「${label}」未取到目标角色的完整面板`)
         } catch (err) {
           notes.push(`miao「${label}」失败（${(err as Error)?.message || err}）`)
         }
       }
-      notes.push(`${reason} → 三条通道都未取到圣遗物明细（可在 miao 侧先发一次「米游社面板更新」）`)
+      notes.push(`${reason} → 三条通道都未取到目标角色的圣遗物明细（可在 miao 侧先发一次「米游社面板更新」）`)
     }
     let profile = player.getProfile?.(char.id)
-    const isComplete = (p: Record<string, any> | null | undefined): boolean => {
-      if (!p || p.hasData === false) return false
-      const artis = Array.isArray(p.artis) ? p.artis : []
-      const attr = p.attr && typeof p.attr === 'object' ? Object.keys(p.attr).length : 0
-      return artis.length >= 5 && !!p.weapon?.name && attr > 0
-    }
 
     if (!profile || profile.hasData === false) {
       await fetchPanel('本地无面板缓存')
       profile = player.getProfile?.(char.id) || profile
-    } else if (!isComplete(profile)) {
+    } else if (!targetState().complete) {
       await fetchPanel('本地面板数据不完整')
       profile = player.getProfile?.(char.id) || profile
     }
@@ -233,27 +321,23 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
       // avatar 上没有圣遗物明细时，说明这份数据是简版（例如只带面板）→ 让 miao 重取一次再读
     } catch { /* 拿不到就回落 profile */ }
 
-    // 圣遗物评分：走 miao 的规则（评分依赖副词条，展示时只列主词条）
+    // 圣遗物评分：调**目标对象自己的** miao 访问器（评分依赖副词条；展示时只列主词条）
     let artiMark: BuildSnapshot['artiMark'] = null
-    try {
-      const ArtisMark = models.ArtisMark || (await import(miaoUrl('models/artis/ArtisMark.js'))).default
-      // avatar 与 profile 都试一遍（谁算得出来用谁）；miao 内部评分对数据形状敏感，
-      // 某些数据下会抛（如 "Cannot read properties of undefined (reading 'mark')"）—— 这里一律降级为"无评分"
-      // ⚠ 只有拿到"含主词条"的圣遗物明细时才算评分：mysPanel 简版（只有套装名）会让 miao 内部抛
-      //   "Cannot read properties of undefined (reading 'mark')"，这里直接跳过
-      const canScore = (c: Record<string, any> | null | undefined): boolean =>
-        Array.isArray(c?.artis) && c.artis.some((a: Record<string, any>) => !!a?.main)
-      for (const candidate of [player.getAvatar?.(char.id), player.getAvatar?.(char.id, true), avatar, profile].filter(canScore)) {
-        if (!candidate) continue
+    {
+      const hasMain = (c: Record<string, any>): boolean => artisRowsOf(c, titles).some(r => !!r.mainName)
+      const candidates = [targetState().avatar, player.getAvatar?.(char.id, true), avatar, profile]
+        .filter((c): c is Record<string, any> => !!c && typeof c.getArtisMark === 'function' && hasMain(c))
+      for (const candidate of candidates) {
         try {
-          const detail = ArtisMark?.getMarkDetail?.(candidate, false)
+          // `Avatar.getArtisMark(withDetail=false)` → `ArtisMark.getMarkDetail(this, false)`
+          const detail = candidate.getArtisMark?.(false)
           if (detail && Number.isFinite(Number(detail._mark))) {
             artiMark = { total: Number(detail._mark), markClass: String(detail.markClass || '') }
             break
           }
         } catch { /* 换下一个候选 */ }
       }
-    } catch { /* 评分失败不影响其它维度 */ }
+    }
 
     const build: BuildSnapshot = {
       charName: local.name,
@@ -268,17 +352,15 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
         Q: talentLevel(profile.talent?.q)
       },
       artis: ((): BuildSnapshot['artis'] => {
-        const av = player.getAvatar?.(char.id) || player.getAvatar?.(char.id, true) || avatar || profile
-        const full = artisOf(av)
-        if (full.length) return full as BuildSnapshot['artis']
-        // miao 原生套装查询：`avatar.artisSet` = `mysArtis.getSetData()` 的 `names`
-        //（`mysPanel` 简版面板也有它，这是 miao 自己页面上显示套装的同一个来源）
-        const names = (av as Record<string, any>)?.artisSet?.names
-        if (Array.isArray(names) && names.length) {
-          return names.map(s => ({ set: String(s || ''), level: 0 })).filter(a => a.set) as BuildSnapshot['artis']
-        }
-        // 最兜底：直接扫 `mysArtis` 原始数据（套装名 + 星级）
-        return artisFromMysArtis((av as Record<string, any>) || null) as BuildSnapshot['artis']
+        const state = targetState()
+        const av = (state.avatar || profile) as Record<string, any>
+        // ① 完整明细（1..5 部位，含主词条）
+        if (state.rows.length) return state.rows as BuildSnapshot['artis']
+        // ② 只有套装信息 → 按 `Artis.sets` 的件数展开（**不是**去重后的 `names` 计件）
+        const setRows = setRowsOf(av)
+        if (setRows.length) return setRows as BuildSnapshot['artis']
+        // ③ 最兜底：扫 `mysArtis` 原始数据（套装名 + 星级）
+        return artisFromMysArtis(av || null) as BuildSnapshot['artis']
       })(),
       artiMark,
       attrs: Object.fromEntries(
@@ -393,8 +475,11 @@ export async function readTeamDamage (
       let avatar = player.getAvatar?.(char.id, true)
       if (!avatar) return { ok: false, error: `没有取到「${local.name}」的面板数据：该角色可能未在米游社公开展示` }
       if (avatar.isProfile === false || avatar.hasData === false) {
-        notes.push(`${local.name}：本地无面板缓存，已让 miao 取一次`)
-        if (typeof player.refresh === 'function') {
+        // 联网总开关同样罩住这条刷新（2026-10-15 外部复核第 5 项发现：练度侧曾绕过开关）
+        if (loadConfig().networkEnabled !== true) {
+          notes.push(`${local.name}：本地无面板缓存，且联网已关闭（networkEnabled=false）→ 未发起远程刷新`)
+        } else if (typeof player.refresh === 'function') {
+          notes.push(`${local.name}：本地无面板缓存，已让 miao 取一次`)
           await player.refresh({ profile: true })
           avatar = player.getAvatar?.(char.id, true)
         }

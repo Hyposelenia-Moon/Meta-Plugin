@@ -27,13 +27,18 @@ ok('#5 已有版本时明确拒绝（409 + 可读提示）', /sendError\(res, 40
 ok('#5 通过后才 rename 且响应复用同一路径', /fs\.renameSync\(file, trashedFile\)/.test(editor) && /trashed: path\.relative\(root, trashedFile\)/.test(editor))
 
 // ---------- #6 指定路径提交不得混入范围外暂存 ----------
-ok('#6 提交前读取暂存清单', /const staged = await gitRun\(\['diff', '--cached', '--name-only'\]\)/.test(editor))
+// ⚠ `-z` 是 2026-10-15 复核修正：默认 `core.quotePath=true` 会把中文路径转义成
+//   `"data/gi/\345\223\245…"`，逐行比较会把目标中文角色文件误判成范围外
+ok('#6 提交前读取暂存清单（`-z` 防中文路径被 quotePath 转义）', /const staged = await gitRun\(\['diff', '--cached', '--name-only', '-z'\]\)/.test(editor) && /staged\.stdout\.split\('\\0'\)/.test(editor))
+ok('#6 git diff 失败要报错，不能当成"无改动可提交"', /git diff --cached 失败/.test(editor))
 ok('#6 计算范围外暂存并阻止提交', /const foreign = stagedPaths\.filter/.test(editor) && /暂存区里有本次范围外的文件/.test(editor) && /executed: false/.test(editor))
 ok('#6 阻止时不提交、不改动暂存状态（不调用 reset）', !/gitRun\(\['reset'/.test(editor.slice(editor.indexOf('const foreign')) || ''))
 
 // ---------- #3 重命名不再丢草稿 ----------
 ok('#3 重命名前先保存草稿', /return Promise\.resolve\(dirtyCount\(\) > 0 \? save\(\) : true\)\.then\(function \(\) \{/.test(app))
 ok('#3 保存后仍有改动则中止', /if \(dirtyCount\(\) > 0\) \{\s*\n\s*showStatus\('有改动未保存成功，已取消重命名'/.test(app))
+// ⚠ 2026-10-15 复核修正：原判断在**下一个** then 里，清空 model/dirty/pending 已经执行过 → 保存 500 仍丢草稿
+ok('#3 保存失败时先返回，不再清空 model/dirty/pending', /if \(!res\) return null\s*\n\s*state\.current = null/.test(app))
 ok('#3 中止后不打开目标角色', /if \(!res\) return\s+\/\/ 上面因保存失败中止/.test(app))
 ok('#3 仍作废旧名字的 pending（避免幽灵角色）', /delete state\.pending\[from\]/.test(app) && /delete state\.pending\[to\]/.test(app))
 

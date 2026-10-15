@@ -93,7 +93,7 @@ export class MetaGrade extends plugin {
       signature: codexStore.getSignature(guide?.name || charName),
       weaponTags: codexStore.getWeaponTags()
     }) as unknown as Parameters<typeof extractTargets>[0]
-    const targets = extractTargets(view, guide?.name || charName)
+    const targets = extractTargets(view, guide?.name || charName, guide as unknown as Parameters<typeof extractTargets>[2])
 
     const profile = await readProfile(e, targets.charName || charName)
     if (!profile.ok) {
@@ -138,6 +138,8 @@ export class MetaGrade extends plugin {
       copyright: COPYRIGHT
     }
 
-    return await respond(e, 'grade', data, () => gradeText(result, missRows, okLine))
+    // 文本回落与图片**共用同一份说明**（来源与刷新限制不能只在图上出现）
+    // 2026-10-15 外部复核第 6 项发现：这里漏了 `profile.notes`
+    return await respond(e, 'grade', data, () => gradeText({ ...result, notes: data.notes }, missRows, okLine))
   }
 }

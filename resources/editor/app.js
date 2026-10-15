@@ -4198,6 +4198,9 @@ function globalEvents () {
           }
           return api('POST', '/api/rename', { from: from, to: to })
         }).then(function (res) {
+          // 保存失败（res 为 null）必须**在这里就返回**：下面的清空会把未落盘草稿一起丢掉
+          // （2026-10-15 复核修正：原判断在下一个 then 里，清空已经执行过了）
+          if (!res) return null
           state.current = null
           state.model = null
           markDirty(false)

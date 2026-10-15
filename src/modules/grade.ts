@@ -121,8 +121,36 @@ export function parseTargetRange (raw: string): { min: number, max: number } | n
   return { min, max }
 }
 
-/** 从攻略视图抽取评分目标（结构不匹配的行直接跳过，绝不抛错） */
-export function extractTargets (view: CodexLikeView, charName = ''): GuideTargets {
+/** 结构化攻略源（只声明用到的字段）：`v2.artifacts` 带 `kind`，比显示标签可靠 */
+export interface GuideSourceShape {
+  v2?: { artifacts?: Array<Record<string, any>> }
+}
+
+/**
+ * 把攻略条目拆成候选名
+ *
+ * 攻略里的组合项写成 `冲浪时光\真语秘匣\万世流涌大典`（`v2` 的 `ref`/`name` 就是这种整串），
+ * 逐项与实装名比对才能命中（2026-10-15 外部复核第 6 项发现：评分与比较表口径不一致）。
+ */
+export function guideCandidates (entry: string): string[] {
+  return String(entry || '').split(/[\\|]/).map(s => s.trim()).filter(Boolean)
+}
+
+/** 实装名是否命中攻略列表（逐候选：完全相同 / 互相包含） */
+export function matchesGuideName (name: string, list: readonly string[]): boolean {
+  const target = String(name || '').trim()
+  if (!target) return false
+  return list.some(entry => guideCandidates(entry).some(c => c === target || c.includes(target) || target.includes(c)))
+}
+
+/**
+ * 从攻略视图抽取评分目标（结构不匹配的行直接跳过，绝不抛错）
+ *
+ * @param guide 原始攻略数据（可选）：带 `v2.artifacts` 时**按结构化 `kind` 分桶**，
+ *              没有才退回按显示标签（推荐/可选）判定 —— 自定义标签（如「月结晶/月感电」「月绽放」）
+ *              只有结构化路径认得（2026-10-15 外部复核第 3 项发现）。
+ */
+export function extractTargets (view: CodexLikeView, charName = '', guide?: GuideSourceShape | null): GuideTargets {
   const targets: GuideTargets = {
     charName,
     levelMin: null,
@@ -174,25 +202,51 @@ export function extractTargets (view: CodexLikeView, charName = ''): GuideTarget
   }
 
   // 圣遗物套装 + 主词条
-  for (const row of section('圣遗物')?.rows || []) {
-    const label = String(row.label || '').trim()
-    if (label === '推荐' || label === '可选') {
-      const bucket = label === '推荐' ? targets.artifact.recommend : targets.artifact.optional
-      for (const item of row.items || []) {
-        const name = String(item.text || '').trim()
-        if (name) bucket.push(name)
+  const v2Artifacts = Array.isArray(guide?.v2?.artifacts) ? guide?.v2?.artifacts : null
+  if (v2Artifacts) {
+    // 结构化口径：按 `kind` 的语义分桶（`preferred` → 推荐、`optional`/`transition` → 可选），
+    // 标签（如「月结晶/月感电」）只负责显示 —— 只认「推荐/可选」字面量会漏掉自定义标签
+    for (const row of v2Artifacts) {
+      const kind = String(row?.kind || '').trim()
+      const sets = Array.isArray(row?.sets) ? row.sets : []
+      if (sets.length && ['preferred', 'optional', 'transition', ''].includes(kind)) {
+        const bucket = kind === 'preferred' || kind === '' ? targets.artifact.recommend : targets.artifact.optional
+        for (const s of sets) {
+          const name = String((s as Record<string, any>)?.name ?? s ?? '').trim()
+          if (name) bucket.push(name)
+        }
+        continue
       }
-      continue
+      if (kind === 'main' && row?.stats && typeof row.stats === 'object') {
+        for (const [slot, raw] of Object.entries(row.stats as Record<string, unknown>)) {
+          const options = (Array.isArray(raw) ? raw : [raw]).map(x => String(x).trim()).filter(Boolean)
+          const slotName = String(slot).trim()
+          if (slotName && options.length) targets.mainStats.push({ slot: slotName, options })
+        }
+      }
+      // `sub` / `text`：副词条与自由文本只用于展示与建议，不参与这里的评分口径
     }
-    if (label.includes('主词条')) {
-      for (const item of row.items || []) {
-        const text = String(item.text || '').trim()
-        const idx = text.search(/[:：]/)
-        if (idx < 0) continue
-        targets.mainStats.push({
-          slot: text.slice(0, idx).trim(),
-          options: text.slice(idx + 1).split('/').map(s => s.trim()).filter(Boolean)
-        })
+  } else {
+    for (const row of section('圣遗物')?.rows || []) {
+      const label = String(row.label || '').trim()
+      if (label === '推荐' || label === '可选') {
+        const bucket = label === '推荐' ? targets.artifact.recommend : targets.artifact.optional
+        for (const item of row.items || []) {
+          const name = String(item.text || '').trim()
+          if (name) bucket.push(name)
+        }
+        continue
+      }
+      if (label.includes('主词条')) {
+        for (const item of row.items || []) {
+          const text = String(item.text || '').trim()
+          const idx = text.search(/[:：]/)
+          if (idx < 0) continue
+          targets.mainStats.push({
+            slot: text.slice(0, idx).trim(),
+            options: text.slice(idx + 1).split('/').map(s => s.trim()).filter(Boolean)
+          })
+        }
       }
     }
   }
@@ -469,10 +523,14 @@ function cappedNote (targets: GuideTargets, build: BuildSnapshot, capped: boolea
 export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot): CompareRow[] {
   const rows: CompareRow[] = []
 
-  // 武器
+  // 武器（与 `scoreWeapon` 共用同一套候选解析：组合项 `A\B\C` 要能命中）
   if (targets.weapon.recommend.length || targets.weapon.optional.length) {
     const name = String(build.weapon?.name || '—')
-    const bucket = targets.weapon.recommend.includes(name) ? 'ok' : targets.weapon.optional.includes(name) ? 'warn' : 'off'
+    const bucket = matchesGuideName(name, targets.weapon.recommend)
+      ? 'ok'
+      : matchesGuideName(name, targets.weapon.optional)
+        ? 'warn'
+        : matchesGuideName(name, targets.weapon.transition) ? 'warn' : 'off'
     rows.push({
       group: '武器',
       name,
@@ -485,7 +543,7 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot): 
   // 套装
   if (targets.artifact.recommend.length || targets.artifact.optional.length) {
     const sets = [...new Set((build.artis || []).map(a => a.set))].filter(Boolean)
-    const hit = sets.some(s => targets.artifact.recommend.includes(s))
+    const hit = sets.some(s => matchesGuideName(s, targets.artifact.recommend))
     rows.push({
       group: '圣遗物',
       name: '套装',
@@ -603,8 +661,17 @@ export function buildSuggestions (targets: GuideTargets, build: BuildSnapshot, d
     out.push(`武器：换到推荐档（${targets.weapon.recommend.slice(0, 2).join(' / ')}）`)
   }
   const artifactDim = dims.find(d => d.key === 'artifact')
-  if (artifactDim?.ratio !== null && artifactDim !== undefined && artifactDim.ratio < 0.6 && targets.artifact.recommend.length) {
-    out.push(`圣遗物：凑「${targets.artifact.recommend[0]}」4 件`)
+  if (artifactDim && artifactDim.ratio !== null && artifactDim.ratio !== undefined && targets.artifact.recommend.length) {
+    // 套装覆盖与词条质量**分开判断**：已经穿着推荐 4 件套时不该再建议"凑四件套"，
+    // 分数低应归因到词条质量（2026-10-15 外部复核第 6 项发现）
+    const counts = new Map<string, number>()
+    for (const a of build.artis || []) counts.set(a.set, (counts.get(a.set) || 0) + 1)
+    const covered = [...counts.entries()].some(([set, n]) => n >= 4 && matchesGuideName(set, targets.artifact.recommend))
+    if (!covered) {
+      out.push(`圣遗物：凑「${targets.artifact.recommend[0]}」4 件`)
+    } else if (artifactDim.ratio < 0.6) {
+      out.push('圣遗物：套装已达标，提升词条质量（暴击 / 爆伤 / 有效词条数）')
+    }
   }
 
   if (!out.length) out.push('各维度均已达标：可继续提升面板词条质量　〔看词条〕')

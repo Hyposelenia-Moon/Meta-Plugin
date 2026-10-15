@@ -2279,12 +2279,17 @@ async function commitChanges (opts = {}) {
   const add = await gitRun(['add', '--', ...unique])
   if (add.code !== 0) return { executed: false, hash: null, error: `git add 失败：${(add.stderr || add.stdout).trim().slice(0, 300)}` }
 
-  const staged = await gitRun(['diff', '--cached', '--name-only'])
-  if (!staged.stdout.trim()) return { executed: false, hash: null, skipped: '无改动可提交（工作区已干净）' }
+  // ⚠ 必须加 `-z`：默认 `core.quotePath=true` 会把中文路径转义成 `"data/gi/\345\223\245…"`，
+  // 逐行比较会把目标中文角色文件误判成"范围外"从而阻止提交（2026-10-15 复核修正）。
+  const staged = await gitRun(['diff', '--cached', '--name-only', '-z'])
+  if (staged.code !== 0) {
+    return { executed: false, hash: null, error: `git diff --cached 失败：${(staged.stderr || staged.stdout).trim().slice(0, 300)}` }
+  }
+  if (!staged.stdout.replace(/\0/g, '').trim()) return { executed: false, hash: null, skipped: '无改动可提交（工作区已干净）' }
 
   // 提交范围必须与请求一致（2026-10-15 审核 P2）：用户此前 `git add` 过的**范围外**文件也会被
   // `git commit` 一起提交，与接口声明的范围不符。发现范围外暂存就**阻止提交**并原样保留其暂存状态。
-  const stagedPaths = staged.stdout.split('\n').map(x => x.trim()).filter(Boolean)
+  const stagedPaths = staged.stdout.split('\0').map(x => x.trim()).filter(Boolean)
   const wanted = new Set(unique.map(p => p.split('\\').join('/')))
   const foreign = stagedPaths.filter(p => !wanted.has(p) && !unique.includes(p))
   if (foreign.length) {

@@ -16,7 +16,6 @@ Thumbs.db
 .claude/
 .dsh/
 CLAUDE.md
-AGENTS.md
 .plugin-v2/
 .plugin-v2-dev/
 .plugin-v2-final/
@@ -24,6 +23,10 @@ AGENTS.md
 .plugin-conflict/
 .tmp/
 out/
+
+# 入库文档：AGENTS.md 与 docs/（除 docs/private/）随代码评审提交；
+# docs/private/ 放盘符、部署机与本机工作区，**不入库**（新克隆上不存在）
+docs/private/
 
 # 编辑器批量替换的安全副本（本地快照，不进版本库）
 data/_backup/
