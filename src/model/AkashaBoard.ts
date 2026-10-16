@@ -14,7 +14,7 @@ import path from 'node:path'
 import { dataDir, pluginRoot } from '../dir.js'
 import { getAkashaProxy, getAkashaTimeoutMs, isQueryNetworkEnabled, QUERY_NETWORK_OFF_HINT } from '../components/config.js'
 import { akashaBrowserTransport } from './AkashaBrowser.js'
-import { normalizeBoard, textmapWords, type BoardEntry, type Textmap } from '../modules/akashaBoard.js'
+import { normalizeBoard, pickDefaultCategory, textmapWords, type BoardCategory, type BoardEntry, type Textmap } from '../modules/akashaBoard.js'
 
 /** 官方角色 id 表（`name` / `alias` → `character_id`），首次使用时读一次 */
 let charIndexCache: Map<string, number> | null = null
@@ -50,12 +50,23 @@ export function officialIdOf (charNameOrId: string | number): number {
   return charIndex().get(key) || 0
 }
 
-/** 官方角色 id → 默认榜单 id（`characterId × 100`） */
-export function calculationIdOf (officialId: number | string, variantDigit = ''): string {
+/**
+ * 官方角色 id + 榜序号 → 榜单 id
+ *
+ * 实测口径（2026-10-17 用钟离三个榜逐一验证）：**默认榜 = `id × 100`**，其余榜 = `id × 100 + (分类 index − 1)`。
+ * ⚠ 旧实现是字符串拼接 `String(id) + '00' + suffix`，带序号时会拼出 **11 位**（`10000030 + '00' + '1'` = `10000030001`），
+ *   只有"不带序号"这一条路是对的 —— 现在改成真正的加法。
+ */
+export function calculationIdOf (officialId: number | string, variantIndex = 0): string {
   const id = Number(officialId)
   if (!Number.isFinite(id) || id <= 0) return ''
-  const suffix = String(variantDigit || '').replace(/\D/g, '')
-  return String(id) + '00' + suffix
+  const variant = Math.max(0, Math.floor(Number(variantIndex) || 0))
+  return String(id * 100 + variant)
+}
+
+/** 角色榜分类接口（站点自己开榜清单：给出每个榜的 `name` / `short` / `details` / `count`） */
+export function categoriesApiUrl (officialId: number | string): string {
+  return `https://akasha.cv/api/v2/leaderboards/categories?characterId=${Number(officialId)}`
 }
 
 /** 榜单条目接口 URL（页面自身就是这么调的） */
@@ -85,6 +96,13 @@ export interface BoardFetchOk {
   total: number
   textmap: Textmap | null
   attempts: number
+  /**
+   * 该角色**默认榜**的站点分类信息（榜名 / 口径 / 收录条数）；取不到为 `null`
+   *
+   * 为什么要它：阿卡莎的榜不都是伤害（如钟离默认榜是 `Shieldbot, Max HP`、克洛琳德是 `… Combo, DPS`、
+   * 申鹤是 `Simulated Buff`），数值口径由榜自己决定 —— 页面据它标注，不能一律写「伤害」。
+   */
+  category: BoardCategory | null
 }
 
 export interface BoardFetchFail {
@@ -141,7 +159,18 @@ export async function fetchBoard (
         } catch { /* 翻译失败不影响主流程 */ }
 
         const withCn = normalizeBoard(payload, textmap)
-        return { ok: true, calculationId, entries: withCn.entries, total: withCn.total, textmap, attempts }
+
+        // 榜名 / 口径：站点分类接口（`direct` = 页面内 fetch，不等页面自己发这个请求，避免白等超时）；取不到不影响出图
+        // ⚠ 这是**附加**信息，超时上限压到 30s：它失败只是退回中性表述，不该把整条查询拖满。
+        let category: BoardCategory | null = null
+        try {
+          const cat = await akashaBrowserTransport(categoriesApiUrl(official), {
+            pageUrl, proxy, timeoutMs: Math.min(getAkashaTimeoutMs(), 30000), direct: true
+          })
+          if (cat.status === 200 && isJson(cat.text)) category = pickDefaultCategory(JSON.parse(cat.text)?.data)
+        } catch { /* 榜名取不到 → 页面退回"结果"中性表述 */ }
+
+        return { ok: true, calculationId, entries: withCn.entries, total: withCn.total, textmap, attempts, category }
       }
     } catch (err) {
       lastText = String((err as Error)?.message || err)

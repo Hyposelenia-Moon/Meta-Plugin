@@ -144,7 +144,8 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes', 'referenceDps', 'referenceTotal', 'window', 'axisLabel', 'axisManual', 'patchLabel', 'contributions'],
   // 2026-10-16：`#配装` 并入 `#练度榜`，两页同属一条命令（列表 / 配装详情），都不再有 uid
   'build': ['title', 'subtitle', 'hint', 'footerMethod', 'rows', 'copyright', 'buildTimeText', 'rank', 'charName', 'elemClass', 'cons', 'nickname'],
-  'akasha-build': ['title', 'subtitle', 'charName', 'elemClass', 'rank', 'nickname', 'cons', 'damageText', 'critValueText', 'talent', 'weapon', 'artis', 'setsText', 'panel', 'mx'],
+  // 2026-10-17：数值口径随榜（`metricLabel`）与榜名（`boardName`）——榜不都是伤害
+  'akasha-build': ['title', 'subtitle', 'charName', 'elemClass', 'rank', 'nickname', 'cons', 'damageText', 'metricLabel', 'boardName', 'critValueText', 'talent', 'weapon', 'artis', 'setsText', 'panel', 'mx'],
     status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'disabledModules', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
   }
   const LOOP = new Set(['row', 'rows', 'c', 'item', 's', 'r', '$data', 'member', 'team'])

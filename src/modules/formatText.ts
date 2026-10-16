@@ -9,9 +9,9 @@
 import { DPS_COPYRIGHT, SITE_NAME, formatTime } from '../components/constants.js'
 import { setSummary } from '../components/presentation.js'
 import { bigNumText } from './akashaQuery.js'
-import { panelSummary } from './akashaBoard.js'
+import { metricLabelOf, panelSummary } from './akashaBoard.js'
 import type { AkashaView } from './akashaQuery.js'
-import type { BoardEntry } from './akashaBoard.js'
+import type { BoardCategory, BoardEntry } from './akashaBoard.js'
 import type { MemberView } from './teamView.js'
 
 /** 榜单记录的一行视图（`rankQuery.buildRows` / `raidQuery.buildRows` 的产物） */
@@ -195,11 +195,15 @@ export function akashaText (view: AkashaView, title = '#练度榜'): string {
  *
  * 2026-10-16 合并 `#配装` 时从 `apps/akashaBuild.ts` 迁入：口径统一到 `#练度榜`，
  * 且**不出现任何 UID**（既不是查询者的，也不展示上榜者的）。
+ * 2026-10-17：带上该榜的名字与数值口径（榜不都是伤害，见 `modules/akashaBoard.ts` 的 `BoardCategory`）。
  */
-export function buildText (entry: BoardEntry, rank: number): string {
+export function buildText (entry: BoardEntry, rank: number, category?: BoardCategory | null): string {
+  const metricLabel = metricLabelOf(category)
+  const boardName = String(category?.name || '')
   const lines = [
-    `【练度榜】第 ${rank} 名 · ${entry.charNameCn} C${entry.cons}${entry.nickname ? `（${entry.nickname}）` : ''}`,
-    `伤害 ${Math.round(entry.damage).toLocaleString('en-US')}｜双爆分 ${entry.critValue.toFixed(1)}｜天赋 A${entry.talent.A}/E${entry.talent.E}/Q${entry.talent.Q}`,
+    `【练度榜】第 ${rank} 名 · ${entry.charNameCn} C${entry.cons}${entry.nickname ? `（${entry.nickname}）` : ''}` +
+      (boardName ? `｜榜：${boardName}` : ''),
+    `${metricLabel} ${Math.round(entry.damage).toLocaleString('en-US')}｜双爆分 ${entry.critValue.toFixed(1)}｜天赋 A${entry.talent.A}/E${entry.talent.E}/Q${entry.talent.Q}`,
     `武器：${entry.weapon ? `${entry.weapon.nameCn}${entry.weapon.affix ? ` 精${entry.weapon.affix}` : ''}` : '—'}`
   ]
   if (entry.artis.length) lines.push('圣遗物主词条：' + entry.artis.map(a => `${a.slotCn} ${a.mainCn}`).join('｜'))

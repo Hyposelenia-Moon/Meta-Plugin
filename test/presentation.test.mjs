@@ -250,17 +250,25 @@ const fullBuild = {
   const baseCss = readText(path.join(pluginRoot, 'resources', 'common', 'base.css'))
   ok('浅色底层是 opt-in（只有 .page--soft 才铺）',
     baseCss.includes('.page--soft::before') && !/^\.page::before/m.test(baseCss))
-  push('三张自有图铺元素底（page--elem；攻略页由 miao 侧元素底 + 自带元素类）',
-    ['dps/grade.html', 'dps/akasha-build.html', 'dps/team-damage.html']
+  push('自有页铺元素底（page--elem；攻略页由 miao 侧元素底 + 自带元素类）',
+    ['dps/grade.html', 'dps/akasha-build.html', 'dps/build.html', 'dps/team-damage.html']
       .filter(f => !readText(path.join(pluginRoot, 'resources', f)).includes('class="page page--elem"')), [])
   /*
    * 数据区两种排版并存（2026-10-15 用户定）：
-   *   · 练度 / 榜上配装 / 队伍伤害 → 共享 `.mx-*` 组件 + 深色玻璃（M1，向 miao 面板靠）
+   *   · 练度 / 练度榜（列表 + 配装详情）/ 队伍伤害 → 共享 `.mx-*` 组件 + 深色玻璃（M1，向 miao 面板靠）
    *   · 攻略页 → **回到本插件迭代前的自绘版式**（`card` + `codex-row`，仍走元素底）
    */
-  push('三张图的数据区用深色玻璃（.mx-content--glass）',
-    ['dps/grade.html', 'dps/akasha-build.html', 'dps/team-damage.html']
+  push('自有页的数据区用深色玻璃（.mx-content--glass）',
+    ['dps/grade.html', 'dps/akasha-build.html', 'dps/build.html', 'dps/team-damage.html']
       .filter(f => !readText(path.join(pluginRoot, 'resources', f)).includes('mx-content--glass')), [])
+  {
+    // 练度榜两页（列表 / 配装详情）同款：章节头都带金色序号（用户 2026-10-17 定）
+    const listTpl = readText(path.join(pluginRoot, 'resources', 'dps', 'build.html'))
+    const detailTpl = readText(path.join(pluginRoot, 'resources', 'dps', 'akasha-build.html'))
+    ok('练度榜列表页章节头带 01 序号（与配装详情页同款）',
+      /<span class="mx-section__index">01<\/span>/.test(listTpl) && /<span class="mx-section__index">01<\/span>/.test(detailTpl))
+    ok('练度榜列表行不再自绘大字号（22px 那套已删）', !/\.bl-row \{[^}]*font-size: 22px/.test(listTpl))
+  }
   {
     const codex = readText(path.join(pluginRoot, 'resources', 'codex', 'codex.html'))
     ok('攻略页回到迭代前自绘版式（自绘页头 + 单张内容卡 + codex-row），不继承 miao 图鉴外壳',

@@ -91,6 +91,18 @@ const { entries, total } = AB.normalizeBoard(raw, textmap)
   ok('数字 id 直接透传', ABc.officialIdOf(10000128) === 10000128)
   ok('取不到的角色返回 0', ABc.officialIdOf('不存在的角色') === 0)
   ok('题目 id 换算：官方 id × 100（实测 10000128 → 1000012800）', ABc.calculationIdOf(10000128) === '1000012800')
+  /*
+   * 2026-10-17：榜序号换算（实测口径：默认榜 = id×100，其余 = id×100 + (分类 index − 1)）。
+   * 旧实现是字符串拼接，带序号会拼出 11 位；这条门禁守住加法语义。
+   */
+  ok('榜序号换算：id×100 + (index−1)（钟离三榜实测 1000003000/…001/…002）',
+    ABc.calculationIdOf(10000030, 0) === '1000003000' &&
+    ABc.calculationIdOf(10000030, 1) === '1000003001' &&
+    ABc.calculationIdOf(10000030, 2) === '1000003002')
+  ok('榜序号非法值按 0 处理，且不产生 11 位 id',
+    ABc.calculationIdOf(10000125, -3) === '1000012500' && ABc.calculationIdOf(10000125, NaN) === '1000012500' &&
+    ABc.calculationIdOf(10000125, 3).length === 10)
+  ok('分类接口 URL 带角色 id', /characterId=10000125$/.test(ABc.categoriesApiUrl(10000125)))
   ok('榜单接口 URL 与页面 URL 形态正确',
     /calculationId=1000012800/.test(ABc.boardApiUrl('1000012800')) &&
     ABc.boardPageUrl('1000012800') === 'https://akasha.cv/leaderboards/1000012800/')
@@ -149,6 +161,44 @@ const { entries, total } = AB.normalizeBoard(raw, textmap)
   ok('纯数字参数没有角色名', P('240247315').names.length === 0 && P('240247315').sawNumericOnly)
   ok('空参数：既无角色名也非纯数字（app 据此回用法）', P('').names.length === 0 && P('').sawNumericOnly === false)
   ok('超过 50 的名次不算名次（回落列表视图）', P('胡桃 51').rankGiven === false && P('胡桃 51').rank === 1)
+}
+
+// ---------- 7. 榜名与口径（2026-10-17：阿卡莎的榜不都是伤害） ----------
+{
+  /*
+   * 现场（真实线上分类接口）：钟离默认榜是 `Shieldbot, Max HP`（数值 = 生命值上限）、
+   * 克洛琳德是 `Aggravate Combo, DPS`、申鹤是 `Simulated Buff`、琴/心海是 `… balance formula`。
+   * 所以标签必须由榜自己决定 —— 这组就是守着这件事。
+   */
+  const cats = [
+    { index: 1, name: 'Shieldbot, Max HP', short: 'MAX HP', count: 1087667, details: '---' },
+    { index: 2, name: 'Nuke Build, Burst Avg DMG', short: 'BURST', count: 1087667, details: '' },
+    { index: 3, name: 'Hybrid Build, Burst DMG + HP balance formula', short: 'HYBRID', count: 1087667, details: 'QDMG + (HP-30000) * …' }
+  ]
+  const def = AB.pickDefaultCategory(cats)
+  ok('默认榜 = index 最小的那个（= calculationId 的 id×100）', def?.index === 1 && def.name === 'Shieldbot, Max HP')
+  push('无榜 / 脏数据 → null（页面退回"结果"）',
+    [AB.pickDefaultCategory([]), AB.pickDefaultCategory(null), AB.pickDefaultCategory([{}])], [null, null, null])
+
+  const label = (n) => AB.metricLabelOf({ index: 1, name: n, short: '', details: '', count: 1 })
+  push('口径标签由榜名推（不写死「伤害」）', [
+    label('Shieldbot, Max HP'),
+    label('Aggravate Combo, DPS'),
+    label('Lunar-Charged Team, Avg DMG'),
+    label('Solo Combo, Avg. DMG'),
+    label('Hybrid Build, Burst DMG + HP balance formula'),
+    label('EQ + Heal + ER balance formula'),
+    label('Simulated Buff'),
+    label('Off-field Bloom Team 2H2D Damage Contribution'),
+    label('C6 Lightfall Sword Explosion Crit DMG'),
+    label('Swirl DMG'),
+    label(''),
+    label('Something Else')
+  ], ['生命值上限', 'DPS', '平均伤害', '平均伤害', '平衡公式', '平衡公式', '模拟增益', '伤害贡献', '单次伤害', '扩散伤害', '结果', '公式结果'])
+  ok('口径标签都 ≤5 个汉字（88px 标签列不折行）',
+    ['Shieldbot, Max HP', 'Aggravate Combo, DPS', 'Hybrid Build, Burst DMG + HP balance formula',
+      'EQ + Heal + ER balance formula', 'C6 Lightfall Sword Explosion Crit DMG', 'Unknown']
+      .every(n => label(n).length <= 5))
 }
 
 const bad2 = report()

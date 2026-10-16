@@ -245,6 +245,72 @@ export function textmapWords (entries: BoardEntry[]): string[] {
 }
 
 /**
+ * 站点「榜」的分类对象（`/api/v2/leaderboards/categories`，站点自己给出的榜名与口径）
+ *
+ * ⚠ 一个角色往往有多个榜（实测 1~6 个），**每个榜的数值口径不一样**：
+ *   `Avg DMG`（该榜公式的单轮平均伤害）/ `DPS`（每秒伤害）/ `Max HP`（生命值上限）/
+ *   `… balance formula`（伤害与属性平衡的合成公式）/ `Damage Contribution`（伤害贡献）/
+ *   `Simulated Buff`（模拟增益）/ `Crit DMG`（单次暴击伤害）…
+ *   所以数值不能一律叫「伤害」，页面必须带上该榜的名字与口径。
+ */
+export interface BoardCategory {
+  /** 分类序号（1 起；1 = 默认榜，即 `calculationId = 角色id × 100 + (index − 1)` 中的 index） */
+  index: number
+  /** 榜名（站点原文，英文；站点 textmap 不译这些词） */
+  name: string
+  /** 口径缩写（`LUNAR` / `MAX HP` / `BURST` …） */
+  short: string
+  /** 口径说明（站点原文，可能很长；`---` 表示没写） */
+  details: string
+  /** 该榜收录的配装条数 */
+  count: number
+}
+
+/** 归一化一个分类对象（字段缺失一律回落空串/0，不抛错） */
+export function normalizeCategory (raw: Record<string, any> | null | undefined): BoardCategory {
+  return {
+    index: Number(raw?.index) || 0,
+    name: String(raw?.name || '').trim(),
+    short: String(raw?.short || '').trim(),
+    details: String(raw?.details || '').trim(),
+    count: Number(raw?.count) || 0
+  }
+}
+
+/**
+ * 从分类列表里取**默认榜**（`calculationId = 角色id × 100`，即 index 最小的那个）
+ *
+ * 空列表 / 脏数据返回 `null`，调用方据此退回"不写榜名"的表述。
+ */
+export function pickDefaultCategory (list: unknown): BoardCategory | null {
+  const arr = Array.isArray(list) ? list.map(x => normalizeCategory(x)) : []
+  const valid = arr.filter(c => c.index > 0 || c.name)
+  if (!valid.length) return null
+  valid.sort((a, b) => (a.index || 999) - (b.index || 999))
+  return valid[0]
+}
+
+/**
+ * 该榜的数值**叫什么**（页面标签用）
+ *
+ * 从站点自己给的榜名推，不自己编口径；标签控制在 **≤5 个汉字**，否则会被行组件的 88px 标签列折行
+ * （`meta-ui.css` 的 `.mx-guide-row`）。完整口径见榜名本身（页面副标题里给出）。
+ */
+export function metricLabelOf (category?: BoardCategory | null): string {
+  const name = String(category?.name || '')
+  if (!name) return '结果'
+  if (/Max\s*HP/i.test(name)) return '生命值上限'
+  if (/DPS/i.test(name)) return 'DPS'
+  if (/Swirl\s*DMG/i.test(name)) return '扩散伤害'
+  if (/Crit\s*DMG\s*$/i.test(name)) return '单次伤害'
+  if (/Contribution/i.test(name)) return '伤害贡献'
+  if (/Simulated\s*Buff/i.test(name)) return '模拟增益'
+  if (/balance formula|Hybrid/i.test(name)) return '平衡公式'
+  if (/DMG/i.test(name)) return '平均伤害'
+  return '公式结果'
+}
+
+/**
  * akasha `stats` 里的**比例键**（值域 0~1，展示要 ×100 才是百分数）
  *
  * ⚠ miao 的 `Format.pct(n)` 只拼 `%`、**不乘 100**（乘 100 的是 `Format.percent`），
