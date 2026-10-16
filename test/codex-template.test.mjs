@@ -47,7 +47,7 @@ ok('不复制 miao 的样式（自有共享 CSS 里没有 miao 类名）', (() =
   return !/\.(basic|detail|char-|cont|wiki-|talent-icon)\b/.test(own)
 })())
 ok('迭代前版式的结构类齐全（页头 + 单张内容卡 + 分块）',
-  ['codex-head', 'codex-portrait', 'codex-name', 'codex-meta', 'card-title', 'codex-section', 'codex-row', 'codex-row-label', 'codex-row-items', 'foot-card'].every(k => tpl.includes(k)))
+  ['codex-head', 'codex-portrait', 'codex-name', 'codex-meta', 'mx-section__title', 'mx-section', 'codex-row', 'codex-row-label', 'codex-row-items', 'mx-footer'].every(k => tpl.includes(k)))
 ok('页头字段：立绘 / 名字 / 副标题 / 定位 / 属性行',
   tpl.includes('{{if portrait}}') && tpl.includes('{{name}}') && tpl.includes('{{subTitle}}') &&
   tpl.includes("meta['定位']") && tpl.includes('{{each metaRows row}}'))
@@ -59,7 +59,7 @@ ok('专武 / 可选档沿用旧版标色（sig-strict / sig-alt）',
   tpl.includes("item.tone === 'sig'") && tpl.includes('sig-strict') &&
   tpl.includes("item.tone === 'alt'") && tpl.includes('sig-alt'))
 ok('活动标签走 note', tpl.includes('codex-note-inline') && tpl.includes('{{item.note}}'))
-ok('武器精炼提示', tpl.includes('{{section.hint}}') && tpl.includes('codex-hint'))
+ok('武器精炼提示', tpl.includes('{{section.hint}}') && tpl.includes('mx-section__hint'))
 ok('长标签独占一行（审核 4.4：不加宽标签列）', tpl.includes('codex-row--long') && tpl.includes('{{each row.labelLines l}}'))
 ok('数据来源一行 + 版权', tpl.includes('{{each mx.sources s}}') && tpl.includes('codex-source') && tpl.includes('{{copyright}}'))
 ok('元素底主题（page--elem + gd-elem-*）', tpl.includes('class="page page--elem"') && tpl.includes('gd-elem-{{element}}'))

@@ -10,7 +10,7 @@
  * 比"猜这一行的名字是武器还是圣遗物"可靠得多——Atlas 的 icons.js 也是这个思路。
  */
 import { atlasRes } from './AtlasRes.js'
-import { miaoRes } from './MiaoRes.js'
+import { miaoFileUrl, miaoRes } from './MiaoRes.js'
 
 export type IconSource = 'miao' | 'atlas'
 
@@ -125,4 +125,17 @@ export function iconForRef (ref: string, ctx: { character?: string } = {}): Reso
     default:
       return null
   }
+}
+/**
+ * 普攻（A）槽的**通用武器图标**
+ *
+ * 面板里 A 槽按角色武器类型取 `common/item/atk-{sword|claymore|polearm|bow|catalyst}.webp`：
+ * `data.json.talentCons.a` 为 0 的角色没有命座图标可回落，`icons/talent-a.webp` 又几乎不存在。
+ */
+export function attackIcon (character: string): ResolvedIcon | null {
+  const data = miaoRes.characterData(character) as { weapon?: unknown } | null
+  const type = String(data?.weapon ?? '').trim()
+  if (!/^(sword|claymore|polearm|bow|catalyst)$/.test(type)) return null
+  const rel = `common/item/atk-${type}.webp`
+  return resolveWith(() => (miaoFileUrl(rel) ? rel : null), 'weapon', type)
 }

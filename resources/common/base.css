@@ -248,3 +248,13 @@ body.gd-elem-sr, body.elem-sr { --page-art: url("./bg/page-sr.webp"); }
 .num {
   font-variant-numeric: tabular-nums;
 }
+/* ===== 无元素类的页面（帮助页 / 状态页）也要有背景图（2026-10-16）=====
+ * 三个帮助/状态模板已加 `.page--elem`，但它们没有元素类 → `--page-art` 为空；
+ * 这里给一个默认底图（本仓库派生件 hydro），连同已有的渐变兜底一起铺满。
+ */
+.page--elem {
+  background-image: var(--page-art, url("./bg/page-hydro.webp")), var(--page-gradients);
+  background-size: cover, auto, auto, auto;
+  background-repeat: no-repeat;
+  background-color: var(--bg);
+}

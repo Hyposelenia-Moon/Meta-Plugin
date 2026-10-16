@@ -4,20 +4,36 @@
   <meta charset="utf-8"/>
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/common/meta-ui.css"/>
   <!-- 天赋图标（元素环 + 等级牌 + 皇冠）沿用 miao 的组件样式：只引用，不复制 -->
   <link rel="stylesheet" type="text/css" href="{{_miao_path}}common/tpl.css"/>
   <link rel="stylesheet" type="text/css" href="{{_miao_path}}character/profile-detail.css"/>
   <style>
+    /* ===== 照抄 miao 的字体声明（2026-10-16）=====
+       这三段 `@font-face` 原本只在 miao `common/common.css` 里（攻略页没引它）→ 标题一直回落系统字体。
+       这里原样引入（只引字体声明，不引 miao 的版式 CSS），字体文件仍引用 miao 资源、不复制。 */
+    @font-face {
+      font-family: 'Number';
+      src: url("{{_miao_path}}common/font/tttgbnumber.woff") format('woff'), url("{{_miao_path}}common/font/tttgbnumber.ttf") format('truetype');
+    }
+    @font-face {
+      font-family: 'NZBZ';
+      src: url("{{_miao_path}}common/font/NZBZ.woff") format('woff'), url("{{_miao_path}}common/font/NZBZ.ttf") format('truetype');
+    }
+    @font-face {
+      font-family: 'YS';
+      src: url("{{_miao_path}}common/font/HYWH-65W.woff") format('woff'), url("{{_miao_path}}common/font/HYWH-65W.ttf") format('truetype');
+    }
     /* 攻略页版式：**回到本插件迭代前的自绘攻略页**（2026-10-15 用户定）
        页头（立绘 + 名字 + 定位 + 属性行）→ 单张内容卡里分块 → 版权；
        类名与配色走本项目自己的规范（components.css 的 card/card-title/kv-item + base.css 的 :root 令牌），
        不沿用 miao 图鉴的卡片外壳（`wiki-cont`/`cont`）；只有天赋图标用 miao 的 `.talent-icon`。 */
-    .codex-head { position: relative; margin: -8px -10px 6px -10px; height: 520px; }   /* 扩到页面四边：抵消 .page-inner 的 8px/10px 内边距，看不见卡片形状 */   /* 照 .basic + character-wiki.css 的 height:500px */
+    .codex-head { position: relative; margin: 8px -10px 8px -10px; }   /* 上下对称留白（2026-10-16） */   /* 高度由立绘图片自身比例决定 */   /* 扩到页面四边：抵消 .page-inner 的 8px/10px 内边距，看不见卡片形状 */   /* 照 .basic + character-wiki.css 的 height:500px */
     /* 立绘区三行（旧版 miao 口径：右对齐 + 金字标签 + miao 文字阴影） */
     .codex-portrait {
       /* 照 profile-detail.css:36 `.main-pic` —— 固定取景窗 + contain 居中 + 负 margin 左移 */
       flex: none;
-      width: 100%; height: 500px;
+      display: block; width: 100%; height: auto;
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
@@ -44,7 +60,7 @@
     .codex-row-items { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; min-width: 0; overflow-wrap: break-word; }   /* 旧 .row-value 的换行处理 */
     .codex-sep { padding: 0 3px; font-size: .85em; font-weight: 700; }            /* 旧 .sep */
     .codex-note { font-style: italic; font-size: .85em; opacity: .85; }           /* 旧 .rank-note 斜体 */
-    .codex-tier-line { display: block; font-style: italic; opacity: .85; }        /* 旧 .row-note 块化 */
+    .codex-tier-line { display: inline; font-style: normal; opacity: 1; }   /* 标签与数据同行（2026-10-16） */        /* 旧 .row-note 块化 */
     /* 行：照 .char-attr li（32px 行高 + 斑马 rgba(50,50,50,.4)/rgba(0,0,0,.4)，去掉虚线分隔） */
     .codex-row { min-height: 32px; line-height: 32px; padding-top: 0; padding-bottom: 0; }
     .codex-row + .codex-row { border-top: none; }
@@ -62,7 +78,7 @@
     .codex-row--stack .codex-row-items > * { display: block; }
     .codex-row--stack .codex-sep { display: none; }
     .codex-row--stack { min-height: 0; line-height: 1.5; }
-    .codex-row--long { flex-direction: column; gap: 2px; }
+    .codex-row--long { gap: 6px; }   /* 不再竖排：标签与数据同一行 */
     .codex-row--long .codex-row-label { min-width: 0; }
     .codex-tier-line { display: block; }
 
@@ -77,6 +93,7 @@
     .codex-hint { margin-top: 4px; font-size: 16px; color: var(--muted-2); }
 
     .codex-teams { display: flex; flex-direction: column; gap: 3px; }
+    .codex-face { display: inline-block; width: 32px; height: 32px; margin-right: 6px; vertical-align: middle; border-radius: 50%; background-size: cover; background-position: center; }
     .codex-team { font-size: 19px; color: var(--text); }
     .codex-team-tag { font-weight: 700; margin-right: 6px; }
     .codex-team-tag.label-推荐 { color: var(--gold); }
@@ -86,7 +103,6 @@
 
     /* 条目图标 / 配队头像（引用 miao 资源，尺寸按数据区比例） */
     .codex-icon { display: inline-block; width: 26px; height: 26px; margin-right: 6px; vertical-align: middle; border-radius: 6px; background-size: cover; background-position: center; }
-    .codex-face { display: inline-block; width: 32px; height: 32px; margin-right: 6px; vertical-align: middle; border-radius: 50%; background-size: cover; background-position: center top; }
 
     /* 天赋：沿用 miao 面板的 .talent-icon 组件（元素环 + 图标 + 等级牌 + 皇冠角标），按数据区比例缩小 */
     .codex-talents { display: flex; gap: 18px; align-items: flex-start; padding: 2px 0; }
@@ -112,21 +128,21 @@
     .codex-talents .talent-icon.talent-crown::after {
       content: ''; display: block; position: absolute; left: 50%; top: 0; margin-left: -14px;
       width: 28px; height: 28px; background-size: contain; background-repeat: no-repeat;
-      background-image: url('../../../../plugins/miao-plugin/resources/character/imgs/crown.png');
+      background-image: url('{{_miao_path}}character/imgs/crown.png');
     }
     .codex-talents .codex-talent-letter {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       font-size: 34px; font-weight: 700; color: #fff; text-shadow: 0 0 5px #000;
     }
     /* 元素环底图：与练度页同一套 miao 资源 */
-    .codex-talents .talent-icon { background-image: url('../../../../plugins/miao-plugin/resources/common/bg/talent-hydro.webp'); }
-    body.gd-elem-pyro .codex-talents .talent-icon { background-image: url('../../../../plugins/miao-plugin/resources/common/bg/talent-pyro.webp'); }
-    body.gd-elem-hydro .codex-talents .talent-icon { background-image: url('../../../../plugins/miao-plugin/resources/common/bg/talent-hydro.webp'); }
-    body.gd-elem-anemo .codex-talents .talent-icon { background-image: url('../../../../plugins/miao-plugin/resources/common/bg/talent-anemo.webp'); }
-    body.gd-elem-electro .codex-talents .talent-icon { background-image: url('../../../../plugins/miao-plugin/resources/common/bg/talent-electro.webp'); }
-    body.gd-elem-dendro .codex-talents .talent-icon { background-image: url('../../../../plugins/miao-plugin/resources/common/bg/talent-dendro.webp'); }
-    body.gd-elem-cryo .codex-talents .talent-icon { background-image: url('../../../../plugins/miao-plugin/resources/common/bg/talent-cryo.webp'); }
-    body.gd-elem-geo .codex-talents .talent-icon { background-image: url('../../../../plugins/miao-plugin/resources/common/bg/talent-geo.webp'); }
+    .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-hydro.webp'); }
+    body.gd-elem-pyro .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-pyro.webp'); }
+    body.gd-elem-hydro .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-hydro.webp'); }
+    body.gd-elem-anemo .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-anemo.webp'); }
+    body.gd-elem-electro .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-electro.webp'); }
+    body.gd-elem-dendro .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-dendro.webp'); }
+    body.gd-elem-cryo .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-cryo.webp'); }
+    body.gd-elem-geo .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-geo.webp'); }
     .codex-talents .talent-icon.talent-crown:after { width: 16px; height: 16px; top: -4px; }
     .codex-talent-letter { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; font-weight: 700; color: #fff; text-shadow: 0 0 5px #000; }
 
@@ -161,15 +177,105 @@
     }
     /* 内容块黑底 + 文字阴影：照 common.css:302/49 */
     .page-inner > .card.body-card .codex-section > *:not(.card-title) { background: rgba(0, 0, 0, .5); }
-    .page-inner > .card.body-card .codex-section { text-shadow: 0 0 1px #000, 1px 1px 3px rgba(0, 0, 0, .9); }</style>
+    .page-inner > .card.body-card .codex-section { text-shadow: 0 0 1px #000, 1px 1px 3px rgba(0, 0, 0, .9); }
+    /* ===== 立绘缩短后的配套间距（2026-10-16）=====
+       立绘区 520 → 420px；数据区每节下边距、节内上下内边距、行高与行距同步放大。 */
+    .mx-content--glass .mx-section { padding-bottom: 28px; }
+    .mx-content--glass .mx-section__head { padding-top: 14px; padding-bottom: 14px; }
+    .codex-body { padding: 20px 20px 22px; }
+    .codex-row { min-height: 42px; line-height: 42px; }
+    .codex-row + .codex-row { margin-top: 10px; }
+    .codex-empty, .codex-team { line-height: 38px; }
+/* ===== 数据区字体加大（2026-10-16）===== */
+    .mx-content--glass .codex-row-label { font-size: 19px; }
+    .mx-content--glass .codex-row-items { font-size: 21px; }
+    .mx-content--glass .codex-team { font-size: 21px; }
+    .mx-content--glass .codex-note-inline,
+    .mx-content--glass .codex-team-note { font-size: 18px; }
+    .mx-content--glass .codex-source { font-size: 18px; }
+    .mx-content--glass .codex-empty { font-size: 21px; }
+    /* 立绘区去边框（结构选择器版，2026-10-16）：.page-inner 内第二个 .card.head-card 即立绘卡 */
+    .page-inner > .card.head-card ~ .card.head-card {
+      border: none !important; background: none !important; box-shadow: none !important;
+      border-radius: 0 !important; padding: 0 !important; margin: 0 !important;
+    }
+    .page-inner > .card.head-card ~ .card.head-card .codex-head,
+    .page-inner > .card.head-card ~ .card.head-card .codex-head::after,
+    .page-inner > .card.head-card ~ .card.head-card img.codex-portrait {
+      border: none !important; outline: none !important; box-shadow: none !important; border-radius: 0 !important;
+    }
+    /* 分区卡片（2026-10-16 定稿）：一个分区 = 一张卡片，底片/圆角/阴影沿用共享样式（与修改前一致），
+       分区之间留出 8px 间隙。 */
+    .mx-content--glass .mx-section { margin: 8px -10px; }
+
+    /* 天赋（回退到本轮之前的状态，2026-10-16）：本页自有 .codex-* 命名 + 练度页的几何取值 */
+    .codex-talents { display: flex; gap: 18px; align-items: flex-start; padding: 2px 0; }
+    .codex-talents .talent-icon { width: 100px; height: 100px; padding: 5px; border-radius: 50%; position: relative; display: table; z-index: 90; background-size: contain; background-repeat: no-repeat; background-position: center center; }
+    .codex-talents .talent-icon img { width: 46%; height: 46%; position: absolute; top: 50%; left: 50%; margin: -22% 0 0 -23%; object-fit: contain; }
+    .codex-talents .talent-icon strong { background: #fff; width: 34px; height: 26px; line-height: 26px; font-size: 17px; text-align: center; border-radius: 5px; position: absolute; bottom: 2px; left: 50%; margin-left: -17px; color: #000; box-shadow: 0 0 5px 0 #000; }
+    .codex-talents .talent-icon.talent-plus strong { background: #2e353e; color: #ffdfa0; font-weight: bold; box-shadow: 0 0 1px 0 #d3bc8e, 1px 1px 2px 0 rgba(0, 0, 0, .5); }
+    .codex-talents .talent-icon.talent-crown::after { content: ''; position: absolute; left: 50%; top: 0; margin-left: -14px; width: 28px; height: 28px; background: url('{{_miao_path}}character/imgs/crown.png') no-repeat; background-size: contain; }
+    .codex-talents .codex-talent-letter { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 34px; font-weight: 700; color: #fff; text-shadow: 0 0 5px #000; }
+    body.gd-elem-pyro .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-pyro.webp'); }
+    body.gd-elem-hydro .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-hydro.webp'); }
+    body.gd-elem-anemo .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-anemo.webp'); }
+    body.gd-elem-electro .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-electro.webp'); }
+    body.gd-elem-dendro .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-dendro.webp'); }
+    body.gd-elem-cryo .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-cryo.webp'); }
+    body.gd-elem-geo .codex-talents .talent-icon { background-image: url('{{_miao_path}}common/bg/talent-geo.webp'); }
+  
+    /* ===== 天赋：**逐字照抄练度页**（2026-10-16）=====
+       取值与练度页 `.gd-talent-*` 完全一致，仅两处必要差异：
+         ① `width: 300px` → `width: 100%`（攻略页在 grid 内容列里，练度页是 300px 定宽列）；
+         ② 选择器加 `.mx-content--glass .mx-section > .codex-talents` 前缀，以同结构更高优先级压过
+            共享的"块内左右内边距归零"规则（避免使用 !important，声明本身不加不减）。
+       原值与练度页对照：100px 圆环 / padding 5px / 46% 图标定位 / 等级牌 34×26 且 margin-left -15px /
+       plus 深底金字 / crown 28×28 且 margin-left -14px。 */
+    .mx-content--glass .mx-section > .codex-talents { display: flex; gap: 18px; align-items: flex-start; padding: 2px 0; width: 100%; margin: 0; }   /* 间距恢复先前状态（gap:18px）；width 仍为唯一适配点 */
+    .mx-content--glass .mx-section > .codex-talents .codex-talent-item { flex: 0 0 auto; }   /* 项不拉伸：保持先前的 18px 间距排布 */
+    .mx-content--glass .mx-section > .codex-talents .talent-icon { width: 100px; height: 100px; padding: 5px; border-radius: 50%; position: relative; display: table; background-size: contain; background-repeat: no-repeat; background-position: center center; z-index: 90; }
+    .mx-content--glass .mx-section > .codex-talents .talent-icon img { width: 46%; height: 46%; position: absolute; top: 50%; left: 50%; margin: -22% 0 0 -23%; background-repeat: no-repeat; background-position: center; background-size: contain; }
+    .mx-content--glass .mx-section > .codex-talents .talent-icon strong { background: #fff; width: 34px; height: 26px; line-height: 26px; font-size: 17px; text-align: center; border-radius: 5px; position: absolute; bottom: 2px; left: 50%; margin-left: -15px; color: #000; box-shadow: 0 0 5px 0 #000; }
+    .mx-content--glass .mx-section > .codex-talents .talent-icon.talent-plus strong { background: #2e353e; color: #ffdfa0; font-weight: bold; box-shadow: 0 0 1px 0 #d3bc8e, 1px 1px 2px 0 rgba(0, 0, 0, .5); }
+    .mx-content--glass .mx-section > .codex-talents .talent-icon.talent-crown::after { content: ''; display: block; position: absolute; left: 50%; top: 0; margin-left: -14px; width: 28px; height: 28px; background: url('{{_miao_path}}character/imgs/crown.png') no-repeat; background-size: contain; }
+    /* 天赋区字体对齐 miao 面板（照 `common/common.css` 的 body）：
+       chip（`.talent-icon strong`）的字体是继承来的，字体栈不一致 → 数字字形不一致。 */
+    .mx-content--glass .mx-section > .codex-talents,
+    .mx-content--glass .mx-section > .codex-talents .talent-icon strong {
+      font-family: Number, "汉仪文黑-65W", YS, PingFangSC-Medium, "PingFang SC", sans-serif;
+    }
+    /* chip 颜色与原面板同款：A/E/Q 三格一律**白底黑字**（原面板未加成的表现），
+       不使用 miao 的 `talent-plus` 深底金字。 */
+    .mx-content--glass .mx-section > .codex-talents .talent-icon strong,
+    .mx-content--glass .mx-section > .codex-talents .talent-icon.talent-plus strong {
+      background: #fff; color: #000; font-weight: 400; box-shadow: 0 0 5px 0 #000;
+    }
+    /* chip 数字：字体强制为 miao 面板那一串，并**去掉光晕边**（原面板字体无 text-shadow）。 */
+    .mx-content--glass .mx-section > .codex-talents .talent-icon strong {
+      font-family: Number, "汉仪文黑-65W", YS, PingFangSC-Medium, "PingFang SC", sans-serif !important;
+      text-shadow: none !important;
+      font-weight: bold;
+      background: #fff; color: #000;
+    }
+    .mx-content--glass .mx-section > .codex-talents .talent-icon.talent-plus strong {
+      background: #fff; color: #000; font-weight: bold; text-shadow: none !important;
+    }</style>
 </head>
 <body class="gd-elem-{{element}}" style="zoom:{{renderScale}}">
   <div class="page page--elem">
     <div class="page-inner">
       <div class="card head-card">
+        <div class="header">
+          <div class="header-title">Meta-Plugin · 角色攻略</div>
+          <div class="header-sub">#{{name}} · 角色攻略</div>
+          <div class="header-note">{{subTitle}}</div>
+        </div>
+      </div>
+
+      <div class="card head-card">
         <div class="codex-head">
           {{if portrait}}
-          <div class="codex-portrait" style="background-image: url('{{_miao_path}}{{portrait}}')"></div>
+          <img class="codex-portrait" src="{{_miao_path}}{{portrait}}" alt=""/>
           {{/if}}
           <div class="codex-head-main">
             <div class="codex-name">{{name}}<span class="codex-name-sub">{{subTitle}}</span></div>
@@ -189,10 +295,14 @@
         </div>
       </div>
 
-      <div class="card body-card">
+      <main class="mx-content mx-content--glass">
         {{each mx.sections section}}
-        <div class="codex-section">
-          <div class="card-title">{{section.title}}</div>
+        <section class="mx-section">
+          <header class="mx-section__head">
+            <span class="mx-section__index">{{section.index}}</span>
+            <h2 class="mx-section__title">{{section.title}}</h2>
+            {{if section.hint}}<span class="mx-section__hint">{{section.hint}}</span>{{/if}}
+          </header>
 
           {{if section.empty}}
           <div class="codex-empty">{{section.emptyText}}</div>
@@ -213,13 +323,15 @@
           {{if row.kind === 'talents'}}
           <div class="codex-talents">
             {{each row.items item}}
-            <div class="talent-icon{{if item.crown}} talent-crown{{/if}}">
-              {{if item.icon}}
-              <img src="{{_miao_path}}{{item.icon}}"/>
-              {{else}}
-              <span class="codex-talent-letter">{{item.text}}</span>
-              {{/if}}
-              <strong>{{item.talentLevel}}</strong>
+            <div class="codex-talent-item">
+              <div class="talent-icon{{if item.crown || item.talentLevel >= 10}} talent-crown{{/if}}">
+                {{if item.icon}}
+                <img src="{{_miao_path}}{{item.icon}}"/>
+                {{else}}
+                <span class="codex-talent-letter">{{item.text}}</span>
+                {{/if}}
+                <strong>{{item.talentLevel}}</strong>
+              </div>
             </div>
             {{/each}}
           </div>
@@ -238,17 +350,17 @@
           {{/each}}
           {{/if}}
 
-          {{if section.title === '武器' && section.hint}}<div class="codex-hint">{{section.hint}}</div>{{/if}}
-        </div>
-        {{/each}}
-      </div>
 
-      <div class="card foot-card">
+        </section>
+        {{/each}}
+      </main>
+
+      <footer class="mx-footer">
         {{each mx.sources s}}
         <div class="codex-source">{{s.name}} · {{if s.updatedAt}}更新时间 {{s.updatedAt}}{{else}}时间未提供{{/if}} · {{s.modeText}}</div>
         {{/each}}
-        <div class="copyright">{{copyright}}</div>
-      </div>
+        <p class="mx-footer__method">口径：本仓库攻略数据；面板与命座仅作参考。</p>
+        <p class="mx-copyright">{{copyright}}</p>
     </div>
   </div>
 </body>

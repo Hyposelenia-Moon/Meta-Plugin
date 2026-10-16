@@ -138,7 +138,7 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   'char-dps': ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tierCount', 'tiers'],
   tiers: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tiers'],
   // 2026-10-15：新增「当前配装 / 参考 DPS / 角色立绘」三块（后两块可缺省 → 模板用 {{if}} 兜着）
-  grade: ['title', 'subtitle', 'charName', 'ranks', 'rankClass', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'buildInfo', 'panelRows', 'uidText', 'consIcons', 'talentIcons', 'elemClass', 'heroImg', 'refDps', 'mx', 'assessable', 'notes'],
+  grade: ['title', 'subtitle', 'charName', 'ranks', 'rankClass', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'buildInfo', 'panelRows', 'uidText', 'consIcons', 'talentIcons', 'elemClass', 'heroImg', 'refDps', 'mx', 'assessable', 'notes', '$index'],   // $index 是 art-template 内置循环下标（参考 DPS 徽标档位用）
   'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes', 'referenceDps', 'referenceTotal', 'window', 'axisLabel', 'axisManual', 'patchLabel', 'contributions'],
   'akasha-build': ['title', 'subtitle', 'charName', 'rank', 'uid', 'nickname', 'cons', 'damageText', 'critValueText', 'talent', 'weapon', 'artis', 'sets', 'panel', 'mx'],
     status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'disabledModules', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']

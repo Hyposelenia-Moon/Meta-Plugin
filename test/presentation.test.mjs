@@ -182,9 +182,10 @@ const fullBuild = {
   push('短标签不分行', P.labelLinesOf('主词条'), ['主词条'])
   const tpl = readText(path.join(pluginRoot, 'resources', 'codex', 'codex.html'))
   const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css'))
-  ok('攻略页长标签独占一行（迭代前版式下也不挤断右列）',
-    tpl.includes('codex-row--long') && tpl.includes('{{each row.labelLines l}}') &&
-    /\.codex-row--long \{[^}]*flex-direction: column/.test(tpl))
+  // 2026-10-16 用户改口径：攻略页的"长标签"（如 月结晶/月感电）是**标签**而非括弧备注，
+  // 应与具体数据**同行**显示 —— 不再独占一行、也不再用斜体块「.codex-tier-line{display:block}」。
+  ok('攻略页长标签与数据同行（2026-10-16 新口径）',
+    /\.codex-tier-line \{ display: inline;/.test(tpl) && tpl.includes('codex-row--long') && tpl.includes('{{each row.labelLines l}}'))
   ok('参考区有"当前 / 参考目标"列语义',
     readText(path.join(pluginRoot, 'resources', 'dps', 'grade.html')).includes('参考目标'))
 }
@@ -358,6 +359,32 @@ const fullBuild = {
   ok('数据区拆成多张卡（页面 ≥6 个章节，结构完整性；不声称可解决纹理对比度）',
     (tplNow.match(/<section class="mx-section/g) || []).length >= 6,
     String((tplNow.match(/<section class="mx-section/g) || []).length))
+  // 硬约束（2026-10-16 用户定）：正文左右边界必须与卡头 `10px 20px` 同一条竖线——
+  // 内容块用"负外边距外扩 + 自身 20px padding"实现（黑底仍铺满卡片、文字仍内缩 20px），
+  // 且该规则必须排在后面的覆盖块之前不被打回；行级不得再叠加 20px（否则 20+20 双重内缩）。
+  const alignIdx = css.indexOf('margin-left: -20px;')
+  const headPadIdx = css.indexOf('.mx-content--glass .mx-section__head')
+  const rowZero = /\.mx-content--glass \.mx-reference-row,\s*\r?\n?.*?padding: 6px 20px;/.test(css) || /\.mx-reference-row,\s*\r?\n\s*\.mx-source,/.test(css)
+  // 卡片自身必须承载 20px 内缩（文字与卡头同一条竖线的前提）
+  const cardPad = /回到已验证可用的对齐结构/.test(css)
+  // 硬约束（2026-10-16 用户定，参照 HEAD「行级 20px」的可用版本）：
+  //   卡片不设左右内缩 → 内容块铺满卡片宽度（黑底/斑马不缩）→ 左右 20px 由**行**承担 → 与卡头 `10px 20px` 对齐。
+  const alignMarker = css.lastIndexOf('按 2b9fe62 已验证版本恢复')
+  const rowPad = /\.mx-content--glass \.mx-refdps-row,\s*\r?\n\s*\.mx-content--glass \.mx-verdict,/.test(css)
+  const cardNoPad = /单一内缩源[\s\S]{0,400}?--mx-inset: 20px;/.test(css)
+  ok('正文与卡头列对齐的硬约束仍在（行级 20px + 卡片不内缩）',
+    alignMarker > 0 && rowPad && cardNoPad,
+    `marker@${alignMarker} rowPad=${rowPad} cardNoPad=${cardNoPad}`)
+
+  // 06 提升建议采用方案 B（2026-10-16 用户选定）：序号牌在 20px 处与卡头对齐、正文紧随其后；
+  // 序号不得用负外边距把它拉回卡片边缘（那是被否掉的方案 A）。
+  ok('06 提升建议的序号牌仍在 20px 内缩处（方案 B）',
+    /06 提升建议：方案 B/.test(css) && /\.mx-recommendation \.mx-priority \{ margin-left: 0;/.test(css))
+
+  // 状态章（达标/未达标胶囊）内边距例外：必须与"通配归零"**同结构且优先级更高**才生效（0,4,0 > 0,3,0）
+  ok('状态章内边距例外用了更高优先级的选择器',
+    /\.mx-content--glass \.mx-section > \*:not\(\.mx-section__head\) \.mx-state \{\s*\r?\n\s*padding-left: 8px;/.test(css))
+
   ok('数据区容器不画底（照 miao 的 .wiki-cont）',
     /\.mx-content--glass \{[\s\S]*?--mx-paper: transparent;/.test(css) && /\.mx-content--glass \{[\s\S]*?border: none;/.test(css))
     /* 纸面必须是**不透明**底（Mica 风格）：取 `.mx-content { … }` 本体判断，别扫到后面的伪元素 */

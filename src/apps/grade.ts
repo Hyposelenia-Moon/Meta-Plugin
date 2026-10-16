@@ -55,7 +55,7 @@ export function gradeText (result: GradeResult, missRows: CompareRow[], okLine: 
   }
   const lines = [
     result.assessable
-      ? `【${result.charName}】练度 ${result.rank}（${result.total} 分）　面板 ${result.panelTier}`
+      ? `【${result.charName}】练度 ${result.rank}（${result.total} 分）`
       : `【${result.charName}】练度：无法评估（关键数据未取到）`,
     result.dims.map(dimText).join('｜'),
     '',
@@ -314,10 +314,10 @@ export class MetaGrade extends plugin {
      * 拿不到整队金数）。每档取"含该角色"的**最高伤害**那条记录；榜单缓存不可用（未联网/无缓存）时这一块不渲染。
      */
     const ownCost = 1 + (Number(profile.build.cons) || 0) + (Number(profile.build.weapon?.rarity) >= 5 ? 1 : 0)
-    const refDps: Array<{ label: string, damageText: string, teamText: string, video: string }> = []
+    const refDps: Array<{ label: string, damageText: string, teamText: string, video: string, chars: Array<{ name: string, avatar: string, constellation: number }> }> = []
     try {
       const { costBucketOf, costRangeOf, queryCharDps } = await import('../modules/charDpsQuery.js')
-      const res = await queryCharDps(targets.charName || charName, {}, { proxy: getProxy(), downloadAvatars: false })
+      const res = await queryCharDps(targets.charName || charName, {}, { proxy: getProxy(), downloadAvatars: true })
       if (res.ok) {
         const base = costBucketOf(ownCost)
         for (const bucket of [base, base + 1, base + 2]) {
@@ -329,7 +329,8 @@ export class MetaGrade extends plugin {
             label: tier!.label,
             damageText: row.damageText || (row.damage ? String(row.damage) : '—'),
             teamText: row.chars.map(c => `${c.name}${c.constellation ? `C${c.constellation}` : ''}`).join(' + '),
-            video: row.video || ''
+            video: row.video || '',
+            chars: (row.chars || []).map(c => ({ name: c.name || '', avatar: c.avatar || '', constellation: Number(c.constellation) || 0 }))
           })
         }
       }
@@ -376,7 +377,6 @@ export class MetaGrade extends plugin {
       ranks: result.rank,
       rankClass: String(result.rank || '').toUpperCase(),
       total: result.total,
-      panelTier: result.panelTier,
       dims: result.dims.map(d => ({
         label: d.label,
         pct: d.ratio === null ? 0 : Math.round(d.ratio * 100),

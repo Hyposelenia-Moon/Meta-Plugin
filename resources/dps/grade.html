@@ -88,13 +88,17 @@
     /* miao `body { width: 600px }`：整页按面板宽度排版；立绘行以下的分区随 600px 自适应 */
     body { width: 600px; min-width: 600px; max-width: 600px; }
     /* 立绘区：照面板图形态——底图直接托着立绘与属性表，无卡框 */
-    .gd-basic { position: relative; margin: 0 -15px 15px -10px; }
+    /* 立绘区取景窗：高度钉死 500px（miao 面板页由 .main-pic 撑高，图鉴页显式写 height:500px） */
+    .gd-basic { position: relative; margin: 0 -15px 15px -10px; height: 500px; }
+    /* 右列首个元素不带上外边距，避免整列被顶下（miao .detail 内首元素无 margin-top） */
+    .gd-detail > :first-child { margin-top: 0; }
     .gd-main-pic {
       width: 1400px; height: 500px;
       background-size: contain; background-repeat: no-repeat; background-position: center;
       margin-left: -545px; position: relative; z-index: 2;
     }
-    .gd-detail { position: absolute; right: 20px; top: 20px; color: #fff; z-index: 3; }
+    /* 右列（名字 / UID / 天赋 / 属性表）整体位置：只调这一个变量即可上下移动（2026-10-16） */
+    .gd-detail { position: absolute; right: 20px; top: var(--gd-detail-top, -10px); color: #fff; z-index: 3; }
     .gd-char-name {
       font-size: 50px;
       font-family: Number, "印品南征北战NZBZ体", NZBZ, "汉仪文黑-65W", YS, PingFangSC-Medium, "PingFang SC", sans-serif;
@@ -210,7 +214,17 @@
     .gd-char-cons .gd-talent-icon.off { filter: grayscale(100%); opacity: .4; }
     .gd-sug { font-size: 19px; padding: 5px 0; }
     .gd-foot { font-size: 15px; color: var(--muted-2, #999); padding: 2px 0; }
-  </style>
+      /* 参考 DPS 行（DPS 榜同款）：榜单共享 .rank-* 之外，补本页需要的尺寸与间距 */
+    .mx-refdps-row { display: flex; align-items: center; gap: 10px; padding: 6px 20px; }
+    .mx-refdps-row .rank-badge { flex: 0 0 auto; min-width: 68px; text-align: center; }
+    .mx-refdps-row .rank-main { flex: 0 0 auto; display: flex; align-items: baseline; gap: 4px; margin-left: auto; }
+    .mx-refdps-row .rank-tags { flex: 0 0 auto; }
+    .mx-refdps-row .mx-refdps-team { flex: 1 1 auto; min-width: 0; }
+    .mx-refdps-video { font-style: italic; opacity: .85; }    /* 参考 DPS 列宽修正（写在最后，覆盖前面的同优先级规则）：档位标签 | 头像串 | 数值，互不重叠 */
+    .mx-refdps-row { display: flex; align-items: center; gap: 12px; padding: 6px 20px; }
+    .mx-refdps-row .mx-refdps-label { flex: 0 0 auto; min-width: 78px; }
+    .rank-row.mx-refdps-row .char-list { flex: 1 1 auto; min-width: 0; }
+    .mx-refdps-row .rank-main { flex: 0 0 auto; margin-left: 0; }</style>
 </head>
 <body class="gd-elem-{{elemClass}}" style="zoom:{{renderScale}}">
   <div class="page page--elem">
@@ -277,19 +291,14 @@
           <header class="mx-section__head">
             <span class="mx-section__index">01</span>
             <h2 class="mx-section__title">结论</h2>
-            <span class="mx-section__hint">计分维度 {{mx.score.evaluatedKeys.length}}/3</span>
           </header>
           <div class="mx-verdict{{if !assessable}} mx-verdict--unavailable{{/if}}">
-            <div class="mx-verdict__label">当前练度</div>
             {{if assessable}}
             <div class="mx-verdict__score">{{total}}<small>/ 100</small></div>
             <div class="mx-verdict__rank mx-tier-{{rankClass}}">{{ranks}}</div>
-            <div class="mx-verdict__tier"><strong>{{panelTier}}</strong><small>综合档位</small></div>
             {{else}}
             <div class="mx-verdict__rank">待评</div>
-            <div class="mx-verdict__tier"><strong>—</strong><small>关键数据未取到</small></div>
             {{/if}}
-            <p class="mx-verdict__note">{{if mx.score.isPartial}}口径：{{mx.score.scoringVersion}}{{if mx.score.targetVersion}} · 攻略目标 {{mx.score.targetVersion}}{{else}} · 攻略目标版本未提供{{/if}}；缺项不计分，未知项不计入总分{{else}}口径：{{mx.score.scoringVersion}}{{if mx.score.targetVersion}} · 攻略目标 {{mx.score.targetVersion}}{{else}} · 攻略目标版本未提供{{/if}}{{/if}}</p>
           </div>
         </section>
 
@@ -305,7 +314,7 @@
               {{if d.pct === null}}
               <span class="mx-meter mx-meter--{{d.state}}"></span>
               {{else}}
-              <span class="mx-meter"><span class="mx-meter__fill" style="width:{{d.pct}}%"></span></span>
+              <span class="mx-meter{{if d.state === 'met'}} mx-meter--green{{else if d.pct !== null && d.pct >= 50}} mx-meter--yellow{{else}} mx-meter--red{{/if}}"><span class="mx-meter__fill" style="width:{{d.pct}}%"></span></span>
               {{/if}}
               <span class="mx-dimension__value">{{d.pctText}}</span>
               <span class="mx-state mx-state--{{d.state}}"><span class="mx-state__symbol">{{d.symbol}}</span>{{d.stateLabel}}</span>
@@ -337,7 +346,6 @@
           <header class="mx-section__head">
             <span class="mx-section__index">04</span>
             <h2 class="mx-section__title">未达标项</h2>
-            {{if consLine}}<span class="mx-section__hint">参考：{{consLine}}</span>{{/if}}
           </header>
           {{if mx.evidence.length > 0}}
           {{each mx.evidence r}}
@@ -376,7 +384,7 @@
           <div class="mx-reference-row mx-reference-row--head"><span class="mx-reference-row__name">　</span><span class="mx-reference-row__value">当前</span><span class="mx-reference-row__extra">参考目标</span></div>
           {{each mx.references r}}
           <div class="mx-reference-row">
-            <span class="mx-reference-row__name">{{if r.group && r.group !== '参考'}}<span class="mx-reference-row__dir">{{r.group}}</span>{{/if}}<span class="mx-reference-row__attr">{{r.name}}</span></span>
+            <span class="mx-reference-row__name"><span class="mx-reference-row__attr">{{r.name}}</span></span>
             <span class="mx-reference-row__value">{{r.actual}}</span>
             <span class="mx-reference-row__extra">{{r.target}}</span>
           </div>
@@ -409,10 +417,29 @@
             <span class="mx-section__hint">同角色投入参考</span>
           </header>
           {{each refDps r}}
-          <div class="mx-reference-row">
-            <span class="mx-reference-row__name">{{r.label}}</span>
-            <span class="mx-reference-row__value">{{r.teamText}}</span>
-            <span class="mx-reference-row__extra">{{r.damageText}}{{if r.video}}｜视频记录{{/if}}</span>
+          <!-- 参考 DPS：复用 DPS 榜的成员渲染（头像 + 命座角标 + 名字），不含排名徽标；筛选逻辑未动 -->
+          <div class="rank-row mx-refdps-row">
+            <div class="mx-refdps-label">{{r.label}}</div>
+            <div class="char-list mx-refdps-team">
+              {{if r.chars && r.chars.length > 0}}
+              {{each r.chars c}}
+              <div class="char-item">
+                <div class="avatar">
+                  {{if c.avatar}}<img class="avatar-img" src="{{_data_path}}/avatar/{{c.avatar}}.webp"/>{{else}}<div class="avatar-text">{{if c.name}}{{c.name}}{{else}}?{{/if}}</div>{{/if}}
+                  {{if c.constellation}}<span class="avatar-con">{{c.constellation}}</span>{{/if}}
+                </div>
+
+              </div>
+              {{/each}}
+              {{else}}
+              <span class="char-missing">{{r.teamText}}</span>
+              {{/if}}
+            </div>
+            <div class="rank-main">
+              <div class="rank-value num">{{r.damageText}}</div>
+              <div class="rank-unit">DPS</div>
+            </div>
+
           </div>
           {{/each}}
         </section>

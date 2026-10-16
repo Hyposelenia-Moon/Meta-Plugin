@@ -588,7 +588,7 @@ function scoreWeapon (targets: GuideTargets, build: BuildSnapshot): GradeDim {
     const sig = targets.weapon.recommend[0] === name
     return met(1, `推荐档：${name}${sig ? '（专武，不加分）' : ''}`)
   }
-  if (inBucket(targets.weapon.optional)) return met(0.75, `可选档：${name}`)
+  if (inBucket(targets.weapon.optional)) return { ...met(0.75, `可选档：${name}`), state: 'met' as const }   // 可选档 = 达标（用户 2026-10-16 口径：只有过渡才是未达标）
   if (inBucket(targets.weapon.transition)) return met(0.5, `过渡档：${name}`)
   return met(0.25, `不在攻略推荐内：${name}`)
 }
@@ -716,16 +716,18 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot): 
   // 武器（与 `scoreWeapon` 共用同一套候选解析：组合项 `A\B\C` 要能命中）
   if (targets.weapon.recommend.length || targets.weapon.optional.length) {
     const name = String(build.weapon?.name || '—')
-    const bucket = matchesGuideName(name, targets.weapon.recommend)
+    /*
+     * 档位判定（2026-10-16 用户口径）：**推荐 ∪ 可选 = 达标**，只有**过渡**才是未达标。
+     * 旧实现把"可选"也写成 `warn`，导致装备可选档武器时被列进"未达标项"。
+     */
+    const bucket = (matchesGuideName(name, targets.weapon.recommend) || matchesGuideName(name, targets.weapon.optional))
       ? 'ok'
-      : matchesGuideName(name, targets.weapon.optional)
-        ? 'warn'
-        : matchesGuideName(name, targets.weapon.transition) ? 'warn' : 'off'
+      : matchesGuideName(name, targets.weapon.transition) ? 'warn' : 'off'
     push({
       id: 'weapon:choice',
       group: '武器',
       name,
-      target: [targets.weapon.recommend.length ? `推荐：${targets.weapon.recommend.join(' / ')}` : '', targets.weapon.optional.length ? `可选：${targets.weapon.optional.join(' / ')}` : ''].filter(Boolean).join('；'),
+      target: [targets.weapon.recommend.length ? `推荐：${targets.weapon.recommend.join(' / ')}` : '', targets.weapon.optional.length ? `可选：${targets.weapon.optional.join(' / ')}` : ''].filter(Boolean).join('\n'),
       actual: name,
       verdict: bucket
     })

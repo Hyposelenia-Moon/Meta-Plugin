@@ -177,7 +177,7 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content--glass .mx-guide-row,
 .mx-content--glass .mx-reference-row {
   min-height: 30px;
-  padding: 6px 18px;
+  padding: 6px 20px;
   text-shadow: 0 0 1px rgba(0, 0, 0, .8), 1px 1px 3px rgba(0, 0, 0, .5);
 }
 .mx-content--glass .mx-dimension + .mx-dimension,
@@ -187,16 +187,18 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content--glass .mx-dimensions,
 .mx-content--glass .mx-source-list,
 .mx-content--glass .mx-recommendations { padding: 0; }
-.mx-content--glass .mx-source { padding: 6px 18px; }
+.mx-content--glass .mx-source { padding: 6px 20px; }
 .mx-content--glass .mx-source + .mx-source { border-top: 1px solid var(--mx-rule); }
 .mx-content--glass .mx-compare,
-.mx-content--glass .mx-recommendation { padding: var(--mx-space-2) 18px; }
+.mx-content--glass .mx-recommendation { padding: var(--mx-space-2) 20px; }
 .mx-content--glass .mx-compare + .mx-compare,
 .mx-content--glass .mx-recommendation + .mx-recommendation { border-top: 1px solid var(--mx-rule); }
-.mx-content--glass .mx-footer { margin: 0; padding: var(--mx-space-3) 18px var(--mx-space-4); border-top: 1px solid var(--mx-rule); }
+.mx-content--glass .mx-footer { margin: 0; padding: var(--mx-space-3) 20px var(--mx-space-4); border-top: 1px solid var(--mx-rule); }
+/* 2026-10-16：这三个块原先自带 8px 圆角 + overflow:hidden，导致其黑底在卡片里"看起来小一圈"
+ * （与其它章节的内容块行为不一致）→ 统一交给卡片裁切（`.mx-section { overflow: hidden }`）。 */
 .mx-content--glass .mx-dimensions,
 .mx-content--glass .mx-source-list,
-.mx-content--glass .mx-recommendations { border-radius: 8px; overflow: hidden; }
+.mx-content--glass .mx-recommendations { border-radius: 0; overflow: visible; }
 .mx-content--glass .mx-source { padding: 3px var(--mx-space-3); }
 .mx-content--glass .mx-source + .mx-source { border-top: 1px solid var(--mx-rule); }
 .mx-content--glass .mx-meter--unscored,
@@ -362,7 +364,7 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content .mx-reference-row + .mx-reference-row { border-top: 1px solid var(--mx-rule); }
 /* 列语义表头（当前 / 参考目标）—— 审核 4.3：参考区要有列名，别让读者猜哪列是目标 */
 .mx-content .mx-reference-row--head { border-top: none; padding-bottom: 0; color: var(--mx-muted); font-size: var(--mx-note-size); }
-.mx-content .mx-reference-row__name { flex: 0 0 116px; min-width: 0; color: var(--mx-muted); font-size: var(--mx-note-size); }
+.mx-content .mx-reference-row__name { flex: 1 1 auto; min-width: 0; color: var(--mx-muted); font-size: var(--mx-note-size); }
 /*
  * 方向与属性**各自成行**（`输出向` / `暴击率`）：中文默认"任意位置可断"，
  * 挤在一行会把 `暴击伤害` 断成 `暴击伤` + `害`（2026-10-15 审核意见 4.4：按语义边界换行）。
@@ -497,7 +499,12 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
  * ========================================================================= */
 
 /* ① 内容块自带黑底（照 .cont-body / .cont-footer / .cont-msg） */
-.mx-content--glass .mx-section > *:not(.mx-section__head) { background: rgba(0, 0, 0, .5); }
+.mx-content--glass .mx-section > *:not(.mx-section__head) {
+  background: rgba(0, 0, 0, .5);
+  /* 与卡头 `10px 20px` 共用同一条左右边界：正文第一列与卡头文字左对齐、末列与副标题右对齐 */
+  padding-left: 20px;
+  padding-right: 20px;
+}
 
 /* ② 行/表斑马 —— 照 .cont-table .tr + .char-attr li（含三维达成行，撤回此前"统一底色"的临时处理） */
 .mx-content--glass .mx-dimension:nth-child(odd),
@@ -520,3 +527,106 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
   box-shadow: none;
   padding-bottom: 5px;
 }
+/* ===== 参考项（05）排版修正（2026-10-16）=====
+ * ① 字号与正文一致：名称列原用 `--mx-note-size`(14px)，与正文 `--mx-body-size`(18px) 不一致；
+ * ② "方向 + 属性"改为同行显示：原先上下两行（输出向 / 暴击率）容易与右侧"参考目标"列混淆。
+ */
+.mx-content--glass .mx-reference-row { font-size: var(--mx-body-size); }
+.mx-content--glass .mx-reference-row .mx-reference-row__name {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  font-size: var(--mx-body-size); color: var(--mx-text);
+}
+.mx-content--glass .mx-reference-row .mx-reference-row__dir { font-size: .82em; color: var(--mx-muted); }
+.mx-content--glass .mx-reference-row .mx-reference-row__attr { font-size: var(--mx-body-size); color: var(--mx-text); }
+.mx-content--glass .mx-reference-row--head { font-size: var(--mx-note-size); }
+/* ===== 三处修正（2026-10-16 用户反馈）=====
+ * ① 内容块贴齐卡片圆角：黑底块在卡片四角会溢出轮廓（提升建议区看着"缺一块"）→ 由卡片裁切；
+ * ② 参考 DPS 数值改用本页尺寸（榜单的大号数字在本页偏大）；
+ * ③ 参考项"方向"恢复先前的强调色（保留同行显示，仅改回颜色）。
+ */
+.mx-content--glass .mx-section { overflow: hidden; }
+.mx-content--glass .mx-refdps-row .rank-value { font-size: 26px; line-height: 1.2; }
+.mx-content--glass .mx-refdps-row .rank-unit { font-size: 15px; }
+.mx-content--glass .mx-reference-row__dir { color: var(--mx-accent); }
+/* 内容块与卡片圆角一致（2026-10-16）：三维达成等卡片的行底色在底部两角会方角顶出卡片轮廓，
+ * 与卡头上圆角不匹配 → 让内容块自己带下圆角（与卡片 10px 同值），配合 `.mx-section{overflow:hidden}` 不露方角。 */
+.mx-content--glass .mx-section > *:not(.mx-section__head) { border-radius: 0 0 10px 10px; }
+/* 内容块底部两角与卡片 10px 圆角一致（保留） */
+.mx-content--glass .mx-section > *:not(.mx-section__head) { border-radius: 0 0 10px 10px; }
+
+/* ===== 列对齐：按 2b9fe62 已验证版本恢复，并覆盖此后新增的元素（2026-10-16 定稿）=====
+ * 要点：**卡片不设左右内缩**；20px 内缩只加在行/块上（各一次，不叠加）；
+ *       这样文字与卡头 `10px 20px` 同一条竖线，黑底/斑马底色仍铺满卡片宽度。
+ */
+.mx-content--glass .mx-section { border-top: none; }
+.mx-content--glass .mx-section__head { padding: 10px 20px; }
+.mx-content--glass .mx-dimension,
+.mx-content--glass .mx-guide-row,
+.mx-content--glass .mx-reference-row,
+.mx-content--glass .mx-source,
+.mx-content--glass .mx-compare,
+.mx-content--glass .mx-recommendation,
+.mx-content--glass .mx-equipment,
+.mx-content--glass .mx-meta-line,
+.mx-content--glass .mx-empty,
+.mx-content--glass .mx-refdps-row,
+.mx-content--glass .mx-verdict,
+.mx-content--glass .mx-footer { padding-left: 20px; padding-right: 20px; }
+/* ===== 02/06 底色改由「块」承担（与其他区一致，2026-10-16）=====
+ * 其它区（03 配装 / 04 未达标 / 05 参考项）的底色在**块**上（`rgba(0,0,0,.5)`），块 = 卡片宽度，
+ * 所以文字内缩不影响底色宽度；而 02/06 的底色原本画在**行**上，行一内缩 20px 底色带就变窄（看着"卡片窄了"）。
+ * 处理：块补同款底色，行保持透明；行只负责 20px 文字内缩（与卡头对齐）。
+ */
+.mx-content--glass .mx-dimensions,
+.mx-content--glass .mx-recommendations { background: rgba(0, 0, 0, .5); }
+.mx-content--glass .mx-dimension,
+.mx-content--glass .mx-dimension:nth-child(odd),
+.mx-content--glass .mx-dimension:nth-child(even),
+.mx-content--glass .mx-recommendation,
+.mx-content--glass .mx-recommendation:nth-child(odd),
+.mx-content--glass .mx-recommendation:nth-child(even) { background: transparent; }
+/* ===== 02/06 行内缩去重（2026-10-16）=====
+ * 这两节历史上被多处声明过 padding（6px 20px / 8px 20px / 8px 0 …），互相覆盖导致时对时不对。
+ * 这里统一钉死为左右各 20px（与卡头 `10px 20px` 同一条竖线），上下内边距沿用原值。
+ */
+.mx-content--glass .mx-dimension,
+.mx-content--glass .mx-recommendation { padding-left: 20px; padding-right: 20px; }
+/* ===== 06 提升建议：方案 B（2026-10-16 用户选定）=====
+ * 序号牌 `.mx-priority` 位于 20px 内缩处、与卡头文字同一条竖线；正文 `<p>` 紧随其后（约 +34px）。
+ * 序号**不得**使用负外边距（那会变成"贴卡片边缘"的方案 A），此处显式钉死。
+ */
+.mx-content--glass .mx-recommendation { padding-left: 20px; padding-right: 20px; }
+.mx-content--glass .mx-recommendation .mx-priority { margin-left: 0; margin-right: 0; flex: 0 0 22px; text-align: right; }
+/* 06 序号对齐修正（2026-10-16）：序号牌宽度固定 22px 且原为右对齐，单数字看着比卡头内缩 →
+ * 改为左对齐，使数字本身落在 20px、与卡头文字同一条竖线（仍属方案 B：正文紧随其后）。 */
+.mx-content--glass .mx-recommendation .mx-priority { text-align: left; }
+/* 参考项标签字上色（2026-10-16 用户反馈）："关键命座/暴击率…" 这类属性标签原为正文白，
+ * 与左侧方向前缀（命座/输出向，已用强调色）不成对 → 属性标签改用金色（同 miao `.char-attr strong` 口径）。 */
+.mx-content--glass .mx-reference-row .mx-reference-row__attr { color: var(--mx-accent); font-weight: 700; }
+/* ===== 单一内缩源（2026-10-16 定稿，修复 02/06 再次跑偏）=====
+ * 之前 02/06 被多处规则各自设过 padding（20px / 6px 20px / 8px 0 …），谁的优先级高就听谁的 → 时对时错。
+ * 现在：**内缩只在"内容块"这一层设置一次**（用变量统一取值），块内所有元素左右内边距一律归零，
+ *       卡头用同一个变量 → 任何章节的文字都与卡头严格同一条竖线，且底色仍为块的宽度（= 卡片宽度）。
+ */
+.mx-content--glass { --mx-inset: 20px; }
+.mx-content--glass .mx-section__head { padding-left: var(--mx-inset); padding-right: var(--mx-inset); }
+.mx-content--glass .mx-section > *:not(.mx-section__head) { padding-left: var(--mx-inset); padding-right: var(--mx-inset); }
+.mx-content--glass .mx-section > *:not(.mx-section__head) * { padding-left: 0; padding-right: 0; }
+/* 例外：状态章/徽标类自带内边距（胶囊形状），在"块内一律归零"之后必须补回，否则被挤扁。
+ * 2026-10-16：02 三维达成右侧的「! 未达标 / ✓ 达标」曾因该归零规则被缩短。 */
+.mx-content--glass .mx-state { padding-left: 8px; padding-right: 8px; }
+.mx-content--glass .mx-verdict__score small,
+.mx-content--glass .mx-priority,
+.mx-content--glass .mx-evidence-id { padding-left: 0; padding-right: 0; }
+/* ===== 例外规则必须"同结构 + 更高优先级"（2026-10-16 修正）=====
+ * 通配归零是 `.mx-content--glass .mx-section > *:not(.mx-section__head) *`（0,3,0），
+ * 之前的例外只写 `.mx-content--glass .mx-state`（0,2,0）→ 优先级更低，怎么排都无效。
+ * 这里用同结构选择器（0,4,0）重写：
+ */
+.mx-content--glass .mx-section > *:not(.mx-section__head) .mx-state {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+/* 做法甲（2026-10-16）：证据行的目标文案按档位分行（推荐一行 / 可选一行），
+ * 数据侧以 \n 分隔，这里用 pre-line 渲染换行，避免"裁断 /"这种断在斜杠后的尴尬换行。 */
+.mx-content .mx-compare__target { white-space: pre-line; }
