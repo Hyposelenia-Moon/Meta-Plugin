@@ -20,7 +20,6 @@ modules:
   raidTiers: true
   build: true
   grade: true
-  akashaBuild: true
   # 队伍伤害：默认关闭（用户 2026-10-15 定）
   teamDamage: false
   video: true

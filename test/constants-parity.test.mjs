@@ -71,10 +71,12 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
 /*
  * 偏差 B17（用户 2026-10-15 定，"指令大乱炖，全部重构"）：
  *   冻结面 `DPS_RULES` 的 8 条旧正则**整体废除**，命令面按功能重新命名 →
- *   `#DPS榜`(榜字可省) / `#练度榜` / `#危战 … n6|n7` / `#练度查询` / `#队伍伤害<N>` / `#配装` /
+ *   `#DPS榜`(榜字可省) / `#练度榜` / `#危战 … n6|n7` / `#练度查询` / `#队伍伤害<N>` /
  *   `#meta状态` / `#榜单刷新` / `#DPS帮助`。
  *   视频名次没有独立命令：它是 `#DPS榜 … 视频N` / `#危战 … n6|n7 视频N` 的**后缀**
  *   （用户 2026-10-15 定：原 `#视频` / `#危战视频` 前缀式**废除**）。
+ *   2026-10-16 追加：`#配装 胡桃 [名次]` 并入 `#练度榜 <角色> [名次]`（用户选"直接删除、不做别名"），
+ *   故本节由 10 条正则减为 9 条。
  *   因此本节不再对照快照，而是断言**新表的形态**（旧名一条都不许复活）。
  */
 {
@@ -86,7 +88,6 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
     raidTiersPrompt: /^#?危战\s+([\s\S]+)$/,
     grade: /^#?练度查询(?:\s+([\s\S]+))?$/,
     teamDamage: /^#?队伍伤害\s*(\d{1,2})?(?:\s+([\s\S]+))?$/,
-    akashaBuild: /^#?配装(?:\s+([\s\S]+))?$/,
     status: /^#?meta状态$/,
     admin: /^#?榜单刷新$/,
     help: /^#?(?:dps|DPS)帮助$/
@@ -96,12 +97,13 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
     if (!rule) { bad.push(`RULES.${key}: 缺失`); continue }
     if (String(rule) !== String(expected)) bad.push(`RULES.${key}: 期望 ${String(expected)}，实际 ${String(rule)}`)
   }
-  push('新命令正则与既定口径逐字一致（10 条）', bad, [])
+  push('新命令正则与既定口径逐字一致（9 条）', bad, [])
   push('视频前缀式规则已删除（没有 RULES.video / RULES.raidVideo）',
     ['video', 'raidVideo'].filter(k => C.RULES?.[k] !== undefined), [])
+  push('合并不留旧规则（没有 RULES.akashaBuild）', ['akashaBuild'].filter(k => C.RULES?.[k] !== undefined), [])
 
   // 旧名一条都不许复活（用户："旧写法一律废除"）
-  const dead = ['#DPS练度查询', '#DPS状态', '#DPS视频', '#DPS危战视频', '#DPS更新', '#DPS强制更新', '#DPS刷新', '#DPS危战榜', '#胡桃dps', '#DPS榜视频', '#视频 3', '#榜视频 3', '#危战视频 3']
+  const dead = ['#DPS练度查询', '#DPS状态', '#DPS视频', '#DPS危战视频', '#DPS更新', '#DPS强制更新', '#DPS刷新', '#DPS危战榜', '#胡桃dps', '#DPS榜视频', '#视频 3', '#榜视频 3', '#危战视频 3', '#配装 胡桃 3']
   push('旧命令名一个都匹配不到（已废除）', dead.filter(m => C.matchCommand(m) !== null), [])
 
   // 只保留 `#DPS榜` / `#DPS` / `#DPS帮助` 三个 DPS 字样命令
@@ -126,7 +128,7 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
     ['#危战 矮灵', 'raidTiersPrompt', '矮灵'],
     ['#练度查询 胡桃', 'grade', '胡桃'],
     ['#队伍伤害2 胡桃 行秋 夜兰 钟离', 'teamDamage', '2'],
-    ['#配装 胡桃 3', 'akashaBuild', '胡桃 3'],
+    ['#练度榜 胡桃 3', 'build', '胡桃 3'],
     ['#meta状态', 'status', undefined],
     ['#榜单刷新', 'admin', undefined],
     ['#DPS帮助', 'help', undefined]

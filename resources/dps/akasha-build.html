@@ -6,7 +6,7 @@
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
   <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/meta-ui.css"/>
   <style>
-    /* 榜上配装页：名次卡 + 面板 + 武器 / 圣遗物 / 天赋 */
+    /* 练度榜页（配装详情视图）：名次卡 + 伤害与评分 / 配装 / 面板 */
     .bd-hero { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
     .bd-rank { font-size: 46px; font-weight: 800; color: var(--accent, #ffd479); line-height: 1; }
     .bd-name { font-size: 30px; font-weight: 700; }
@@ -15,15 +15,14 @@
     .kv-row:last-child { border-bottom: none; }
     .kv-k { flex: 0 0 130px; color: var(--muted-2, #999); }
     .kv-v { flex: 1 1 auto; }
-    .tag { display: inline-block; margin-right: 6px; }
-  </style>
+    .tag { display: inline-block; margin-right: 6px; }</style>
 </head>
-<body style="zoom:{{renderScale}}">
+<body class="elem-{{elemClass}}" style="zoom:{{renderScale}}">
   <div class="page page--elem">
     <div class="page-inner">
       <div class="card head-card">
         <div class="header">
-          <div class="game-name">Meta-Plugin · 榜上配装（阿卡莎）</div>
+          <div class="game-name">Meta-Plugin · 练度榜〔阿卡莎〕· 配装详情</div>
           <div class="title">{{title}}</div>
           {{if subtitle}}<div class="subtitle">{{subtitle}}</div>{{/if}}
         </div>
@@ -31,7 +30,7 @@
           <div class="bd-hero">
             <div class="bd-rank">#{{rank}}</div>
             <div class="bd-name">{{charName}} C{{cons}}</div>
-            <div class="bd-sub">uid {{uid}}{{if nickname}}（{{nickname}}）{{/if}}</div>
+            {{if nickname}}<div class="bd-sub">{{nickname}}</div>{{/if}}
           </div>
         </div>
       </div>
@@ -62,10 +61,10 @@
             <span class="mx-guide-label">武器</span>
             <span class="mx-guide-value">{{if weapon}}{{weapon.text}}{{else}}未提供{{/if}}</span>
           </div>
-          {{if sets && sets.length > 0}}
+          {{if setsText}}
           <div class="mx-guide-row">
             <span class="mx-guide-label">套装</span>
-            <span class="mx-guide-value">{{each sets s}}<span class="mx-unit">{{s.nameCn}} ×{{s.count}}</span>{{/each}}</span>
+            <span class="mx-guide-value">{{setsText}}</span>
           </div>
           {{/if}}
           {{if artis && artis.length > 0}}

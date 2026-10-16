@@ -12,6 +12,7 @@ import path from 'node:path'
 import {
   checker,
   installFrameworkStubs,
+  libDir,
   loadFixture,
   mod,
   pluginRoot,
@@ -237,12 +238,15 @@ for (const f of ['help.html', 'rank.html', 'raid.html', 'status.html']) {
 }
 check('模板内不写死颜色（全部走变量）', templateColors.length === 0, templateColors.join(' | '))
 
-// 练度面板整页由 miao-plugin 的模板渲染（apps/build.js → model/MiaoBridge.js），
-// 所以本插件里既不该有它的模板，也不该有它的样式。
-check('练度页不自绘模板/样式（整页交给 miao 的面板代码）', !fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'build.html')) &&
-  !fs.existsSync(path.join(pluginRoot, 'resources', 'profile', 'panel.css')))
+/*
+ * `#练度榜` 2026-10-16 起是**本插件自绘的两张页**（列表 `build.html` + 配装详情 `akasha-build.html`，
+ * 数据源阿卡莎角色榜）；原「练度页整页交给 miao 面板」的口径只对 `#练度查询`（miao 面板桥）成立。
+ */
+check('练度榜页模板在（列表 + 配装详情）',
+  fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'build.html')) &&
+  fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'akasha-build.html')))
 check('练度页底图已删除（面板自带立绘）', !fs.existsSync(path.join(pluginRoot, 'resources', 'common', 'bg-build.jpg')))
-check('练度页渲染走 miao 的模板（本插件只提供数据）', fs.existsSync(path.join(pluginRoot, 'model', 'MiaoPanel.js')))
+check('miao 面板桥仍在（#练度查询 用）', fs.existsSync(path.join(libDir, 'model', 'MiaoPanel.js')))
 
 // ---- 字体：原神字体随包分发（不联网下载），数字走提瓦特数字 ----
 check('声明了原神中文字体 YS（汉仪文黑）', /@font-face\s*\{[^}]*font-family:\s*'YS'/s.test(baseCss))

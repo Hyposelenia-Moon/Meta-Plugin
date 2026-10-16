@@ -23,10 +23,15 @@ const { moduleGateReply, moduleOff } = await load('modules/moduleGate.js')
 
 // ---------- ① 键表与默认值 ----------
 {
-  ok('模块键 11 个且含全部命令模块',
-    C.MODULE_KEYS.length === 11 &&
-    ['codex', 'help', 'rank', 'raidTiers', 'build', 'grade', 'akashaBuild', 'teamDamage', 'video', 'status', 'admin']
+  /*
+   * 2026-10-16：`akashaBuild`（榜上配装）随 `#配装` 并入 `#练度榜` 删除 ——
+   * 模块键由 11 个减为 10 个，该开关不再存在（旧的 `modules.akashaBuild` 配置项会被忽略）。
+   */
+  ok('模块键 10 个且含全部命令模块',
+    C.MODULE_KEYS.length === 10 &&
+    ['codex', 'help', 'rank', 'raidTiers', 'build', 'grade', 'teamDamage', 'video', 'status', 'admin']
       .every(k => C.MODULE_KEYS.includes(k)))
+  ok('已删除的模块键不再出现（akashaBuild）', !C.MODULE_KEYS.includes('akashaBuild') && C.MODULE_LABELS.akashaBuild === undefined)
   ok('默认：队伍伤害关闭、其余全部开启',
     C.defaultModules.teamDamage === false &&
     C.MODULE_KEYS.filter(k => k !== 'teamDamage').every(k => C.defaultModules[k] === true))
@@ -121,7 +126,7 @@ const { moduleGateReply, moduleOff } = await load('modules/moduleGate.js')
 {
   const files = fs.readdirSync(path.join(pluginRoot, 'src', 'apps')).filter(f => f.endsWith('.ts'))
   const gateCallers = files.filter(f => readText(path.join(pluginRoot, 'src', 'apps', f)).includes('moduleGateReply('))
-  ok('⑤ 非接管类 8 个 app 都接了闸门', gateCallers.length === 8, gateCallers.join(','))
+  ok('⑤ 非接管类 7 个 app 都接了闸门（akashaBuild 已随 #配装 删除）', gateCallers.length === 7, gateCallers.join(','))
   /*
    * 2026-10-15 用户定：视频名次改成后缀式、原 `#视频` / `#危战视频` 前缀式废除（video app 已删除），
    * 于是「榜单视频」模块开关的拦截点搬到榜单/危战两个 app 的后缀分发处

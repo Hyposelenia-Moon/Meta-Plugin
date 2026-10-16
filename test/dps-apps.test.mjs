@@ -65,8 +65,9 @@ for (const name of APPS) {
   })
   ok('本组 5 个 app 共认领 6 条规则（raidTiers 认领 raidTiers + raidTiersPrompt）', covered.length === 6)
   push('覆盖的规则键不重复', covered.filter((k, i) => covered.indexOf(k) !== i), [])
-  // 其余规则各有归属：grade/teamDamage/akashaBuild 在 v3 app 里、help 在帮助页、raidTiers 在危战 app
-  const otherApps = ['raidTiers', 'grade', 'teamDamage', 'akashaBuild']
+  // 其余规则各有归属：grade/teamDamage 在 v3 app 里、help 在帮助页、raidTiers 在危战 app
+  // （2026-10-16：`akashaBuild` 随 `#配装` 并入 `#练度榜` 删除，其规则也一并摘除）
+  const otherApps = ['raidTiers', 'grade', 'teamDamage']
   const otherCovered = otherApps.flatMap(name =>
     [...readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`)).matchAll(/reg:\s*RULES\.(\w+)/g)].map(m => m[1]))
   const allRules = Object.keys(C.RULES)

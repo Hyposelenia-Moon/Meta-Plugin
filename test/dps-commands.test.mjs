@@ -22,7 +22,7 @@ const { COMMANDS, RULES, matchCommand } = C
   const keys = COMMANDS.flatMap(c => c.rules)
   const dup = keys.filter((k, i) => keys.indexOf(k) !== i)
   push('每条规则恰好归属一个 app', dup, [])
-  push('规则表里的 8 条规则都有归属', Object.keys(RULES).filter(k => !keys.includes(k)), [])
+  push('规则表里的 9 条规则都有归属（2026-10-16 起 akashaBuild 已摘除）', Object.keys(RULES).filter(k => !keys.includes(k)), [])
 }
 
 // ---------- 2. 文案里的命令必须被自己的正则命中 ----------

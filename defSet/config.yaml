@@ -11,7 +11,7 @@ renderScale: ${meta_renderScale}
 
 # ---------- 模块开关（功能层：该模块的命令是否响应） ----------
 # true = 可用；false = 不响应
-#   非接管类（#DPS… / 练度 / 配装 / 队伍伤害…）：回一条"已在配置中关闭"的提示
+#   非接管类（#DPS… / 练度 / 队伍伤害…）：回一条"已在配置中关闭"的提示
 #   接管类（#胡桃攻略 / 帮助页）：本插件不认领，放行给 genshin「米游社攻略」/ Atlas
 # ⚠ 与 networkEnabled（只管查询类远程访问）正交：模块开着而联网关时，命令照常响应、只是不发远程请求
 modules:
@@ -21,7 +21,6 @@ modules:
   raidTiers: ${meta_module_raidTiers}
   build: ${meta_module_build}
   grade: ${meta_module_grade}
-  akashaBuild: ${meta_module_akashaBuild}
   # 队伍伤害：默认关闭（用户 2026-10-15 定）
   teamDamage: ${meta_module_teamDamage}
   video: ${meta_module_video}
@@ -56,11 +55,12 @@ dpsAvatarEnabled: ${meta_dpsAvatarEnabled}
 # ⚠ 与上面的模块开关正交：关掉它，模块即使开着也取不到练度数据
 akashaEnabled: ${meta_akashaEnabled}
 
-# 默认 UID：命令里不写 UID 时用它
-akashaDefaultUid: "${meta_akashaDefaultUid}"
 
 # akasha 的代理，留空 = 直连（akasha 通常可直连）
 akashaProxy: "${meta_akashaProxy}"
+
+# ⚠ 已废弃（2026-10-16）：练度榜改为「#练度榜 <角色> [名次]」纯角色榜查询，不再涉及任何 UID；此项保留仅为兼容旧配置
+akashaDefaultUid: "${meta_akashaDefaultUid}"
 
 # akasha 单次请求超时（毫秒；需要浏览器会话时会明显偏慢）
 akashaTimeoutMs: ${meta_akashaTimeoutMs}

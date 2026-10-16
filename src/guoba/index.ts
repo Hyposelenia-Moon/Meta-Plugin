@@ -5,7 +5,7 @@
  * `meta_proxy` / `meta_dpsTimeoutMs` / `meta_dpsCacheTtlMinutes` / `meta_dpsPageSize` / `meta_dpsAvatarEnabled` /
  * `meta_akashaEnabled` / `meta_akashaDefaultUid` / `meta_akashaProxy` / `meta_akashaTimeoutMs` /
  * `meta_akashaCacheTtlMinutes` / `meta_akashaMaxChars` /
- * `meta_module_<模块键>` × 13（模块开关：配置文件里是嵌套的 `modules:`，表单按模块逐项）
+ * `meta_module_<模块键>` × 10（模块开关：配置文件里是嵌套的 `modules:`，表单按模块逐项）
  *
  * 三层开关的界面分组（2026-10-15 起）：
  *   「模块开关」（功能层：命令是否响应）→「业务查询联网」（查询联网层）→「数据源二 · akasha」（数据通道层）。
@@ -239,12 +239,12 @@ export function supportGuoba (): Record<string, unknown> {
         },
 
         // ==================== 数据源二 · akasha.cv ====================
-        { label: '数据源二 · akasha.cv（练度名次面板 / 榜上配装）', component: 'SOFT_GROUP_BEGIN' },
+        { label: '数据源二 · akasha.cv（练度名次榜单）', component: 'SOFT_GROUP_BEGIN' },
         {
           field: 'akashaEnabled',
           label: '阿卡莎数据通道（数据通道层）',
           helpMessage: '练度数据来自 akasha.cv（mhydps.cn 没有练度排名）；本项只控制"能不能走阿卡莎通道"',
-          bottomHelpMessage: '⚠ 与「模块开关」正交：关掉它，模块即使开着也取不到练度数据；关掉 modules.build / modules.akashaBuild 则命令直接不响应',
+          bottomHelpMessage: '⚠ 与「模块开关」正交：关掉它，模块即使开着也取不到练度数据；关掉 modules.build 则命令直接不响应',
           component: 'Switch',
           required: true,
           componentProps: { defaultValue: true }

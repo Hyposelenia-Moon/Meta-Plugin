@@ -76,8 +76,8 @@ const guideGrade = {
   list: [
     { title: '#练度查询 胡桃', desc: '攻略目标对比当前配装，给练度档位与逐项建议' },
     { title: '#练度查询 胡桃 面板图3', desc: '立绘改用图库里的第 3 张' },
-    { title: '#练度榜 胡桃', desc: '阿卡莎练度名次面板' },
-    { title: '#配装 胡桃 3', desc: '阿卡莎角色榜第 3 名的配装' }
+    { title: '#练度榜 胡桃', desc: '阿卡莎角色榜前 20 名（练度名次）' },
+    { title: '#练度榜 胡桃 3', desc: '第 3 名的配装详情' }
   ]
 }
 
@@ -90,7 +90,7 @@ const guideData = {
 
 export const guideCfg = {
   title: '#攻略帮助',
-  subTitle: '角色攻略 · 练度提升 · 榜上配装'
+  subTitle: '角色攻略 · 练度提升 · 阿卡莎练度榜'
 }
 export const guideList = [guideCore, guideGrade, guideData]
 

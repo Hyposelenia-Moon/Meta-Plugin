@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/base.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/components.css"/>
+  <link rel="stylesheet" type="text/css" href="{{_res_path}}/common/meta-ui.css"/>
+  <style>
+    /* 练度榜页（列表视图）：名次卡 + 角色名次列表 */
+    .bd-hero { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+    .bd-rank { font-size: 46px; font-weight: 800; color: var(--accent, #ffd479); line-height: 1; }
+    .bd-name { font-size: 30px; font-weight: 700; }
+    .bd-sub { font-size: 17px; color: var(--muted-2, #999); }
+    .kv-row { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 18px; }
+    .kv-row:last-child { border-bottom: none; }
+    .kv-k { flex: 0 0 130px; color: var(--muted-2, #999); }
+    .kv-v { flex: 1 1 auto; }
+    .tag { display: inline-block; margin-right: 6px; }
+
+    /* 角色名次行（练度榜，两段式）：第一行 名次+角色（命座），第二行 武器+赛道结果；
+       禁换行、右侧不溢出；不居中 */
+    .bl-row { padding: 8px 14px; font-size: 22px; }
+    .bl-row--current { color: var(--mx-gold, #d3bc8e); }
+    .bl-main { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+    .bl-row .bl-label { flex: 0 0 auto; min-width: 66px; color: var(--mx-gold, #d3bc8e); }
+    .bl-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .bl-cons { opacity: .85; font-size: 19px; }
+    .bl-sub { display: flex; align-items: baseline; gap: 12px; margin-top: 2px; padding-left: 76px; font-size: 19px; opacity: .85; white-space: nowrap; }
+    .bl-sub .bl-weapon { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .bl-sub .bl-num { flex: 0 0 auto; margin-left: auto; }
+    .bl-sets-line { padding-left: 76px; font-size: 18px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }</style>
+</head>
+<body class="elem-{{elemClass}}" style="zoom:{{renderScale}}">
+  <div class="page page--elem">
+    <div class="page-inner">
+      <div class="card head-card">
+        <div class="header">
+          <div class="game-name">Meta-Plugin · 练度榜〔阿卡莎〕</div>
+          <div class="title">{{title}}</div>
+          {{if subtitle}}<div class="subtitle">{{subtitle}}</div>{{/if}}
+        </div>
+        <div class="page-meta">
+          <div class="bd-hero">
+            <div class="bd-rank">#{{rank}}</div>
+            <div class="bd-name">{{charName}} C{{cons}}</div>
+            {{if nickname}}<div class="bd-sub">{{nickname}}</div>{{/if}}
+          </div>
+        </div>
+      </div>
+
+      <!--
+        数据区（2026-10-15 UI 重构「档案批注」）：章节序号 + 共享 `.mx-*` 组件 + 来源条。
+        伤害 / 双爆分 / 名次是**不同量纲**，分别成槽，不做进度条、不互相换算。
+      -->
+      <main class="mx-content mx-content--glass">
+        <!-- 练度榜（2026-10-16 用户定）：角色级名次列表；一行一角色，标签=赛道名次，数值=赛道结果 -->
+        <section class="mx-section mx-section--first">
+          <header class="mx-section__head">
+            <h2 class="mx-section__title">角色名次</h2>
+            <span class="mx-section__hint">{{hint}}</span>
+          </header>
+          {{each rows r}}
+          <div class="bl-row{{if r.isCurrent}} bl-row--current{{/if}}">
+            <div class="bl-main">
+              <span class="bl-label">{{r.label}}</span>
+              <span class="bl-name">{{r.name}}<span class="bl-cons">{{if r.cons}} C{{r.cons}}{{/if}}</span></span>
+            </div>
+            <div class="bl-sub">
+              <span class="bl-weapon">{{r.weaponText}}</span>
+              <span class="bl-num">{{r.damageText}}</span>
+            </div>
+            {{if r.setsText}}<div class="bl-sets-line">{{r.setsText}}</div>{{/if}}
+          </div>
+          {{/each}}
+        </section>
+
+        <footer class="mx-footer">
+          <p class="mx-footer__method">{{footerMethod}}</p>
+          <p>配装更新时间：{{buildTimeText}}</p>
+          <p class="mx-copyright">{{copyright}}</p>
+        </footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

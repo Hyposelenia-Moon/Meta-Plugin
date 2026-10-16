@@ -49,6 +49,9 @@ check('写了筛选但没档位 → 提示选档入口', raidPromptCmd.test('#�
 check('#练度榜 <UID> 命中练度入口', buildCmd.test('#练度榜 100000000'))
 check('省略「查询」或前缀不再命中（避免抢别的插件的 #练度）', !buildCmd.test('#DPS练度 100000000') && !buildCmd.test('#练度查询 100000000'))
 check('#练度榜 <角色> [UID] 命中练度入口', buildCmd.test('#练度榜 胡桃') && buildCmd.test('#练度榜 胡桃 100000000'))
+// 2026-10-16 合并：`#配装` 删除（不做别名）——两个视图都由 `#练度榜 <角色> [名次]` 承载
+check('`#配装 胡桃 3` 不再命中任何入口（已并入 #练度榜）',
+  ['#配装', '#配装 胡桃 3'].every(m => !rankCmd.test(m) && !buildCmd.test(m) && !statusCmd.test(m) && !adminCmd.test(m)))
 check('#榜单刷新 命中管理入口', adminCmd.test('#榜单刷新'))
 check('#meta状态 与 #DPS帮助 各归各家', statusCmd.test('#meta状态') && helpCmd.test('#DPS帮助'))
 

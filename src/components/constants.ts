@@ -149,6 +149,12 @@ export function avatarUrl (characterId: string | number): string {
 export const SITE_REFERER = `${SITE_ORIGIN}/`
 export const SITE_USER_AGENT = 'MHYDPS-CN/1.0'
 
+/**
+ * 站点请求用的浏览器 UA（2026-10-16 实测：MHYDPS-CN/1.0 会被 mhydps 直接 403，
+ * 换浏览器 UA + Referer 后正常 200）。请求头统一用它；SITE_USER_AGENT 保留给兼容/测试引用。
+ */
+export const BROWSER_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+
 /** 缓存文件名（`data/` 下，gitignore） */
 export const CACHE_FILE = {
   teams: 'teams.json',
@@ -349,7 +355,7 @@ export const RULES = {
    * 序号 = 在当前筛选（含金数）之内按伤害排名的第 N 名，由 app 用 `takeVideoToken` 摘出。
    */
   rank: /^#?(?:dps|DPS)(?:榜(?!视频))?(?!榜|视频|帮助|状态|更新|强制|刷新|练度|危战)\s*([\s\S]*)$/,
-  /** `#练度榜 [角色] [UID]` —— 阿卡莎名次面板（原 `#练度榜`） */
+  /** `#练度榜 <角色> [名次]` —— 阿卡莎角色榜；省略名次 = 前 20 名列表，写名次 = 该名次配装详情 */
   build: /^#?练度榜\s*([\s\S]*)$/,
   /**
    * `#危战 <版本/首领/角色> n6|n7 [视频N]` —— 档位**必填**；`视频N` 是后缀式视频名次
@@ -371,8 +377,6 @@ export const RULES = {
    * ⚠ `(\d{1,2})?` 只吃 1~2 位数字：`#队伍伤害 123456789 胡桃 …` 里的 9 位 UID 不会被当轴序号。
    */
   teamDamage: /^#?队伍伤害\s*(\d{1,2})?(?:\s+([\s\S]+))?$/,
-  /** `#配装 胡桃 [名次]` —— 阿卡莎角色榜上榜者配装 */
-  akashaBuild: /^#?配装(?:\s+([\s\S]+))?$/,
   /** `#meta状态` */
   status: /^#?meta状态$/,
   /**
@@ -398,7 +402,7 @@ export type RuleKey = keyof typeof RULES
 export function matchCommand (msg: string): { key: RuleKey, match: RegExpMatchArray } | null {
   const text = String(msg ?? '')
   const order: RuleKey[] = [
-    'raidTiers', 'admin', 'help', 'status', 'build', 'grade', 'teamDamage', 'akashaBuild', 'raidTiersPrompt', 'rank'
+    'raidTiers', 'admin', 'help', 'status', 'build', 'grade', 'teamDamage', 'raidTiersPrompt', 'rank'
   ]
   for (const key of order) {
     const match = text.match(RULES[key])
@@ -431,10 +435,9 @@ export interface CommandMeta {
 export const COMMANDS: ReadonlyArray<CommandMeta> = [
   { key: 'rank', rules: ['rank'], name: 'MetaDPS榜', dsc: '#DPS榜 [角色] [金数] [标签] [主C] [绿玩] [页N]（榜字可省；带角色名看该角色各金档；加 `视频N` 取该名次的视频）', permission: 'all', priorityOffset: 0 },
   { key: 'raidTiers', rules: ['raidTiers', 'raidTiersPrompt'], name: 'Meta危战档位', dsc: '#危战 [版本/首领/角色] n6|n7 [视频N] — 幽境危战分档（n7 ≤70s 速通档 / n6 险胜档）', permission: 'all', priorityOffset: -5 },
-  { key: 'build', rules: ['build'], name: 'Meta练度榜', dsc: '#练度榜 [角色] [UID] — 阿卡莎练度名次面板（需联网与代理）', permission: 'all', priorityOffset: -50 },
+  { key: 'build', rules: ['build'], name: 'Meta练度榜', dsc: '#练度榜 <角色> [名次] — 阿卡莎角色榜（练度排名，榜单数据，与查询者账号无关；省略名次=前 20 名，写名次=该名次配装详情；需联网与代理）', permission: 'all', priorityOffset: -50 },
   { key: 'grade', rules: ['grade'], name: 'Meta练度提升指南', dsc: '#练度查询 胡桃 — 攻略目标 × 当前配装 → 总体练度 + 面板档 + 提升建议', permission: 'all', priorityOffset: -5 },
   { key: 'teamDamage', rules: ['teamDamage'], name: 'Meta队伍伤害', dsc: '#队伍伤害<N> 胡桃 行秋 夜兰 钟离 [暴击+20 爆伤+40] — 整队关键伤害 + 参考 DPS + 同阵容参考（N = 轴序号，省略 = 1）', permission: 'all', priorityOffset: -5 },
-  { key: 'akashaBuild', rules: ['akashaBuild'], name: 'Meta榜上配装', dsc: '#配装 胡桃 [名次] — 阿卡莎角色榜上榜者的配装（浏览器会话，需联网与代理）', permission: 'all', priorityOffset: -5 },
   { key: 'status', rules: ['status'], name: 'Meta状态', dsc: '#meta状态', permission: 'all', priorityOffset: -10 },
   { key: 'help', rules: ['help'], name: 'Meta帮助', dsc: '#DPS帮助', permission: 'all', priorityOffset: -10 },
   { key: 'admin', rules: ['admin'], name: 'Meta数据管理', dsc: '#榜单刷新 — 立即重新抓取榜单缓存（仅主人）', permission: 'master', priorityOffset: -10 }

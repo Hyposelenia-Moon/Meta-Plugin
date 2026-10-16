@@ -58,7 +58,7 @@ for (const name of pageNames) {
 {
   const all = pageNames.flatMap(n => (pages[n]?.list || []).flatMap(g => g.list || []))
   const combined = all.map(i => `${i.title} ${i.desc}`)
-  const need = ['#胡桃攻略', '#练度查询 胡桃', '#练度榜 胡桃', '#配装 胡桃 3', '#DPS榜 胡桃', '#危战',
+  const need = ['#胡桃攻略', '#练度查询 胡桃', '#练度榜 胡桃', '#练度榜 胡桃 3', '#DPS榜 胡桃', '#危战',
     '#队伍伤害 四人名', '+30暴击', '#DPS榜', '视频1', '视频3',
     '#攻略状态', '#meta状态', '#榜单刷新']
   push('三页并集覆盖全部入口（含默认轴与免前缀词条）', need.filter(k => !combined.some(t => t.includes(k))), [])

@@ -89,7 +89,7 @@ const submitted = {
   ...Object.fromEntries(Object.entries(defaultConfig.modules).map(([key, value]) => [`module_${key}`, value]))
 }
 
-check('模块开关数量为 11', Object.keys(defaultConfig.modules).length === 11)
+check('模块开关数量为 10', Object.keys(defaultConfig.modules).length === 10)
 check('模块开关默认值：teamDamage 关闭、其余开启',
   defaultConfig.modules.teamDamage === false &&
   Object.entries(defaultConfig.modules).filter(([k]) => k !== 'teamDamage').every(([, v]) => v === true))
@@ -118,8 +118,8 @@ check('akasha 五项也已写入', written.akashaEnabled === false &&
   written.akashaTimeoutMs === 45000 &&
   written.akashaCacheTtlMinutes === 90 &&
   written.akashaMaxChars === 20, JSON.stringify(written))
-check('模块开关写成嵌套的 modules（11 键、teamDamage 保持默认关闭）',
-  Object.keys(written.modules || {}).length === 11 && written.modules?.teamDamage === false,
+check('模块开关写成嵌套的 modules（10 键、teamDamage 保持默认关闭）',
+  Object.keys(written.modules || {}).length === 10 && written.modules?.teamDamage === false,
   JSON.stringify(written.modules))
 
 const roundTrip = configInfo.getConfigData()

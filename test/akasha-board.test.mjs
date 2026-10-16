@@ -66,6 +66,17 @@ const { entries, total } = AB.normalizeBoard(raw, textmap)
   ok('缺字段的记录被过滤（没有 uid 的不算）', AB.normalizeBoard({ data: [{ index: 1 }, ...fixture.rows] }, textmap).total === 3)
   ok('没有 textmap 也能归一（只是不翻译）',
     AB.normalizeBoard(raw, null).entries[0].charNameCn === fixture.rows[0].name)
+  /*
+   * 送翻译的词表（2026-10-17）：角色 / 武器 / 套装 / **主词条短语** —— 主词条漏送过一次，
+   * 现场是详情页「主词条：时之沙：HP% 空之杯：HP% 理之冠：Crit DMG」。
+   */
+  const words = AB.textmapWords(entries)
+  ok('textmap 取词含角色名 / 武器名 / 套装名 / 主词条短语',
+    words.includes(entries[0].charName) && words.includes(entries[0].weapon.name) &&
+    words.includes(entries[0].sets[0].name) && words.includes(entries[0].artis[0].mainKey),
+    JSON.stringify(words.slice(0, 8)))
+  ok('textmap 取词去空且不含 undefined', words.every(w => typeof w === 'string' && w.length > 0))
+  push('textmap 取词在空条目上返回空数组', AB.textmapWords([]), [])
   ok('夹具标注了来源与抓取日期', typeof fixture.source === 'string' && /leaderboards/.test(fixture.source) && !!fixture.capturedAt)
 }
 
@@ -86,22 +97,58 @@ const { entries, total } = AB.normalizeBoard(raw, textmap)
   ok('textmap URL 会把词小写并去重',
     /words\[\]=varka/.test(ABc.textmapUrl(['Varka', 'varka', 'Crit DMG'])))
 
-  ok('`#配装 胡桃` 命中新入口', C.matchCommand('#配装 胡桃')?.key === 'akashaBuild')
-  ok('参数进捕获组（含名次）', C.matchCommand('#配装 胡桃 3')?.match[1] === '胡桃 3')
-  const legacy = ['#DPS榜', '#练度查询 胡桃', '#队伍伤害 胡桃 行秋 夜兰 钟离', '#危战', '#攻略 胡桃']
-  push('不吞其它入口', legacy.filter(t => C.matchCommand(t)?.key === 'akashaBuild'), [])
-  ok('COMMANDS 登记了 akashaBuild', C.COMMANDS.some(c => c.rules.includes('akashaBuild')))
+  /*
+   * 2026-10-16 合并重构（用户定）：`#配装 胡桃 [名次]` **删除、不做别名**，
+   * 两个视图都归 `#练度榜 <角色> [名次]` —— 省略名次 = 前 20 名列表，写名次 = 该名次配装详情。
+   */
+  ok('`#练度榜 胡桃` 命中练度榜入口', C.matchCommand('#练度榜 胡桃')?.key === 'build')
+  ok('参数进捕获组（含名次）', C.matchCommand('#练度榜 胡桃 3')?.match[1] === '胡桃 3')
+  const legacy = ['#DPS榜', '#练度查询 胡桃', '#队伍伤害 胡桃 行秋 夜兰 钟离', '#危战 矮灵 n7', '#胡桃攻略']
+  push('不吞其它入口', legacy.filter(t => C.matchCommand(t)?.key === 'build'), [])
+  push('`#配装` 已删除（不再被任何入口认领）',
+    ['#配装', '#配装 胡桃', '#配装 胡桃 3'].filter(t => C.matchCommand(t) !== null), [])
+  ok('COMMANDS 只登记 build（akashaBuild 条目已删）',
+    C.COMMANDS.some(c => c.rules.includes('build')) && !C.COMMANDS.some(c => c.rules.includes('akashaBuild')))
+  ok('RULES 不再有 akashaBuild', C.RULES.akashaBuild === undefined)
 
-  const app = readText(path.join(pluginRoot, 'src', 'apps', 'akashaBuild.ts'))
-  ok('app 用 RULES.akashaBuild 注册', app.includes('reg: RULES.akashaBuild'))
+  const app = readText(path.join(pluginRoot, 'src', 'apps', 'build.ts'))
+  ok('app 用 RULES.build 注册', app.includes('reg: RULES.build'))
   ok('app 首个导出是插件类', /^export class \w+ extends plugin/m.test(app))
   ok('app 走取数层与归一化（不自己解析）', app.includes("from '../model/AkashaBoard.js'") && app.includes("from '../modules/akashaBoard.js'"))
   ok('app 对名次越界给可读提示', app.includes('这个榜单只有'))
-  ok('app 产物存在', fs.existsSync(path.join(libDir, 'apps', 'akashaBuild.js')))
-  ok('模板已就位并引用公共样式',
-    fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'akasha-build.html')) &&
-    readText(path.join(pluginRoot, 'resources', 'dps', 'akasha-build.html')).includes('{{_res_path}}/common/base.css'))
-  ok('帮助页收录 #配装', /#配装 胡桃 3/.test(readText(path.join(pluginRoot, 'resources', 'help', 'help-cfg.js'))))
+  ok('app 两个视图各用一张模板', app.includes("respond(e, 'build'") && app.includes("respond(e, 'akasha-build'"))
+  /*
+   * 中文化门禁（2026-10-17 用户反馈「榜单里的英文要自动翻译、不要机翻」）：
+   * 列表行的**武器与套装都必须用站点 textmap 给的官方中文名**（`nameCn`），不得用英文原字段 `name`
+   * ——曾经的现场：武器是中文（帷间夜曲）、套装却是英文（Silken Moon's Serenade），只因这行写成了 `s.name`。
+   */
+  ok('列表行武器用中文名（weapon.nameCn）', /weaponText:[^\n]*weapon\.nameCn/.test(app))
+  ok('列表行套装用中文名（nameCn）+ 共享的套装表述规则（setSummary）',
+    /setsText:[\s\S]{0,120}nameCn/.test(app) && /setsText:[\s\S]{0,160}setSummary\(/.test(app))
+  ok('详情页套装的投影函数与文本回退都取 nameCn',
+    app.includes('setSummary') && readText(path.join(pluginRoot, 'src', 'modules', 'formatText.ts')).includes('nameCn'))
+  ok('app 产物存在', fs.existsSync(path.join(libDir, 'apps', 'build.js')))
+  ok('`#配装` 的 app 与产物都已删除',
+    !fs.existsSync(path.join(pluginRoot, 'src', 'apps', 'akashaBuild.ts')) &&
+    !fs.existsSync(path.join(libDir, 'apps', 'akashaBuild.js')))
+  ok('两张模板都已就位并引用公共样式',
+    ['build.html', 'akasha-build.html'].every(f =>
+      readText(path.join(pluginRoot, 'resources', 'dps', f)).includes('{{_res_path}}/common/base.css')))
+  ok('帮助页收录 `#练度榜 胡桃 3`（写名次=配装详情）',
+    /#练度榜 胡桃 3/.test(readText(path.join(pluginRoot, 'resources', 'help', 'help-cfg.js'))))
+}
+
+// ---------- 6. 参数解析 `<角色> [名次]`（2026-10-16 合并后的唯一参数面） ----------
+{
+  const { parseBoardArgs: P } = await load('modules/akashaBoard.js')
+  push('只给角色：无名次 → 列表视图', P('胡桃'), { names: ['胡桃'], rank: 1, rankGiven: false, sawNumericOnly: false })
+  ok('写了名次 → 详情视图', P('胡桃 3').rankGiven === true && P('胡桃 3').rank === 3)
+  ok('名次写法宽松（第2名 / 2位 / #2）', ['胡桃 第2名', '胡桃 2位', '胡桃 #2'].every(t => P(t).rank === 2 && P(t).rankGiven))
+  ok('9 位 UID 不算名次：忽略并标记（app 据此静默）',
+    P('胡桃 240247315').rank === 1 && !P('胡桃 240247315').rankGiven && P('胡桃 240247315').sawNumericOnly)
+  ok('纯数字参数没有角色名', P('240247315').names.length === 0 && P('240247315').sawNumericOnly)
+  ok('空参数：既无角色名也非纯数字（app 据此回用法）', P('').names.length === 0 && P('').sawNumericOnly === false)
+  ok('超过 50 的名次不算名次（回落列表视图）', P('胡桃 51').rankGiven === false && P('胡桃 51').rank === 1)
 }
 
 const bad2 = report()

@@ -426,6 +426,27 @@ export function labelLinesOf (label: string): string[] {
 }
 
 /**
+ * 圣遗物套装表述（纯函数，2026-10-15 用户定；2026-10-17 从 `apps/grade.ts` 提成共享）
+ *
+ * 规则：**只写 4 件套 / 2+2 / 2 件套；凑不出套装加成就写「散件」，不列单件散件**。
+ * （曾经写成 `魔女×4 + 乐团×1` 会把单件散件也列出来；练度榜行同样适用这条。）
+ *
+ * @param sets 每套的**展示名**与件数（名一律由调用方给中文；按入参顺序做稳定排序，排名相同的保序）
+ */
+export function setSummary (sets: Array<{ name?: unknown, count?: unknown }>): string {
+  const counts = (sets || [])
+    .filter(s => s && String(s.name ?? '') && Number(s.count) > 0)
+    .map(s => [String(s.name), Math.floor(Number(s.count))] as [string, number])
+    .sort((a, b) => b[1] - a[1])
+  const four = counts.find(([, n]) => n >= 4)
+  if (four) return `${four[0]}×4`
+  const pairs = counts.filter(([, n]) => n >= 2).slice(0, 2)
+  if (pairs.length >= 2) return `${pairs[0][0]}×2 + ${pairs[1][0]}×2`
+  if (pairs.length === 1) return `${pairs[0][0]}×2`
+  return '散件'
+}
+
+/**
  * 攻略页投影：给每个模块补章节序号，给条目补"颜色之外"的图形通道，并收集来源/脚注。
  *
  * **不重做归一**：`kind/items/sepAfter/talentLevel/crown` 一律照 `buildV2Sections()` 的输出消费

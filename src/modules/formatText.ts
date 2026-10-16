@@ -7,8 +7,11 @@
  * ⚠ 文案与合并前**逐字一致**（`test/dps-query.test.mjs` 会钉住关键行）。
  */
 import { DPS_COPYRIGHT, SITE_NAME, formatTime } from '../components/constants.js'
+import { setSummary } from '../components/presentation.js'
 import { bigNumText } from './akashaQuery.js'
+import { panelSummary } from './akashaBoard.js'
 import type { AkashaView } from './akashaQuery.js'
+import type { BoardEntry } from './akashaBoard.js'
 import type { MemberView } from './teamView.js'
 
 /** 榜单记录的一行视图（`rankQuery.buildRows` / `raidQuery.buildRows` 的产物） */
@@ -184,5 +187,25 @@ export function akashaText (view: AkashaView, title = '#练度榜'): string {
   }
   if (!view.chars.length) lines.push('akasha 没有该 UID 的角色练度记录')
   lines.push('数据：akasha.cv（排名与伤害为 akasha 口径，与本站 DPS 榜不同）')
+  return lines.join('\n')
+}
+
+/**
+ * 阿卡莎角色榜条目的文本版（`#练度榜 <角色> <名次>` 的**配装详情**回退）
+ *
+ * 2026-10-16 合并 `#配装` 时从 `apps/akashaBuild.ts` 迁入：口径统一到 `#练度榜`，
+ * 且**不出现任何 UID**（既不是查询者的，也不展示上榜者的）。
+ */
+export function buildText (entry: BoardEntry, rank: number): string {
+  const lines = [
+    `【练度榜】第 ${rank} 名 · ${entry.charNameCn} C${entry.cons}${entry.nickname ? `（${entry.nickname}）` : ''}`,
+    `伤害 ${Math.round(entry.damage).toLocaleString('en-US')}｜双爆分 ${entry.critValue.toFixed(1)}｜天赋 A${entry.talent.A}/E${entry.talent.E}/Q${entry.talent.Q}`,
+    `武器：${entry.weapon ? `${entry.weapon.nameCn}${entry.weapon.affix ? ` 精${entry.weapon.affix}` : ''}` : '—'}`
+  ]
+  if (entry.artis.length) lines.push('圣遗物主词条：' + entry.artis.map(a => `${a.slotCn} ${a.mainCn}`).join('｜'))
+  // 套装与页面同规则（只写 4 件套 / 2+2 / 2 件套；凑不出加成写「散件」，不列单件散件）
+  if (entry.sets.length) lines.push('套装：' + setSummary(entry.sets.map(s => ({ name: s.nameCn, count: s.count }))))
+  const panel = panelSummary(entry)
+  if (panel.length) lines.push('面板：' + panel.map(p => `${p.label} ${p.value}`).join('｜'))
   return lines.join('\n')
 }

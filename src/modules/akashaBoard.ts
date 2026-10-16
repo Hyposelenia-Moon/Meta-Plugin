@@ -195,6 +195,55 @@ export function pickByRank (entries: BoardEntry[], rank: number): BoardEntry | n
   return sorted[want - 1] || null
 }
 
+/** `#练度榜 <角色> [名次]` 的参数（2026-10-16 合并 `#配装` 后只有一个参数面） */
+export interface BoardArgs {
+  /** 角色名 token（阿卡莎榜只认单角色；多个 token 由调用方 join 后交给取数层报错） */
+  names: string[]
+  /** 名次（1~50；没写时 = 1） */
+  rank: number
+  /** 是否显式写了名次：`false` = 列表视图（前 size 条），`true` = 该名次的配装详情 */
+  rankGiven: boolean
+  /** 出现过"不像名次的纯数字"（如 9 位 UID）→ app 据此**静默不回复** */
+  sawNumericOnly: boolean
+}
+
+/**
+ * 解析 `#练度榜 <角色> [名次]` 的参数
+ *
+ * 2026-10-16 用户定：第二个参数是**名次**（第 N 名），不是 UID；本命令与查询者账号**无任何关系**，
+ * 不解析、不接受、不显示任何 UID。纯数字且 1~50 视为名次（`第3名` / `3位` / `#3` 也认），
+ * 其余纯数字（如 9 位 UID）直接忽略并标 `sawNumericOnly`。
+ *
+ * ⚠ 命名与 `modules/queryArgs.ts` 的 `parseBuildArgs` **刻意区分**：那个是合并前遗留的 UID 版解析
+ *   （仍被 `test/mhydps-parity.test.mjs` 冻结），语义完全不同，不要混用。
+ */
+export function parseBoardArgs (raw: unknown): BoardArgs {
+  const args: BoardArgs = { names: [], rank: 1, rankGiven: false, sawNumericOnly: false }
+  for (const token of String(raw ?? '').split(/\s+/).map(s => s.trim()).filter(Boolean)) {
+    const n = Number(token.replace(/[第名位#]/g, ''))
+    if (Number.isFinite(n) && n >= 1 && n <= 50) { args.rank = Math.floor(n); args.rankGiven = true; continue }
+    if (/^\d+$/.test(token)) { args.sawNumericOnly = true; continue }
+    args.names.push(token)
+  }
+  return args
+}
+
+/**
+ * 交给站点 textmap 接口的英文词表（角色名 / 武器 / 套装 / **圣遗物主词条短语**）
+ *
+ * 站点的 `mainStatKey` 不是 Enka 枚举名，而是英文短语（`HP%` / `Crit DMG` / `Crit RATE` / `Pyro DMG Bonus`），
+ * `ENKA_PROP_CN` 只覆盖枚举名 —— 所以**主词条必须一起送**给 textmap，漏送就会在页面上原样显示英文
+ * （2026-10-17 用户反馈「榜单里的英文要自动翻译」时抓到的现场）。
+ */
+export function textmapWords (entries: BoardEntry[]): string[] {
+  return (entries || []).flatMap(e => [
+    e.charName,
+    e.weapon?.name || '',
+    ...e.sets.map(s => s.name),
+    ...e.artis.map(a => a.mainKey)
+  ]).filter(Boolean)
+}
+
 /**
  * akasha `stats` 里的**比例键**（值域 0~1，展示要 ×100 才是百分数）
  *
@@ -238,6 +287,8 @@ export function panelSummary (entry: BoardEntry): Array<{ label: string, value: 
     pick(['critRate', 'critRate_'], '暴击率'),
     pick(['critDMG', 'critDMG_', 'critDamage'], '暴击伤害'),
     pick(['elementalMastery'], '元素精通'),
-    pick(['energyRecharge'], '元素充能效率')
+    // ⚠ 标签**逐字照抄 miao** `resources/character/profile-detail.html` 的属性表（`recharge: '元素充能'`）：
+    //   6 字的「元素充能效率」在页面行组件的 88px 标签列（`meta-ui.css` 的 `.mx-guide-row`）里会折成两行。
+    pick(['energyRecharge'], '元素充能')
   ].filter(Boolean) as Array<{ label: string, value: string }>
 }

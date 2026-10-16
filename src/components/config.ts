@@ -27,7 +27,7 @@ import { MAX_PAGE_SIZE } from './constants.js'
  */
 export const MODULE_KEYS = [
   'codex', 'help', 'rank', 'raidTiers',
-  'build', 'grade', 'akashaBuild', 'teamDamage', 'video', 'status', 'admin'
+  'build', 'grade', 'teamDamage', 'video', 'status', 'admin'
 ] as const
 
 export type ModuleKey = (typeof MODULE_KEYS)[number]
@@ -40,7 +40,6 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
   raidTiers: '危战分档',
   build: '练度榜',
   grade: '练度提升指南',
-  akashaBuild: '榜上配装',
   teamDamage: '队伍伤害',
   video: '榜单视频',
   status: '状态页',

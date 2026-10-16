@@ -42,7 +42,8 @@ push('示例文件键集合 == defaultConfig 键集合', Object.keys(example).so
 
 // ---------- 2. defSet 模板占位符与配置键一一对应 ----------
 // `modules` 是**嵌套对象**：模板与锅巴表单按模块逐项展开（`meta_module_<key>` / 字段 `module_<key>`），
-// 所以这里比较的是"标量键 + 11 个模块键"的并集（2026-10-15 起：`charDps` / `raid` 随命令合并移除）
+// 所以这里比较的是"标量键 + 10 个模块键"的并集（2026-10-15 起：`charDps` / `raid` 随命令合并移除；
+// 2026-10-16：`akashaBuild` 随 `#配装` 并入 `#练度榜` 移除）
 const moduleKeys = [...C.MODULE_KEYS].sort()
 const scalarKeys = keys.filter(k => k !== 'modules')
 const expectedVars = [...scalarKeys.map(k => `meta_${k}`), ...moduleKeys.map(k => `meta_module_${k}`)].sort()
@@ -53,7 +54,7 @@ delete flatDefaults.modules
 ok('模块开关默认值：teamDamage 关闭', C.defaultModules.teamDamage === false)
 ok('模块开关默认值：其余全部开启',
   moduleKeys.filter(k => k !== 'teamDamage').every(k => C.defaultModules[k] === true))
-push('模块键数量 == 11', moduleKeys.length, 11)
+push('模块键数量 == 10', moduleKeys.length, 10)
 
 const defsetPath = path.join(pluginRoot, 'defSet', 'config.yaml')
 ok('defSet/config.yaml 存在', fs.existsSync(defsetPath))
