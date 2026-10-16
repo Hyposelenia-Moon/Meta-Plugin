@@ -7,7 +7,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 
 | 依赖 | 必需性 | 用途 |
 |---|---|---|
-| [miao-plugin](https://github.com/yoimiya-kokomi/miao-plugin) | ✅ 必需 | 图鉴版式 / 字体 / 图标 / 别名 / 面板取数 / 伤害计算引擎（**复用而不复制**它的资产） |
+| [miao-plugin](https://github.com/yoimiya-kokomi/miao-plugin) | ✅ 必需 | 图鉴版式 / 字体 / 图标 / 别名 / 面板取数 / 伤害计算引擎（复用其版式/字体/图标/别名与面板取数；元素底为其派生件，见「资源来源与许可」） |
 | Atlas-Plugin | 可选 | 图鉴类资源补充；**缺失或异常只降级、不报错** |
 | 本地代理 | 可选 | 榜单 / 危战 / 练度联网时需要（国内直连 `www.mhydps.cn` 会在 TLS 握手阶段失败） |
 
@@ -66,3 +66,8 @@ pnpm build && pnpm test     # 57 套；任意 cwd 可跑、不发真实网络、
 - **使用者**：本文件；命令细则见 bot 内 `#meta` 帮助页。
 - **维护者**：[AGENTS.md](./AGENTS.md)（分层、快速参考、硬约束、待办）+ [docs/](./docs/)（按主题分册）。
   `docs/private/` 是本机信息，**不入库**，新克隆上不存在。
+
+## 资源来源与许可
+
+- **miao-plugin**（https://github.com/yoimiya-kokomi/miao-plugin ，MIT）：本插件复用其图鉴版式、字体、图标、别名与面板取数；渲染时按相对路径引用其 `resources/` 下的资产。
+- **派生资源**：`resources/common/bg/page-{元素}.webp` 由 miao `resources/common/bg/bg-{元素}.webp` 经扩图（上下补镜像+模糊续画）得到，**为派生作品，同样遵循 MIT**，原始版权归 miao-plugin 作者所有。

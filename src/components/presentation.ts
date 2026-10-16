@@ -385,6 +385,18 @@ export function normalizeMetaValue (raw: unknown): string {
 }
 
 /** 行内 `名称：值` 里的值若是占位符 → 换成"未提供"（视图层改一次，两条渲染路径同源） */
+/**
+ * 备注斜体：把文本里的括号备注（全角 `（）` / 半角 `()`）切成
+ * `<span class="codex-note">…</span>`，供模板用 `{{@…}}` 原样输出。
+ *
+ * 只处理**括号内容**（本仓库攻略数据的备注约定就是括号，见现场核对）；
+ * 其他 HTML 字符一律转义，避免数据里出现尖括号时破坏结构。
+ */
+export function noteSpansOf (raw: string): string {
+  const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return String(raw ?? '').replace(/[（(]([^）)]*)[）)]/g, (m, inner) => `<span class="codex-note">${esc(m)}</span>`)
+}
+
 export function normalizeItemText (raw: unknown): string {
   const text = String(raw ?? '').trim()
   const m = text.match(/^(.+?)[：:]\s*(.+)$/)
@@ -433,6 +445,7 @@ export function buildCodexPresentation (view: {
         const alt = item.sigAlt === true
         return {
           text: normalizeItemText(item.text),
+          textHtml: noteSpansOf(normalizeItemText(item.text)),
           note: String(item.note ?? ''),
           icon: String(item.icon ?? ''),
           tone: sig ? 'sig' : alt ? 'alt' : '',

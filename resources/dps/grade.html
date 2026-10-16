@@ -320,23 +320,6 @@
         <section class="mx-section">
           <header class="mx-section__head">
             <span class="mx-section__index">03</span>
-            <h2 class="mx-section__title">数据来源</h2>
-          </header>
-          <aside class="mx-source-list">
-            {{each mx.sources s}}
-            <div class="mx-source">
-              <strong class="mx-source__name">{{s.name}}</strong>
-              <span class="mx-source__time">{{if s.updatedAt}}更新时间 {{s.updatedAt}}{{else}}时间未提供{{/if}}</span>
-              <span class="mx-source__state">{{s.modeText}}</span>
-            </div>
-            {{/each}}
-            {{each notes n}}<div class="mx-source mx-source--note"><span>{{n}}</span></div>{{/each}}
-          </aside>
-        </section>
-
-        <section class="mx-section">
-          <header class="mx-section__head">
-            <span class="mx-section__index">04</span>
             <h2 class="mx-section__title">当前配装</h2>
           </header>
           <div class="mx-equipment">
@@ -352,7 +335,7 @@
 
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">05</span>
+            <span class="mx-section__index">04</span>
             <h2 class="mx-section__title">未达标项</h2>
             {{if consLine}}<span class="mx-section__hint">参考：{{consLine}}</span>{{/if}}
           </header>
@@ -386,7 +369,7 @@
         {{if mx.references.length > 0}}
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">06</span>
+            <span class="mx-section__index">05</span>
             <h2 class="mx-section__title">参考项</h2>
             <span class="mx-section__hint">不计分</span>
           </header>
@@ -403,7 +386,7 @@
 
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">07</span>
+            <span class="mx-section__index">06</span>
             <h2 class="mx-section__title">提升建议</h2>
             <span class="mx-section__hint">按处理顺序</span>
           </header>
@@ -421,7 +404,7 @@
         {{if refDps && refDps.length > 0}}
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">08</span>
+            <span class="mx-section__index">07</span>
             <h2 class="mx-section__title">参考 DPS</h2>
             <span class="mx-section__hint">同角色投入参考</span>
           </header>

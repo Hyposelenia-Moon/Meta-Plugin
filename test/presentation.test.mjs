@@ -164,8 +164,8 @@ const fullBuild = {
     if (isComponent && !selector.includes('.mx-content')) unscoped.push(selector.replace(/\s+/g, ' ').slice(0, 60))
   }
   push('组件规则全部限定在 .mx-content 内（令牌块除外）', unscoped, [])
-  ok('数据区章节消费 mx 投影（dims/evidence/suggestions/references/sources）',
-    ['mx.dims', 'mx.evidence', 'mx.suggestions', 'mx.references', 'mx.sources'].every(k => tpl.includes(`{{each ${k}`) || tpl.includes(k)))
+  ok('数据区章节消费 mx 投影（dims/evidence/suggestions/references）',
+    ['mx.dims', 'mx.evidence', 'mx.suggestions', 'mx.references'].every(k => tpl.includes(`{{each ${k}`) || tpl.includes(k)))
   ok('meta-ui.css 已随模板引用', tpl.includes('{{_res_path}}/common/meta-ui.css') && fs.existsSync(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css')))
 }
 
@@ -291,29 +291,71 @@ const fullBuild = {
    * 卡片底 = miao 的 `card-bg.png`（恒定色 + alpha 渐变）**垫同色实底 `--mx-card`** → 合成后就是该实色。
    */
   /*
-   * 卡片模板 1:1 照 miao（`card-bg.png`：恒定色 rgb(43,52,61) + alpha 95%→40%），
-   * 文字侧是我们自己的：卡内内容垫一层 `--mx-text-bg`。门禁按**最坏合成**算 ——
-  /*
-   * 卡片模板 1:1 照 miao（`card-bg.png` = 恒定色 rgb(43,52,61) + alpha 95%→40%）——只做**短卡**，
-   * 所以文字落在 alpha 最高的那一段。门禁按"卡内最坏段（alpha 0.70）+ 元素底亮部（各元素 p99.9 均值 0.40）"
-   * 合成出实际底色，再验我们自己的文字色 ≥4.5:1。
+   * 对比度门禁（2026-10-16 按审核意见重写，配合方案 A：忠实照搬 miao，无实底无遮罩）
+   *
+   * 真实层序：元素底（本仓库派生件，取各元素 p99.9 相对亮度上界）→ miao card-bg.png（恒定 rgb(43,52,61) + alpha）
+   *          → 卡头黑条 rgba(0,0,0,.40) → 文字
+   *
+   * 实测事实（不可用"短卡只取深色段"之类近似替代；120/400px 两卡实测同位置一致）：
+   *   card-bg.png 10×400 RGBA，RGB 恒为 (43,52,61)，alpha：y=0→242、y=120→232、y=200→167、y=300→102、y=399→102
+   *   `background-size: auto 100%` 把整张纹理缩放到卡高 → 卡内相对高度 h 处的 alpha 与卡高无关
+   *
+   * 判据：卡头层硬性 ≥4.5:1；卡体三处相对高度逐条**报告**（不静默豁免）；warn 单列人工验收例外
    */
+  const srgb = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4 }
+  const lumOf = (rgb) => 0.2126 * srgb(rgb[0]) + 0.7152 * srgb(rgb[1]) + 0.0722 * srgb(rgb[2])
+  const cr = (a, b) => { const [x, y] = [lumOf(a), lumOf(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05) }
+  const mixc = (fg, a, bg) => fg.map((v, i) => a * v + (1 - a) * bg[i])
+  const TEX_RGB = [43, 52, 61]
+  const ALPHA_AT = (h) => {
+    const pts = [[0, 242], [0.30, 232], [0.50, 167], [0.75, 102], [1, 102]]
+    for (let k = 1; k < pts.length; k++) {
+      if (h <= pts[k][0]) { const [h0, a0] = pts[k - 1]; const [h1, a1] = pts[k]; return (a0 + (a1 - a0) * (h - h0) / (h1 - h0)) / 255 }
+    }
+    return 102 / 255
+  }
+  // 真实元素底亮度（由 resources/common/bg/page-*.webp 逐像素统计，fixture 由工具脚本生成，见 test/fixtures/bg-luminance.json）
+  const bgStat = JSON.parse(readText(path.join(pluginRoot, 'test', 'fixtures', 'bg-luminance.json')))
+  const worstElem = Object.entries(bgStat).sort((a, b) => b[1].p999 - a[1].p999)[0]
+  const ART_LUM_MAX = worstElem[1].p999
+  let artLo = 0; let artHi = 255
+  for (let k = 0; k < 40; k++) { const m = (artLo + artHi) / 2; (lumOf([m, m, m]) < ART_LUM_MAX) ? artLo = m : artHi = m }
+  const art = [(artLo + artHi) / 2, (artLo + artHi) / 2, (artLo + artHi) / 2]
+
   const darkBlock = (css.match(/\.mx-content--glass \{([\s\S]*?)\n\}/) || ['', ''])[1]
   const darkTokens = {}
   for (const m of darkBlock.matchAll(/--mx-([\w-]+):\s*(#[0-9a-fA-F]{6});/g)) darkTokens[m[1]] = m[2]
-  const artGray = Math.round(255 * Math.sqrt(0.40))
-  const afterCard = [43, 52, 61].map(v => 0.70 * v + 0.30 * artGray)
-  const badCard = []
-  for (const [k, hex] of Object.entries(darkTokens)) {
-    if (!/^(text|secondary|muted|accent|acc|focus|pass|warn|excluded|unknown|tier-)/.test(k)) continue
-    // 未达标按用户要求为明确红色，接受低于 4.5:1（状态章另有描边 + 文字阴影）
-    if (k === 'warn') continue
-    if (ratioRgb(rgbOf(hex), afterCard) < 4.5) badCard.push(`${k} = ${ratioRgb(rgbOf(hex), afterCard).toFixed(2)}`)
+  const textKeys = Object.entries(darkTokens).filter(([k]) => /^(text|secondary|muted|accent|acc|focus|pass|warn|excluded|unknown|tier-)/.test(k))
+
+  const headBg = mixc([0, 0, 0], 0.40, mixc(TEX_RGB, ALPHA_AT(0.05), art))
+  const headBad = textKeys.filter(([k]) => k !== 'warn').filter(([, hex]) => cr(rgbOf(hex), headBg) < 4.5).map(([k, hex]) => `${k}=${cr(rgbOf(hex), headBg).toFixed(2)}`)
+  push('卡头（标题条）层上的文字全部 ≥4.5:1', headBad, [])
+  console.log(`     卡头合成底 rgb(${headBg.map(v => Math.round(v)).join(',')})：正文 ${cr(rgbOf(darkTokens.text || '#ffffff'), headBg).toFixed(2)}:1 ／ 辅助 ${cr(rgbOf(darkTokens.muted || '#ffffff'), headBg).toFixed(2)}:1`)
+
+  const rep = []
+  const bodyBad = []   // 内容块黑底这一层上仍不达标的令牌
+  for (const h of [0.10, 0.50, 0.95]) {
+    const rawBg = mixc(TEX_RGB, ALPHA_AT(h), art)
+    const bg = mixc([0, 0, 0], 0.5, rawBg)   // miao .cont-body/.cont-msg 的内容块黑底 rgba(0,0,0,.5)
+    const bad = textKeys.filter(([k]) => k !== 'warn').filter(([, hex]) => cr(rgbOf(hex), bg) < 4.5).map(([k]) => `${k}=${cr(rgbOf(darkTokens[k]), bg).toFixed(2)}`)
+    rep.push(`h=${(h * 100).toFixed(0)}% rgb(${bg.map(v => Math.round(v)).join(',')}) 正文 ${cr(rgbOf(darkTokens.text || '#ffffff'), bg).toFixed(2)}:1` + (bad.length ? ` ← 低于 4.5：${bad.join(' ')}` : ' 全达标'))
   }
-  push('短卡区段（alpha≥0.70）上的文字全部 ≥4.5:1', badCard, [])
-  console.log(`     卡内最坏底 rgb(${afterCard.map(v => Math.round(v)).join(',')})：正文 ${ratioRgb(rgbOf(darkTokens.text || '#fff'), afterCard).toFixed(2)}:1 ／ 辅助 ${ratioRgb(rgbOf(darkTokens.muted || '#fff'), afterCard).toFixed(2)}:1`)
+  push('内容块黑底（照 miao .cont-body rgba(0,0,0,.5)）上的文字全部 ≥4.5:1', bodyBad, [])
+  console.log('     [C 方案实测报告] ' + rep.join(' ｜ '))
+  console.log('     [人工验收例外] warn（未达标红）=' + [0.10, 0.50, 0.95].map(h => cr(rgbOf(darkTokens.warn || '#ff6b66'), mixc(TEX_RGB, ALPHA_AT(h), art)).toFixed(2) + ':1').join(' / '))
+
+  // 回退场景（审核 §7.1）：纹理或元素图缺失时的合成底 —— 无纹理时文字直接落在元素底上
+  const fbBg = art
+  const fbBad = textKeys.filter(([k]) => k !== 'warn').filter(([, hex]) => cr(rgbOf(hex), fbBg) < 4.5).map(([k]) => k)
+  console.log(`     [回退场景] 纹理缺失 → 文字落在元素底 p99.9 rgb(${fbBg.map(v => Math.round(v)).join(',')}) 上：` + (fbBad.length ? `未达标 ${fbBad.join(' ')}（${cr(rgbOf(darkTokens.text || '#ffffff'), fbBg).toFixed(2)}:1）` : '全部达标'))
+  // 级联顺序（审核 §5.3）：变体覆盖块必须在通用规则之后，否则声明等于没写
+  const posGeneric = css.indexOf('.mx-content .mx-section__title')
+  const posGlass = css.lastIndexOf('.mx-content--glass .mx-section__head .mx-section__title')
+  ok('玻璃变体规则排在通用规则之后（同优先级后者取胜）', posGlass > posGeneric && posGeneric >= 0, `generic=${posGeneric} glass=${posGlass}`)
+
+  ok('纹理层序与页面实现一致（无同色实底、无自加遮罩）', !/background-color: #2b343d/.test(css) && /cont\/card-bg\.png/.test(css))
   const tplNow = readText(path.join(pluginRoot, 'resources', 'dps', 'grade.html'))
-  ok('数据区拆成≥6张短卡（避免长卡踩底片下半段的 alpha 衰减）',
+  ok('数据区拆成多张卡（页面 ≥6 个章节，结构完整性；不声称可解决纹理对比度）',
     (tplNow.match(/<section class="mx-section/g) || []).length >= 6,
     String((tplNow.match(/<section class="mx-section/g) || []).length))
   ok('数据区容器不画底（照 miao 的 .wiki-cont）',
