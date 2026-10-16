@@ -168,6 +168,12 @@ export class MetaTeamDamage extends plugin {
       copyright: COPYRIGHT
     }
 
+    // 同阵容参考：确保成员头像已缓存（角色名 → mhydps 头像 id；与练度页同源，失败不阻塞出图）
+    try {
+      const { ensureAvatars } = await import('../model/AvatarStore.js')
+      const ids = [...new Set(view.refs.flatMap(r => r.members.map(m => m.avatar)).filter(Boolean))]
+      await ensureAvatars(ids, { proxy: getProxy() }).catch(() => {})
+    } catch { /* 头像不影响出图 */ }
     return await respond(e, 'team-damage', data, () => teamDamageText(result.members, view, result.uid, dps, patchLabel(patch), axisLabel))
   }
 }

@@ -57,7 +57,27 @@
     .ref-team { flex: 1 1 auto; color: var(--muted, #ccc); }
     .ref-dmg { flex: 0 0 200px; text-align: right; font-weight: 700; }
     .note-row { font-size: 15px; color: var(--muted-2, #999); padding: 2px 0; }
-  </style>
+  
+    /* ===== 照攻略页/练度页经验统一（2026-10-16）=====
+       ① 章节标题用 (0,4,0) 顶掉 meta-ui 里把标题钉在 19px 的规则（meta-ui.css:469）
+       ② 正文/标签字号整体上调到与攻略页同档（正文 24px、条目 22px、说明 18–20px）
+       ③ 卡头内缩与说明字号与攻略页一致  */
+    .mx-content--glass .mx-section > .mx-section__head .mx-section__title { font-size: 30px; }
+    .mx-content--glass .mx-section__head { padding: 12px 14px; }
+    .mx-content--glass .mx-section__hint { font-size: 18px; }
+    .tm-cost { font-size: 48px; }
+    .tm-name { font-size: 30px; }
+    .tm-sub, .tm-cost-note, .tm-rule { font-size: 20px; }
+    .dmg-row { font-size: 24px; padding: 10px 0; }
+    .ref-row { font-size: 22px; padding: 10px 0; }
+    .note-row { font-size: 18px; padding: 4px 0; }
+    /* 同阵容参考：档位标签里的副注与金数之间留间隙（2026-10-16） */
+    .mx-refdps-label .tm-cost-note { display: block; margin-top: 2px; }
+    /* 同阵容参考：标签列定宽（头像串在多行之间左缘对齐）+ 副注收小 + 数值单位（2026-10-16 用户指定） */
+    .mx-refdps-row .mx-refdps-label { flex: 0 0 124px; }
+    .mx-refdps-row .mx-refdps-label .tm-cost-note { font-size: 16px; }
+    .mx-refdps-row .rank-main { margin-left: auto; }
+    .mx-refdps-row .tm-unit { font-size: 20px; margin-left: 2px; }</style>
 </head>
 <body style="zoom:{{renderScale}}">
   <div class="page page--elem">
@@ -81,7 +101,6 @@
       <main class="mx-content mx-content--glass">
         <section class="mx-section mx-section--first">
           <header class="mx-section__head">
-            <span class="mx-section__index">01</span>
             <h2 class="mx-section__title">参考 DPS</h2>
             <span class="mx-section__hint">{{if axisManual}}手动轴{{else}}默认轴{{/if}}｜窗口 {{window}}s</span>
           </header>
@@ -103,7 +122,6 @@
         {{each members m}}
         <section class="mx-section tm-card">
           <header class="mx-section__head">
-            <span class="mx-section__index">02</span>
             <h2 class="mx-section__title">{{m.charName}}</h2>
             <span class="mx-section__hint">C{{m.cons}}｜{{m.weaponText}}</span>
           </header>
@@ -127,16 +145,24 @@
         <!-- 同阵容参考 -->
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">03</span>
             <h2 class="mx-section__title">同阵容参考</h2>
             <span class="mx-section__hint">mhydps · 累计 {{refTotal}} 条｜按金数最接近排序</span>
           </header>
           {{if refs && refs.length > 0}}
           {{each refs r}}
-          <div class="ref-row">
-            <div class="ref-cost">{{r.cost}} 金 <span class="tm-cost-note">限{{r.limitcost}}/常{{r.normalcost}}｜差 {{r.costDiff}}</span></div>
-            <div class="ref-team">{{r.membersText}}{{if r.video}} <span class="tag">B站视频</span>{{/if}}</div>
-            <div class="ref-dmg num">{{r.damageText}}</div>
+          <!-- 同阵容参考：改用与练度查询「参考 DPS」同款结构（rank-row + 头像串 + 数值），
+               头像走 `m.avatar` 钩子：数据层补上头像文件名即显示真头像，否则回落文字头像 -->
+          <div class="rank-row mx-refdps-row">
+            <div class="mx-refdps-label">{{r.cost}} 金<span class="tm-cost-note">限{{r.limitcost}}/常{{r.normalcost}}｜差 {{r.costDiff}}</span></div>
+            <div class="char-list mx-refdps-team">
+              {{each r.members m}}
+              <div class="char-item"><div class="avatar">
+                {{if m.avatar}}<img class="avatar-img" src="{{_data_path}}/avatar/{{m.avatar}}.webp"/>{{else}}<div class="avatar-text">{{m.name}}</div>{{/if}}
+                {{if m.cons}}<span class="avatar-con">{{m.cons}}</span>{{/if}}
+              </div></div>
+              {{/each}}
+            </div>
+            <div class="rank-main"><span class="num">{{r.damageWanText}}</span><span class="tm-unit">万</span></div>
           </div>
           {{/each}}
           {{else}}

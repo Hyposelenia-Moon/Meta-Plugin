@@ -9,6 +9,7 @@
  *
  * 本模块**纯函数**（不读文件、不联网、不引 miao），因此可用合成数据完整单测。
  */
+import { avatarIdOf } from '../model/CharacterIndex.js'
 import type { TeamRecord } from '../model/TeamStore.js'
 import { statPatchToken } from './statPatch.js'
 
@@ -34,7 +35,7 @@ export interface LineupRef {
   damage: number
   video: string
   tags: string[]
-  members: Array<{ name: string, cons: number }>
+  members: Array<{ name: string, cons: number, avatar: string }>
   /** 与估算金数之差（0 = 同金） */
   costDiff: number
 }
@@ -102,8 +103,9 @@ export function findLineupRefs (
     damage: Number(t.damage) || 0,
     video: String(t.video || ''),
     tags: Array.isArray(t.tags) ? t.tags : [],
-    members: (t.members || []).map(m => ({ name: String(m.charId || ''), cons: Number(m.constellation) || 0 })),
-    costDiff: Math.abs((Number(t.cost) || 0) - approxCost)
+    members: (t.members || []).map(m => ({ name: String(m.charId || ''), cons: Number(m.constellation) || 0, avatar: avatarIdOf(String(m.charId || '')) })),
+    costDiff: Math.abs((Number(t.cost) || 0) - approxCost),
+      damageWanText: ((Number(t.damage) || 0) / 10000).toFixed(2)
   }))
   // 同金优先（金数差小的在前），其次伤害高的在前
   mapped.sort((a, b) => a.costDiff - b.costDiff || b.damage - a.damage)

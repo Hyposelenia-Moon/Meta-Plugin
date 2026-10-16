@@ -525,3 +525,10 @@
   padding-top: 0;
   border-top: none;
 }
+/* ===== 参考 DPS 行（从练度页提取共享，2026-10-16）：练度查询「07 参考 DPS」与队伍伤害「同阵容参考」共用 ===== */
+.mx-refdps-row { display: flex; align-items: center; gap: 12px; padding: 6px 20px; }
+.mx-refdps-row .mx-refdps-label { flex: 0 0 auto; min-width: 78px; }
+.rank-row.mx-refdps-row .char-list { flex: 1 1 auto; min-width: 0; }
+.mx-refdps-row .rank-main { flex: 0 0 auto; margin-left: 0; }
+.mx-refdps-row .mx-refdps-team { flex: 1 1 auto; min-width: 0; }
+.mx-refdps-video { font-style: italic; opacity: .85; }

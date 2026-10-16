@@ -55,7 +55,7 @@
 
     .codex-section { margin-top: 10px; padding: 0 20px 4px; }   /* 正文与卡片边框留间距 */
     .codex-section:first-child { margin-top: 0; }
-    .codex-row { display: flex; gap: 10px; align-items: baseline; padding: 3px 0; }
+    .codex-row { display: flex; gap: 6px; align-items: baseline; padding: 3px 0; }
     /* ===== 旧版（Character-Codex-Data `templates/guide.html`）的**排版几何**照搬；字体与颜色一律不动 ===== */
     .codex-row-items { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; min-width: 0; overflow-wrap: break-word; }   /* 旧 .row-value 的换行处理 */
     .codex-sep { padding: 0 3px; font-size: .85em; font-weight: 700; }            /* 旧 .sep */
@@ -64,9 +64,7 @@
     /* 行：照 .char-attr li（32px 行高 + 斑马 rgba(50,50,50,.4)/rgba(0,0,0,.4)，去掉虚线分隔） */
     .codex-row { min-height: 32px; line-height: 32px; padding-top: 0; padding-bottom: 0; }
     .codex-row + .codex-row { border-top: none; }
-    .codex-row:nth-child(odd) { background: rgba(50, 50, 50, .4); }
-    .codex-row:nth-child(even) { background: rgba(0, 0, 0, .4); }
-    .codex-row-label { flex: 0 0 auto; min-width: 72px; font-size: 17px; font-weight: 700; color: var(--muted); }
+    .codex-row-label { flex: 0 0 auto; min-width: 72px; white-space: nowrap; font-size: 17px; font-weight: 700; color: var(--muted); }
     .codex-row-items { flex: 1 1 auto; min-width: 0; font-size: 19px; line-height: 1.5; color: var(--text); }
     .codex-tier { font-weight: 700; }
     .codex-tier.label-推荐 { color: var(--gold); }
@@ -88,12 +86,11 @@
     .codex-item.sig-strict .codex-item-text { color: var(--red); font-weight: 700; }
     .codex-item.sig-alt .codex-item-text { color: var(--green); font-weight: 700; }
     .codex-note-inline { margin-left: 2px; font-size: 16px; color: var(--muted-2); font-style: italic; }
-    .codex-sep { margin: 0 4px; color: var(--muted-2); font-size: 16px; }
+    .codex-sep { margin: 0 12px; color: var(--muted-2); font-size: 28px; }   /* 头像 64px：加号两侧留 12px（2026-10-16） */
     .codex-empty { font-size: 18px; color: var(--muted-2); }
     .codex-hint { margin-top: 4px; font-size: 16px; color: var(--muted-2); }
 
     .codex-teams { display: flex; flex-direction: column; gap: 3px; }
-    .codex-face { display: inline-block; width: 32px; height: 32px; margin-right: 6px; vertical-align: middle; border-radius: 50%; background-size: cover; background-position: center; }
     .codex-team { font-size: 19px; color: var(--text); }
     .codex-team-tag { font-weight: 700; margin-right: 6px; }
     .codex-team-tag.label-推荐 { color: var(--gold); }
@@ -102,7 +99,7 @@
     .codex-team-note { font-size: 16px; color: var(--muted-2); font-style: italic; }
 
     /* 条目图标 / 配队头像（引用 miao 资源，尺寸按数据区比例） */
-    .codex-icon { display: inline-block; width: 26px; height: 26px; margin-right: 6px; vertical-align: middle; border-radius: 6px; background-size: cover; background-position: center; }
+    .codex-icon { display: inline-block; width: 46px; height: 46px; margin-right: 10px; vertical-align: middle; border-radius: 10px; background-size: cover; background-position: center; }
 
     /* 天赋：沿用 miao 面板的 .talent-icon 组件（元素环 + 图标 + 等级牌 + 皇冠角标），按数据区比例缩小 */
     .codex-talents { display: flex; gap: 18px; align-items: flex-start; padding: 2px 0; }
@@ -259,7 +256,156 @@
     }
     .mx-content--glass .mx-section > .codex-talents .talent-icon.talent-plus strong {
       background: #fff; color: #000; font-weight: bold; text-shadow: none !important;
-    }</style>
+    }
+    /* 配队头像复用练度页组件（2026-10-16）：
+       容器 `.char-list` 是给块级布局写的，配队行是"标签 + 头像 + `+` + 备注"的一行，
+       故**唯一适配**：让该容器以 inline-flex 参与行内排版；其余取值全用组件原值
+       （`.avatar` 64×64、`.char-item` 宽度 74px、`.avatar-img` width:100%）。 */
+    .codex-team-list { display: inline-flex; vertical-align: middle; }
+    .mx-content--glass .codex-team { line-height: 1.5; }
+       成员区 `flex: 1` 且 `space-between` → 头像之间的间距自动撑开，右侧不再留大片空白。 */
+    .mx-content--glass .codex-team { display: flex; align-items: center; gap: 8px; }
+    .codex-team-list { display: inline-flex; vertical-align: middle; }
+    /* ===== 版式定稿（2026-10-16，按真渲染自审决定）=====
+       ① 字号层级（我自审后选定）：章节标题 24px / 行标签 18px / 行内容 22px / 备注 17px / 页脚统一 17px
+       ② 单模块内行条：**无间距 + 单层底 + 斑马纹**（照 miao `.cont-table` 的 rgba(0,0,0,.4) / rgba(50,50,50,.4)）
+       ③ 03 天赋：压缩纵向留白（天赋块 40px 上下内边距 → 6/8px） */
+    .mx-content--glass .mx-section__title { font-size: 24px; }
+    .mx-content--glass .codex-row-label { font-size: 18px; }
+    .mx-content--glass .codex-row-items { font-size: 22px; }
+    .mx-content--glass .codex-note-inline,
+    .mx-content--glass .codex-team-note { font-size: 17px; }
+    .mx-content--glass .mx-footer .mx-footer__method,
+    .mx-content--glass .mx-footer .mx-copyright { font-size: 17px; }
+    .page-inner .mx-footer__method, .page-inner .mx-copyright { font-size: 17px; }
+    /* 行条：去掉行自身外边距（无间距）、统一单层底（2026-10-16：不用斑马纹） */
+    .mx-content--glass .mx-section > .codex-row { margin: 0; }   /* 无间距；行底由 meta-ui 的直接子元素规则统一提供（已验证：斑马纹从未生效，无需自绘） */
+    /* 天赋块压高 */
+    .mx-content--glass .mx-section > .codex-talents { padding: 6px 20px 8px; }
+    /* ===== 移动端优先：字号放大 + 模块间距收紧（2026-10-16 第二版）=====
+       前提：成图会在手机上查看，且整页 CSS 宽 600px → 所有字号按"手机上一眼可读"取值。
+       字号：章节标题 30px / 行标签 24px / 行内容 28px / 备注 22px / 页脚 20px / 立绘右侧 24px
+       间距：卡片间隙 8px → 6px；区块下内边距 10px → 0；卡头 14px → 12px；行高 42 → 52px */
+    .mx-content--glass .mx-section__title { font-size: 30px; }
+    .mx-content--glass .codex-row-label { font-size: 24px; }
+    .mx-content--glass .codex-row-items { font-size: 28px; }
+    .mx-content--glass .codex-note-inline,
+    .mx-content--glass .codex-team-note { font-size: 22px; }
+    .mx-content--glass .codex-empty { font-size: 28px; }
+    .page-inner .mx-footer__method, .page-inner .mx-copyright { font-size: 20px; }
+    .mx-content--glass .codex-row { min-height: 58px; line-height: 58px; }
+
+    /* ===== 配平版（2026-10-16 第三版）：字号 + 可用宽度一起调，消除折行 =====
+       字号：标题 28 / 行内容 26 / 行标签 22 / 备注 20 / 页脚 19
+       宽度：左右内边距走既有变量 `--mx-inset`（20px → 14px，每行多出 12px 可用宽度） */
+    body { --mx-inset: 10px; }   /* 14 → 12px：让接近满行的行回到同行 */
+    .mx-content--glass .mx-section__title { font-size: 28px; }
+    .mx-content--glass .codex-row-label { font-size: 22px; }
+    .mx-content--glass .codex-row-items { font-size: 26px; }
+    .mx-content--glass .codex-note-inline,
+    .mx-content--glass .codex-team-note { font-size: 20px; }
+    .page-inner .mx-footer__method, .page-inner .mx-copyright { font-size: 19px; }
+    .mx-content--glass .mx-section > .mx-section__head { padding: 12px 14px; }
+    .mx-content--glass .mx-section > .codex-talents { padding: 6px 14px 8px; }
+    .mx-content--glass .mx-section { margin: 6px -10px; padding-bottom: 0; }
+    .mx-content--glass .mx-section__head { padding: 12px 20px; }
+    .page-inner > .card.head-card ~ .card.head-card .codex-desc,
+    .page-inner > .card.head-card ~ .card.head-card .codex-meta { font-size: 24px; }
+    .page-inner > .card.head-card ~ .card.head-card .codex-name .codex-name-sub { font-size: 30px; }
+    /* 子层行补齐内缩（2026-10-16）：`.codex-row--long`（月结晶/月感电）外面多包了一层 div，
+       吃不到共享规则 `.mx-section > *:not(.mx-section__head)` 的 `--mx-inset` 内缩，
+       导致比下方标签靠左约 20px。此处显式补齐（用重复类名把特异性提到 0,5,0，压过"块内归零"规则）。 */
+    .mx-content--glass .mx-section > * > .codex-row--long.codex-row--long {
+      padding-left: var(--mx-inset); padding-right: var(--mx-inset);
+    }
+    /* 副标题加大（2026-10-16）：立绘右上「角色攻略」与页头副标题 */
+    .codex-name .codex-name-sub { font-size: 28px; }
+    .page-inner > .card.head-card ~ .card.head-card .codex-name .codex-name-sub { font-size: 34px; }
+    .page-inner .header-sub { font-size: 26px; }
+    /* 数据区副标题（章节头右侧说明，如「四星/三星武器默认为精5」）加大（2026-10-16）：
+       原为 16px，与放大的正文（26px）严重不匹配 → 提到 22px。 */
+    .mx-content--glass .mx-section__hint { font-size: 16px; }
+    /* 无效换行修复（2026-10-16）：条目内部不再断行，分隔符已并入前一个条目（模板层），
+       因此 `>` 不会再被孤立到行尾或行首，换行只发生在条目与条目之间。 */
+    .mx-content--glass .mx-section .codex-item { white-space: nowrap; }
+    /* ===== 方案 A（2026-10-16）：链式行改为"标签独占一行 + 链整体另起一行（悬挂缩进）"=====
+       目的：链首/链尾都是完整条目，分隔符 `>` 不再落在行首或行尾。
+       适用范围：实测会折行的三类行（推荐 / 可选 / 副词条）。 */
+    /* 2026-10-16 定稿（用户选择）：**仅超宽行**换行——`flex-basis: max-content` 让浏览器自己判断：\n       标签+内容放得下就同行（短行紧凑），放不下内容列自动另起一行（长行不再挤断）。 */
+    .mx-content--glass .mx-section .codex-row { flex-wrap: wrap; row-gap: 2px; }
+    .mx-content--glass .mx-section .codex-row > .codex-row-items { flex: 1 1 0; min-width: 0; }   /* basis:0 → 内容列不再按内容宽度被推到下一行，标签与首行内容同行 */
+    /* 03 天赋三格：**偏左**（2026-10-16 用户指定，撤销此前自作主张的居中） */
+    .mx-content--glass .mx-section > .codex-talents { justify-content: flex-start; }
+    /* 数据区行标签统一上色（2026-10-16）：圣遗物 / 面板 / 命座 各行的标签此前无颜色。
+       与武器行同口径：标签用金色（`--gold`），保持全页标签同一视觉重量。 */
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.label-月结晶,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.label-月感电,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.label-月绽放,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.label-主词条,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.label-副词条,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.label-输出向,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.label-辅助向,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.label-命之座2,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.label-命之座6 { color: var(--gold); }
+    /* 长标签行（如「月结晶 / 月感电」）：**标签与内容分行**（2026-10-16 用户指定）
+       —— 标签先按语义分行显示，其内容（圣遗物名）另起一行，不再与标签挤在同一行。 */
+    .mx-content--glass .mx-section .codex-row--long > .codex-row-items { flex: 1 0 100%; }
+    /* 长标签行（如「月结晶 / 月感电」）**标签同行**（2026-10-16 用户指定）：
+       `.codex-tier-line` 由块级改为行内，两个标签并排一行；内容（圣遗物）仍另起一行。 */
+    .mx-content--glass .mx-section .codex-tier-line { display: inline; }
+    .mx-content--glass .mx-section .codex-tier-line + .codex-tier-line { margin-left: 10px; }
+    /* 行标签**统一同色**（2026-10-16 用户指出颜色不一致）：
+       覆盖短标签（`.codex-tier`）与长标签行（`.codex-tier-line`），统一用金色（与 `.label-推荐` 一致）；
+       选择器特异性 0,4,0，压过 `.codex-tier.label-可选 { color: var(--accent) }` 等既有规则。 */
+    .mx-content--glass .mx-section .codex-row-label .codex-tier,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier-line { color: var(--gold); }
+    /* 页脚用卡片承载（2026-10-16）：与 `.mx-section` 同款——miao 底片 + 单层黑底 + 圆角/阴影，
+       左右与其它卡片对齐（-10px 抵消 `.page-inner` 内边距）。 */
+    .page-inner > .mx-footer {
+      margin: 6px -10px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 1px 0 #ccc, 2px 2px 4px 0 rgba(50, 50, 50, .8);
+      background: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url("{{_miao_path}}common/cont/card-bg.png") top left repeat-x;
+      background-size: auto, auto 100%;
+      padding: 8px var(--mx-inset) 10px;
+    }
+    .page-inner > .mx-footer > * { margin: 0; padding: 0; background: none; }
+    /* 副词条**默认三条一行**，超过三条自动换行（2026-10-16 用户指定）：
+       条目与分隔符已同属一个 `.codex-item`，故用 3 列网格即"每行三个"。
+       `输出向` 行按用户选择 **A**：接受换行，不动字号。 */
+    .mx-content--glass .mx-section .codex-row:has(.label-副词条) > .codex-row-items {
+      display: flex; flex-wrap: wrap;
+      grid-template-columns: repeat(3, max-content);
+      justify-content: start;          /* 左对齐：不居中、不撑满 */
+      
+      
+      column-gap: 18px;
+      row-gap: 4px;
+    }
+    /* 换行后的正文与正文列对齐（2026-10-16 用户规则）：
+       标签列固定 72px + 行 gap 6px → 正文列起点固定为 78px；长标签行的内容换行后同样缩进 78px，
+       这样 `晨星与月的晓歌` 与 `纺月的夜歌` 左缘一致。 */
+    .mx-content--glass .mx-section .codex-row--long > .codex-row-items { margin-left: 78px; }
+    /* 副词条网格：条目自身宽度取 max-content、起点靠左（防止被网格/父级拉伸） */
+    .mx-content--glass .mx-section .codex-row:has(.label-副词条) > .codex-row-items > .codex-item {
+      width: max-content; justify-self: start;
+    }    .mx-content--glass .mx-section .codex-item-break { flex: 0 0 100%; height: 0; }   /* 每 3 条断行 */
+
+    /* 立绘区「建议等级 90级」等 meta 行加大（2026-10-16 用户指定）：
+       原 24px → 28px；标签与数值同步，保持同行可读。 */
+    .page-inner > .card.head-card ~ .card.head-card .codex-meta,
+    .page-inner > .card.head-card ~ .card.head-card .codex-meta .kv-label,
+    .page-inner > .card.head-card ~ .card.head-card .codex-meta .kv-value { font-size: 28px; }
+    /* 立绘右上：定位与建议等级同字号（2026-10-16 用户指定）——定位由 24px 提到 28px，与 meta 行一致 */
+    .page-inner > .card.head-card ~ .card.head-card .codex-desc { font-size: 28px; }
+    /* 章节头字号（2026-10-16 第三轮）：**真凶是共享样式 meta-ui.css:469**
+       `.mx-content--glass .mx-section__head .mx-section__title { font-size: 19px }`（特异性 0,3,0）
+       一直压住页面里的 (0,2,0) 规则 → 「武器」永远 19px、加不上去。
+       这里改用**同结构 + 更高优先级**（0,4,0）覆盖它；序号无此约束，一并设为同值。 */
+    .mx-content--glass .mx-section > .mx-section__head .mx-section__title { font-size: 30px; }
+    .mx-content--glass .mx-section > .mx-section__head .mx-section__index { font-size: 30px; }
+    .mx-content--glass .mx-section__hint { font-size: 18px; }</style>
 </head>
 <body class="gd-elem-{{element}}" style="zoom:{{renderScale}}">
   <div class="page page--elem">
@@ -312,7 +458,7 @@
             {{each section.teams team}}
             <div class="codex-team">
               {{if team.tag}}<span class="codex-team-tag">{{team.tag}}</span>{{/if}}
-              {{each team.members member}}{{if member.icon}}<span class="codex-face" style="background-image:url({{_miao_path}}{{member.icon}})"></span>{{/if}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}
+              {{each team.members member}}{{if member.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{member.icon}}"/>{{if member.constellation}}<span class="avatar-con">{{member.constellation}}</span>{{/if}}</span></span></span>{{/if}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}
               {{if team.text}}<span class="codex-team-note">{{team.text}}</span>{{/if}}
             </div>
             {{/each}}
@@ -339,10 +485,11 @@
           <div class="codex-row{{if row.longLabel}} codex-row--long{{/if}}{{if row.label === '主词条'}} codex-row--stack{{/if}}">
             {{if row.longLabel}}
             <div class="codex-row-label"><span class="codex-tier">{{each row.labelLines l}}<span class="codex-tier-line">{{l}}</span>{{/each}}</span></div>
-            {{else if row.label}}<div class="codex-row-label"><span class="codex-tier">{{row.label}}</span></div>{{/if}}
+            {{else if row.label}}<div class="codex-row-label"><span class="codex-tier label-{{row.label}}">{{row.label}}</span></div>{{/if}}
             <div class="codex-row-items">
               {{each row.items item}}
-              <span class="codex-item{{if item.tone === 'sig'}} sig-strict{{/if}}{{if item.tone === 'alt'}} sig-alt{{/if}}">{{if item.icon}}<span class="codex-icon" style="background-image:url({{_miao_path}}{{item.icon}})"></span>{{/if}}<span class="codex-item-text">{{if item.textHtml}}{{@item.textHtml}}{{else}}{{item.text}}{{/if}}</span>{{if item.note}}<span class="codex-note-inline">{{item.note}}</span>{{/if}}</span>{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}
+              <span class="codex-item{{if item.tone === 'sig'}} sig-strict{{/if}}{{if item.tone === 'alt'}} sig-alt{{/if}}">{{if item.icon}}<span class="codex-icon" style="background-image:url({{_miao_path}}{{item.icon}})"></span>{{/if}}<span class="codex-item-text">{{if item.textHtml}}{{@item.textHtml}}{{else}}{{item.text}}{{/if}}</span>{{if item.note}}<span class="codex-note-inline">{{item.note}}</span>{{/if}}{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}</span>
+              {{if row.label === '副词条' && $index % 3 === 2}}<span class="codex-item-break"></span>{{/if}}
               {{/each}}
             </div>
           </div>

@@ -118,6 +118,21 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
   ok('冻结立绘行仍在且共享样式不碰它',
     tpl.includes('class="gd-basic"') && tpl.includes('gd-main-pic') &&
     ['.gd-basic', '.gd-main-pic', '.gd-char-', '.gd-talent', '.gd-cons'].every(sel => !css.includes(sel)))
+  // 立绘裁剪约束（2026-10-16 用户指定）：裁剪边界 = 英雄区边缘，
+// 且取景窗常量必须保持 miao 面板同源值 —— 防止有人"随手裁一刀"改坏构图。
+ok('立绘裁剪边界由英雄区决定（overflow:hidden）+ 取景窗常量为 miao 同源值',
+  /\.gd-pic-clip \{[^}]*overflow:\s*hidden/.test(tpl) &&
+  /\.gd-main-pic \{[^}]*width:\s*1400px[^}]*height:\s*500px[^}]*margin-left:\s*-545px/.test(tpl) &&
+  /\.gd-basic::before \{[^}]*top:\s*10px[^}]*bottom:\s*10px[^}]*border-left:\s*1px solid/.test(tpl))
+// 立绘圆角与"外圈模糊"约束（2026-10-16 用户指定）：圆角必须与卡片同款 10px；
+// 外圈低透明度模糊层必须由 `--gd-art` 复用同一张立绘（禁止换成别的图/改成不透明）。
+ok('立绘圆角 10px + 外圈低透明度模糊层（同一张图、同一取景窗）',
+  /\.gd-pic-clip \{[^}]*overflow:\s*hidden[^}]*border-radius:\s*10px/.test(tpl) &&
+  tpl.includes('class="gd-pic-clip"') &&
+  /\.gd-basic::after \{[^}]*width:\s*1400px[^}]*height:\s*500px[^}]*margin-left:\s*-545px/.test(tpl) &&
+  /\.gd-basic::after \{[^}]*filter:\s*blur\(/.test(tpl) &&
+  /\.gd-basic::after \{[^}]*opacity:\s*0?\.\d+/.test(tpl) &&
+  tpl.includes('--gd-art:url({{heroImg}})'))
   ok('参考项与计分项分开（参考不计分）', tpl.includes('mx.references') && tpl.includes('参考项') && tpl.includes('不计分'))
   /* 用户 2026-10-15 定：圣遗物行「套装名独占一行、评分与词条次行右对齐」——换组件后仍要守住 */
   ok('圣遗物行：套装名与评分/词条分行、次行右对齐',

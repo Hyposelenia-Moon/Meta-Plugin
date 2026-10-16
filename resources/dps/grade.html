@@ -89,7 +89,11 @@
     body { width: 600px; min-width: 600px; max-width: 600px; }
     /* 立绘区：照面板图形态——底图直接托着立绘与属性表，无卡框 */
     /* 立绘区取景窗：高度钉死 500px（miao 面板页由 .main-pic 撑高，图鉴页显式写 height:500px） */
-    .gd-basic { position: relative; margin: 0 -15px 15px -10px; height: 500px; }
+    /* 立绘按"边界"裁剪（2026-10-16）：裁剪边界 = 英雄区左右边缘（即 `.gd-basic::before` 那两条 1px 线）。
+       约束：**不得随意裁剪** —— 取景窗常量必须保持 miao 面板同源值
+       （`.gd-main-pic` 宽 1400 / 高 500 / margin-left -545），否则构图会与 miao 面板不一致；
+       只允许通过 `.gd-basic { overflow: hidden }` 这种"按盒裁剪"的方式收边。 */
+    .gd-basic { position: relative; margin: 0 -15px 15px -10px; height: 500px; }   /* 裁剪改由 .gd-pic-clip 承担 */   /* 圆角与卡片同款 */
     /* 右列首个元素不带上外边距，避免整列被顶下（miao .detail 内首元素无 margin-top） */
     .gd-detail > :first-child { margin-top: 0; }
     .gd-main-pic {
@@ -219,12 +223,33 @@
     .mx-refdps-row .rank-badge { flex: 0 0 auto; min-width: 68px; text-align: center; }
     .mx-refdps-row .rank-main { flex: 0 0 auto; display: flex; align-items: baseline; gap: 4px; margin-left: auto; }
     .mx-refdps-row .rank-tags { flex: 0 0 auto; }
-    .mx-refdps-row .mx-refdps-team { flex: 1 1 auto; min-width: 0; }
-    .mx-refdps-video { font-style: italic; opacity: .85; }    /* 参考 DPS 列宽修正（写在最后，覆盖前面的同优先级规则）：档位标签 | 头像串 | 数值，互不重叠 */
-    .mx-refdps-row { display: flex; align-items: center; gap: 12px; padding: 6px 20px; }
-    .mx-refdps-row .mx-refdps-label { flex: 0 0 auto; min-width: 78px; }
-    .rank-row.mx-refdps-row .char-list { flex: 1 1 auto; min-width: 0; }
-    .mx-refdps-row .rank-main { flex: 0 0 auto; margin-left: 0; }</style>
+    
+        /* 参考 DPS 列宽修正（写在最后，覆盖前面的同优先级规则）：档位标签 | 头像串 | 数值，互不重叠 */
+    
+    
+    
+    
+
+    /* 练度查询立绘区：左右各一条 1px 细实线（2026-10-16 用户指定）
+       绝对定位伪元素 + 左右 border：不占宽度、不改布局，只画在可见英雄区左右边缘。 */
+    .gd-basic::before {
+      content: ''; position: absolute; top: 10px; bottom: 10px; left: 0; right: 0;
+      border-left: 1px solid rgba(255, 255, 255, .45);
+      border-right: 1px solid rgba(255, 255, 255, .45);
+      pointer-events: none; z-index: 3;
+    }
+  
+    /* 立绘外圈：被圆角裁掉的部分用**同一张图**补回，低透明度 + 模糊（2026-10-16 用户指定）
+       —— 层级：::after(模糊底 z1) < .gd-main-pic(清晰立绘 z2) < ::before(1px 边界线 z3) */
+    .gd-pic-clip { position: absolute; inset: 0; overflow: hidden; border-radius: 10px; z-index: 2; }
+    .gd-pic-clip .gd-main-pic { position: relative; z-index: 2; }
+    /* 边界外恢复图片 + 模糊（2026-10-16 用户指定）：与立绘**同一取景窗**（1400×500 / margin-left:-545px），
+       因此被 .gd-pic-clip 裁掉的那部分会在这里以低透明度 + 模糊复原；层级在清晰立绘之下。 */
+    .gd-basic::after {
+      content: ''; position: absolute; top: 0; left: 0; width: 1400px; height: 500px; margin-left: -545px; z-index: 1;
+      background-image: var(--gd-art); background-size: contain; background-repeat: no-repeat; background-position: center;
+      filter: blur(12px); opacity: .5; pointer-events: none;
+    }</style>
 </head>
 <body class="gd-elem-{{elemClass}}" style="zoom:{{renderScale}}">
   <div class="page page--elem">
@@ -238,10 +263,10 @@
         </div>
       </div>
       <!-- ① 立绘行：结构逐条照抄 miao（`.basic` / `.main-pic` / `.detail` / `.char-cons`） -->
-      <div class="gd-basic">
+      <div class="gd-basic" style="--gd-art:url({{heroImg}})">
         <!-- 面板图：图库（`面板图N` / 层内随机）→ miao 自带立绘；顺序与 miao `getCostumeSplash()` 一致 -->
-        {{if heroImg}}<div class="gd-main-pic" style="background-image:url({{heroImg}})"></div>
-        {{else}}<div class="gd-main-pic"></div>{{/if}}
+        <div class="gd-pic-clip">{{if heroImg}}<div class="gd-main-pic" style="background-image:url({{heroImg}})"></div>
+        {{else}}<div class="gd-main-pic"></div>{{/if}}</div>
         <div class="gd-detail">
           <div class="gd-char-name">{{charName}}</div>
           <div class="gd-char-lv">UID {{uidText}} - Lv.{{buildInfo.levelText}}<span class="gd-cons gd-cons-{{buildInfo.consN}}">{{buildInfo.consN}}命</span></div>
