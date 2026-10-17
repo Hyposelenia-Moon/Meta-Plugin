@@ -123,8 +123,21 @@ ok('立绘区标题分色（名字金色 + 副标题实心胶囊 + 定位冷色�
   /\.codex-name\s*\{[^}]*color:\s*#ffe6b3/.test(tpl) &&
   /\.codex-name \.codex-name-sub\s*\{[^}]*background:\s*linear-gradient/.test(tpl) &&
   /\.codex-desc\s*\{[^}]*border-radius:\s*999px/.test(tpl))
-ok('页脚正文不再以「口径：」开头（CSS 注释里的同词不算）',
-  !/mx-footer__method">口径：/.test(tpl) && tpl.includes('mx-footer__method'))
+/* 2026-10-17 用户定：来源区精简为两行（来源+免责同行，版权另一行），且不再有「口径：」 */
+ok('来源区两行：`.mx-footer__line`（来源+免责同行）+ `.mx-copyright`，不再单独一行免责',
+  tpl.includes('class="mx-footer__line"') &&
+  /class="mx-footer__line"[\s\S]{0,400}mx-footer__method/.test(tpl) &&
+  !/<p class="mx-footer__method">/.test(tpl) &&
+  !tpl.includes('口径：<'))
+ok('来源行文案：`最后更新时间：xxxx.xx.xx · 面板与命座数值仅供参考`（不再渲染来源名与模式）',
+  tpl.includes('最后更新时间：{{s.updatedAt') &&
+  tpl.includes('面板与命座数值仅供参考') &&
+  !tpl.includes('{{s.modeText}}') &&
+  !/codex-source[^>]*>本仓库攻略数据/.test(tpl))
+ok('配队头像间距显式固定（`.codex-team .codex-sep` 10px / 24px，不被行内规则带跑）',
+  /\.codex-team \.codex-sep\s*\{[^}]*margin:\s*0 10px/.test(tpl) &&
+  /\.codex-team \.codex-sep\s*\{[^}]*font-size:\s*24px/.test(tpl) &&
+  /\.codex-row \.codex-sep\s*\{[^}]*margin:\s*0 1px/.test(tpl))
 ok('配队标签与其它模块标签同色（`.codex-team-tag` 取 --gold；模板仍带 label-<tag> 类）',
   /\.codex-team-tag\s*\{[^}]*color:\s*var\(--gold\)/.test(tpl) &&
   tpl.includes('codex-team-tag label-{{team.tag}}'))

@@ -159,7 +159,9 @@
        上一条的 12px 外边距 + `.codex-sep` 基础规则的 3px 内边距 + 28px 字号，本来是给**带 46px 图标**
        的条目调的；纯文字行（副词条/推荐/可选）正文只有 19px，再叠加副词条自己的 `column-gap` 后，
        全角 ＞ 两侧空隙接近 33px，远大于正文行距 → 文字行改紧凑，宽间距只留给带图标的条目。 */
-    .codex-sep { margin: 0 1px; padding: 0; font-size: .8em; }
+    .codex-row .codex-sep { margin: 0 1px; padding: 0; font-size: .8em; }   /* 只作用于正文行（副词条/推荐/可选） */
+    /* 配队头像之间的「+」：**显式固定**间距与字号（2026-10-17 用户反馈：头像间距曾被行内规则带跑了） */
+    .codex-team .codex-sep { margin: 0 10px; padding: 0; font-size: 24px; color: var(--muted-2); }
     .codex-item:has(.codex-icon) > .codex-sep { margin: 0 12px; padding: 0 3px; font-size: 28px; }
     .codex-empty { font-size: 18px; color: var(--muted-2); }
     .codex-hint { margin-top: 4px; font-size: 16px; color: var(--muted-2); }
@@ -485,6 +487,16 @@
       padding: 8px var(--mx-inset) 10px;
     }
     .page-inner > .mx-footer > * { margin: 0; padding: 0; background: none; }
+    /* 来源区两行（2026-10-17 用户定）：第一行 = 来源 + 免责说明（同行），第二行 = 版权 */
+    .page-inner > .mx-footer > .mx-footer__line {
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px;
+      font-size: 19px; color: var(--muted);
+    }
+    .page-inner > .mx-footer > .mx-footer__line .codex-source,
+    .page-inner > .mx-footer > .mx-footer__line .mx-footer__method,
+    .page-inner > .mx-footer > .mx-footer__line .mx-footer__dot { font-size: 19px; padding: 0; }
+    .page-inner > .mx-footer > .mx-footer__line .mx-footer__dot { color: var(--muted-2); }
+    .page-inner > .mx-footer > .mx-footer__line .mx-footer__label { font-size: 19px; color: var(--muted); }
     /* 副词条**默认三条一行**，超过三条自动换行（2026-10-16 用户指定）：
        条目与分隔符已同属一个 `.codex-item`，故用 3 列网格即"每行三个"。
        `输出向` 行按用户选择 **A**：接受换行，不动字号。 */
@@ -620,11 +632,13 @@
       </main>
 
       <footer class="mx-footer">
-        {{each mx.sources s}}
-        <div class="codex-source">{{s.name}} · {{if s.updatedAt}}更新时间 {{s.updatedAt}}{{else}}时间未提供{{/if}} · {{s.modeText}}</div>
-        {{/each}}
-        <p class="mx-footer__method">本仓库攻略数据；面板与命座仅作参考。</p>
+        <!-- 2026-10-17 用户定：来源区**精简为两行**、改用书面语（去掉与来源行重复的「本仓库攻略数据」） -->
+        <p class="mx-footer__line">
+          {{each mx.sources s}}<span class="codex-source">最后更新时间：{{s.updatedAt || '未提供'}}</span>{{/each}}
+          <span class="mx-footer__dot">·</span><span class="mx-footer__method">面板与命座数值仅供参考</span>
+        </p>
         <p class="mx-copyright">{{copyright}}</p>
+      </footer>
     </div>
   </div>
   {{if portraitSrc || portrait}}

@@ -230,6 +230,14 @@ let portraitData = ''
       portraitData,
       cropCfg: deps.cropCfg,
       genshinFont: deps.genshinFontFile?.() || undefined,
+      guideUpdatedAt: (() => {
+        try {
+          const st = fs.statSync(path.join(pluginRoot, 'data', 'gi', name + '.json'))
+          const d = new Date(st.mtimeMs)
+          const p = n => String(n).padStart(2, '0')
+          return d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate())
+        } catch { return '' }
+      })(),
       portraitRatio,
       portraitBox,
       element,
