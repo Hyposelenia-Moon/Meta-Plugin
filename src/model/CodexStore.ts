@@ -107,22 +107,6 @@ export class CodexStore {
     return path.join(this.root, `${name}.json`)
   }
 
-  /**
-   * 攻略数据文件的**最后修改时间**（2026-10-17 用户定：来源区要显示真实修改时间）
-   *
-   * 取文件系统 mtime —— 数据一更新（编辑器保存 / 切分支 / 手工改 JSON）它就变，比 JSON 里
-   * 手写的日期可信；文件不存在返回 null，展示层写「未提供」。
-   */
-  guideMtime (name: string): Date | null {
-    try {
-      const key = String(name ?? '').trim()
-      if (!key) return null
-      const st = fs.statSync(this.fileOf(key))
-      return new Date(st.mtimeMs)
-    } catch {
-      return null
-    }
-  }
 
   /** 文件签名：`mtime:size`；不存在返回 `missing` */
   private sigOf (file: string): string {

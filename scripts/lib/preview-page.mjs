@@ -148,6 +148,7 @@ async function loadDeps (pluginRoot, botRoot) {
     imageDataUrl: profileImg.imageDataUrl,
     cropCfg: profileImg.cropCfg,
     genshinFontFile: (await lib('model/genshinFont.js')).genshinFontFile,
+    guideUpdatedDate: (await lib('model/guideDate.js')).guideUpdatedDate,
     findCharacter: charIndex.findCharacter,
     resetIndexCache: charIndex.resetCache,
     copyright: constants.COPYRIGHT ?? ''
@@ -230,14 +231,7 @@ let portraitData = ''
       portraitData,
       cropCfg: deps.cropCfg,
       genshinFont: deps.genshinFontFile?.() || undefined,
-      guideUpdatedAt: (() => {
-        try {
-          const st = fs.statSync(path.join(pluginRoot, 'data', 'gi', name + '.json'))
-          const d = new Date(st.mtimeMs)
-          const p = n => String(n).padStart(2, '0')
-          return d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate())
-        } catch { return '' }
-      })(),
+      guideUpdatedAt: deps.guideUpdatedDate?.(path.join(pluginRoot, 'data', 'gi'), name) || '',
       portraitRatio,
       portraitBox,
       element,
