@@ -48,9 +48,12 @@ ok('不复制 miao 的样式（自有共享 CSS 里没有 miao 类名）', (() =
 })())
 ok('迭代前版式的结构类齐全（页头 + 单张内容卡 + 分块）',
   ['codex-head', 'codex-portrait', 'codex-name', 'codex-meta', 'mx-section__title', 'mx-section', 'codex-row', 'codex-row-label', 'codex-row-items', 'mx-footer'].every(k => tpl.includes(k)))
-ok('页头字段：立绘 / 名字 / 副标题 / 定位 / 属性行',
-  tpl.includes('{{if portrait}}') && tpl.includes('{{name}}') && tpl.includes('{{subTitle}}') &&
-  tpl.includes("meta['定位']") && tpl.includes('{{each metaRows row}}'))
+ok('页头字段：立绘（图库优先，缺了退回 miao 相对路径）/ 名字 / 副标题 / 定位 / 属性行',
+  tpl.includes('{{if portraitSrc}}') && tpl.includes('{{else if portrait}}') && tpl.includes('{{name}}') &&
+  tpl.includes('{{subTitle}}') && tpl.includes("meta['定位']") && tpl.includes('{{each metaRows row}}'))
+/* 2026-10-17 图库接入：立绘铺满卡片区 —— cover 裁切 + 按默认立绘比例定高（口径改动必须过这条门禁） */
+ok('立绘铺满卡片区：`object-fit: cover` + `aspect-ratio: {{portraitRatio}}`',
+  /\.codex-portrait\s*\{[\s\S]*?object-fit:\s*cover/.test(tpl) && tpl.includes('aspect-ratio: {{portraitRatio}}'))
 ok('遍历六个模块（数据来自投影，不写死章节数）', tpl.includes('{{each mx.sections section}}'))
 ok('空模块分支', tpl.includes('{{if section.empty}}') && tpl.includes('{{section.emptyText}}'))
 ok('配队分支', tpl.includes('section.teams.length > 0'))
@@ -145,7 +148,7 @@ if (fs.existsSync(subViewsFile)) {
     }
   }
   push('模板用到的页级字段都在 toPageData() 里', missing, [])
-  ok('toPageData 提供页头字段', ['name', 'meta', 'metaRows', 'sections', 'hints', 'copyright', 'renderScale', 'portrait', 'subTitle'].every(k => k in page))
+  ok('toPageData 提供页头字段', ['name', 'meta', 'metaRows', 'sections', 'hints', 'copyright', 'renderScale', 'portrait', 'portraitSrc', 'portraitRatio', 'subTitle'].every(k => k in page))
 
   let template = null
   try {

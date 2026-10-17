@@ -97,8 +97,21 @@ export interface PageOptions {
   copyright?: string
   /** 渲染缩放（`components/render.ts` 会塞进模板数据） */
   renderScale?: number
-  /** 角色立绘（阶段 2 接 miao 资源后传入；缺省则模板不画立绘） */
+  /** 角色立绘（miao 相对路径；与 portraitSrc 二选一，后者优先） */
   portrait?: string
+  /**
+   * 角色立绘**完整地址**（图库 / miao 默认立绘都行，ProfileImgRes.pageImageUrl() 的产物）
+   *
+   * 图库图可能在别的盘，不能像 miao 资源那样拼 {{_miao_path}}，所以要传整串地址。
+   */
+  portraitSrc?: string
+  /**
+   * 立绘区宽高比（ProfileImgRes.pickPagePortrait().ratio）
+   *
+   * 模板用它给立绘框定高（spect-ratio），图库大图按 object-fit: cover 裁进来 ——
+   * 这样「比例不同的大图」也能用，而版面高度与用默认立绘时一致。
+   */
+  portraitRatio?: string
   /** 页头副标题（默认「角色攻略」） */
   subTitle?: string
   /**
@@ -115,6 +128,10 @@ export interface CodexPageData extends CodexView {
   copyright: string
   renderScale: number
   portrait: string
+  /** 立绘完整地址（优先于 portrait） */
+  portraitSrc: string
+  /** 立绘区宽高比（空串 = 不锁定，退回图片自身比例） */
+  portraitRatio: string
   subTitle: string
   element: string
   /** 展示层投影（2026-10-15 UI 重构：章节序号 + 共享行组件 + 来源条；旧字段全部保留） */
@@ -128,6 +145,8 @@ export function toPageData (view: CodexView, opts: PageOptions = {}): CodexPageD
     copyright: opts.copyright ?? '',
     renderScale: opts.renderScale ?? 1,
     portrait: opts.portrait ?? '',
+    portraitSrc: opts.portraitSrc ?? '',
+    portraitRatio: opts.portraitRatio ?? '',
     subTitle: opts.subTitle ?? '角色攻略',
     element: opts.element ?? '',
     mx: buildCodexPresentation(view, { copyright: opts.copyright ?? '' })

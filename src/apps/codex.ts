@@ -27,11 +27,11 @@ import { renderPage } from '../components/render.js'
 import { atlasRes } from '../model/AtlasRes.js'
 import { codexStore } from '../model/CodexStore.js'
 import { miaoRes } from '../model/MiaoRes.js'
+import { pickPagePortrait } from '../model/ProfileImgRes.js'
 import { filterView, isViewEmpty, parseSuffixQuery } from '../modules/branches.js'
 import { moduleOff } from '../modules/moduleGate.js'
 import {
   buildCodexView,
-  portraitOf,
   toPageData,
   viewToText,
   withIcons,
@@ -153,10 +153,18 @@ export class MetaCodex extends plugin {
   /** 出攻略图；失败回落同源文本 */
   private async replyPage (e: YunzaiEvent, view: CodexView, notes: string[]): Promise<boolean> {
     try {
+      /*
+       * 立绘：**图库优先、但只接受不小于默认立绘的图**（2026-10-17 用户定）。
+       * `ratio` 是默认立绘的宽高比，模板拿它给立绘框定高、再用 `object-fit: cover` 把图裁满，
+       * 所以图库大图（常见 1920×1080）能用，版面高度与用 miao 立绘时一致。
+       * 攻略页与账号无关，只走普通层（不碰 `super-character` 彩蛋层）。
+       */
+      const hero = pickPagePortrait(view.name)
       const sent = await renderPage(e, 'codex', toPageData(view, {
         copyright: COPYRIGHT,
         renderScale: getRenderScale(),
-        portrait: portraitOf(view.name) ?? '',
+        portraitSrc: hero.src,
+        portraitRatio: hero.ratio,
         // 元素决定 miao 布局套哪张底图（`elem-pyro` 等）；取不到就交给布局默认
         element: miaoRes.characterElement(view.name) ?? '',
         subTitle: notes.length ? notes.join(' · ') : '角色攻略'

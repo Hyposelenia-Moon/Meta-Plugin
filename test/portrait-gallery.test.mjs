@@ -36,7 +36,9 @@ export const profileImgSrc = [
   ok('相对源以 miao 的 resources 为基准', src.includes("path.join(miaoResources(), s)"))
   ok('不 import miao / ProfileImg-Plugin 的内部模块（只读配置与目录）',
     !/from\s+'[^']*miao-plugin/.test(src) && !/from\s+'[^']*ProfileImg-Plugin/.test(src))
-  ok('只复制不写：不再往 out/ 拷图（直接引用，miao 同款）', !src.includes('outDir') && src.includes('pathToFileURL'))
+  /* 2026-10-17：`out/` 现在只放「白边清单」这类缓存（JSON），仍然不拷图片 */
+  ok('只复制不写：不往 out/ 拷图（直接引用，miao 同款）',
+    !/writeFileSync\([^)]*\.(webp|png|jpe?g)/i.test(src) && src.includes('pathToFileURL') && src.includes('portrait-padding.json'))
 }
 
 // ---------- 2. 候选池：目录形态 / 单文件形态 / 两层 / 平铺 ----------
@@ -98,6 +100,129 @@ export const profileImgSrc = [
   push('空角色名也优雅失败', mod.heroImageOf('').rel, '')
   push('miao 自带立绘兜底先看 splash0（彩蛋），再看 splash',
     readText(path.join(pluginRoot, 'src', 'model', 'ProfileImgRes.ts')).includes("['splash0.webp', 'splash.webp']"), true)
+}
+
+// ---------- 5. 攻略页立绘：图库优先，只排除"比默认立绘小"的图（2026-10-17） ----------
+{
+  const base = path.join(ensureTmp(), 'gallery-page-portrait')
+  fs.rmSync(base, { recursive: true, force: true })
+  const srcDir = path.join(base, 'src')
+  const charDir = path.join(srcDir, 'normal-character', '胡桃')
+  fs.mkdirSync(charDir, { recursive: true })
+
+  /** 造一张只有文件头的 PNG（解析器只读前 32 字节，够验尺寸） */
+  const writePng = (file, w, h) => {
+    const buf = Buffer.alloc(33)
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(buf, 0)
+    buf.writeUInt32BE(13, 8)
+    buf.write('IHDR', 12, 'latin1')
+    buf.writeUInt32BE(w, 16)
+    buf.writeUInt32BE(h, 20)
+    fs.writeFileSync(file, buf)
+  }
+  /** 造一张 VP8X 的 WebP 头 */
+  const writeWebp = (file, w, h) => {
+    const buf = Buffer.alloc(40)
+    buf.write('RIFF', 0, 'latin1'); buf.writeUInt32LE(32, 4); buf.write('WEBP', 8, 'latin1')
+    buf.write('VP8X', 12, 'latin1'); buf.writeUInt32LE(10, 16)
+    buf.writeUIntLE(w - 1, 24, 3); buf.writeUIntLE(h - 1, 27, 3)
+    fs.writeFileSync(file, buf)
+  }
+
+  const std = path.join(base, 'splash.webp')
+  writeWebp(std, 1482, 1024) // 默认立绘：1.4473
+  writeWebp(path.join(charDir, '胡桃_1_小图_Pixiv.webp'), 741, 512)      // 一半 → 挡掉
+  writePng(path.join(charDir, '胡桃_2_同尺寸.png'), 1482, 1024)           // 同尺寸 → 可用
+  writeWebp(path.join(charDir, '胡桃_3_大图16x9.webp'), 1920, 1080)       // 比例不同但更大 → 可用（页面 cover 裁）
+  writePng(path.join(charDir, '胡桃_4_坏图.png'), 0, 0)                   // 读不出尺寸 → 挡掉
+  const sources = [srcDir]
+
+  push('尺寸读取：PNG 头', mod.imageSizeOf(path.join(charDir, '胡桃_2_同尺寸.png')), { w: 1482, h: 1024, type: 'png' })
+  push('尺寸读取：WebP VP8X 头', mod.imageSizeOf(std), { w: 1482, h: 1024, type: 'webp' })
+  push('尺寸读取：坏图返回 null', mod.imageSizeOf(path.join(charDir, '胡桃_4_坏图.png')), null)
+
+  const stdSize = { w: 1482, h: 1024, type: 'webp' }
+  push('筛选：更小的图不合格', mod.fitsPortrait({ w: 741, h: 512, type: 'webp' }, stdSize), false)
+  push('筛选：同尺寸合格', mod.fitsPortrait({ w: 1482, h: 1024, type: 'webp' }, stdSize), true)
+  push('筛选：更大不同比例也合格（比例不卡，页面 cover 裁）', mod.fitsPortrait({ w: 1920, h: 1080, type: 'webp' }, stdSize), true)
+  push('筛选：宽够高不够不合格', mod.fitsPortrait({ w: 1920, h: 1000, type: 'webp' }, stdSize), false)
+  push('筛选：读不出尺寸不合格', mod.fitsPortrait(null, stdSize), false)
+
+  const pickedFirst = mod.pickPagePortrait('胡桃', { sources, stdFile: std, random: () => 0 })
+  ok('取图：小图被挡、随机取第一张合格图', pickedFirst.src.includes(encodeURIComponent('胡桃_2_同尺寸.png')), pickedFirst.src)
+  push('取图：来源标记为图库', pickedFirst.source, '图库')
+  push('取图：卡片区比例取默认立绘（1482/1024 → 1.4473）', pickedFirst.ratio, '1.4473')
+  const pickedLast = mod.pickPagePortrait('胡桃', { sources, stdFile: std, random: () => 0.999 })
+  ok('取图：随机到末位时能取到另一张合格图', pickedLast.src.includes(encodeURIComponent('胡桃_3_大图16x9.webp')), pickedLast.src)
+
+  /* 图库没有合格图 → 退回默认立绘，并把原因写清 */
+  const onlySmall = path.join(base, 'only-small')
+  fs.mkdirSync(path.join(onlySmall, 'normal-character', '胡桃'), { recursive: true })
+  writeWebp(path.join(onlySmall, 'normal-character', '胡桃', '胡桃_1_小.webp'), 300, 200)
+  const fallback = mod.pickPagePortrait('胡桃', { sources: [onlySmall], stdFile: std })
+  push('取图：图库全不合格时退回默认立绘', fallback.source, 'miao')
+  ok('取图：退回时说明原因（比默认立绘小）', fallback.note.includes('比默认立绘小'), fallback.note)
+  ok('取图：退回后仍给出地址', fallback.src.length > 0, fallback.src)
+
+  /* 默认立绘也读不出尺寸 → 不能比较，退回默认立绘；连默认立绘都没有 → 空 */
+  const blind = mod.pickPagePortrait('胡桃', { sources: [onlySmall], stdFile: '' })
+  push('没有默认立绘可作基准时不硬选图库图', blind.src, '')
+  ok('没有基准时给出可读原因', blind.note.length > 0, blind.note)
+  push('空角色名也优雅失败', mod.pickPagePortrait('').src, '')
+}
+
+// ---------- 6. 白边图要跳过（文件名标注 + 离线清单，2026-10-17） ----------
+{
+  push('白边判据：名字带「右移」', mod.looksPadded('胡桃_17_BLACKmeow_Pixiv_右移.webp'), true)
+  push('白边判据：名字带「偏移」', mod.looksPadded('胡桃_2_River源_米游社_偏移.webp'), true)
+  push('白边判据：名字带「翻转偏移」', mod.looksPadded('胡桃_16_Minamo_pixiv_翻转偏移.webp'), true)
+  push('白边判据：正常文件名不算', mod.looksPadded('胡桃_11_Varlyn@西め38ab_Pixiv.webp'), false)
+  push('白边判据：空输入不抛错', mod.looksPadded(''), false)
+
+  const base = path.join(ensureTmp(), 'gallery-padding')
+  fs.rmSync(base, { recursive: true, force: true })
+  const srcDir = path.join(base, 'src')
+  const charDir = path.join(srcDir, 'normal-character', '胡桃')
+  fs.mkdirSync(charDir, { recursive: true })
+  const writePng = (file, w, h) => {
+    const buf = Buffer.alloc(33)
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(buf, 0)
+    buf.writeUInt32BE(13, 8)
+    buf.write('IHDR', 12, 'latin1')
+    buf.writeUInt32BE(w, 16)
+    buf.writeUInt32BE(h, 20)
+    fs.writeFileSync(file, buf)
+  }
+  const std = path.join(base, 'splash.png')
+  writePng(std, 1482, 1024)
+  // 名字里没有标注、尺寸也够大 —— 只能靠离线清单挡
+  const unmarked = path.join(charDir, '胡桃_10_sohnka_Pixiv.png')
+  writePng(unmarked, 1920, 1107)
+  const clean = path.join(charDir, '胡桃_11_Varlyn_Pixiv.png')
+  writePng(clean, 1920, 1080)
+  const listFile = path.join(base, 'portrait-padding.json')
+  fs.writeFileSync(listFile, JSON.stringify({ scannedAt: 'x', threshold: 0.05, entries: { [unmarked]: { left: 0.2, right: 0 } } }), 'utf8')
+
+  push('清单命中：被判为白边图', mod.isPaddedPortrait(unmarked, listFile), true)
+  push('清单未命中：正常可用', mod.isPaddedPortrait(clean, listFile), false)
+  push('清单不存在时不影响判定', mod.isPaddedPortrait(clean, path.join(base, 'no-such.json')), false)
+
+  const sources = [srcDir]
+  const picked = mod.pickPagePortrait('胡桃', { sources, stdFile: std, paddingList: listFile, random: () => 0 })
+  ok('取图：白边图（清单命中）被跳过', picked.src.includes(encodeURIComponent('胡桃_11_Varlyn_Pixiv.png')), picked.src)
+
+  /* 只剩白边图 → 退回默认立绘，原因里说清是白边 */
+  const onlyPadded = path.join(base, 'only-padded')
+  fs.mkdirSync(path.join(onlyPadded, 'normal-character', '胡桃'), { recursive: true })
+  const padOnly = path.join(onlyPadded, 'normal-character', '胡桃', '胡桃_9_page.webp')
+  fs.mkdirSync(path.dirname(padOnly), { recursive: true })
+  fs.writeFileSync(padOnly, 'x')
+  const list2 = path.join(base, 'list2.json')
+  fs.writeFileSync(list2, JSON.stringify({ entries: { [padOnly]: { left: 0.3, right: 0 } } }), 'utf8')
+  const fallback = mod.pickPagePortrait('胡桃', { sources: [onlyPadded], stdFile: std, paddingList: list2 })
+  push('取图：全被白边挡掉时退回默认立绘', fallback.source, 'miao')
+  ok('取图：退回原因写明白边', fallback.note.includes('白边'), fallback.note)
+  push('清单路径可查（默认落在 out/）', path.basename(mod.paddingListPath()), 'portrait-padding.json')
 }
 
 const bad = report()

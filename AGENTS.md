@@ -180,7 +180,7 @@ pnpm build && pnpm test     # 55 套；任意 cwd 可跑、不发真实网络、
   `grade-guide-targets`（`kind` 分桶、组合候选、建议口径）、
   `modules-switch`（模块开关的默认值、深合并、闸门拦截与放行、非接管类 app 的接线（7 个））、
   `render-fallback`（`retType` 第 4 参、图片消息段返回、失败一律回退）。
-- 维护者区自检（不在 `pnpm test` 内）：`node scripts/editor-selftest.mjs`（258/258）、`display-selftest.mjs`、`display-audit.mjs`、`audit-guide-html.mjs`。
+- 维护者区自检（不在 `pnpm test` 内）：`node scripts/editor-selftest.mjs`（258/258）、`display-selftest.mjs`、`display-audit.mjs`、`audit-guide-html.mjs`。`node scripts/scan-portrait-padding.mjs` 是**按需**跑的白边扫描（生成 `out/portrait-padding.json`，攻略页立绘据此跳过白边图；图库变动后重跑）。
 - 细节与固定验收集见 [docs/测试.md](./docs/测试.md) 与 [docs/改动传播清单.md](./docs/改动传播清单.md)。
 
 ## 待办（摘要）

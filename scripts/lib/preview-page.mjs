@@ -131,6 +131,7 @@ async function loadDeps (pluginRoot, botRoot) {
   const lib = p => import(pathToFileURL(path.join(pluginRoot, 'lib', p)).href)
   const subViews = await lib('modules/subViews.js')
   const charIndex = await lib('model/CharacterIndex.js')
+  const profileImg = await lib('model/ProfileImgRes.js')
   const constants = await lib('components/constants.js')
 
   const tplFile = path.join(pluginRoot, 'resources', 'codex', 'codex.html')
@@ -143,7 +144,7 @@ async function loadDeps (pluginRoot, botRoot) {
     buildCodexView: subViews.buildCodexView,
     withIcons: subViews.withIcons,
     toPageData: subViews.toPageData,
-    portraitOf: subViews.portraitOf,
+    pickPagePortrait: profileImg.pickPagePortrait,
     findCharacter: charIndex.findCharacter,
     resetIndexCache: charIndex.resetCache,
     copyright: constants.COPYRIGHT ?? ''
@@ -201,15 +202,25 @@ export async function renderCodexPage (opts = {}) {
       element = String(deps.findCharacter(name)?.element ?? '').toLowerCase()
     } catch { /* 取不到就交给页面默认样式 */ }
 
-    let portrait = ''
+    /*
+     * 立绘：与 bot 同一条口径 —— 图库优先，只接受不小于默认立绘的图；
+     * `ratio` 是默认立绘宽高比，模板用它给立绘框定高、`object-fit: cover` 裁满。
+     */
+    let portraitSrc = ''
+    let portraitRatio = ''
+    let portraitNote = ''
     try {
-      portrait = deps.portraitOf(name) ?? ''
-    } catch { /* 没有立绘就空着，模板里 `{{if portrait}}` 会跳过 */ }
+      const hero = deps.pickPagePortrait(name)
+      portraitSrc = hero.src || ''
+      portraitRatio = hero.ratio || ''
+      portraitNote = hero.note || ''
+    } catch { /* 没有立绘就空着，模板里 `{{if portraitSrc}}` 会跳过 */ }
 
     const page = deps.toPageData(iconView, {
       copyright: deps.copyright,
       renderScale: Number(opts.renderScale) || 1.5,
-      portrait,
+      portraitSrc,
+      portraitRatio,
       element,
       subTitle: '角色攻略'
     })

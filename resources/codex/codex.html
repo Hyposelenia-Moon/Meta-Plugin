@@ -28,15 +28,17 @@
        页头（立绘 + 名字 + 定位 + 属性行）→ 单张内容卡里分块 → 版权；
        类名与配色走本项目自己的规范（components.css 的 card/card-title/kv-item + base.css 的 :root 令牌），
        不沿用 miao 图鉴的卡片外壳（`wiki-cont`/`cont`）；只有天赋图标用 miao 的 `.talent-icon`。 */
-    .codex-head { position: relative; margin: 8px -10px 8px -10px; }   /* 上下对称留白（2026-10-16） */   /* 高度由立绘图片自身比例决定 */   /* 扩到页面四边：抵消 .page-inner 的 8px/10px 内边距，看不见卡片形状 */   /* 照 .basic + character-wiki.css 的 height:500px */
+    .codex-head { position: relative; margin: 8px -10px 8px -10px; }   /* 上下对称留白（2026-10-16） */   /* 扩到页面四边：抵消 .page-inner 的 8px/10px 内边距，看不见卡片形状 */   /* 高度由立绘框的 aspect-ratio 决定（见 .codex-portrait） */
     /* 立绘区三行（旧版 miao 口径：右对齐 + 金字标签 + miao 文字阴影） */
     .codex-portrait {
-      /* 照 profile-detail.css:36 `.main-pic` —— 固定取景窗 + contain 居中 + 负 margin 左移 */
+      /* 照 profile-detail.css:36 `.main-pic` —— 固定取景窗 + 负 margin 左移 */
+      /* 2026-10-17 图库接入：宽度撑满卡片区，高度由 `aspect-ratio`（= 默认立绘宽高比）锁定，
+         图库大图（常见 1920×1080）按 `object-fit: cover` **铺满**这个框并居中裁切 ——
+         于是「比例与默认立绘不同的大图」也能用，而版面高度与用 miao 立绘时完全一致。 */
       flex: none;
       display: block; width: 100%; height: auto;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
+      object-fit: cover;
+      object-position: center;
       margin-left: 0;
       position: relative;
       z-index: 2;
@@ -420,7 +422,9 @@
 
       <div class="card head-card">
         <div class="codex-head">
-          {{if portrait}}
+          {{if portraitSrc}}
+          <img class="codex-portrait" src="{{portraitSrc}}"{{if portraitRatio}} style="aspect-ratio: {{portraitRatio}}"{{/if}} alt=""/>
+          {{else if portrait}}
           <img class="codex-portrait" src="{{_miao_path}}{{portrait}}" alt=""/>
           {{/if}}
           <div class="codex-head-main">
