@@ -689,9 +689,15 @@
       return Math.abs(a[0] - b[0]) <= CFG.tol && Math.abs(a[1] - b[1]) <= CFG.tol && Math.abs(a[2] - b[2]) <= CFG.tol
     }
 
+    /*
+     * 从一条边向内扫（2026-10-17 复审修复）：**用「已扫几行」控制循环**，不要用「idx < 半边」——
+     * 右/下两条边是从最后一行往里退（step=-1），首轮 idx 就已经 ≥ 半边，旧条件直接 false，
+     * 导致 right / bottom 永远是 0（白边在右侧/底部时裁不掉）。
+     */
     function walk (d, w, h, kind, idx, step, limit, dim) {
       var prev = null, count = 0, whiteEdge = false
-      while (idx >= 0 && idx < limit) {
+      var maxSteps = Math.floor(dim / 2)   // 最多扫到中线，避免两侧抢同一段
+      while (idx >= 0 && idx < dim && count < maxSteps) {
         var l = lineOf(d, w, h, kind, idx)
         if (!l.flat) break
         if (!l.white && prev && !nearColor(l.mean, prev)) break

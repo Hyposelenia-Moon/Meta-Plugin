@@ -218,7 +218,9 @@ let portraitData = ''
     try {
       const hero = deps.pickPagePortrait(name, { renderScale: Number(opts.renderScale) || 1.5 })
       portraitSrc = hero.src || ''
-  portraitData = hero.file ? (profileImg.imageDataUrl(hero.file) || '') : ''
+      // 2026-10-17 复审修复：本函数作用域里没有 `profileImg`（它只在 loadDeps 内），
+      // 用 deps 暴露的 imageDataUrl，否则这里抛 ReferenceError 会被外层 catch 吞掉、立绘数据静默丢失。
+      portraitData = hero.file ? (deps.imageDataUrl?.(hero.file) || '') : ''
       portraitRatio = hero.ratio || ''
       portraitBox = hero.box || portraitBox
       portraitNote = hero.note || ''

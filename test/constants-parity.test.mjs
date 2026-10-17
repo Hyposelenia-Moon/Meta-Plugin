@@ -83,7 +83,8 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
   const bad = []
   const must = {
     rank: /^#?(?:dps|DPS)(?:榜(?!视频))?(?!榜|视频|帮助|状态|更新|强制|刷新|练度|危战)\s*([\s\S]*)$/,
-    raidTiers: /^#?危战\s+([\s\S]*?)\s*(?:n|N)?([67])(?:档)?(?:\s*视频\s*(\d+))?\s*$/,
+    // 2026-10-17 复审修复：档位必须是独立词（`视频6` / `金:16` 的末位不再被当档位）
+    raidTiers: /^#?危战\s+([\s\S]*?)\s*(?:(?<=\s|^)(?:n|N)?([67])(?:档)?)(?!\d)(?:\s*视频\s*(\d+))?\s*$/,
     raidTiersPrompt: /^#?危战\s+([\s\S]+)$/,
     grade: /^#?练度查询(?:\s+([\s\S]+))?$/,
     teamDamage: /^#?队伍伤害\s*(\d{1,2})?(?:\s+([\s\S]+))?$/,
@@ -125,6 +126,12 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
     ['#危战 7.1 n6', 'raidTiers', '7.1'],
     ['#危战 n7', 'raidTiers', ''],
     ['#危战 矮灵', 'raidTiersPrompt', '矮灵'],
+    // 2026-10-17 复审修复：视频/金数末尾的 6、7 不再被当成档位
+    ['#危战 矮灵 视频6', 'raidTiersPrompt', '矮灵 视频6'],
+    ['#危战 矮灵 视频16', 'raidTiersPrompt', '矮灵 视频16'],
+    ['#危战 胡桃 金:16', 'raidTiersPrompt', '胡桃 金:16'],
+    ['#危战 胡桃 金:7', 'raidTiersPrompt', '胡桃 金:7'],
+    ['#危战 矮灵 n6 视频6', 'raidTiers', '矮灵'],
     ['#练度查询 胡桃', 'grade', '胡桃'],
     ['#队伍伤害2 胡桃 行秋 夜兰 钟离', 'teamDamage', '2'],
     ['#meta状态', 'status', undefined],

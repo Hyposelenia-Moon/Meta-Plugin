@@ -22,7 +22,18 @@
       font-size: 16px;
       color: var(--muted-2, #999);
     }
-    .tier-card + .tier-card { margin-top: 10px; }
+    /* 诊断行（被忽略 / 无法核实的筛选条件）：金色细条，只占一行（2026-10-17） */
+.notice-warn {
+  margin: 6px 14px 0;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #ffd479;
+  background: rgba(255, 196, 0, .10);
+  border: 1px solid rgba(255, 196, 0, .35);
+}
+.tier-card + .tier-card { margin-top: 10px; }
     .tier-rows { margin-top: 8px; }
   </style>
 </head>
@@ -41,6 +52,9 @@
           {{if tierCount}}<span>{{tierCount}} 个金档</span>{{/if}}
           {{if fetchedAt}}<span>数据时间：{{fetchedAt}}</span>{{/if}}
         </div>
+        <!-- 2026-10-17 复审修复（#8）：筛选里被忽略/无法核实的条件，成功图也要看得见。
+             只在有诊断时渲染一行，不恢复 2026-10-15 取消掉的长副标题。 -->
+        {{if notice}}<div class="notice-warn">{{notice}}</div>{{/if}}
       </div>
 
       <!-- 金档区：每档一个内容面板 -->

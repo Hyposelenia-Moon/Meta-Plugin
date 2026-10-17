@@ -161,7 +161,9 @@ const MEASURE = async ({ url, cfg }) => {
     let prev = null
     let count = 0
     let whiteEdge = false
-    while (idx >= 0 && idx < limit) {
+    // 2026-10-17 复审修复：用「已扫几行」控制循环；右/下边 step=-1，旧条件 `idx < 半边` 首轮即 false
+    const maxSteps = Math.floor(dim / 2)
+    while (idx >= 0 && idx < dim && count < maxSteps) {
       const { mean, flat, white } = lineOf(kind, idx)
       if (!flat) break
       // 白边的宽度可以渐变（旧口径的图就是这样），只有纯色带才要求前后同色
