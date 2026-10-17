@@ -64,6 +64,8 @@ interface CharacterReplyOptions {
   tier?: string
   /** 后缀里的套数（我们只有一套，>1 时在页头注明） */
   setIndex?: number | null
+  /** #胡桃攻略 面板图N 指定的图库图序号（决定立绘用哪张） */
+  panelIndex?: number | null
 }
 
 export class MetaCodex extends plugin {
@@ -94,7 +96,7 @@ export class MetaCodex extends plugin {
     if (moduleOff('codex')) return false
     const query = parseSuffixQuery(e.msg)
     if (!query) return false
-    return await this.replyCharacter(e, query.character, { setIndex: query.setIndex })
+    return await this.replyCharacter(e, query.character, { setIndex: query.setIndex, panelIndex: query.panelIndex })
   }
 
   /** `#攻略列表` / `#攻略状态` */
@@ -147,19 +149,19 @@ export class MetaCodex extends plugin {
     if (opts.setIndex && opts.setIndex > 1) notes.push('仅收录一套攻略')
     if (opts.tier) notes.push(`仅显示「${opts.tier}」档`)
 
-    return await this.replyPage(e, view, notes)
+    return await this.replyPage(e, view, notes, opts.panelIndex ?? null)
   }
 
   /** 出攻略图；失败回落同源文本 */
-  private async replyPage (e: YunzaiEvent, view: CodexView, notes: string[]): Promise<boolean> {
+  private async replyPage (e: YunzaiEvent, view: CodexView, notes: string[], panelIndex: number | null = null): Promise<boolean> {
     try {
       /*
-       * 立绘：**图库优先、但只接受不小于默认立绘的图**（2026-10-17 用户定）。
-       * `ratio` 是默认立绘的宽高比，模板拿它给立绘框定高、再用 `object-fit: cover` 把图裁满，
-       * 所以图库大图（常见 1920×1080）能用，版面高度与用 miao 立绘时一致。
+       * 立绘：**图库优先**，#xx攻略 面板图N 指定了序号就取该张（练度页同口径）。
+       * 未指定时：随机取一张「不小于默认立绘」的图；`ratio` 是默认立绘的宽高比，
+       * 模板拿它给取景窗定高、模糊层铺满、主体层按白边裁剪后摆进去（2026-10-17 改版）。
        * 攻略页与账号无关，只走普通层（不碰 `super-character` 彩蛋层）。
        */
-      const hero = pickPagePortrait(view.name)
+      const hero = pickPagePortrait(view.name, { index: panelIndex ?? undefined })
       const sent = await renderPage(e, 'codex', toPageData(view, {
         copyright: COPYRIGHT,
         renderScale: getRenderScale(),

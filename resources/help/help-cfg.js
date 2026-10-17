@@ -68,6 +68,7 @@ const guideCore = {
   group: '角色攻略',
   list: [
     { title: '#胡桃攻略', desc: '角色攻略总页：六模块一图（含配队）' },
+    { title: '#胡桃攻略 面板图3', desc: '立绘改用图库里的第 3 张' }
   ]
 }
 

@@ -485,6 +485,8 @@ export function pickPagePortrait (name: string, opts: {
   stdFile?: string
   /** 白边清单路径（套件注入；默认 out/portrait-padding.json） */
   paddingList?: string
+  /** `面板图N`：指定图库里的第 N 张（`{角色}_{序号}_…`）；不传 = 随机取合格图 */
+  index?: number
   random?: () => number
 } = {}): PagePortrait {
   const charName = String(name || '').trim()
@@ -497,6 +499,25 @@ export function pickPagePortrait (name: string, opts: {
     const std = stdFile ? imageSizeOf(stdFile) : null
     const pool = profileImgPool(charName, opts.isSuper === true, opts.sources)
     const ratio = std && std.w && std.h ? (std.w / std.h).toFixed(4) : ''
+
+    /** 组装一张图的结果（白边裁剪 + 铺满盒都算好） */
+    const of = (file: string, note: string): PagePortrait => {
+      const size = imageSizeOf(file)
+      const crop = portraitCropOf(file, opts.paddingList)
+      return { src: pageImageUrl(file), source: '图库', note, size, std, ratio, crop, box: planPortraitBox(size, std, crop) }
+    }
+
+    /*
+     * `#胡桃攻略 面板图N`：**点名要哪张就照用**（与练度页同口径），不再卡"不小于默认立绘"——
+     * 用户已经指定了，模糊层能兜住放大；序号在池里找不到时退回正常流程并说明。
+     */
+    const want = Math.floor(Number(opts.index) || 0)
+    let missNote = ''
+    if (want > 0) {
+      const indexed = profileImgByIndex(charName, opts.isSuper === true, want, opts.sources)
+      if (indexed) return of(indexed, '')
+      missNote = `图库里没有面板图${want}（`
+    }
 
     const fit: Array<{ file: string, size: ImageSize }> = []
     for (const file of pool) {
@@ -514,7 +535,7 @@ export function pickPagePortrait (name: string, opts: {
       return {
         src: pageImageUrl(picked.file),
         source: '图库',
-        note: '',
+        note: missNote ? `${missNote}已随机取一张）` : '',
         size: picked.size,
         std,
         ratio,

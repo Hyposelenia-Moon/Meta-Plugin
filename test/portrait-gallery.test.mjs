@@ -253,6 +253,22 @@ export const profileImgSrc = [
   push('取图：全比默认立绘小 → 退回默认立绘', fallback.source, 'miao')
   ok('取图：退回原因写"比默认立绘小"', fallback.note.includes('比默认立绘小'), fallback.note)
   push('取图：退回默认立绘时也给出铺满盒（= 1:1）', fallback.box.width, '100.000%')
+
+  /* `面板图N`（2026-10-17 加，`#胡桃攻略 面板图3`）：点名要哪张就照用 */
+  const byIndex = mod.pickPagePortrait('胡桃', { sources, stdFile: std, paddingList: listFile, index: 11 })
+  ok('面板图N：按序号取到指定那张', byIndex.src.includes(encodeURIComponent('胡桃_11_Varlyn_Pixiv.png')), byIndex.src)
+  push('面板图N：仍带裁剪比例（干净图为 0）', byIndex.crop, { left: 0, right: 0, top: 0, bottom: 0 })
+  const byIndexPadded = mod.pickPagePortrait('胡桃', { sources, stdFile: std, paddingList: listFile, index: 10 })
+  ok('面板图N：白边图也照用（不再被尺寸/白边挡）', byIndexPadded.src.includes(encodeURIComponent('胡桃_10_sohnka_Pixiv.png')), byIndexPadded.src)
+  push('面板图N：白边图仍按清单裁剪', byIndexPadded.crop, { left: 0.2, right: 0, top: 0, bottom: 0 })
+
+  const tooSmallByIndex = mod.pickPagePortrait('胡桃', { sources: [onlyTiny], stdFile: std, index: 1 })
+  ok('面板图N：点名的小图也照用（用户指定优先）', tooSmallByIndex.src.includes(encodeURIComponent('胡桃_1_小.png')), tooSmallByIndex.src)
+
+  const noSuchIndex = mod.pickPagePortrait('胡桃', { sources, stdFile: std, paddingList: listFile, index: 99, random: () => 0 })
+  push('面板图N：序号不存在 → 退回随机取图', noSuchIndex.source, '图库')
+  ok('面板图N：并说明"没有面板图99"', noSuchIndex.note.includes('没有面板图99'), noSuchIndex.note)
+  push('面板图N：index 为 0 / 负数等同未指定', mod.pickPagePortrait('胡桃', { sources, stdFile: std, index: 0, random: () => 0 }).note, '')
 }
 
 const bad = report()

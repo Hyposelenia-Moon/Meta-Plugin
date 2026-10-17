@@ -91,13 +91,18 @@ if (fs.existsSync(appFile)) {
 }
 
 // ---------- 3. 参数解析 ----------
-push('后缀：普通', B.parseSuffixQuery('#胡桃攻略'), { character: '胡桃', setIndex: null })
-push('后缀：带套数', B.parseSuffixQuery('#胡桃攻略2'), { character: '胡桃', setIndex: 2 })
-push('后缀：更新前缀', B.parseSuffixQuery('#更新胡桃攻略'), { character: '胡桃', setIndex: null })
-push('后缀：指南', B.parseSuffixQuery('#胡桃攻略'), { character: '胡桃', setIndex: null })
+push('后缀：普通', B.parseSuffixQuery('#胡桃攻略'), { character: '胡桃', setIndex: null, panelIndex: null })
+push('后缀：带套数', B.parseSuffixQuery('#胡桃攻略2'), { character: '胡桃', setIndex: 2, panelIndex: null })
+push('后缀：更新前缀', B.parseSuffixQuery('#更新胡桃攻略'), { character: '胡桃', setIndex: null, panelIndex: null })
+push('后缀：指南', B.parseSuffixQuery('#胡桃攻略'), { character: '胡桃', setIndex: null, panelIndex: null })
 push('后缀：裸「#攻略」→ null', B.parseSuffixQuery('#攻略'), null)
 push('后缀：图鉴不是攻略 → null', B.parseSuffixQuery('#胡桃图鉴'), null)
-push('后缀：复合名（旅行者·火）', B.parseSuffixQuery('#旅行者·火攻略'), { character: '旅行者·火', setIndex: null })
+push('后缀：复合名（旅行者·火）', B.parseSuffixQuery('#旅行者·火攻略'), { character: '旅行者·火', setIndex: null, panelIndex: null })
+push('后缀：面板图N（2026-10-17 加）', B.parseSuffixQuery('#胡桃攻略 面板图3'), { character: '胡桃', setIndex: null, panelIndex: 3 })
+push('后缀：面板图N 不带空格也认', B.parseSuffixQuery('#胡桃攻略面板图3'), { character: '胡桃', setIndex: null, panelIndex: 3 })
+push('后缀：面板图N 与套数可同时出现', B.parseSuffixQuery('#胡桃攻略2 面板图13'), { character: '胡桃', setIndex: 2, panelIndex: 13 })
+push('后缀：面板图0 不算（不吞消息）', B.parseSuffixQuery('#胡桃攻略 面板图0'), null)
+push('后缀：复合名 + 面板图N', B.parseSuffixQuery('#旅行者·火攻略 面板图12'), { character: '旅行者·火', setIndex: null, panelIndex: 12 })
 
 /** 测试用解析器：只认「胡桃 / 夜兰 / 行秋」 */
 const fakeResolve = (k) => (['胡桃', '夜兰', '行秋'].includes(k) ? k : null)

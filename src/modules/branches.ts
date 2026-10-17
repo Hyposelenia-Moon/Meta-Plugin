@@ -26,6 +26,12 @@ export interface SuffixQuery {
   character: string
   /** `#胡桃攻略2` 里的套数；`1`/缺省为 null（我们只有一套，页面会注明「仅一套」） */
   setIndex: number | null
+  /**
+   * `#胡桃攻略 面板图3` 里的图序号（图库 `{角色}_{序号}_…`）；缺省为 null = 随机取合格图
+   *
+   * 与练度页的 `#练度查询 胡桃 面板图3` 同一口径，只是攻略页拿它决定立绘用哪张。
+   */
+  panelIndex: number | null
 }
 
 /**
@@ -40,17 +46,18 @@ export function parseSuffixQuery (msg: string): SuffixQuery | null {
 
   if (CODEX_GUIDE_RULE.test(text)) {
     const name = text.slice(1).replace(/^更新/, '').replace(/指南$/, '').trim()
-    return name ? { character: name, setIndex: null } : null
+    return name ? { character: name, setIndex: null, panelIndex: null } : null
   }
 
   if (!CODEX_SUFFIX_RULE.test(text)) return null
   const body = text.slice(1).replace(/^更新/, '')
-  const hit = body.match(/^(.*?)攻略(\d)?$/)
+  const hit = body.match(/^(.*?)攻略(\d)?(?:\s*面板图(\d+))?$/)
   if (!hit) return null
   const name = hit[1].trim()
   if (!name) return null
   const setIndex = hit[2] ? Number(hit[2]) : null
-  return { character: name, setIndex }
+  const panelIndex = hit[3] ? Number(hit[3]) : null
+  return { character: name, setIndex, panelIndex }
 }
 
 export type ArgKind = 'character' | 'reverseWeapon' | 'reverseTeam' | 'list' | 'status' | 'unknown'
