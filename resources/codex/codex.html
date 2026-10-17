@@ -473,7 +473,16 @@
       padding: 2px 0 6px;
       border-bottom: 1px solid rgba(255, 255, 255, .14);
     }
-    /* 方向标（辅助 / 输出）：只在这类行出现，小一号、弱化色，不抢数值 */
+    /* 方向标（辅助 / 输出）：跨整行的小标题 + 行内小标（2026-10-17 复审 #10） */
+.codex-stats > .codex-stat-group {
+  grid-column: 1 / -1;
+  margin: 8px 0 2px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--mx-sub, #9fb3c8);
+}
+.codex-stats > .codex-stat-group:first-child { margin-top: 0; }
 .codex-stat-group {
   font-size: 17px;
   line-height: 1;
@@ -587,9 +596,12 @@
           <!-- 面板区（2026-10-17 用户定）：网格排版 + 按内容自动换行 —— 每个「属性：数值」一格，
                auto-fit/minmax 让浏览器按可用宽度决定每行几格，既不浪费横向空间，也不会把长数值挤断。 -->
           <div class="codex-stats">
-            {{each section.rows row}}{{each row.items item}}
+            {{each section.rows row}}
+            <!-- 2026-10-17 复审修复 #10：面板行带方向标签（辅助 / 输出）时必须先出这一行再平铺，
+                 否则「辅助：暴击率 70%」和「输出：暴击率 90%」会变成两行一模一样的 `暴击率`。 -->
+            {{if row.label}}<div class="codex-stat-group">{{row.label}}</div>{{/if}}
+            {{each row.items item}}
             <div class="codex-stat">
-              <!-- 2026-10-17 复审修复 #10：方向前缀（辅助 / 输出）单独成标，避免两档同名属性读不出区别 -->
               {{if item.group}}<span class="codex-stat-group">{{item.group}}</span>{{/if}}
               <span class="codex-stat-k">{{item.k}}</span>
               <span class="codex-stat-v">{{item.v || item.text}}</span>
