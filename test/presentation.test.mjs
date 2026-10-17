@@ -173,6 +173,13 @@ const fullBuild = {
 {
   ok('占位值识别：下划线/破折号/空 → 占位', ['___%', '__', '——', '--', '', '   '].every(v => P.isPlaceholderValue(v)))
   ok('占位值识别：不误判合法值', ['0', '0%', '70-80%', '约 7.2%~7.8%', '185%', '35000'].every(v => !P.isPlaceholderValue(v)))
+  /* 2026-10-17：带单位 / 前缀的空占位也算（用户定：建议等级的数字是占位就整行不显示） */
+  ok('占位值识别：带单位/前缀的空占位也算',
+    ['___级', '约 ___%', '__ ~ __级', '建议等级 ___', '＿级'].every(v => P.isPlaceholderValue(v)))
+  ok('占位值识别：带数字的合法值不误判',
+    ['60级突破', '91-90级', '90级', '81-90级', '满级'].every(v => !P.isPlaceholderValue(v)))
+  ok('占位值归一：带单位的占位也归空串',
+    P.normalizeMetaValue('___级') === '' && P.normalizeMetaValue(' 81-90级 ') === '81-90级')
   ok('占位值归一为空串，合法值原样', P.normalizeMetaValue('___%') === '' && P.normalizeMetaValue(' 90级 ') === '90级')
   ok('行内占位值换成"未提供"',
     P.normalizeItemText('生命值：___%') === '生命值：未提供' && P.normalizeItemText('生命值：35000') === '生命值：35000')

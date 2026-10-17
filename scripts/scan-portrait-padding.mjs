@@ -16,6 +16,7 @@
  *   node scripts/scan-portrait-padding.mjs 胡桃 钟离        # 只扫指定角色
  *   node scripts/scan-portrait-padding.mjs --threshold=8   # 阈值改成 8%（默认 5）
  *   node scripts/scan-portrait-padding.mjs --dry           # 只打印，不写文件
+ *   node scripts/scan-portrait-padding.mjs --baseline      # 同时写**入库基线** data/_portrait-padding.json（键=文件名）
  *
  * 前置：本机装了 Edge（`--edge=<路径>` 可指定）或 puppeteer 自带 Chromium；
  *      图库源照旧读 miao 的 `profileImgSrc`（`META_MIAO_PLUGIN` / `META_MIAO_DIR` 可覆盖 miao 目录）。
@@ -188,13 +189,28 @@ try {
 const payload = {
   scannedAt: new Date().toISOString(),
   threshold: Number(THRESHOLD.toFixed(3)),
-  note: '由 scripts/scan-portrait-padding.mjs 生成；攻略页立绘会跳过清单里的图（out/ 未跟踪）',
+  note: '由 scripts/scan-portrait-padding.mjs 生成；运行期据此裁掉立绘白边（out/ 未跟踪；--baseline 写入库基线）',
   entries
+}
+const BASELINE = Boolean(flag('baseline', false))
+/** 基线：键换成**文件名**（图库是公共仓库，同一张图各机器文件名相同）→ 入库 `data/_portrait-padding.json` */
+const baselineEntries = {}
+for (const [abs, crop] of Object.entries(entries)) baselineEntries[path.basename(abs)] = crop
+const baselinePayload = {
+  note: '图库立绘白边基线：键=图片文件名，值=四边白边占比（node scripts/scan-portrait-padding.mjs --baseline 生成；本机 out/portrait-padding.json 可覆盖）',
+  threshold: Number(THRESHOLD.toFixed(3)),
+  scannedAt: new Date().toISOString().slice(0, 10),
+  entries: Object.fromEntries(Object.entries(baselineEntries).sort(([a], [b]) => a.localeCompare(b)))
 }
 if (DRY) {
   console.log(`\n[dry] 会写入 ${bad} 条：${JSON.stringify(Object.keys(entries), null, 2)}`)
 } else {
   fs.mkdirSync(outDir, { recursive: true })
   fs.writeFileSync(LIST_FILE, `${JSON.stringify(payload, null, 2)}\n`, 'utf8')
-  console.log(`\n写出 ${bad}/${files.length} 条 → ${path.relative(pluginRoot, LIST_FILE)}`)
+  console.log(`\n写出 ${bad}/${files.length} 条 → ${path.relative(pluginRoot, LIST_FILE)}（本机缓存）`)
+  if (BASELINE) {
+    const baselineFile = path.join(pluginRoot, 'data', '_portrait-padding.json')
+    fs.writeFileSync(baselineFile, `${JSON.stringify(baselinePayload, null, 1)}\n`, 'utf8')
+    console.log(`写出基线 ${Object.keys(baselinePayload.entries).length} 条 → ${path.relative(pluginRoot, baselineFile)}（入库，键=文件名）`)
+  }
 }

@@ -214,6 +214,28 @@ export const profileImgSrc = [
   push('清单：文件不存在也不抛错', mod.portraitCropOf(clean, path.join(base, 'no-such.json')), { left: 0, right: 0, top: 0, bottom: 0 })
   push('清单路径落在 out/', path.basename(mod.paddingListPath()), 'portrait-padding.json')
 
+  /* 2026-10-17：**入库基线**（键=文件名）—— 副本装好就能裁，不必先在本机扫一遍 */
+  const baselineFile = path.join(base, '_portrait-padding.json')
+  fs.writeFileSync(baselineFile, JSON.stringify({
+    note: 'baseline',
+    entries: { [path.basename(padded)]: { left: 0.201, right: 0, top: 0, bottom: 0 } }
+  }), 'utf8')
+  push('基线路径在 data/ 下、文件名带下划线前缀',
+    [path.basename(mod.baselinePaddingListPath()), path.basename(path.dirname(mod.baselinePaddingListPath()))],
+    ['_portrait-padding.json', 'data'])
+  push('基线：本机清单缺失时按**文件名**命中',
+    mod.portraitCropOf(padded, path.join(base, 'no-such.json'), baselineFile),
+    { left: 0.201, right: 0, top: 0, bottom: 0 })
+  push('基线：同名的干净图不误命中',
+    mod.portraitCropOf(clean, path.join(base, 'no-such.json'), baselineFile),
+    { left: 0, right: 0, top: 0, bottom: 0 })
+  push('本机清单优先于基线（换图后重扫能覆盖）',
+    mod.portraitCropOf(padded, listFile, baselineFile),
+    { left: 0.2, right: 0, top: 0, bottom: 0 })
+  push('入库基线文件存在且非空',
+    (() => { try { return Object.keys(JSON.parse(fs.readFileSync(mod.baselinePaddingListPath(), 'utf8')).entries).length > 0 } catch { return false } })(),
+    true)
+
   /* 铺满盒：把裁掉白边后的整块 contain 进卡片，剩下的边交给模糊层 */
   const stdSize = { w: 1482, h: 1024, type: 'png' }
   push('铺满盒：无白边 16:9 → 放大到铺满（cover）并居中裁掉两侧',

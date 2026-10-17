@@ -1,0 +1,1309 @@
+{
+ "note": "图库立绘白边基线：键=图片文件名，值=四边白边占比（由 scripts/scan-portrait-padding.mjs --baseline 生成；本机 out/portrait-padding.json 可覆盖）",
+ "threshold": 0.05,
+ "scannedAt": "2026-10-17",
+ "entries": {
+  "Archer_1.webp": {
+   "left": 0.259,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "Saber_1.webp": {
+   "left": 0.15,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "Saber_2.webp": {
+   "left": 0.196,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "Saber_3.webp": {
+   "left": 0.306,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "万敌_1.webp": {
+   "left": 0.156,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "万敌_2.webp": {
+   "left": 0.234,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "三月七·巡猎_1.webp": {
+   "left": 0.265,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "丝柯克_10_不熬夜乐L_b站_翻转偏移.webp": {
+   "left": 0.172,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "丝柯克_11_FinnFlint_pixiv_偏移.webp": {
+   "left": 0.214,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "丝柯克_12_本子狸_米游社_翻转偏移.webp": {
+   "left": 0.163,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "丝柯克_14_zerotabi1210_X_偏移.webp": {
+   "left": 0.159,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "丝柯克_15_Mihan_X_翻转偏移.webp": {
+   "left": 0.134,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "丝柯克_1_鳗鱼茶泡飯_pixiv_偏移.webp": {
+   "left": 0.126,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "丝柯克_6_久蒼穹_pixiv_偏移.webp": {
+   "left": 0.107,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "丝柯克_8_久方_pixiv.webp": {
+   "left": 0.219,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "丝柯克_9_유설_pixiv.webp": {
+   "left": 0.223,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "丹恒•腾荒_1.webp": {
+   "left": 0.119,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "丹恒•腾荒_2.webp": {
+   "left": 0.218,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "乱破_2.webp": {
+   "left": 0.097,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "云堇_5_山拭き_Pixiv_偏移.webp": {
+   "left": 0.106,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "云堇_7_MaoLo_Pixiv_偏移.webp": {
+   "left": 0.15,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "云璃_2.webp": {
+   "left": 0.128,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "伊法_1.webp": {
+   "left": 0.064,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "伊法_2.webp": {
+   "left": 0.222,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "兹白_2_鱼鹅BABA_pixiv.webp": {
+   "left": 0.218,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "兹白_3_奈西cc_米游社.webp": {
+   "left": 0.289,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "兹白_4_语堂天天啃土_b站_原摄.webp": {
+   "left": 0.059,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "刻律德菈_1.webp": {
+   "left": 0.234,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "刻律德菈_3.webp": {
+   "left": 0.081,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "千织_3.webp": {
+   "left": 0.094,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "千织_4.webp": {
+   "left": 0.209,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "叶洛亚_2_𝑨𝒊𝒌𝒐🎀@aiko04_X_裁剪.webp": {
+   "left": 0.307,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "叶洛亚_4_おモチ🧀@Omces96_X_偏移.webp": {
+   "left": 0.264,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "叶洛亚_5_rubudou_danbooru_偏移.webp": {
+   "left": 0.185,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "哥伦比娅_18_星屑帷幕_BiliBili_右移.webp": {
+   "left": 0.146,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "哥伦比娅_19_草莓么么椰_BiliBili.webp": {
+   "left": 0.138,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "哥伦比娅_24_LeeKo_Pixiv.webp": {
+   "left": 0.117,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "哥伦比娅_5_未知_未知.webp": {
+   "left": 0.24,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "哥伦比娅_9_朱成碧同学@提不起劲_pixiv_偏移.webp": {
+   "left": 0.203,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "埃洛伊_1.webp": {
+   "left": 0.027,
+   "right": 0.072,
+   "top": 0.025,
+   "bottom": 0.006
+  },
+  "基尼奇_2.webp": {
+   "left": 0.119,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "基尼奇_3.webp": {
+   "left": 0.197,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "塔利雅_1_審判@prexviva_X_偏移.webp": {
+   "left": 0.189,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "塔利雅_3_審判@prexviva_X_偏移.webp": {
+   "left": 0.206,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "塔利雅_5_審判@prexviva_X_偏移.webp": {
+   "left": 0.184,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "大丽花_1.webp": {
+   "left": 0.103,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "大黑塔_1.webp": {
+   "left": 0.189,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "大黑塔_5.webp": {
+   "left": 0.115,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "奈芙尔_7_莘莘如期_米游社_翻转偏移.webp": {
+   "left": 0.188,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "奥黛塔_13_妙妙在画画_米游社_偏移.webp": {
+   "left": 0.308,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "奥黛塔_18_傻宝你撕了_米游社_偏移.webp": {
+   "left": 0.262,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "奥黛塔_24_原来是零点五啊_BiliBili_右偏.webp": {
+   "left": 0.089,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "奥黛塔_28_你要恰菠萝吗_BiliBili_右移.webp": {
+   "left": 0.118,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "奥黛塔_29_小白不留行_BiliBili.webp": {
+   "left": 0.122,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "奥黛塔_32_神猎子_米游社.webp": {
+   "left": 0.208,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "奥黛塔_33_KuriNyann_X.webp": {
+   "left": 0.154,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "奥黛塔_4_SCUP_米游社_偏移.webp": {
+   "left": 0.139,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "妮露_13_奈西cc_米游社.webp": {
+   "left": 0.161,
+   "right": 0.0,
+   "top": 0.015,
+   "bottom": 0.0
+  },
+  "妮露_16_木及_Pixiv.webp": {
+   "left": 0.226,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "妮露_1_卢纳尔_米游社.webp": {
+   "left": 0.121,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "妮露_22_妮露本人_原神官方.webp": {
+   "left": 0.133,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "妮露_29_BLACKmeow_Pixiv_右移.webp": {
+   "left": 0.142,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "妮露_2_柒夜空sky_米游社.webp": {
+   "left": 0.313,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "妮露_4_bshiEdayo_X.webp": {
+   "left": 0.222,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "妮露_5_早樱苒_米游社.webp": {
+   "left": 0.116,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "妮露_6_徒歩@土曜西1ふ40a_Pixiv.webp": {
+   "left": 0.279,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "妮露_8_immi_pixiv.webp": {
+   "left": 0.126,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "妮露_9_瑠菜_X.webp": {
+   "left": 0.308,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "宵宫_5.webp": {
+   "left": 0.249,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "尼可_2_翎小小小燕_微博.webp": {
+   "left": 0.155,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "忘归人_1.webp": {
+   "left": 0.155,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "恰斯卡_1.webp": {
+   "left": 0.088,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "托马_1.webp": {
+   "left": 0.212,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "昔涟_4.webp": {
+   "left": 0.234,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "星期日_2.webp": {
+   "left": 0.211,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "星期日_3.webp": {
+   "left": 0.325,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "杜林_5_渡边目下_米游社_偏移.webp": {
+   "left": 0.173,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "林尼_1.webp": {
+   "left": 0.177,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "枫原万叶_3.webp": {
+   "left": 0.154,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "枫原万叶_4.webp": {
+   "left": 0.242,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "桂乃芬_1.webp": {
+   "left": 0.226,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "桂乃芬_2.webp": {
+   "left": 0.226,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "桑多涅_11_鳗鱼茶泡飯_pixiv_翻转偏移.webp": {
+   "left": 0.146,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "桑多涅_12_萳七_米游社_翻转偏移.webp": {
+   "left": 0.14,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "桑多涅_14_-音書-_X_偏移.webp": {
+   "left": 0.163,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "桑多涅_2_AOI_Pixiv.webp": {
+   "left": 0.085,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "梦见月瑞希_4_Sheya_X.webp": {
+   "left": 0.203,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "梦见月瑞希_5_叽来个叽叽叽叽_米游社_偏移.webp": {
+   "left": 0.206,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "梦见月瑞希_6_萳七_米游社_偏移.webp": {
+   "left": 0.077,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "沃雅妮莎_1_anetuU107_X_偏移.webp": {
+   "left": 0.256,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "沃雅妮莎_5_萳七_米游社_偏移.webp": {
+   "left": 0.08,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "沃雅妮莎_6_原神_官图_偏移.webp": {
+   "left": 0.155,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "沃雅妮莎_8_微糖去冰加珍珠_米游社.webp": {
+   "left": 0.21,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "法尔伽_3_-音書-_X_翻转偏移.webp": {
+   "left": 0.106,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "洛恩_6_Tooaya_X_偏移.webp": {
+   "left": 0.13,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "流萤_3_墨宇Moyo_微博_偏移.webp": {
+   "left": 0.143,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "海瑟音_1.webp": {
+   "left": 0.308,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "海瑟音_2.webp": {
+   "left": 0.0,
+   "right": 0.0,
+   "top": 0.057,
+   "bottom": 0.0
+  },
+  "爱可菲_4_Moehikaru_米游社_偏移.webp": {
+   "left": 0.132,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "爻光_1.webp": {
+   "left": 0.235,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "爻光_3.webp": {
+   "left": 0.164,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "玛拉妮_4.webp": {
+   "left": 0.135,
+   "right": 0.115,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "玛拉妮_5.webp": {
+   "left": 0.223,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "玛拉妮_6.webp": {
+   "left": 0.266,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "玛薇卡_3_喵咕君QAQKH3_pixiv_抠图.webp": {
+   "left": 0.188,
+   "right": 0.029,
+   "top": 0.083,
+   "bottom": 0.0
+  },
+  "珊瑚宫心海_1_徒歩＠お仕事募集中_pixiv_翻转偏移.webp": {
+   "left": 0.222,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "珊瑚宫心海_4_nasii_pixiv_抠图.webp": {
+   "left": 0.08,
+   "right": 0.062,
+   "top": 0.0,
+   "bottom": 0.002
+  },
+  "珊瑚宫心海_7_BLACKmeow_pixiv_偏移.webp": {
+   "left": 0.109,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "甘雨_4.webp": {
+   "left": 0.062,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "申鹤_4_咸鱼画手锅_米游社_翻转偏移.webp": {
+   "left": 0.134,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "真理医生_1.webp": {
+   "left": 0.221,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "知更鸟_3.webp": {
+   "left": 0.076,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "知更鸟_4.webp": {
+   "left": 0.227,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.0
+  },
+  "知更鸟•晴歌_1_Beuldung_pixiv.webp": {
+   "left": 0.137,
+   "right": 0.163,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "砂金_1.webp": {
+   "left": 0.16,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "砂金_2.webp": {
+   "left": 0.098,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "神里绫华_11_东山_pixiv_偏移.webp": {
+   "left": 0.226,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "神里绫华_14_爱吃奶盖_pixiv_翻转.webp": {
+   "left": 0.209,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "神里绫华_2_ひげ猫_X_抠图.webp": {
+   "left": 0.053,
+   "right": 0.005,
+   "top": 0.014,
+   "bottom": 0.001
+  },
+  "神里绫华_3_DAVE_artfile_偏移，未找到原出处，当前仅为转载源.webp": {
+   "left": 0.307,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "神里绫华_5_ナギ_X_翻转.webp": {
+   "left": 0.255,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "神里绫华_7_阿稳同学_米游社.webp": {
+   "left": 0.133,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "神里绫华_8_Sannio_pixiv_偏移.webp": {
+   "left": 0.188,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "神里绫华_9_みたま_X_翻转.webp": {
+   "left": 0.198,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "空_2.webp": {
+   "left": 0.287,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "米提亚_2_たにこ@fr0se7_X_偏移.webp": {
+   "left": 0.227,
+   "right": 0.016,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "米沙_1.webp": {
+   "left": 0.21,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "缇宝_1.webp": {
+   "left": 0.18,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "翡翠_1.webp": {
+   "left": 0.124,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "胡桃_10_sohnka_Pixiv.webp": {
+   "left": 0.201,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "胡桃_13_喵咕君_米游社.webp": {
+   "left": 0.1,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "胡桃_14_hayaroB_Pixiv.webp": {
+   "left": 0.154,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "胡桃_15_Nyansan_X_偏移.webp": {
+   "left": 0.203,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "胡桃_16_Minamo_pixiv_翻转偏移.webp": {
+   "left": 0.198,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "胡桃_17_BLACKmeow_Pixiv_右移.webp": {
+   "left": 0.246,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "胡桃_19_Ohihil_Pixiv.webp": {
+   "left": 0.056,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "胡桃_2_River源_米游社_偏移.webp": {
+   "left": 0.076,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "胡桃_5_AgrentRt_Pixiv.webp": {
+   "left": 0.125,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "胡桃_6_AgrentRt_Pixiv.webp": {
+   "left": 0.056,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "艾尔海森_4_阿赫里伊AHRII_X_偏移.webp": {
+   "left": 0.147,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "艾尔海森_5_-音書-_X_翻转偏移.webp": {
+   "left": 0.094,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "艾莉丝_1.webp": {
+   "left": 0.077,
+   "right": 0.097,
+   "top": 0.038,
+   "bottom": 0.036
+  },
+  "芙宁娜_5.webp": {
+   "left": 0.133,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "花火_3.webp": {
+   "left": 0.137,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "若娜瓦_3_十九颗心_未知_AI扩图.webp": {
+   "left": 0.169,
+   "right": 0.193,
+   "top": 0.038,
+   "bottom": 0.0
+  },
+  "若娜瓦_5_𝑨𝒊𝒌𝒐🎀@aiko04_X_偏移.webp": {
+   "left": 0.052,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "茜特菈莉_10_神猎子_米游社.webp": {
+   "left": 0.104,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "茜特菈莉_11_槭叶映泉_X.webp": {
+   "left": 0.202,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "茜特菈莉_16_스디@XDyuh182_X_翻转.webp": {
+   "left": 0.26,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "茜特菈莉_17_祈予歌_米游社.webp": {
+   "left": 0.067,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "茜特菈莉_18_祈予歌_米游社.webp": {
+   "left": 0.194,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "茜特菈莉_19_栗原純一_Pixiv.webp": {
+   "left": 0.151,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "茜特菈莉_20_crayblack_danbooru.webp": {
+   "left": 0.251,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "茜特菈莉_2_原神_官图.webp": {
+   "left": 0.112,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "茜特菈莉_9_原神_官图.webp": {
+   "left": 0.168,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "荧_2.webp": {
+   "left": 0.139,
+   "right": 0.083,
+   "top": 0.068,
+   "bottom": 0.023
+  },
+  "荧_3.webp": {
+   "left": 0.157,
+   "right": 0.318,
+   "top": 0.041,
+   "bottom": 0.01
+  },
+  "荧_4.png": {
+   "left": 0.16,
+   "right": 0.148,
+   "top": 0.043,
+   "bottom": 0.03
+  },
+  "莉奈娅_6_鳗鱼茶泡飯_pixiv_翻转偏移.webp": {
+   "left": 0.116,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "莉奈娅_7_もちもちマンゴー@mocchiri290_X.webp": {
+   "left": 0.219,
+   "right": 0.219,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "莉奈娅_8_朱成碧同学@提不起劲_pixiv_偏移.webp": {
+   "left": 0.191,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "莉奈娅_9_Moehikaru光光_米游社_偏移.webp": {
+   "left": 0.066,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "莫娜_1.webp": {
+   "left": 0.242,
+   "right": 0.332,
+   "top": 0.015,
+   "bottom": 0.0
+  },
+  "莱依拉_2.webp": {
+   "left": 0.0,
+   "right": 0.115,
+   "top": 0.033,
+   "bottom": 0.0
+  },
+  "莱依拉_3.webp": {
+   "left": 0.074,
+   "right": 0.0,
+   "top": 0.02,
+   "bottom": 0.0
+  },
+  "莱欧斯利_1.webp": {
+   "left": 0.104,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "菲林斯_2_鳗鱼茶泡飯_pixiv_反转.webp": {
+   "left": 0.208,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "菲谢尔_1_砂粒shali_Pixiv.webp": {
+   "left": 0.17,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "菲谢尔_2_原子Dan_米游社_偏移.webp": {
+   "left": 0.081,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "蓝砚_2_nyalia_X.webp": {
+   "left": 0.077,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "蓝砚_4_是小a家的猫_danbooru_偏移.webp": {
+   "left": 0.123,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "蓝砚_6_向晚未晚_X_翻转偏移.webp": {
+   "left": 0.159,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "蓝砚_8_原神_官图_偏移.webp": {
+   "left": 0.07,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "薇斯纳_10_glide_X.webp": {
+   "left": 0.234,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "薇斯纳_11_妙妙在画画_米游社.webp": {
+   "left": 0.067,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "薇斯纳_12_Neulrain_Pixiv.webp": {
+   "left": 0.095,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "薇斯纳_2_鳗鱼茶泡饭_Pixiv.webp": {
+   "left": 0.142,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "薇斯纳_4_祈予歌_米游社.webp": {
+   "left": 0.158,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "薇斯纳_7_3mmmi_BiliBili.webp": {
+   "left": 0.151,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "薇斯纳_9_awe_X.webp": {
+   "left": 0.183,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "藿藿_1.webp": {
+   "left": 0.122,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "貊泽_1.webp": {
+   "left": 0.183,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "赛索斯_1.webp": {
+   "left": 0.12,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "赛诺_2_槭叶映泉_米游社_偏移.webp": {
+   "left": 0.121,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "赛飞儿_1_星铁_官图_抠图.webp": {
+   "left": 0.195,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "赛飞儿_2_StarRailUniverse@StarRailVerse1_X_偏移.webp": {
+   "left": 0.242,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "赛飞儿_3_Moehikaru光光_米游社_偏移.webp": {
+   "left": 0.127,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "遐蝶_3.webp": {
+   "left": 0.069,
+   "right": 0.0,
+   "top": 0.05,
+   "bottom": 0.0
+  },
+  "那刻夏_3.webp": {
+   "left": 0.165,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "那维莱特_2.webp": {
+   "left": 0.324,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "镜流_1.webp": {
+   "left": 0.188,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "镜流_3.webp": {
+   "left": 0.094,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "长夜月_4.webp": {
+   "left": 0.098,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "闲云_1.webp": {
+   "left": 0.146,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "阮•梅_1.webp": {
+   "left": 0.225,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "阮•梅_2.webp": {
+   "left": 0.225,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "阿格莱雅_3.webp": {
+   "left": 0.104,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "阿格莱雅_4.webp": {
+   "left": 0.218,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "阿格莱雅_5.webp": {
+   "left": 0.267,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "阿罗夏_2_原神_官图_翻转偏移.webp": {
+   "left": 0.176,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "阿罗夏_4_原神_官图_偏移.webp": {
+   "left": 0.215,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "阿贝多_1_槭叶映泉_b站.webp": {
+   "left": 0.085,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "阿贝多_2_翎小小小燕_b站_偏移.webp": {
+   "left": 0.101,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "风堇_1.webp": {
+   "left": 0.25,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "风堇_3.webp": {
+   "left": 0.282,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "风堇_4.webp": {
+   "left": 0.153,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "飞霄_1.webp": {
+   "left": 0.29,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "飞霄_2.webp": {
+   "left": 0.221,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "飞霄_3.webp": {
+   "left": 0.224,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "飞霄_4.webp": {
+   "left": 0.008,
+   "right": 0.053,
+   "top": 0.005,
+   "bottom": 0.0
+  },
+  "香菱_1.webp": {
+   "left": 0.176,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "黄泉_1.webp": {
+   "left": 0.145,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "黄泉_4.webp": {
+   "left": 0.271,
+   "right": 0.0,
+   "top": 0.001,
+   "bottom": 0.001
+  },
+  "黑天鹅_1.webp": {
+   "left": 0.165,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "黑天鹅_2.webp": {
+   "left": 0.057,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "黑天鹅_3.webp": {
+   "left": 0.225,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  },
+  "黑天鹅_4.webp": {
+   "left": 0.083,
+   "right": 0.0,
+   "top": 0.0,
+   "bottom": 0.0
+  }
+ }
+}

@@ -59,17 +59,21 @@ ok('立绘卡用 `.head-card--portrait` 标记（选择器不再依赖"第二个
 /* 2026-10-17 第二轮：只虚化最外一圈（border-only mask），不许再退回「径向渐变压出一整条糊带」 */
 ok('立绘边缘只有一条模糊线（`.codex-portrait-edge`：backdrop-filter + mask-composite: exclude）',
   tpl.includes('class="codex-portrait-edge"') &&
-  /\.codex-portrait-edge\s*\{[\s\S]*?backdrop-filter:\s*blur\(/.test(tpl) &&
-  /\.codex-portrait-edge\s*\{[\s\S]*?mask-composite:\s*exclude/.test(tpl) &&
-  !/\.codex-portrait-edge\s*\{[\s\S]*?radial-gradient\(/.test(tpl))
+  /\.codex-portrait-edge\s*\{[^}]*backdrop-filter:\s*blur\(/.test(tpl) &&
+  /\.codex-portrait-edge\s*\{[^}]*mask-composite:\s*exclude/.test(tpl) &&
+  !/\.codex-portrait-edge\s*\{[^}]*radial-gradient\(/.test(tpl))
 ok('立绘结构：取景窗按默认立绘比例定高（`aspect-ratio: {{portraitRatio}}`）',
   tpl.includes('aspect-ratio: {{portraitRatio}}') && tpl.includes('class="codex-portrait"'))
 ok('立绘结构：模糊层兜底在（同图 background + `filter: blur`）',
-  /\.codex-portrait-bg\s*\{[\s\S]*?filter:\s*blur\(/.test(tpl) && tpl.includes('class="codex-portrait-bg"'))
-/* 2026-10-17：立绘四角圆角 10px（与页面卡片同值），靠 overflow:hidden 把各层一起裁圆 */
-ok('立绘四角圆角 10px（`.codex-portrait` 的 border-radius + overflow:hidden）',
-  /\.codex-portrait\s*\{[\s\S]*?border-radius:\s*10px/.test(tpl) &&
-  /\.codex-portrait\s*\{[\s\S]*?overflow:\s*hidden/.test(tpl))
+  /\.codex-portrait-bg\s*\{[^}]*filter:\s*blur\(/.test(tpl) && tpl.includes('class="codex-portrait-bg"'))
+/* 2026-10-17：立绘四角圆角 20px（比页面卡片的 10px 大一号），靠 overflow:hidden 把各层一起裁圆
+   ⚠ 用 `[^}]*` 限定在**同一条规则内**，别用 `[\s\S]*?` —— 那样会匹配到后面别的元素的 10px */
+ok('立绘四角圆角 20px（`.codex-portrait` 的 border-radius + overflow:hidden）',
+  /\.codex-portrait\s*\{[^}]*border-radius:\s*20px/.test(tpl) &&
+  /\.codex-portrait\s*\{[^}]*overflow:\s*hidden/.test(tpl))
+ok('配队标签与其它模块标签同色（`.codex-team-tag` 取 --gold；模板仍带 label-<tag> 类）',
+  /\.codex-team-tag\s*\{[^}]*color:\s*var\(--gold\)/.test(tpl) &&
+  tpl.includes('codex-team-tag label-{{team.tag}}'))
 ok('立绘结构：主体层按裁白边后的盒摆放（inline width/height/left/top）',
   tpl.includes('class="codex-portrait-img"') &&
   tpl.includes('width:{{portraitBox.width}};height:{{portraitBox.height}};left:{{portraitBox.left}};top:{{portraitBox.top}}'))

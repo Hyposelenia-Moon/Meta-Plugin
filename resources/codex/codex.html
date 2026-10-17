@@ -50,7 +50,7 @@
       z-index: 2;
       overflow: hidden;
       border: none;
-      border-radius: 10px;
+      border-radius: 20px;
     }
     .codex-portrait-bg {
       position: absolute;
@@ -63,17 +63,17 @@
     }
     .codex-portrait-edge {
       /*
-       * 边缘模糊「线」（2026-10-17 第二轮修正）：只把**最外一圈**（默认 8px）虚化，
+       * 边缘模糊「线」（2026-10-17 第三轮修正）：只把**最外一圈**（14px）虚化，
        * 不再用径向渐变从 58% 就开始过渡 —— 那样会在四边压出一整条糊带（用户报过左侧糊一条）。
        * 做法是标准的「只保留边框」遮罩：整块 mask ⊕ 内容盒 mask，剩下的就是那圈边。
        */
       position: absolute;
       inset: 0;
       pointer-events: none;
-      padding: 8px;
+      padding: 14px;
       box-sizing: border-box;
-      backdrop-filter: blur(8px) brightness(.94);
-      -webkit-backdrop-filter: blur(8px) brightness(.94);
+      backdrop-filter: blur(10px) brightness(.86);
+      -webkit-backdrop-filter: blur(10px) brightness(.86);
       -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       -webkit-mask-composite: xor;
       mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -137,10 +137,11 @@
 
     .codex-teams { display: flex; flex-direction: column; gap: 3px; }
     .codex-team { font-size: 19px; color: var(--text); }
-    .codex-team-tag { font-weight: 700; margin-right: 6px; }
-    .codex-team-tag.label-推荐 { color: var(--gold); }
-    .codex-team-tag.label-可选 { color: var(--accent); }
-    .codex-team-tag.label-过渡 { color: var(--muted); }
+    /* 配队标签（2026-10-17 用户定）：与前面模块的标签**同色** —— 其它模块的 row 标签被统一成
+       金色（见下面 `.codex-row-label .codex-tier.label-*` 的 0,4,0 规则，连「可选」也是金色），
+       所以配队这里也一律金色；模板里标签仍带 `label-<tag>` 类，将来要按档位分色时再加规则。
+       ⚠ 注释里不要写模板占位符（art-template 连 CSS 注释也会求值）。 */
+    .codex-team-tag { font-weight: 700; margin-right: 6px; color: var(--gold); }
     .codex-team-note { font-size: 16px; color: var(--muted-2); font-style: italic; }
 
     /* 条目图标 / 配队头像（引用 miao 资源，尺寸按数据区比例） */
@@ -503,7 +504,7 @@
           <div class="codex-teams">
             {{each section.teams team}}
             <div class="codex-team">
-              {{if team.tag}}<span class="codex-team-tag">{{team.tag}}</span>{{/if}}
+              {{if team.tag}}<span class="codex-team-tag label-{{team.tag}}">{{team.tag}}</span>{{/if}}
               {{each team.members member}}{{if member.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{member.icon}}"/>{{if member.constellation}}<span class="avatar-con">{{member.constellation}}</span>{{/if}}</span></span></span>{{/if}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}
               {{if team.text}}<span class="codex-team-note">{{team.text}}</span>{{/if}}
             </div>
