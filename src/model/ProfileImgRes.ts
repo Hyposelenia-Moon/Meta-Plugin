@@ -543,6 +543,8 @@ export function pickPagePortrait (name: string, opts: {
   stdFile?: string
   /** 白边清单路径（套件注入；默认 out/portrait-padding.json） */
   paddingList?: string
+  /** 基线清单路径（套件注入；默认 data/_portrait-padding.json） */
+  baselineList?: string
   /** `面板图N`：指定图库里的第 N 张（`{角色}_{序号}_…`）；不传 = 随机取合格图 */
   index?: number
   /** 页面渲染缩放（`getRenderScale()`，默认 1.5）—— 用来算卡片真实像素需求 */
@@ -571,7 +573,7 @@ export function pickPagePortrait (name: string, opts: {
     /** 组装一张图的结果（白边裁剪 + 铺满盒都算好） */
     const of = (file: string, note: string): PagePortrait => {
       const size = imageSizeOf(file)
-      const crop = portraitCropOf(file, opts.paddingList)
+      const crop = portraitCropOf(file, opts.paddingList, opts.baselineList)
       return { src: pageImageUrl(file), source: '图库', note, size, std: basis, ratio, crop, box: planPortraitBox(size, basis, crop, 'cover') }
     }
 
@@ -595,7 +597,7 @@ export function pickPagePortrait (name: string, opts: {
        */
       const size = imageSizeOf(file)
       if (!size) continue
-      const crop = portraitCropOf(file, opts.paddingList)
+      const crop = portraitCropOf(file, opts.paddingList, opts.baselineList)
       if (fitsRenderSize(size, crop, Number(ratio), { renderScale: opts.renderScale })) fit.push({ file, size })
     }
 
@@ -604,7 +606,7 @@ export function pickPagePortrait (name: string, opts: {
       const idx = Math.min(fit.length - 1, Math.max(0, Math.floor((Number.isFinite(rand) ? rand : 0.5) * fit.length)))
       const picked = fit[idx]
       // 白边不跳过，改成**裁掉 + cover 铺满**：清单里有四边比例就照它裁
-      const crop = portraitCropOf(picked.file, opts.paddingList)
+      const crop = portraitCropOf(picked.file, opts.paddingList, opts.baselineList)
       return {
         src: pageImageUrl(picked.file),
         source: '图库',
