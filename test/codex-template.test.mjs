@@ -80,6 +80,45 @@ ok('立绘结构：取景窗按默认立绘比例定高（`aspect-ratio: {{portr
 ok('立绘四角圆角 20px（`.codex-portrait` 的 border-radius + overflow:hidden）',
   /\.codex-portrait\s*\{[^}]*border-radius:\s*20px/.test(tpl) &&
   /\.codex-portrait\s*\{[^}]*overflow:\s*hidden/.test(tpl))
+/* 2026-10-17：面板网格排版 + 标签语义配色 + 立绘区标题分色 + 页脚去「口径：」 */
+ok('面板区改成网格（`.codex-stats` 等宽列 + `.codex-stat-k/.codex-stat-v`，按 section.kind === \'stats\' 分支）',
+  tpl.includes("section.kind === 'stats'") &&
+  /\.codex-stats\s*\{[^}]*display:\s*grid/.test(tpl) &&
+  /\.codex-stats\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fit/.test(tpl) &&
+  /\.codex-stat-k\s*\{[^}]*color:\s*var\(--gold\)/.test(tpl))
+ok('面板字号与其它区一致（标签 22px = 行标签、数值 26px = 正文）',
+  /\.codex-stat-k\s*\{[^}]*font-size:\s*22px/.test(tpl) &&
+  /\.codex-stat-v\s*\{[^}]*font-size:\s*26px/.test(tpl) &&
+  /\.codex-row-items\s*\{[^}]*font-size:\s*26px/.test(tpl))
+/* 2026-10-17 补充：面板格不画底板（底板会显得「整块缩在卡片里」）；立绘标题不用合成粗体 */
+ok('面板格不画独立底板（无 background / border-left，左边界与其它行一致）',
+  /\.codex-stat\s*\{[^}]*border-bottom:[^}]*\}/.test(tpl) &&
+  !/\.codex-stat\s*\{[^}]*\bbackground:/.test(tpl) &&
+  !/\.codex-stat\s*\{[^}]*border-left:/.test(tpl))
+ok('立绘标题不用粗体（名字与副标题都是 400）',
+  /\.codex-name\s*\{[^}]*font-weight:\s*400/.test(tpl) &&
+  /\.codex-name \.codex-name-sub\s*\{[^}]*font-weight:\s*400/.test(tpl))
+/* 2026-10-17 用户定：标题区「角色攻略」用原神字体（汉仪文黑-65W）。
+   ⚠ 不能用模板里那个 `YS`：`{{_miao_path}}` 的 URL 带空格未编码 → 字体静默回落系统字体。 */
+ok('标题区副标题用原神字体（@font-face 注入 + --codex-title-font 变量）',
+  tpl.includes("font-family: '{{genshinFont.family}}'") &&
+  tpl.includes('src: url("{{genshinFont.url}}")') &&
+  tpl.includes('--codex-title-font') &&
+  /\.codex-name \.codex-name-sub\s*\{[^}]*var\(--codex-title-font/.test(tpl))
+ok('仓库自带原神字体文件（不依赖其它插件也能量）',
+  fs.existsSync(path.join(pluginRoot, 'resources', 'common', 'font', 'HYWH-65W.woff')))
+ok('行标签按语义分类上色（tone-core/alt/muted/plain 四档）',
+  tpl.includes('tone-{{row.labelTone}}') &&
+  /\.codex-tier\.tone-core[^{]*\{[^}]*color:\s*var\(--gold\)/.test(tpl) &&
+  /\.codex-tier\.tone-alt[^{]*\{[^}]*color:\s*var\(--accent\)/.test(tpl) &&
+  /\.codex-tier\.tone-muted[^{]*\{[^}]*color:\s*var\(--muted\)/.test(tpl) &&
+  /\.codex-tier\.tone-plain[^{]*\{[^}]*color:\s*var\(--text\)/.test(tpl))
+ok('立绘区标题分色（名字金色 + 副标题实心胶囊 + 定位冷色胶囊）',
+  /\.codex-name\s*\{[^}]*color:\s*#ffe6b3/.test(tpl) &&
+  /\.codex-name \.codex-name-sub\s*\{[^}]*background:\s*linear-gradient/.test(tpl) &&
+  /\.codex-desc\s*\{[^}]*border-radius:\s*999px/.test(tpl))
+ok('页脚正文不再以「口径：」开头（CSS 注释里的同词不算）',
+  !/mx-footer__method">口径：/.test(tpl) && tpl.includes('mx-footer__method'))
 ok('配队标签与其它模块标签同色（`.codex-team-tag` 取 --gold；模板仍带 label-<tag> 类）',
   /\.codex-team-tag\s*\{[^}]*color:\s*var\(--gold\)/.test(tpl) &&
   tpl.includes('codex-team-tag label-{{team.tag}}'))

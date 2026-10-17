@@ -308,6 +308,10 @@ export function buildPresentation (input: {
 /** 攻略条目（装备/数值项）：`tone` 与 `marker` 是颜色之外的通道（色觉障碍适配） */
 export interface GuideItemView {
   text: string
+  /** 面板格：k：v 拆开后的**属性名**（非面板行留空） */
+  k: string
+  /** 面板格：拆分后的**数值**（非面板行留空） */
+  v: string
   note: string
   icon: string
   /** `sig` = 专武 / `alt` = 可选档（旧页只靠红/绿两色区分） */
@@ -421,6 +425,39 @@ export function isLongLabel (label: string): boolean {
  *
  * 只按分隔符切；切不出多段就原样一段（模板据此让它独占一行，不再挤压右列）。
  */
+/**
+ * 行标签的语义分类（2026-10-17 用户定：**不同颜色便于快速定位**）
+ *
+ *   核心（金色 `--gold`）：推荐 / 主词条 / 命之座 / 首选 / 毕业 / 专武
+ *   备选（蓝色 `--accent`）：可选 / 副词条 / 次选 / 备选 / 替代
+ *   过程（灰色 `--muted`）：过渡 / 其他 / 过渡用
+ *   未识别（正文色）：其余标签照正文色显示，不额外上色（避免"什么都上色"反而看不出重点）
+ *
+ * 归类只看标签文本，不碰数据结构；同一份映射给模板与套件共用。
+ */
+export type LabelTone = 'core' | 'alt' | 'muted' | 'plain'
+
+const TONE_WORDS: Array<[LabelTone, RegExp]> = [
+  ['core', /推荐|主词条|命之座|首选|毕业|专武|核心|月结晶|月感电|月绽放/],
+  ['alt', /可选|副词条|次选|备选|替代/],
+  ['muted', /过渡|其他|通用|输出向|辅助向/]
+]
+
+export function labelToneOf (label: string): LabelTone {
+  const text = String(label || '').trim()
+  if (!text) return 'plain'
+  for (const [tone, re] of TONE_WORDS) if (re.test(text)) return tone
+  return 'plain'
+}
+
+/** 面板格文本 `暴击率：80-90%` → `{ k: '暴击率', v: '80-90%' }`；没有冒号时 k 留空、v 原样 */
+export function splitStatCell (text: string): { k: string, v: string } {
+  const raw = String(text || '').trim()
+  const at = raw.search(/[：:]/)
+  if (at <= 0) return { k: '', v: raw }
+  return { k: raw.slice(0, at).trim(), v: raw.slice(at + 1).trim() }
+}
+
 export function labelLinesOf (label: string): string[] {
   const text = String(label || '').trim()
   if (!text) return []
@@ -468,8 +505,11 @@ export function buildCodexPresentation (view: {
         const item = asRecord(it)
         const sig = item.sig === true
         const alt = item.sigAlt === true
+        const cell = splitStatCell(normalizeItemText(item.text))
         return {
           text: normalizeItemText(item.text),
+          k: cell.k,
+          v: cell.v,
           textHtml: noteSpansOf(normalizeItemText(item.text)),
           note: String(item.note ?? ''),
           icon: String(item.icon ?? ''),
@@ -480,7 +520,8 @@ export function buildCodexPresentation (view: {
           crown: item.crown === true || Number(item.talentLevel ?? item.level) >= 10   // 与 miao 同规则：原始等级 ≥ 10 即出冠
         }
       })
-      return { label: String(row.label ?? ''), labelLines: labelLinesOf(String(row.label ?? '')), longLabel: isLongLabel(String(row.label ?? '')), kind: String(row.kind ?? ''), items }
+      const label = String(row.label ?? '')
+      return { label, labelLines: labelLinesOf(label), longLabel: isLongLabel(label), labelTone: labelToneOf(label), kind: String(row.kind ?? ''), items }
     })
     const teams: GuideTeamView[] = asArray(s.teams).map(t => {
       const team = asRecord(t)

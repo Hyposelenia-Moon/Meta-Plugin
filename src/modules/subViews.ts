@@ -109,6 +109,8 @@ export interface PageOptions {
   portraitData?: string
   /** 留白判定参数（页面脚本用；来自 ProfileImgRes.cropCfg） */
   cropCfg?: { tol: number, cover: number, min: number, colorCap: number, whiteLevel: number, whiteLineCover: number }
+  /** 原神字体（标题区「角色攻略」用；空 = 没找到字体文件，回落系统字体） */
+  genshinFont?: { family: string, url: string }
   /**
    * 立绘区宽高比（ProfileImgRes.pickPagePortrait().ratio）
    *
@@ -143,6 +145,8 @@ export interface CodexPageData extends CodexView {
   portraitData: string
   /** 留白判定参数（页面脚本用，来自 ProfileImgRes.cropCfg） */
   cropCfg: { tol: number, cover: number, min: number, colorCap: number, whiteLevel: number, whiteLineCover: number }
+  /** 原神字体（标题区「角色攻略」用；空 = 回落系统字体） */
+  genshinFont: { family: string, url: string }
   /** 立绘区宽高比（空串 = 不锁定，退回图片自身比例） */
   portraitRatio: string
   /** 立绘主体层定位（宽高/左上角，百分比字符串；空串 = 走模板默认铺满） */
@@ -163,6 +167,7 @@ export function toPageData (view: CodexView, opts: PageOptions = {}): CodexPageD
     portraitSrc: opts.portraitSrc ?? '',
     portraitData: opts.portraitData ?? '',
     cropCfg: opts.cropCfg ?? { tol: 6, cover: 0.98, min: 0.03, colorCap: 0.12, whiteLevel: 240, whiteLineCover: 0.95 },
+    genshinFont: opts.genshinFont ?? { family: '', url: '' },
     portraitRatio: opts.portraitRatio ?? '',
     portraitBox: opts.portraitBox ?? { width: '', height: '', left: '', top: '' },
     subTitle: opts.subTitle ?? '角色攻略',

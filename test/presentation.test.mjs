@@ -187,6 +187,16 @@ const fullBuild = {
   ok('长标签判定（>6 字符）', P.isLongLabel('月结晶/月感电') === true && P.isLongLabel('主词条') === false)
   push('长标签按语义边界分行', P.labelLinesOf('月结晶/月感电'), ['月结晶', '月感电'])
   push('短标签不分行', P.labelLinesOf('主词条'), ['主词条'])
+
+  /* 2026-10-17：标签语义分类（决定颜色）+ 面板格 k/v 拆分 */
+  push('标签分类：核心（金）', ['推荐', '主词条', '命之座6', '月结晶', '专武'].map(P.labelToneOf), ['core', 'core', 'core', 'core', 'core'])
+  push('标签分类：备选（蓝）', ['可选', '副词条', '次选', '替代'].map(P.labelToneOf), ['alt', 'alt', 'alt', 'alt'])
+  push('标签分类：过程（灰）', ['过渡', '其他', '输出向', '辅助向'].map(P.labelToneOf), ['muted', 'muted', 'muted', 'muted'])
+  push('标签分类：未识别 / 空 → 正文色', ['某某', '', '  '].map(P.labelToneOf), ['plain', 'plain', 'plain'])
+  push('面板格拆分：`暴击率：70-80%`', P.splitStatCell('暴击率：70-80%'), { k: '暴击率', v: '70-80%' })
+  push('面板格拆分：没有冒号 → k 空、v 原样', P.splitStatCell('32000'), { k: '', v: '32000' })
+  push('面板格拆分：只切第一个冒号（值里带冒号也不乱）', P.splitStatCell('备注：时间 12:30'), { k: '备注', v: '时间 12:30' })
+  push('面板格拆分：半角冒号也认', P.splitStatCell('攻击力: 2200'), { k: '攻击力', v: '2200' })
   const tpl = readText(path.join(pluginRoot, 'resources', 'codex', 'codex.html'))
   const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css'))
   // 2026-10-16 用户改口径：攻略页的"长标签"（如 月结晶/月感电）是**标签**而非括弧备注，

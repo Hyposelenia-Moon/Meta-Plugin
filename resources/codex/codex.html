@@ -24,6 +24,22 @@
       font-family: 'YS';
       src: url("{{_miao_path}}common/font/HYWH-65W.woff") format('woff'), url("{{_miao_path}}common/font/HYWH-65W.ttf") format('truetype');
     }
+    /* 2026-10-17 用户定：标题区「角色攻略」用**原神字体**（汉仪文黑-65W）。
+       ⚠ 不能复用上面那个 `YS`：`{{_miao_path}}` 拼出来的 URL 带空格未编码 → 浏览器报
+       ERR_FILE_NOT_FOUND、字体静默回落系统字体（实测 `document.fonts.check('20px YS')` = false）。
+       这里由 Node 端给出**编码后的 file:// URL** + 独立族名（`genshinFont.family`），不撞车。 */
+    {{if genshinFont.url}}
+    @font-face {
+      font-family: '{{genshinFont.family}}';
+      src: url("{{genshinFont.url}}");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    :root {
+      --codex-title-font: '{{genshinFont.family}}', "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+    }
+    {{/if}}
     /* 攻略页版式：**回到本插件迭代前的自绘攻略页**（2026-10-15 用户定）
        页头（立绘 + 名字 + 定位 + 属性行）→ 单张内容卡里分块 → 版权；
        类名与配色走本项目自己的规范（components.css 的 card/card-title/kv-item + base.css 的 :root 令牌），
@@ -59,15 +75,47 @@
       object-fit: cover;
       object-position: center;
     }
-    .codex-head-main { position: absolute; right: 18px; top: 20px; z-index: 3; max-width: 470px; text-align: right; }   /* 照 .detail + 图鉴页覆盖 right:18px */
-    .codex-name, .codex-desc, .codex-meta { text-shadow: 0 0 3px #000, 2px 2px 4px rgba(0, 0, 0, .7); }
+    /* 立绘区文字（2026-10-17 用户定：**提高对比度 + 名字与副标题分色/分字体**，参考 miao 面板图立绘区）：
+       ① 文字块压一层「右浓左透」的黑底，亮立绘上也能读清；
+       ② 名字用 miao 那套装饰字体栈 + 金色 + 多层黑阴影，名字下加一条金色分隔细线（同 miao `.char-name:after`）；
+       ③ 副标题改成**金色实心胶囊**（深字浅底），与名字拉开层次；
+       ④ 定位改成**冷色描边胶囊**，与金色系区分。 */
+    .codex-head-main {
+      position: absolute; right: 18px; top: 20px; z-index: 3; max-width: 470px; text-align: right;
+      padding: 10px 14px 12px 46px;
+      border-radius: 16px;
+      background: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .45) 42%, rgba(0, 0, 0, .62) 100%);
+    }
+    .codex-name, .codex-desc, .codex-meta { text-shadow: 0 0 3px #000, 2px 2px 4px rgba(0, 0, 0, .85); }
     .codex-meta .kv-item { display: inline-flex; align-items: baseline; gap: 5px; }
     .codex-meta .kv-label { color: #d3bc8e; font-size: 15px; }
     .codex-meta .kv-value { color: #fff; font-size: 15px; }
-    .codex-name { font-size: 40px; font-weight: 700; color: #fff; line-height: 1.15; }
-    .codex-name .codex-name-sub { margin-left: 8px; font-size: 24px; font-weight: 400; color: #fff; }
-    .codex-desc { margin-top: 2px; font-size: 14px; color: #fff; line-height: 1.5; }
-    .codex-meta { margin-top: 4px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 16px; font-size: 15px; }
+    .codex-name {
+      font-family: "印品南征北战NZBZ体", NZBZ, "汉仪文黑-65W", YS, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 42px; font-weight: 400; letter-spacing: 3px; line-height: 1.14;   /* 装饰字体本身够重：再用 700 会合成粗体、边缘发糊（2026-10-17 用户反馈） */
+      color: #ffe6b3;
+      text-shadow: 0 0 4px #000, 0 0 10px rgba(0, 0, 0, .9), 2px 3px 6px rgba(0, 0, 0, .95);
+    }
+    .codex-name::after {
+      content: ""; display: block; height: 2px; width: 82%; margin: 7px 0 0 auto;
+      background: linear-gradient(90deg, rgba(255, 214, 138, 0), rgba(255, 214, 138, .9));
+    }
+    .codex-name .codex-name-sub {
+      display: inline-block; margin-left: 12px; padding: 1px 14px;
+      /* 2026-10-17 用户定：标题区「角色攻略」用**原神字体**（汉仪文黑-65W，`genshinFont`）；
+         字号小，字重保持 400（不合成粗体），找不到字体文件时回落系统中文无衬。 */
+      font-family: var(--codex-title-font, "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", sans-serif);
+      font-size: 22px; font-weight: 400; letter-spacing: 1px; line-height: 1.6;
+      color: #3a2a12; background: linear-gradient(180deg, #ffeccb, #e3cfa6);
+      border-radius: 999px; text-shadow: none; vertical-align: middle;
+    }
+    .codex-desc {
+      display: inline-block; margin-top: 9px; padding: 2px 12px;
+      font-size: 19px; font-weight: 700; letter-spacing: 1px;
+      color: #eaf3ff; background: rgba(18, 30, 62, .6);
+      border: 1px solid rgba(160, 200, 255, .38); border-radius: 999px;
+    }
+    .codex-meta { margin-top: 6px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 16px; font-size: 15px; }
 
     .codex-section { margin-top: 10px; padding: 0 20px 4px; }   /* 正文与卡片边框留间距 */
     .codex-section:first-child { margin-top: 0; }
@@ -370,11 +418,43 @@
        `.codex-tier-line` 由块级改为行内，两个标签并排一行；内容（圣遗物）仍另起一行。 */
     .mx-content--glass .mx-section .codex-tier-line { display: inline; }
     .mx-content--glass .mx-section .codex-tier-line + .codex-tier-line { margin-left: 10px; }
-    /* 行标签**统一同色**（2026-10-16 用户指出颜色不一致）：
-       覆盖短标签（`.codex-tier`）与长标签行（`.codex-tier-line`），统一用金色（与 `.label-推荐` 一致）；
+    /* 行标签**按语义分类上色**（2026-10-17 用户定：不同颜色方便快速定位；此前是"全部金色"）：
+         核心（推荐/主词条/命之座/月结晶…）→ 金 `--gold`
+         备选（可选/副词条/次选/替代）      → 蓝 `--accent`
+         过程（过渡/其他/通用）             → 灰 `--muted`
+         未识别                              → 正文色（不额外抢眼）
+       分类在 `presentation.labelToneOf()` 里（唯一来源），模板输出 `tone-*` 类。
        选择器特异性 0,4,0，压过 `.codex-tier.label-可选 { color: var(--accent) }` 等既有规则。 */
-    .mx-content--glass .mx-section .codex-row-label .codex-tier,
-    .mx-content--glass .mx-section .codex-row-label .codex-tier-line { color: var(--gold); }
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.tone-core,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier-line.tone-core { color: var(--gold); }
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.tone-alt,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier-line.tone-alt { color: var(--accent); }
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.tone-muted,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier-line.tone-muted { color: var(--muted); }
+    .mx-content--glass .mx-section .codex-row-label .codex-tier.tone-plain,
+    .mx-content--glass .mx-section .codex-row-label .codex-tier-line.tone-plain { color: var(--text); }
+    /* 面板区网格（2026-10-17 用户定）：一格一个「属性：数值」，`auto-fit + minmax` 按内容宽度自动决定每行几格 —— 
+       宽就多放几格、窄就少放几格，不浪费横向空间；数值过长时在格内换行，不会把整行挤断。 */
+    /* 面板区用**等宽列网格**（2026-10-17 用户定）：
+       ① 列宽相等 → 每行轨道对齐，独占一行的格子（如「生命值」）其数值右缘与**上行同列**数值一致，不会飘到卡片最右；
+       ② 字号与其它区正文一致（标签 22px = 行标签、数值 26px = 正文）；
+       ③ 格子不画底板，只用一条下划线分栏（底板会让整块看起来缩在卡片里）。 */
+    .codex-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 10px 28px;
+      align-items: stretch;
+    }
+    .codex-stat {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      min-width: 0;
+      padding: 2px 0 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, .14);
+    }
+    .codex-stat-k { flex: 0 0 auto; font-size: 22px; font-weight: 700; color: var(--gold); }
+    .codex-stat-v { flex: 1 1 auto; min-width: 0; margin-left: auto; text-align: right; font-size: 26px; font-weight: 700; color: var(--text); word-break: break-word; }
     /* 页脚用卡片承载（2026-10-16）：与 `.mx-section` 同款——miao 底片 + 单层黑底 + 圆角/阴影，
        左右与其它卡片对齐（-10px 抵消 `.page-inner` 内边距）。 */
     .page-inner > .mx-footer {
@@ -467,6 +547,18 @@
           {{if section.empty}}
           <div class="codex-empty">{{section.emptyText}}</div>
 
+          {{else if section.kind === 'stats'}}
+          <!-- 面板区（2026-10-17 用户定）：网格排版 + 按内容自动换行 —— 每个「属性：数值」一格，
+               auto-fit/minmax 让浏览器按可用宽度决定每行几格，既不浪费横向空间，也不会把长数值挤断。 -->
+          <div class="codex-stats">
+            {{each section.rows row}}{{each row.items item}}
+            <div class="codex-stat">
+              <span class="codex-stat-k">{{item.k}}</span>
+              <span class="codex-stat-v">{{item.v || item.text}}</span>
+            </div>
+            {{/each}}{{/each}}
+          </div>
+
           {{else if section.teams.length > 0}}
           <div class="codex-teams">
             {{each section.teams team}}
@@ -498,8 +590,8 @@
           {{else}}
           <div class="codex-row{{if row.longLabel}} codex-row--long{{/if}}{{if row.label === '主词条'}} codex-row--stack{{/if}}">
             {{if row.longLabel}}
-            <div class="codex-row-label"><span class="codex-tier">{{each row.labelLines l}}<span class="codex-tier-line">{{l}}</span>{{/each}}</span></div>
-            {{else if row.label}}<div class="codex-row-label"><span class="codex-tier label-{{row.label}}">{{row.label}}</span></div>{{/if}}
+            <div class="codex-row-label"><span class="codex-tier tone-{{row.labelTone}}">{{each row.labelLines l}}<span class="codex-tier-line">{{l}}</span>{{/each}}</span></div>
+            {{else if row.label}}<div class="codex-row-label"><span class="codex-tier tone-{{row.labelTone}} label-{{row.label}}">{{row.label}}</span></div>{{/if}}
             <div class="codex-row-items">
               {{each row.items item}}
               <span class="codex-item{{if item.tone === 'sig'}} sig-strict{{/if}}{{if item.tone === 'alt'}} sig-alt{{/if}}">{{if item.icon}}<span class="codex-icon" style="background-image:url({{_miao_path}}{{item.icon}})"></span>{{/if}}<span class="codex-item-text">{{if item.textHtml}}{{@item.textHtml}}{{else}}{{item.text}}{{/if}}</span>{{if item.note}}<span class="codex-note-inline">{{item.note}}</span>{{/if}}{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}</span>
@@ -520,7 +612,7 @@
         {{each mx.sources s}}
         <div class="codex-source">{{s.name}} · {{if s.updatedAt}}更新时间 {{s.updatedAt}}{{else}}时间未提供{{/if}} · {{s.modeText}}</div>
         {{/each}}
-        <p class="mx-footer__method">口径：本仓库攻略数据；面板与命座仅作参考。</p>
+        <p class="mx-footer__method">本仓库攻略数据；面板与命座仅作参考。</p>
         <p class="mx-copyright">{{copyright}}</p>
     </div>
   </div>
