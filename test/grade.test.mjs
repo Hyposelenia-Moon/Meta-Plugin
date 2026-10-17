@@ -130,6 +130,20 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
   ok('缺项写进 notes', r.notes.some(n => n.includes('不计入总分')))
 }
 
+// ---------- 4b. 玩家没穿/没读到圣遗物 → 数据缺失，不给 100 分（2026-10-17 复审 #1） ----------
+{
+  const r = G.gradeBuild(targets, { ...good, artis: [], artiMark: null })
+  const comp = r.dims.find(d => d.key === 'comprehensive')
+  ok('没圣遗物时「综合」是数据缺失（unknown），不是「攻略缺项」', comp.state === 'unknown' && comp.reason === 'data-missing')
+  ok('数据缺失时总分标为待评（assessable=false）', r.assessable === false)
+  ok('不再给出「各维度均已达标」', !r.suggestions.some(s => s.includes('均已达标')), JSON.stringify(r.suggestions))
+  ok('改为提示补数据', r.suggestions.some(s => s.includes('数据不全')), JSON.stringify(r.suggestions))
+
+  // 对照：有圣遗物 + 有评分时，normal 路径仍是 met/below
+  const r2 = G.gradeBuild(targets, good)
+  ok('有数据时「综合」回到 met/below', ['met', 'below'].includes(String(r2.dims.find(d => d.key === 'comprehensive').state)))
+}
+
 // ---------- 5. 档位与阈值 ----------
 {
   ok('毕业档三档边界（按综合分）', G.panelTierOf(0.9, good, targets).tier === '大毕业' &&

@@ -193,10 +193,14 @@ const fullBuild = {
   push('标签分类：备选（蓝）', ['可选', '副词条', '次选', '替代'].map(P.labelToneOf), ['alt', 'alt', 'alt', 'alt'])
   push('标签分类：过程（灰）', ['过渡', '其他', '输出向', '辅助向'].map(P.labelToneOf), ['muted', 'muted', 'muted', 'muted'])
   push('标签分类：未识别 / 空 → 正文色', ['某某', '', '  '].map(P.labelToneOf), ['plain', 'plain', 'plain'])
-  push('面板格拆分：`暴击率：70-80%`', P.splitStatCell('暴击率：70-80%'), { k: '暴击率', v: '70-80%' })
-  push('面板格拆分：没有冒号 → k 空、v 原样', P.splitStatCell('32000'), { k: '', v: '32000' })
-  push('面板格拆分：只切第一个冒号（值里带冒号也不乱）', P.splitStatCell('备注：时间 12:30'), { k: '备注', v: '时间 12:30' })
-  push('面板格拆分：半角冒号也认', P.splitStatCell('攻击力: 2200'), { k: '攻击力', v: '2200' })
+  push('面板格拆分：`暴击率：70-80%`', P.splitStatCell('暴击率：70-80%'), { group: '', k: '暴击率', v: '70-80%' })
+  push('面板格拆分：没有冒号 → k 空、v 原样', P.splitStatCell('32000'), { group: '', k: '', v: '32000' })
+  push('面板格拆分：只切第一个冒号（值里带冒号也不乱）', P.splitStatCell('备注：时间 12:30'), { group: '', k: '备注', v: '时间 12:30' })
+  push('面板格拆分：半角冒号也认', P.splitStatCell('攻击力: 2200'), { group: '', k: '攻击力', v: '2200' })
+  // 2026-10-17 复审 #10：方向前缀单独成组，两种方向的同名属性不再混成两行一样的东西
+  push('面板格拆分：`辅助：暴击率：70%` → group=辅助', P.splitStatCell('辅助：暴击率：70%'), { group: '辅助', k: '暴击率', v: '70%' })
+  push('面板格拆分：`输出向：暴击伤害：220%` → group=输出向', P.splitStatCell('输出向：暴击伤害：220%'), { group: '输出向', k: '暴击伤害', v: '220%' })
+  push('面板格拆分：首段不是方向词时不拆三瓣', P.splitStatCell('宗室：暴击率：70%'), { group: '', k: '宗室', v: '暴击率：70%' })
   const tpl = readText(path.join(pluginRoot, 'resources', 'codex', 'codex.html'))
   const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css'))
   // 2026-10-16 用户改口径：攻略页的"长标签"（如 月结晶/月感电）是**标签**而非括弧备注，

@@ -130,6 +130,43 @@ check('不写档位 = null（交给 app 提示选档）', r.tier === null)
   const e3 = { reply_id: 'q4', getReply: async () => ({ message: [{ type: 'text', text: '第 1 名（当前条件下共 7 条）' }] }) }
   check('审核反例②：`七七 视频1` 里的 `1` 不再被当成引用内容（旧实现 → `七七`）',
     (await stripQuotedArgs(e3, '七七 视频1')) === '七七 视频1')
+
+  // ---- 复审 #2 / #3：参数优先取「用户自己打的文本」（2026-10-17） ----
+  const { resolveCommandArgs } = await import(mod('modules/quoteGuard.js'))
+  const { RULES } = await import(mod('components/constants.js'))
+  const rankRule = RULES.rank
+  const raidRule = RULES.raidTiers
+
+  const ownOnly = { message: [{ type: 'text', text: '#DPS榜 胡桃 12金' }], msg: '#DPS榜 胡桃 12金' }
+  check('没有引用时：own 文本直接给出参数', (await resolveCommandArgs(ownOnly, rankRule)).text === '胡桃 12金')
+
+  // #2：引用原文与新命令完全相同 → 参数必须保留（旧实现会被 stripQuotedArgs 剔空 → 掉成总榜）
+  const sameQuote = {
+    reply_id: 'q9',
+    message: [{ type: 'text', text: '#DPS榜 胡桃 12金' }],
+    msg: '#DPS榜 胡桃 12金\n#DPS榜 胡桃 12金',
+    getReply: async () => ({ message: [{ type: 'text', text: '#DPS榜 胡桃 12金' }] })
+  }
+  check('复审 #2：引用了同样的命令再重打 → 参数仍在（不被整段剔掉）',
+    (await resolveCommandArgs(sameQuote, rankRule)).text === '胡桃 12金')
+
+  // #3：引用里含我们的输出指纹（回灌），但用户自己打了新命令 → 不能判成回灌
+  const quoteEcho = {
+    reply_id: 'q10',
+    message: [{ type: 'text', text: '#DPS榜 胡桃' }],
+    msg: '#胡桃 · 每 4 金一档的最高伤害队伍\n数据来自 mhydps.cn\n#DPS榜 胡桃',
+    getReply: async () => ({ message: [{ type: 'text', text: '#胡桃 · 每 4 金一档的最高伤害队伍\n数据来自 mhydps.cn' }] })
+  }
+  const r3 = await resolveCommandArgs(quoteEcho, rankRule)
+  check('复审 #3：引用里带输出指纹、但 own 是新命令 → 不判回灌且参数正确', r3.echo === false && r3.text === '胡桃')
+
+  // 自环：own 自己就是我们的输出 → 仍要判成回灌（静默忽略）
+  const pureEcho = { message: [{ type: 'text', text: '数据来自 mhydps.cn' }], msg: '数据来自 mhydps.cn' }
+  check('自环：own 自身就是我们的输出 → echo=true', (await resolveCommandArgs(pureEcho, rankRule)).echo === true)
+
+  // 危战：own 文本按 raidTiers 规则取参数
+  const raidOwn = { message: [{ type: 'text', text: '#危战 矮灵 n7' }], msg: '#危战 矮灵 n7' }
+  check('危战 own 文本取参数', (await resolveCommandArgs(raidOwn, raidRule)).text === '矮灵')
 }
 
 finish()

@@ -451,11 +451,32 @@ export function labelToneOf (label: string): LabelTone {
 }
 
 /** 面板格文本 `暴击率：80-90%` → `{ k: '暴击率', v: '80-90%' }`；没有冒号时 k 留空、v 原样 */
-export function splitStatCell (text: string): { k: string, v: string } {
+/**
+ * `属性：数值` → 三瓣（2026-10-17 复审修复 #10）
+ *
+ * 攻略里的面板行有**方向前缀**：`辅助：暴击率：70%` / `输出：暴击率：90%`。
+ * 旧实现只按**第一个**冒号切 → `k = 辅助`、`v = 暴击率：70%`：方向是出现了，但属性名和数值被挤在
+ * 同一格里、两种方向的两行看起来只是"标签不同"，读不出"这是辅助档 / 输出档"。
+ * 两个及以上冒号时按 **方向 : 属性 : 数值** 切；只有一个冒号时维持 `属性 : 数值`。
+ */
+const DIRECTION_WORDS = /^(?:辅助|输出|治疗|生存|主c|副c|主C|副C|输出向|辅助向|双修|盾)(?:向)?$/i
+
+export function splitStatCell (text: string): { group: string, k: string, v: string } {
   const raw = String(text || '').trim()
-  const at = raw.search(/[：:]/)
-  if (at <= 0) return { k: '', v: raw }
-  return { k: raw.slice(0, at).trim(), v: raw.slice(at + 1).trim() }
+  const all = [...raw.matchAll(/[：:]/g)].map(m => m.index ?? -1).filter(i => i > 0)
+  if (!all.length) return { group: '', k: '', v: raw }
+  if (all.length >= 2) {
+    const g = raw.slice(0, all[0]).trim()
+    const k = raw.slice(all[0] + 1, all[1]).trim()
+    const v = raw.slice(all[1] + 1).trim()
+    /*
+     * 只有首段确实是"方向词"才当 group（数据里实测只有：辅助 / 输出 / 输出向 / 辅助向 / 主c …）。
+     * 否则像 `备注：时间 12:30` 这种「值里带冒号」的行会被误拆成三瓣 —— 旧口径只切第一个冒号，必须保留。
+     */
+    if (DIRECTION_WORDS.test(g) && k && v) return { group: g, k, v }
+  }
+  const at = all[0]
+  return { group: '', k: raw.slice(0, at).trim(), v: raw.slice(at + 1).trim() }
 }
 
 export function labelLinesOf (label: string): string[] {
@@ -508,6 +529,7 @@ export function buildCodexPresentation (view: {
         const cell = splitStatCell(normalizeItemText(item.text))
         return {
           text: normalizeItemText(item.text),
+          group: cell.group,
           k: cell.k,
           v: cell.v,
           textHtml: noteSpansOf(normalizeItemText(item.text)),

@@ -18,7 +18,7 @@ import { parseRaidArgs, takeVideoToken } from '../modules/queryArgs.js'
 import { N7_SECONDS_LIMIT, queryRaidTiers } from '../modules/raidTiersQuery.js'
 import type { RaidTiersResult } from '../modules/raidTiersQuery.js'
 import { respond, suggestLine } from '../modules/respond.js'
-import { stripQuotedArgs, looksLikeOurEcho } from '../modules/quoteGuard.js'
+import { resolveCommandArgs } from '../modules/quoteGuard.js'
 import { replyRaidVideo } from '../modules/videoLookup.js'
 
 // @ts-expect-error 框架文件不在 tsc 解析范围，运行时相对 lib/ 解析（见 components/render.ts 文件头 T1 / T2）
@@ -94,9 +94,10 @@ export class MetaRaidTiers extends plugin {
      * 就是档页每行标的「全榜 #N」）。
      */
     const videoNo = Number(match[3]) || 0
-    // 引用回复的原文会被带进参数里（用户 2026-10-15 反馈）→ 先按引用内容剔掉，再解析
-    if (looksLikeOurEcho(e.msg)) return false
-    const clean = await stripQuotedArgs(e, match[1] || '')
+    // 参数来源：优先用用户自己打的文本（2026-10-17 复审修复 #2/#3，见 resolveCommandArgs）
+    const resolved = await resolveCommandArgs(e, RULES.raidTiers)
+    if (resolved.echo) return false
+    const clean = resolved.text
     if (videoNo > 0) {
       // 视频名次走「榜单视频」模块开关（与 `#DPS榜 … 视频N` 同一个开关）
       if (await moduleGateReply('video', e)) return true
@@ -140,13 +141,13 @@ export class MetaRaidTiers extends plugin {
    */
   async handlePickTier (e: YunzaiEvent): Promise<boolean> {
     if (await moduleGateReply('raidTiers', e)) return true
-    const match = String(e.msg).match(RULES.raidTiersPrompt) || []
     /*
      * 视频名次写在档位前面（`#危战 矮灵 视频3 n7`）或没写档位（`#危战 矮灵 视频3`）时会落到这条兜底规则：
      * 名次查询与档位无关，直接按视频名次走（`视频N` 之外的部分照常当筛选词）。
      */
-    if (looksLikeOurEcho(e.msg)) return false
-    const clean = await stripQuotedArgs(e, match[1] || '')
+    const resolved = await resolveCommandArgs(e, RULES.raidTiersPrompt)
+    if (resolved.echo) return false
+    const clean = resolved.text
     const { videoNo, rest } = takeVideoToken(clean)
     if (videoNo > 0) {
       if (await moduleGateReply('video', e)) return true

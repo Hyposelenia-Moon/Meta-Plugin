@@ -99,3 +99,34 @@ export function looksLikeOurEcho (text: unknown): boolean {
   if (!s) return false
   return ECHO_MARKERS.some(m => s.includes(m))
 }
+/**
+ * 解析命令参数：**优先用「用户自己打的文本」**，拿不到段信息时才退回旧路径。
+ *
+ * 2026-10-17 复审修复（#2 / #3）：
+ *   - #3 `e.msg` 里**带着引用原文**，旧代码直接 `looksLikeOurEcho(e.msg)`：
+ *     用户引用我们的回复、又打了新命令时，命中的是"引用里的指纹" → 直接 return false，
+ *     合法的新命令一条回复都没有（实测：回复 0 条、getReply 调用 0 次）。
+ *   - #2 旧路径把"用户重打的、与引用原文相同的参数"整段剔掉（`引用=胡桃12金` + 重打 `胡桃12金` → 空串），
+ *     于是角色丢了、掉成总榜。
+ * 现在：own 文本存在且能匹配规则时**只用 own**（既不判回灌、也不剔引用），
+ * only 当适配器不提供 message 段时才走旧的 stripQuotedArgs 兜底。
+ *
+ * @returns `echo` = 这条命令本身就是我们自己的输出（自环/转发）→ 调用方应静默忽略；
+ *          `text` = 规则第 1 组（参数原文，未做进一步解析）。
+ */
+export async function resolveCommandArgs (
+  e: unknown,
+  rule: RegExp
+): Promise<{ echo: boolean, text: string }> {
+  const own = ownTextOf(e).trim()
+  if (own && rule.test(own)) {
+    if (looksLikeOurEcho(own)) return { echo: true, text: '' }
+    return { echo: false, text: (own.match(rule) || [])[1] || '' }
+  }
+
+  const msg = String((e as { msg?: unknown } | null)?.msg || '')
+  if (looksLikeOurEcho(msg)) return { echo: true, text: '' }
+  const raw = (msg.match(rule) || [])[1] || ''
+  if (!raw) return { echo: false, text: '' }
+  return { echo: false, text: await stripQuotedArgs(e, raw) }
+}

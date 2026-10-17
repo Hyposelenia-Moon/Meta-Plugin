@@ -564,9 +564,19 @@ function scoreComprehensive (targets: GuideTargets, build: BuildSnapshot): Grade
    *   攻略缺项（既没有推荐套装也没有评分口径）→ unscored。
    * 现场核对 §三：旧实现把两者都写成 pct:0，页面看不出区别。
    */
+  /*
+   * 2026-10-17 复审修复（#1）：**没读到圣遗物就是"数据缺失"**，不是"攻略缺项"。
+   * 旧写法 `artis.length || build.hasMark ? 'unknown' : 'unscored'` 把「玩家没穿/没读到圣遗物」
+   * 也判成 unscored（= 攻略没写这一项、不计入分母），于是 assessable 仍为 true → 只按武器/天赋
+   * 归一出 100 分、还附「各维度均已达标」。
+   * 现在的四态：
+   *   ratio 有值                        → met / below；
+   *   ratio 空 且读到了圣遗物（>0 件）  → 一定是攻略没给套装/评分口径 → unscored + target-missing；
+   *   ratio 空 且一件都没读到           → unknown + data-missing（总分转"待评"）。
+   */
   const state: AssessmentState = ratio !== null
     ? (ratio >= 1 ? 'met' : 'below')
-    : (artis.length || build.hasMark ? 'unknown' : 'unscored')
+    : (artis.length ? 'unscored' : 'unknown')
   const reason: AssessmentReason | undefined = state === 'met' || state === 'below'
     ? undefined
     : (state === 'unknown' ? 'data-missing' : 'target-missing')
@@ -875,7 +885,15 @@ export function buildSuggestionRows (targets: GuideTargets, build: BuildSnapshot
   }
 
   // 全部达标：不带证据号（页面显示"通用建议"，不编造 E 号）
-  if (!out.length) add('all-met', '各维度均已达标：可继续提升圣遗物词条质量', [])
+  /*
+   * 2026-10-17 复审修复（#1）：只有**全部维度都真的达标**才说"均已达标"；
+   * 有维度是 unknown（数据没取到）时给补数据提示，绝不把"没数据"说成"已达标"。
+   */
+  if (!out.length) {
+    const hasUnknown = dims.some(d => d.state === 'unknown')
+    if (hasUnknown) add('data-gap', '数据不全：先补上缺失的装备 / 圣遗物信息再评估，暂不判定达标', ['data-gap'])
+    else add('all-met', '各维度均已达标：可继续提升圣遗物词条质量', [])
+  }
   return out.slice(0, 4)
 }
 
