@@ -38,6 +38,8 @@
      *   ③ `.codex-portrait-edge`：**模糊描边** —— 外圈用 `backdrop-filter` 把图本身虚化成一个过渡边，
      *      中间保持清晰；不再用"整块模糊底"去填空缺（图已铺满，没有空缺）。
      *   ④ `.codex-portrait-bg`：兜底底色（同图 cover + blur），只在图还没加载/极端比例时可见。
+     *   ⑤ 取景窗四角圆角 10px（2026-10-17 用户定，与页面卡片同值）—— `overflow:hidden` 会把
+     *      主体层、兜底层与边缘模糊线一起裁成圆角，不用再给各层单独设圆角。
      */
     .codex-portrait {
       flex: none;
@@ -48,7 +50,7 @@
       z-index: 2;
       overflow: hidden;
       border: none;
-      border-radius: 0;
+      border-radius: 10px;
     }
     .codex-portrait-bg {
       position: absolute;
@@ -60,13 +62,22 @@
       transform: translateZ(0);
     }
     .codex-portrait-edge {
+      /*
+       * 边缘模糊「线」（2026-10-17 第二轮修正）：只把**最外一圈**（默认 8px）虚化，
+       * 不再用径向渐变从 58% 就开始过渡 —— 那样会在四边压出一整条糊带（用户报过左侧糊一条）。
+       * 做法是标准的「只保留边框」遮罩：整块 mask ⊕ 内容盒 mask，剩下的就是那圈边。
+       */
       position: absolute;
       inset: 0;
       pointer-events: none;
-      backdrop-filter: blur(14px) brightness(.92);
-      -webkit-backdrop-filter: blur(14px) brightness(.92);
-      -webkit-mask-image: radial-gradient(115% 115% at 50% 50%, transparent 58%, #000 100%);
-      mask-image: radial-gradient(115% 115% at 50% 50%, transparent 58%, #000 100%);
+      padding: 8px;
+      box-sizing: border-box;
+      backdrop-filter: blur(8px) brightness(.94);
+      -webkit-backdrop-filter: blur(8px) brightness(.94);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
     }
     .codex-portrait-img {
       position: absolute;
