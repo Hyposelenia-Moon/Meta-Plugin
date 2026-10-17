@@ -264,7 +264,13 @@ var state = {
   drawerOpen: false,     // 右侧抽屉（回收站 / 批量替换 / 名称库 / 全局检索）是否展开
   drawerTab: 'search',   // 抽屉当前页签
   previewOpen: false,    // 右侧「实时预览」面板是否展开
-  previewText: false,    // 预览显示形态：false = 渲染视图，true = 逐行文本
+  /**
+   * 预览显示形态（三页签）：
+   *   `page` = **bot 实发的攻略页**（同一模板 resources/codex/codex.html + 同一投影，默认）
+   *   `card` = 维护者流水线的网页卡片（guide.html 同款，简化卡）
+   *   `text` = 逐行纯文本（与面板模型逐行比对用）
+   */
+  previewTab: 'page',
   // 空占位行（旧数据里的待填行）**默认显示**（用户定稿 2026-09-20：不自动隐藏），
   // 由工具栏的「空占位行」按钮切换；选择记在 localStorage 里，下次打开沿用。
   showEmpty: true
@@ -4095,23 +4101,107 @@ function renderPreviewNow () {
     previewLast = res
     var nameEl = $('preview-name')
     if (nameEl) nameEl.textContent = state.current + (asArray(res.issues).length ? '（⚠ ' + res.issues.length + ' 处名称待确认）' : '')
-    if (state.previewText) {
-      box.innerHTML = '<pre class="preview-lines">' + esc(asArray(res.lines).join('\n')) + '</pre>'
-    } else {
-      box.innerHTML = '<div class="guide-preview">' + res.html + '</div>'
-    }
+    paintPreview(box, res)
   }).catch(function (e) {
     if (previewLast !== token) return
     box.innerHTML = '<div class="muted" style="padding:10px">预览失败：' + esc(e.message) + '</div>'
   })
 }
 
-/** 切换「渲染视图 / 逐行文本」 */
-function togglePreviewText () {
-  state.previewText = !state.previewText
-  var btn = $('btn-preview-text')
-  if (btn) btn.textContent = state.previewText ? '渲染视图' : '逐行文本'
-  renderPreviewNow()
+/**
+ * 按当前页签把一次预览结果画出来。
+ *
+ * `page` 用的是服务端「真实页面」（bot 同一模板 + 同一投影）；拿不到时（缺 bot /
+ * 缺 art-template / 缺 miao）**自动回落到简化卡**并把原因写进状态栏与预览区顶部，
+ * 不静默变成空白。
+ */
+function paintPreview (box, res) {
+  var tab = state.previewTab || 'page'
+  if (tab === 'text') {
+    box.innerHTML = '<pre class="preview-lines">' + esc(asArray(res.lines).join('\n')) + '</pre>'
+    return
+  }
+  if (tab === 'page') {
+    var page = res.page || {}
+    if (page.ok && res.pageHtml) {
+      /*
+       * srcdoc 必须整段转义：里面全是双引号与尖括号，直接拼会提前闭合属性。
+       * 外面再套一层 wrap：页面是按 bot 的 1170px 宽的（780 × zoom 1.5），而预览面板只有
+       * 三四百像素，所以按面板宽度**等比缩放**并同步 wrap 高度，避免右侧被裁掉。
+       */
+      box.innerHTML = '<div class="preview-page-wrap"><iframe class="preview-page" sandbox="allow-same-origin" title="bot 实发页面" srcdoc="' + esc(res.pageHtml) + '"></iframe></div>'
+      var frame = (box.querySelector ? box.querySelector('iframe') : null)
+      if (frame && frame.addEventListener) {
+        previewFrame = frame
+        frame.addEventListener('load', function () { fitPreviewFrame(box, frame) })
+      }
+      return
+    }
+    var why = page.reason || '未知原因'
+    setPreviewTab('card', true)
+    box.innerHTML = '<div class="preview-warn">真实页面不可用：' + esc(why) + '（已切到简化卡）</div>' +
+      '<div class="guide-preview">' + (res.html || '') + '</div>'
+    showStatus('真实页面不可用，已切到简化卡：' + why, 'warn', true)
+    return
+  }
+  box.innerHTML = '<div class="guide-preview">' + (res.html || '') + '</div>'
+}
+
+/** 当前「真实页面」iframe（窗口尺寸变化时按新宽度重算缩放） */
+var previewFrame = null
+/** 预览页面的设计宽度：`body { min-width: 780px }` × bot 的 `renderScale` 1.5 */
+var PREVIEW_PAGE_WIDTH = 1170
+
+/**
+ * 把「真实页面」iframe 按面板宽度等比缩放到 100% 可见
+ *
+ * iframe 内部是完整的 1170px 页面，直接塞进窄面板会被裁掉右边；
+ * 这里用 transform 缩放 + 把外层 wrap 的高度设成「页面高度 × 缩放比」，
+ * 于是滚动条长度也正确（不会出现大片空白）。
+ */
+function fitPreviewFrame (box, frame) {
+  try {
+    var doc = frame.contentDocument
+    if (!doc) return
+    var base = PREVIEW_PAGE_WIDTH
+    var avail = (box.clientWidth || base) - 22
+    var z = Math.min(1, Math.max(0.2, avail / base))
+    frame.style.transform = 'scale(' + z + ')'
+    var root = doc.documentElement || doc.body
+    var h = (root && root.scrollHeight) || 2200
+    var wrap = frame.parentNode
+    if (wrap && wrap.style) {
+      wrap.style.height = Math.round(h * z) + 'px'
+      wrap.style.width = Math.round(base * z) + 'px'
+    }
+  } catch (e) { /* 跨源 / 页面还没就绪：保持原样即可 */ }
+}
+
+/** 切预览页签：`page`（默认，bot 实发页面）/ `card`（简化卡）/ `text`（逐行文本） */
+function setPreviewTab (tab, silent) {
+  var next = (tab === 'card' || tab === 'text') ? tab : 'page'
+  var changed = state.previewTab !== next
+  state.previewTab = next
+  try { localStorage.setItem('dsh.previewTab', next) } catch (e) {}
+  applyPreviewTabs()
+  if (!silent && (changed || state.previewOpen)) renderPreviewNow()
+}
+
+/** 页签按钮的选中态（缺按钮时静默跳过 —— 自检的 DOM 桩里没有这些节点） */
+function applyPreviewTabs () {
+  var ids = { page: 'btn-preview-page', card: 'btn-preview-card', text: 'btn-preview-text' }
+  var notes = {
+    page: '真实页面 = bot 实际发出的那张图（同模板、同投影、同数据）',
+    card: '简化卡 = 维护者流水线的网页卡片（guide.html 同款），用于逐字对文案',
+    text: '逐行文本 = 与面板模型逐行比对（推荐 / 可选 / 过渡、｜、＞、皇冠）'
+  }
+  var noteEl = $('preview-note')
+  if (noteEl) noteEl.textContent = notes[state.previewTab] || notes.page
+  for (var key in ids) {
+    var btn = $(ids[key])
+    if (!btn || !btn.classList) continue
+    btn.classList.toggle('on', state.previewTab === key)
+  }
 }
 
 /**
@@ -4362,6 +4452,13 @@ function globalEvents () {
   if ($('btn-publish-all')) $('btn-publish-all').addEventListener('click', function () { saveAndPublish() })
 
   /* ------------------------------------------------ 回收站（在抽屉里，事件见上） */
+  // 窗口尺寸变化：把「真实页面」的缩放比重算一次（否则拉宽后右侧留白 / 拉窄后被裁）
+  window.addEventListener('resize', function () {
+    if (!previewFrame) return
+    var box = $('preview-body')
+    if (box) fitPreviewFrame(box, previewFrame)
+  })
+
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return
     if (state.drawerOpen) { e.preventDefault(); closeDrawer(); return }
@@ -4372,13 +4469,26 @@ function globalEvents () {
   $('btn-preview').addEventListener('click', function () { togglePreview() })
   $('btn-preview-close').addEventListener('click', function () { togglePreview(false) })
   $('btn-preview-refresh').addEventListener('click', function () { renderPreviewNow() })
-  $('btn-preview-text').addEventListener('click', function () { togglePreviewText() })
+  // 预览三页签：真实页面（默认）/ 简化卡 / 逐行文本
+  var previewTabButtons = { page: 'btn-preview-page', card: 'btn-preview-card', text: 'btn-preview-text' }
+  Object.keys(previewTabButtons).forEach(function (tab) {
+    var btn = $(previewTabButtons[tab])
+    if (!btn) return
+    btn.addEventListener('click', function () { setPreviewTab(tab) })
+  })
 
   /* ------------------------------------------------ 空占位行：显示 / 折叠 */
   var emptyBtn = $('btn-empty-rows')
   if (emptyBtn) emptyBtn.addEventListener('click', function () { toggleEmptyRows() })
 
   /* ------------------------------------------------ 快捷键 */
+  // 窗口尺寸变化：把「真实页面」的缩放比重算一次（否则拉宽后右侧留白 / 拉窄后被裁）
+  window.addEventListener('resize', function () {
+    if (!previewFrame) return
+    var box = $('preview-body')
+    if (box) fitPreviewFrame(box, previewFrame)
+  })
+
   document.addEventListener('keydown', function (e) {
     var key = String(e.key || '').toLowerCase()
     var mod = e.ctrlKey || e.metaKey
@@ -4478,6 +4588,12 @@ function boot () {
     if (saved === '0') state.showEmpty = false
     if (saved === '1') state.showEmpty = true
   } catch (e) {}
+  // 预览页签：沿用上次的选择（默认「真实页面」）
+  try {
+    var savedTab = localStorage.getItem('dsh.previewTab')
+    if (savedTab === 'card' || savedTab === 'text' || savedTab === 'page') state.previewTab = savedTab
+  } catch (e) {}
+  applyPreviewTabs()
   applyEmptyRowsButton()
   formEvents()
   globalEvents()
@@ -4602,6 +4718,10 @@ window.__editor = {
     return state.model
   },
   syncRefInputs: syncRefInputs,
+  // 预览三页签（page = bot 实发页面 / card = 简化卡 / text = 逐行文本）
+  setPreviewTab: setPreviewTab,
+  paintPreview: paintPreview,
+  applyPreviewTabs: applyPreviewTabs,
   toJson: buildBody,
   openRefPickerFor: openRefPickerFor,
   jumpTo: jumpTo,

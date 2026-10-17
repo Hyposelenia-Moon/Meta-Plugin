@@ -113,7 +113,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 | v2 数据结构、备注行、主词条括注、ref 写法 | [docs/数据-文档结构.md](./docs/数据-文档结构.md) |
 | 新增/修改角色、每天回写、空档角色、行文约定 | [docs/数据-写作与回写.md](./docs/数据-写作与回写.md) |
 | Word→JSON、图鉴索引脚本 | [docs/脚本-文档与索引.md](./docs/脚本-文档与索引.md) |
-| 图形化编辑器、保存即发布 | [docs/脚本-编辑器与发布.md](./docs/脚本-编辑器与发布.md) |
+| 图形化编辑器、保存即发布（含「预览 = bot 实发页面」） | [docs/脚本-编辑器与发布.md](./docs/脚本-编辑器与发布.md) |
 | 解析告警（防呆，不静默） | [docs/脚本-解析告警.md](./docs/脚本-解析告警.md) |
 | 测试命令、前置与跳过 | [docs/测试.md](./docs/测试.md) |
 | 许可、字体、版权声明、数据来源 | [docs/许可与来源.md](./docs/许可与来源.md) |
@@ -180,7 +180,7 @@ pnpm build && pnpm test     # 55 套；任意 cwd 可跑、不发真实网络、
   `grade-guide-targets`（`kind` 分桶、组合候选、建议口径）、
   `modules-switch`（模块开关的默认值、深合并、闸门拦截与放行、非接管类 app 的接线（7 个））、
   `render-fallback`（`retType` 第 4 参、图片消息段返回、失败一律回退）。
-- 维护者区自检（不在 `pnpm test` 内）：`node scripts/editor-selftest.mjs`（241/241）、`display-selftest.mjs`、`display-audit.mjs`、`audit-guide-html.mjs`。
+- 维护者区自检（不在 `pnpm test` 内）：`node scripts/editor-selftest.mjs`（258/258）、`display-selftest.mjs`、`display-audit.mjs`、`audit-guide-html.mjs`。
 - 细节与固定验收集见 [docs/测试.md](./docs/测试.md) 与 [docs/改动传播清单.md](./docs/改动传播清单.md)。
 
 ## 待办（摘要）

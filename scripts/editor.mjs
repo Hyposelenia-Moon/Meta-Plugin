@@ -52,6 +52,8 @@ import { verifyThreeWay, snapshotMainDoc, sha1File } from './lib/publish-verify.
 // 主文档路径与其它脚本同源（lib/main-doc.mjs：CODEX_DOCX 优先），不再本文件硬编码一份
 import { MAIN_DOC, markedDocOf } from './lib/main-doc.mjs'
 import { buildIndex, readAtlasCharacters } from './build-index.mjs'
+// 「真实页面」预览：复用 bot 的投影 + resources/codex/codex.html（见该文件头）
+import { renderCodexPage, miaoResourcesDir, resolveBotRoot } from './lib/preview-page.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(here, '..')
@@ -66,6 +68,23 @@ const editorDir = path.join(root, 'resources', 'editor')
 const DEFAULT_DOC = MAIN_DOC
 /** 提交摘要落盘位置（out/ 已在 .gitignore 里，不污染仓库） */
 const SUMMARY_FILE = path.join(root, 'out', '_commit-summary.md')
+/**
+ * 「真实页面」预览的两条**只读**路由
+ *
+ * 预览 iframe 里渲染的是 bot 实发的模板（resources/codex/codex.html），它通过
+ * `{{_res_path}}` / `{{_miao_path}}` 引 CSS、字体、立绘与图标；这两个前缀分别映射到
+ * 本插件 `resources/` 与 miao 的 `resources/`，见 lib/preview-page.mjs 的文件头。
+ */
+const PREVIEW_RES_ROUTE = '/preview/res/'
+const PREVIEW_MIAO_ROUTE = '/preview/miao/'
+/**
+ * bot 根提示：`--bot <路径>` 优先，其次环境变量 `META_BOT_ROOT`，最后读上次记住的 `out/.bot-root`
+ *
+ * 部署副本位于 `<bot根>/plugins/Meta-Plugin`，向上两级能自己找到 bot；开发工作区不在 bot 下面，
+ * 所以留一个显式入口。`out/` 未跟踪，记住路径不会污染仓库。
+ */
+let BOT_ROOT_HINT = String(process.env.META_BOT_ROOT || '').trim()
+const BOT_ROOT_FILE = path.join(root, 'out', '.bot-root')
 
 const DEFAULT_PORT = 8787
 const MAX_PORT_TRIES = 10
@@ -2776,7 +2795,30 @@ async function apiPreview (req, res) {
     })),
     teams: (s.teams ?? []).map(t => ({ tag: t.tag ?? '', members: (t.members ?? []).map(m => ({ name: m.name, note: m.note || '' })), note: t.note || '' }))
   }))
-  sendJson(res, 200, { ok: true, name, html, lines, sections, issues: validate(data, readIndex()) })
+  /*
+   * 「真实页面」：bot 怎么发，这里就怎么渲染（同一模板 + 同一投影）。
+   * 失败**不算接口失败**：page.ok=false + reason，界面自动落到「简化卡」页签，
+   * 因为缺 bot / 缺 miao 的机器上仍然要能用编辑器改数据。
+   */
+  const page = await renderCodexPage({
+    pluginRoot: root,
+    name,
+    character: data,
+    resRoute: PREVIEW_RES_ROUTE,
+    miaoRoute: PREVIEW_MIAO_ROUTE,
+    renderScale: 1.5,
+    botRootHint: BOT_ROOT_HINT
+  })
+  sendJson(res, 200, {
+    ok: true,
+    name,
+    html,
+    lines,
+    sections,
+    issues: validate(data, readIndex()),
+    pageHtml: page.ok ? page.html : '',
+    page: { ok: page.ok, reason: page.ok ? '' : page.reason }
+  })
 }
 
 /* ------------------------------------------------------------- 静态资源服务 */
@@ -2796,6 +2838,34 @@ function servePinyin (res) {
     .replace(/\n[ \t]*if \(typeof module !== 'undefined' && module\.exports\)[^\n]*\n/, '\n')
   const body = Buffer.from(src, 'utf8')
   res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8', 'Content-Length': body.length, 'Cache-Control': 'no-store' })
+  res.end(body)
+}
+
+/**
+ * 只读静态服务（可换根目录）：预览 iframe 要加载插件自己的 CSS / 字体 / 立绘 / 图标。
+ *
+ * 与 `serveStatic` 同一套防穿越检查，只是把「根」从编辑器目录换成别的目录；
+ * 目录不存在时回 404 而不是 500 —— 缺 miao 的机器上预览会退化成无立绘版本。
+ */
+function serveFromDir (res, baseDir, rel, what) {
+  if (!baseDir) return sendError(res, 404, `${what}目录不存在（未安装 miao-plugin？）`)
+  const clean = decodeURIComponent(String(rel ?? '')).replace(/^\/+/, '')
+  const target = path.resolve(baseDir, clean)
+  const relCheck = path.relative(baseDir, target)
+  if (relCheck.startsWith('..') || path.isAbsolute(relCheck)) return sendError(res, 403, '拒绝访问')
+  let stat
+  try {
+    stat = fs.statSync(target)
+  } catch {
+    return sendError(res, 404, `找不到资源：${clean}`)
+  }
+  if (!stat.isFile()) return sendError(res, 404, `找不到资源：${clean}`)
+  const body = fs.readFileSync(target)
+  res.writeHead(200, {
+    'Content-Type': MIME[path.extname(target).toLowerCase()] ?? 'application/octet-stream',
+    'Content-Length': body.length,
+    'Cache-Control': 'no-store'
+  })
   res.end(body)
 }
 
@@ -2908,6 +2978,13 @@ async function route (req, res) {
   }
 
   if (method !== 'GET' && method !== 'HEAD') return sendError(res, 405, `不支持的请求方法：${method}`)
+  // 「真实页面」预览的静态资源（只读：插件 resources + miao resources）
+  if (pathname.startsWith(PREVIEW_RES_ROUTE)) {
+    return serveFromDir(res, path.join(root, 'resources'), pathname.slice(PREVIEW_RES_ROUTE.length), '插件 resources')
+  }
+  if (pathname.startsWith(PREVIEW_MIAO_ROUTE)) {
+    return serveFromDir(res, miaoResourcesDir(resolveBotRoot(root, BOT_ROOT_HINT)), pathname.slice(PREVIEW_MIAO_ROUTE.length), 'miao resources')
+  }
   if (pathname === '/' || pathname === '/index.html') return serveIndexHtml(res)
   if (pathname === '/pinyin.js') return servePinyin(res)
   return serveStatic(res, pathname)
@@ -2969,7 +3046,7 @@ function openBrowser (url) {
 }
 
 function parseArgs (argv) {
-  const out = { port: DEFAULT_PORT, open: true, exitOnIdle: 0 }
+  const out = { port: DEFAULT_PORT, open: true, exitOnIdle: 0, bot: '' }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--no-open') out.open = false
@@ -2985,6 +3062,11 @@ function parseArgs (argv) {
         process.exit(1)
       }
       out.exitOnIdle = v
+    } else if (a === '--bot') {
+      // 「真实页面」预览要 bot 的 art-template + miao 资源；开发工作区不在 bot 下面时用它指一下
+      out.bot = String(argv[++i] || '').trim()
+    } else if (a.startsWith('--bot=')) {
+      out.bot = a.slice('--bot='.length).trim()
     } else if (a === '--port' || a === '-p') {
       const v = Number(argv[++i])
       if (!Number.isInteger(v) || v < 0 || v > 65535) {
@@ -3005,7 +3087,11 @@ function parseArgs (argv) {
 }
 
 export async function main (argv = process.argv.slice(2)) {
-  const { port, open, exitOnIdle } = parseArgs(argv)
+  const { port, open, exitOnIdle, bot } = parseArgs(argv)
+  if (bot) {
+    BOT_ROOT_HINT = bot
+    try { fs.writeFileSync(BOT_ROOT_FILE, bot, 'utf8') } catch { /* out/ 不可写就算了，不影响本次运行 */ }
+  }
   if (!fs.existsSync(editorDir)) {
     console.error(`找不到界面资源目录：${editorDir}`)
     process.exit(1)
@@ -3017,6 +3103,8 @@ export async function main (argv = process.argv.slice(2)) {
   console.log('角色攻略编辑器已启动')
   console.log(`访问地址：${url}`)
   console.log(`数据目录：${path.relative(root, giDir)}`)
+  const previewBot = resolveBotRoot(root, BOT_ROOT_HINT)
+  console.log(`预览用 bot 根：${previewBot || '（未找到 —— 真实页面会退化为简化卡；用 --bot <路径> 指定）'}`)
 
   // 空闲自动退出：只在显式打开时启用；命令行用户的默认行为完全不变
   if (exitOnIdle > 0) {

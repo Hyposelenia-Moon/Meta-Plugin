@@ -93,17 +93,27 @@
     <div class="drawer-body" id="drawer-body"></div>
   </aside>
 
-  <!-- 实时预览：用服务端 /api/preview（与面板 / 网页版同一份显示归一）渲染当前表单内容 -->
+  <!--
+    实时预览：三页签
+      · 真实页面（默认）= bot 实发的攻略页（同一模板 resources/codex/codex.html + 同一投影）
+      · 简化卡        = 维护者流水线的网页卡片（guide.html 同款）
+      · 逐行文本      = 与面板模型逐行比对用
+    数据来自服务端 /api/preview（幂等、不写文件）。
+  -->
   <aside id="preview" class="preview hidden" aria-label="实时预览">
     <div class="preview-head">
       <span class="preview-title">实时预览</span>
       <span id="preview-name" class="muted"></span>
       <span class="spacer"></span>
-      <button type="button" class="btn mini" id="btn-preview-text" title="切换「渲染视图 / 逐行文本」">逐行文本</button>
       <button type="button" class="btn mini" id="btn-preview-refresh" title="立即重新渲染">刷新</button>
       <button type="button" class="btn mini" id="btn-preview-close" title="收起（Ctrl+P / Esc）">✕</button>
     </div>
-    <div class="preview-note muted">与面板 / 网页版同一份显示归一：推荐 / 可选 / 过渡、`｜`、`＞`、皇冠徽标、暂无</div>
+    <div class="preview-tabs">
+      <button type="button" class="btn mini on" id="btn-preview-page" title="bot 实发的攻略页：与 resources/codex/codex.html 同一模板、同一投影">真实页面</button>
+      <button type="button" class="btn mini" id="btn-preview-card" title="维护者流水线的网页卡片（guide.html 同款，简化卡）">简化卡</button>
+      <button type="button" class="btn mini" id="btn-preview-text" title="逐行纯文本（与面板逐行比对用）">逐行文本</button>
+    </div>
+    <div class="preview-note muted" id="preview-note">真实页面 = bot 实际发出的那张图（同模板、同投影、同数据）</div>
     <div id="preview-body" class="preview-body"><div class="muted" style="padding:10px">打开编辑器后自动渲染当前角色。</div></div>
   </aside>
 </div>

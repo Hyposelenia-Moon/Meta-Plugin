@@ -28,6 +28,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import vm from 'node:vm'
+import os from 'node:os'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -995,6 +996,76 @@ push('配队：候选拆分', fn('memberCandidates')('迪奥娜 / 阿罗夏'), [
   }
 }
 
+/* ------------------------------------------------- 第 11 组：预览三页签（2026-10-17）
+ * 「预览 = bot 实发页面」改造的前端规则：默认页签、iframe + 转义、失败回落、逐行文本。
+ */
+{
+  push('预览页签：默认是真实页面', api.state.previewTab, 'page')
+
+  api.setPreviewTab('text', true)
+  push('预览页签：切到逐行文本', api.state.previewTab, 'text')
+  api.setPreviewTab('card', true)
+  push('预览页签：切到简化卡', api.state.previewTab, 'card')
+  api.setPreviewTab('page', true)
+  api.setPreviewTab('bogus', true)
+  push('预览页签：非法值回落到真实页面', api.state.previewTab, 'page')
+
+  /* 真实页面用 iframe + srcdoc；srcdoc 必须整段转义（否则引号会把属性提前闭合） */
+  const box = { innerHTML: '' }
+  api.paintPreview(box, { page: { ok: true }, pageHtml: '<div class="x" title="a&b">hi</div>', html: '<p>card</p>' })
+  push('真实页面：渲染成缩放容器 + iframe', /^<div class="preview-page-wrap"><iframe[^>]*srcdoc="/.test(box.innerHTML), true)
+  push('真实页面：srcdoc 里的引号被转义', box.innerHTML.indexOf('title="a&b"') === -1 && box.innerHTML.indexOf('&quot;') !== -1, true)
+
+  /* 拿不到真实页面时：自动落到简化卡，并把原因写进预览区（不能静默空白） */
+  box.innerHTML = ''
+  api.setPreviewTab('page', true)
+  api.paintPreview(box, { page: { ok: false, reason: '缺少 art-template' }, pageHtml: '', html: '<p>card</p>' })
+  push('真实页面不可用：自动切到简化卡', api.state.previewTab, 'card')
+  push('真实页面不可用：给出原因', box.innerHTML.indexOf('缺少 art-template') !== -1, true)
+  push('真实页面不可用：仍显示简化卡内容', box.innerHTML.indexOf('<p>card</p>') !== -1, true)
+
+  /* 逐行文本页签仍然走 lines */
+  api.setPreviewTab('text', true)
+  box.innerHTML = ''
+  api.paintPreview(box, { page: { ok: true }, pageHtml: '<iframe></iframe>', html: '', lines: ['a', 'b'] })
+  push('逐行文本：渲染成 <pre>', /^<pre class="preview-lines">/.test(box.innerHTML), true)
+  api.setPreviewTab('page', true)
+}
+
+/* ------------------------------------------- 第 12 组：真实页面渲染（服务端）
+ * 直接跑 scripts/lib/preview-page.mjs：没有 bot 时必须优雅降级；
+ * 本机有 bot + miao 时再断言真渲染的结构（缺环境的机器只跑降级那两条）。
+ */
+{
+  const { renderCodexPage, resolveBotRoot } = await import('./lib/preview-page.mjs')
+
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'meta-preview-'))
+  try {
+    const bogus = await renderCodexPage({ pluginRoot: tmp, name: '胡桃', character: {}, botRootHint: tmp })
+    push('没有 bot：返回 ok:false 而不是抛错', bogus.ok, false)
+    push('没有 bot：给出可读原因', typeof bogus.reason === 'string' && bogus.reason.length > 0, true)
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true })
+  }
+
+  const botRoot = resolveBotRoot(root)
+  if (!botRoot) {
+    console.log('… 真实页面渲染：跳过（本机没有 bot；可用 META_BOT_ROOT 或 node scripts/editor.mjs --bot <路径> 指定）')
+  } else {
+    const real = JSON.parse(fs.readFileSync(path.join(root, 'data/gi/胡桃.json'), 'utf8'))
+    const page = await renderCodexPage({ pluginRoot: root, name: '胡桃', character: real, botRootHint: botRoot })
+    push('真实页面：渲染成功', page.ok, true)
+    push('真实页面：六模块结构在（codex-row）', page.html.includes('codex-row'), true)
+    push('真实页面：没有模板占位符残留', /\{\{|\}\}/.test(page.html), false)
+    push('真实页面：资源前缀指向编辑器路由', page.html.includes('/preview/res/') && page.html.includes('/preview/miao/'), true)
+
+    /* 未保存的改动也要能预览：改一个 meta 值，渲染结果里必须出现 */
+    const tweaked = JSON.parse(JSON.stringify(real))
+    tweaked.meta = Object.assign({}, tweaked.meta || {}, { 定位: '预览自检标记' })
+    const page2 = await renderCodexPage({ pluginRoot: root, name: '胡桃', character: tweaked, botRootHint: botRoot })
+    push('真实页面：反映未保存的改动', page2.ok && page2.html.includes('预览自检标记'), true)
+  }
+}
 /* ---------------------------------------------------------------- 汇总 */
 let failed = 0
 for (const c of checks) {

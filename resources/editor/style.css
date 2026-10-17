@@ -932,6 +932,31 @@ textarea { resize: vertical; min-height: 54px; }
 .preview-note { font-size: 11px; line-height: 1.5; }
 .preview-body { flex: 1 1 auto; overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #fbfcfe; }
 .preview-lines { margin: 0; font: 12px/1.7 Consolas, "Microsoft YaHei", monospace; white-space: pre-wrap; word-break: break-word; }
+/* 预览三页签（真实页面 / 简化卡 / 逐行文本）：选中态与页签栏排布 */
+.preview-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.preview-tabs .btn.on { background: var(--accent, #2b6cb0); border-color: var(--accent, #2b6cb0); color: #fff; }
+/* 「真实页面」用 iframe 装 bot 的原生页面：按设计宽度渲染，再由 JS 等比缩放贴合面板 */
+.preview-page-wrap { position: relative; overflow: hidden; margin: 0 auto; width: 100%; }
+.preview-page {
+  display: block;
+  width: 1170px;          /* = body min-width 780 × bot renderScale 1.5（JS 里按面板宽度缩放） */
+  height: 2300px;
+  border: 0;
+  border-radius: 8px;
+  background: #0f1b2d;
+  transform-origin: top left;
+}
+/* 真实页面不可用时的说明条（缺 bot / art-template / miao） */
+.preview-warn {
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #fff5e6;
+  border: 1px solid #f0d3a8;
+  color: #8a5a12;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
 
 /* 预览里的六模块：视觉对齐 guide.html（同一套显示归一的结果） */
 .guide-preview .section { margin-bottom: 12px; }
