@@ -129,9 +129,9 @@ ok('来源区两行：`.mx-footer__line`（来源+免责同行）+ `.mx-copyrigh
   /class="mx-footer__line"[\s\S]{0,400}mx-footer__method/.test(tpl) &&
   !/<p class="mx-footer__method">/.test(tpl) &&
   !tpl.includes('口径：<'))
-ok('来源行文案：`最后更新时间：xxxx.xx.xx · 面板与命座数值仅供参考`（不再渲染来源名与模式）',
+ok('来源行文案：`最后更新时间：xxxx.xx.xx · 攻略数据仅供参考`（不再渲染来源名与模式）',
   tpl.includes('最后更新时间：{{s.updatedAt') &&
-  tpl.includes('面板与命座数值仅供参考') &&
+  tpl.includes('攻略数据仅供参考') &&
   !tpl.includes('{{s.modeText}}') &&
   !/codex-source[^>]*>本仓库攻略数据/.test(tpl))
 ok('配队头像间距显式固定（`.codex-team .codex-sep` 10px / 24px，不被行内规则带跑）',
