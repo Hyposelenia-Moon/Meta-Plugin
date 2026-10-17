@@ -22,7 +22,7 @@ const { COMMANDS, RULES, matchCommand } = C
   const keys = COMMANDS.flatMap(c => c.rules)
   const dup = keys.filter((k, i) => keys.indexOf(k) !== i)
   push('每条规则恰好归属一个 app', dup, [])
-  push('规则表里的 9 条规则都有归属（2026-10-16 起 akashaBuild 已摘除）', Object.keys(RULES).filter(k => !keys.includes(k)), [])
+  push('规则表里的 8 条规则都有归属（2026-10-17 起 build / akashaBuild 已摘除）', Object.keys(RULES).filter(k => !keys.includes(k)), [])
 }
 
 // ---------- 2. 文案里的命令必须被自己的正则命中 ----------
@@ -63,15 +63,14 @@ const { COMMANDS, RULES, matchCommand } = C
    * ⚠ 阶段 6 收尾把框架 `name` 由 `Mhydps*` 改为 `Meta*`（用户 2026-10-13 定，属唯一允许的用户可见改名）；
    *    `permission` 与 `priorityOffset` **必须与合并前逐条一致** —— 它们是路由行为的一部分。
    *
-   * ⚠ 2026-10-15 偏差 B17（用户定：命令面重构）：`raid`（旧危战榜 app）随旧榜废除、`build` 改名 `#练度榜`，
-   *    其余各条的权限与优先级偏移不变；`charDps` 并入 `rank`。
+   * ⚠ 2026-10-15 偏差 B17（用户定：命令面重构）：`raid`（旧危战榜 app）随旧榜废除，
+   *    其余各条的权限与优先级偏移不变；`charDps` 并入 `rank`；2026-10-17 阿卡莎功能移除，`build`（#练度榜）整条删除。
    * ⚠ 2026-10-15 后续：`video`（`#视频`/`#危战视频`）随"改为后缀、原写法废除"删除，其"榜单视频"
    *    模块开关仍保留（后缀式分发时用它拦截）。
    */
   const before = {
     rank: { name: 'MetaDPS榜', permission: 'all', priorityOffset: 0 },
     raidTiers: { name: 'Meta危战档位', permission: 'all', priorityOffset: -5 },
-    build: { name: 'Meta练度榜', permission: 'all', priorityOffset: -50 },
     status: { name: 'Meta状态', permission: 'all', priorityOffset: -10 },
     help: { name: 'Meta帮助', permission: 'all', priorityOffset: -10 },
     admin: { name: 'Meta数据管理', permission: 'master', priorityOffset: -10 }
@@ -85,10 +84,10 @@ const { COMMANDS, RULES, matchCommand } = C
     if (cmd.priorityOffset !== expected.priorityOffset) bad.push(`${key}.priorityOffset: 期望 ${expected.priorityOffset}，实际 ${cmd.priorityOffset}`)
   }
   push('名称（Meta*）/ 权限 / 优先级偏移与既定口径一致', bad, [])
-  // 合并前的判定顺序 = 按 priorityOffset 升序（练度榜最先，rank 兜底）
+  // 判定顺序 = 按 priorityOffset 升序（-10 的三条先跑，rank 兜底）
   const order = [...COMMANDS].flatMap(c => c.rules.map(r => [r, c.priorityOffset]))
     .sort((a, b) => a[1] - b[1]).map(x => x[0])
-  ok('优先级偏移递增顺序与路由判定顺序一致', order[0] === 'build' && order[order.length - 1] === 'rank')
+  ok('优先级偏移递增顺序与路由判定顺序一致（rank 兜底在最后）', order[order.length - 1] === 'rank')
 }
 
 const bad = report()

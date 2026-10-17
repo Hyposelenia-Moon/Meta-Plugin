@@ -33,9 +33,9 @@
 ## 3. Mhydps-Plugin —— 榜单/危战/练度侧的整体合并（迁移，作者即本仓库维护者）
 
 - **迁入内容**：
-  - 代码（TS 端口化）：`src/model/{TeamStore,MhydpsClient,AvatarStore,CharacterIndex,AkashaClient,AkashaBrowser,MiaoPanel}`、
-    `src/modules/{queryArgs,teamView,rankQuery,raidQuery,akashaQuery,formatText,respond}`、
-    `src/apps/{rank,raid,status,video,admin,build}`、`src/components/{config,constants,pluginVersion,render}` 的相关部分
+  - 代码（TS 端口化）：`src/model/{TeamStore,MhydpsClient,AvatarStore,CharacterIndex,MiaoPanel}`、
+    `src/modules/{queryArgs,teamView,rankQuery,raidQuery,formatText,respond}`、
+    `src/apps/{rank,raid,status,video,admin}`、`src/components/{config,constants,pluginVersion,render}` 的相关部分
   - **v3 P1 新增**（2026-10-14，仍属本插件自研）：`src/modules/{charDpsQuery,raidTiersQuery}.ts`
     （`#xx dps` 的金档分组、`#危战` 的 n6/n7 分档）、`src/apps/{charDps,raidTiers}.ts`、
     `resources/dps/{char-dps,tiers}.html`（复用已有 4 张底图）、`test/{char-dps,raid-tiers}.test.mjs`
@@ -48,11 +48,7 @@
   - **v3 P4 新增**（2026-10-14，本插件自研）：`src/modules/rotation.ts`（简化轴与队伍 DPS）、
     `src/modules/statPatch.ts`（可调节词条）、桥的"按词条临时重算"分支（重建 `ProfileDmg`，不写用户面板）、
     `test/team-dps.test.mjs`
-  - **v3 P5 新增**（2026-10-14，本插件自研）：`src/modules/akashaBoard.ts`（阿卡莎榜条目归一化）、
-    `src/model/AkashaBoard.ts`（取数：浏览器会话 + textmap 翻译 + 重试）、`resources/dps/akasha-build.html`、
-    `test/fixtures/akasha-board.sample.json`（真实样本夹具）
-    （2026-10-16：原 `#配装` 的 app `src/apps/akashaBuild.ts` 及其逻辑已并入 `src/apps/build.ts` ——
-    `#练度榜 <角色> [名次]`：省略名次=前 20 名，写名次=配装详情）
+
   - **复用 miao 的伤害引擎**：`models/ProfileDmg.js` + `resources/meta-gs/character/<名>/calc.js`
     （129 个角色），通过 `avatar.calcDmg({ enemyLv: 103, mode: 'profile' })` 调用；本插件不复制其规则文件
   - 资源：`resources/dps/*.html`（榜单 / 危战 / 状态 / 帮助模板）、`resources/common/bg-*.jpg`（4 张插画底）、

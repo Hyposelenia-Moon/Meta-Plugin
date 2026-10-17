@@ -59,13 +59,6 @@ export interface RaidArgs {
   unknown: string[]
 }
 
-/** 练度查询参数 */
-export interface BuildArgs {
-  uid: string
-  names: string[]
-  unknown: string[]
-}
-
 /** 取三个分组里第一个有值的数字 */
 function pickNum (m: RegExpMatchArray, ...groups: number[]): number {
   for (const g of groups) {
@@ -217,39 +210,6 @@ export function parseRaidArgs (text: unknown): RaidArgs {
       continue
     }
     args.unknown.push(token)
-  }
-
-  return args
-}
-
-/**
- * 解析练度查询参数（UID 与角色名可以任意顺序、任意组合）
- *
- *   `#练度榜 123456789`        整号全部公开角色
- *   `#练度榜 胡桃`             只看胡桃（UID 取配置里的 `akashaDefaultUid`）
- *   `#练度榜 胡桃 123456789`   两者都给也行
- *   `#练度榜 uid:123456789 桃` 显式键值同样支持
- *
- * UID 只认 9 位纯数字；角色名交给 `findCharacter` 判定（命中别名也算），
- * 两者都不像的 token 进 `unknown`，由 app 层提示用户。
- */
-export function parseBuildArgs (text: unknown): BuildArgs {
-  const args: BuildArgs = { uid: '', names: [], unknown: [] }
-
-  for (const token of tokenize(text)) {
-    const kv = token.match(/^(?:uid|UID|米游社id|米游社ID)[:：]?(\d+)$/)
-    if (kv) {
-      if (!args.uid) args.uid = kv[1]
-      else args.unknown.push(token)
-      continue
-    }
-    if (/^\d+$/.test(token)) {
-      if (token.length === 9 && !args.uid) args.uid = token
-      else args.unknown.push(token)
-      continue
-    }
-    if (findCharacter(token)) args.names.push(token)
-    else args.unknown.push(token)
   }
 
   return args

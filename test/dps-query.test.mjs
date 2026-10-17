@@ -31,7 +31,6 @@ const CI = await load('model/CharacterIndex.js')
 const RQ = await load('modules/rankQuery.js')
 const DQ = await load('modules/raidQuery.js')
 const FT = await load('modules/formatText.js')
-const AQ = await load('modules/akashaQuery.js')
 
 const fixture = (name) => JSON.parse(fs.readFileSync(path.join(pluginRoot, 'test', 'fixtures', name), 'utf8'))
 const teams = TS.normalizeTeams(fixture('teams.sample.json'))
@@ -72,22 +71,6 @@ const raids = TS.normalizeTeams2(fixture('teams2.sample.json'))
   r = QA.parseRaidArgs('玛薇卡 版本:7.1')
   ok('键值与位置混用', r.char === '玛薇卡' && r.ver === '7.1')
 
-  let b = QA.parseBuildArgs('')
-  ok('练度：空参数 = 全部角色', b.uid === '' && b.names.length === 0 && b.unknown.length === 0)
-  b = QA.parseBuildArgs('100000000')
-  ok('练度：9 位数字当 UID', b.uid === '100000000' && b.names.length === 0)
-  b = QA.parseBuildArgs('胡桃 100000000')
-  ok('练度：角色名在前、UID 在后', b.uid === '100000000' && b.names.join(',') === '胡桃')
-  b = QA.parseBuildArgs('100000000 胡桃')
-  ok('练度：UID 在前、角色名在后', b.uid === '100000000' && b.names.join(',') === '胡桃')
-  b = QA.parseBuildArgs('胡桃、夜兰 100000000')
-  ok('练度：顿号分隔多角色', b.names.join(',') === '胡桃,夜兰' && b.uid === '100000000')
-  b = QA.parseBuildArgs('uid:100000000 桃')
-  ok('练度：显式 uid: + 别名', b.uid === '100000000' && b.names.join(',') === '桃')
-  b = QA.parseBuildArgs('12345678')
-  ok('练度：位数不对的数字进 unknown', b.uid === '' && b.unknown.includes('12345678'))
-  b = QA.parseBuildArgs('100000000 100000001')
-  ok('练度：只取第一个 UID', b.uid === '100000000' && b.unknown.includes('100000001'))
 
   const t = QA.takeRankNo('3 胡桃 绿玩')
   ok('takeRankNo 摘出名次并保留其余', t.rankNo === 3 && t.rest === '胡桃 绿玩')
@@ -294,24 +277,6 @@ const raids = TS.normalizeTeams2(fixture('teams2.sample.json'))
   ok('无视频时给兜底文案', entryNoVideo.includes('没有留下视频链接'))
 }
 
-// ---------- 5. akasha 视图（口径抽样；完整迁移见 4.7） ----------
-{
-  const account = fixture('akasha.account.sample.json')
-  const calc = fixture('akasha.calc.sample.json')
-  const player = AQ.readAccount(account.data.account)
-  ok('账号画像取到昵称与 UID', player.uid.length > 0 && typeof player.nickname === 'string')
-  ok('账号画像字段为数字', Number.isFinite(player.level) && Number.isFinite(player.abyss.stars))
-
-  const view = AQ.buildAkashaView({ account: account.data.account, calculations: calc.data }, { max: 12 })
-  ok('视图含角色列表', Array.isArray(view.chars) && view.chars.length > 0)
-  ok('角色带练度主赛道', view.chars.every(c => c.best === null || (typeof c.best.topText === 'string' && typeof c.best.damageText === 'string')))
-  ok('top 文本格式正确', AQ.topPercentText(8205, 1035102) === 'top 0.79%')
-  ok('top 文本边界（非法值）', AQ.topPercentText(0, 100) === '-' && AQ.topPercentText(5, 0) === '-')
-  ok('大数字格式化', AQ.bigNumText(3230000) === '323.0 万' && AQ.bigNumText(123456789) === '1.23 亿')
-  ok('需要中文化的词来自套装与武器', Array.isArray(AQ.collectNameWords(calc.data)))
-  const text = FT.akashaText(view)
-  ok('练度文本含 UID 与口径声明', text.includes('UID') && text.includes('akasha 口径'))
-}
 
 // ---------- 6. 查询入口：离线降级（不发网络、不抛错） ----------
 {

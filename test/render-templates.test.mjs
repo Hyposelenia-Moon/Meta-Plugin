@@ -203,7 +203,7 @@ const help = await renderOnce('help', helpData, 'test-help')
 check('help 出图成功', Boolean(help.img), help.err)
 if (help.html) {
   checkRefs(help.html, path.dirname(path.join(appRoot, 'temp', 'html', 'Mhydps-Plugin', 'dps', 'help', 'x.html')), 'help', /(?:href|src)="([^"]+)"/g)
-  check('help：渲染了指令条目', help.html.includes('#DPS榜') && help.html.includes('#危战') && help.html.includes('#练度榜'))
+  check('help：渲染了指令条目', help.html.includes('#DPS榜') && help.html.includes('#危战') && help.html.includes('#练度查询'))
   check('help：分组标题条数量与配置一致', (help.html.match(/class="help-group"/g) || []).length === helpList.length, `${helpList.length} 组`)
   check('help：使用三列网格', help.html.includes('class="help-grid"') || help.html.includes('help-grid cols-'))
   check('help：条目含命令与说明', help.html.includes('entry-cmd') && help.html.includes('entry-desc'))
@@ -238,15 +238,11 @@ for (const f of ['help.html', 'rank.html', 'raid.html', 'status.html']) {
 }
 check('模板内不写死颜色（全部走变量）', templateColors.length === 0, templateColors.join(' | '))
 
-/*
- * `#练度榜` 2026-10-16 起是**本插件自绘的两张页**（列表 `build.html` + 配装详情 `akasha-build.html`，
- * 数据源阿卡莎角色榜）；原「练度页整页交给 miao 面板」的口径只对 `#练度查询`（miao 面板桥）成立。
- */
-check('练度榜页模板在（列表 + 配装详情）',
-  fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'build.html')) &&
-  fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'akasha-build.html')))
 check('练度页底图已删除（面板自带立绘）', !fs.existsSync(path.join(pluginRoot, 'resources', 'common', 'bg-build.jpg')))
-check('miao 面板桥仍在（#练度查询 用）', fs.existsSync(path.join(libDir, 'model', 'MiaoPanel.js')))
+// 2026-10-17 阿卡莎功能移除：`build.html` / `akasha-build.html` 已删除，练度页回归 miao 面板
+check('阿卡莎两页已删除', !fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'build.html')) &&
+  !fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'akasha-build.html')))
+check('miao 目录探测仍在（#练度查询 用）', fs.existsSync(path.join(libDir, 'model', 'MiaoPanel.js')))
 
 // ---- 字体：原神字体随包分发（不联网下载），数字走提瓦特数字 ----
 check('声明了原神中文字体 YS（汉仪文黑）', /@font-face\s*\{[^}]*font-family:\s*'YS'/s.test(baseCss))

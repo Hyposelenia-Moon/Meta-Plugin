@@ -18,16 +18,15 @@ import { MAX_PAGE_SIZE } from './constants.js'
 /**
  * 模块功能开关的键（**功能层**：该模块的命令是否响应）
  *
- * 与另外两层正交，三者关系见 `AGENTS.md` 硬约束 8：
+ * 与网络层正交，两者关系见 `AGENTS.md` 硬约束 8：
  *   - `modules.*`（本层）：功能是否可用 —— 关闭时命令不响应
  *   - `networkEnabled`（查询联网层）：业务查询是否允许**远程访问/刷新**（阿修 2026-10-15 的定义）
- *   - `akashaEnabled`（数据通道层）：是否允许走阿卡莎通道（浏览器会话）
  *
  * 一个键对应一个 app（模块边界 = 代码边界，最好维护）。
  */
 export const MODULE_KEYS = [
   'codex', 'help', 'rank', 'raidTiers',
-  'build', 'grade', 'teamDamage', 'video', 'status', 'admin'
+  'grade', 'teamDamage', 'video', 'status', 'admin'
 ] as const
 
 export type ModuleKey = (typeof MODULE_KEYS)[number]
@@ -38,7 +37,6 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
   help: '帮助页',
   rank: 'DPS 榜',
   raidTiers: '危战分档',
-  build: '练度榜',
   grade: '练度提升指南',
   teamDamage: '队伍伤害',
   video: '榜单视频',
@@ -66,7 +64,7 @@ export interface MetaConfig {
   /**
    * 业务查询联网开关（**不是**整个插件的全局联网禁令）
    *
-   * 只管辖 DPS 榜 / 危战 / 练度等**查询类**远程访问与刷新（mhydps / akasha / miao 面板 / 队伍 /
+   * 只管辖 DPS 榜 / 危战 / 练度等**查询类**远程访问与刷新（mhydps / miao 面板 / 队伍 /
    * 榜单头像下载）；别名服务、可选插件探测、依赖安装等其他网络操作不受它限制（阿修 2026-10-15 口径）。
    */
   networkEnabled: boolean
@@ -80,18 +78,6 @@ export interface MetaConfig {
   dpsTimeoutMs: number
   /** 榜单是否带头像 */
   dpsAvatarEnabled: boolean
-  /** 练度查询开关 */
-  akashaEnabled: boolean
-  /** 练度默认 UID */
-  akashaDefaultUid: string
-  /** akasha 代理 */
-  akashaProxy: string
-  /** akasha 请求超时（毫秒） */
-  akashaTimeoutMs: number
-  /** akasha 缓存 TTL（分钟） */
-  akashaCacheTtlMinutes: number
-  /** akasha 单次最多展示的角色数 */
-  akashaMaxChars: number
   /**
    * 练度评分权重（紧凑写法 `comprehensive:65,weapon:20,talent:15`）
    *
@@ -124,12 +110,6 @@ export const defaultConfig: MetaConfig = {
   dpsPageSize: 10,
   dpsTimeoutMs: 30000,
   dpsAvatarEnabled: true,
-  akashaEnabled: true,
-  akashaDefaultUid: '',
-  akashaProxy: '',
-  akashaTimeoutMs: 60000,
-  akashaCacheTtlMinutes: 30,
-  akashaMaxChars: 12,
   gradeWeights: 'comprehensive:65,weapon:20,talent:15',
   gradePanelTiers: 'big:0.9,normal:0.6,small:0.3',
   teamDamageAxes: '1:保守轴=默认',
@@ -212,7 +192,7 @@ export function getRenderScale (): number {
 /**
  * 模块是否启用（功能层）
  *
- * 缺省值：`teamDamage` 默认关闭、其余默认开启；显式 `false` 才算关闭（与 `getAkashaEnabled` 同约定）。
+ * 缺省值：`teamDamage` 默认关闭、其余默认开启；显式 `false` 才算关闭。
  */
 export function isModuleEnabled (key: ModuleKey): boolean {
   const value = (loadConfig().modules || {})[key]
@@ -269,47 +249,11 @@ export function getDpsTimeoutMs (): number {
   return Math.min(120000, Math.max(3000, Math.floor(value)))
 }
 
-/** 练度查询（akasha）代理：不填则直连（akasha 自己不在墙内）；首尾空白会被修剪 */
-export function getAkashaProxy (): string {
-  return String(loadConfig().akashaProxy ?? '').trim()
-}
-
-/**
- * 练度查询超时（毫秒）
- *
- * 合并自 `Mhydps-Plugin/components/config.js` 的 `getAkashaTimeoutMs()`：夹取 **5s ~ 180s**
- * （akasha 走浏览器会话，单次比榜单慢，上下限都比 `dpsTimeoutMs` 宽）。
- */
-export function getAkashaTimeoutMs (): number {
-  const value = Number(loadConfig().akashaTimeoutMs)
-  if (!Number.isFinite(value)) return defaultConfig.akashaTimeoutMs
-  return Math.min(180000, Math.max(5000, Math.floor(value)))
-}
-
-/** 练度缓存 TTL（分钟；非法值回落默认、最小 1） */
-export function getAkashaCacheTtlMinutes (): number {
-  const value = Number(loadConfig().akashaCacheTtlMinutes)
-  if (!Number.isFinite(value) || value < 1) return defaultConfig.akashaCacheTtlMinutes
-  return Math.floor(value)
-}
-
-/** 单次最多展示的角色数（练度查询；夹取 1 ~ 30） */
-export function getAkashaMaxChars (): number {
-  const value = Number(loadConfig().akashaMaxChars)
-  if (!Number.isFinite(value) || value < 1) return defaultConfig.akashaMaxChars
-  return Math.min(30, Math.floor(value))
-}
-
 /** 榜单每页条数（夹取 1 ~ `MAX_PAGE_SIZE`，避免用户把图撑爆） */
 export function getPageSize (): number {
   const value = Number(loadConfig().dpsPageSize)
   if (!Number.isFinite(value) || value < 1) return defaultConfig.dpsPageSize
   return Math.min(MAX_PAGE_SIZE, Math.floor(value))
-}
-
-/** 练度查询开关（锅巴 → 数据源二 · akasha.cv） */
-export function getAkashaEnabled (): boolean {
-  return loadConfig().akashaEnabled !== false
 }
 
 /** 榜单 / 危战请求代理（不填则直连）；首尾空白会被修剪 */

@@ -8,7 +8,7 @@ import { checker, installFrameworkStubs, mod } from './_helper.mjs'
 
 installFrameworkStubs()
 
-const { parseRankArgs, parseRaidArgs, parseBuildArgs } = await import(mod('modules/queryArgs.js'))
+const { parseRankArgs, parseRaidArgs } = await import(mod('modules/queryArgs.js'))
 
 const { check, finish } = checker()
 
@@ -97,37 +97,6 @@ check('裸数字不当档位（避免与金数/名次混淆）', r.tier === null
 
 r = parseRaidArgs('')
 check('不写档位 = null（交给 app 提示选档）', r.tier === null)
-
-// ---- 练度查询：UID 与角色名（顺序随意、都可省） ----
-let b = parseBuildArgs('')
-check('练度：空参数 = 全部角色', b.uid === '' && b.names.length === 0 && b.unknown.length === 0)
-
-b = parseBuildArgs('100000000')
-check('练度：9 位数字当 UID', b.uid === '100000000' && b.names.length === 0)
-
-b = parseBuildArgs('胡桃')
-check('练度：单个角色名', b.uid === '' && b.names.join(',') === '胡桃')
-
-b = parseBuildArgs('胡桃 100000000')
-check('练度：角色名在前、UID 在后', b.uid === '100000000' && b.names.join(',') === '胡桃')
-
-b = parseBuildArgs('100000000 胡桃')
-check('练度：UID 在前、角色名在后', b.uid === '100000000' && b.names.join(',') === '胡桃')
-
-b = parseBuildArgs('胡桃、夜兰 100000000')
-check('练度：多个角色（顿号分隔）', b.names.join(',') === '胡桃,夜兰' && b.uid === '100000000')
-
-b = parseBuildArgs('uid:100000000 桃')
-check('练度：显式 uid: 键值 + 别名', b.uid === '100000000' && b.names.join(',') === '桃')
-
-b = parseBuildArgs('12345678')
-check('练度：位数不对的数字进 unknown（不是 UID）', b.uid === '' && b.unknown.includes('12345678'))
-
-b = parseBuildArgs('不存在的角色')
-check('练度：非角色名进 unknown', b.names.length === 0 && b.unknown.includes('不存在的角色'))
-
-b = parseBuildArgs('100000000 100000001')
-check('练度：只取第一个 UID，多余的进 unknown', b.uid === '100000000' && b.unknown.includes('100000001'))
 
 // ---- 引用内容隔离（2026-10-15 审核意见 2.1：只做整段精确剔除，不做词重合推断） ----
 {

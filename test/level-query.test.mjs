@@ -1,7 +1,7 @@
 /**
  * `#练度查询` 接线套件（v3 P2）
  *
- * 覆盖：路由（新入口命中、旧 `#练度榜` 不受影响）· 配置项（权重/档位/阈值，含覆盖与回落）
+ * 覆盖：路由（新入口命中、已移除的 `#练度榜` 不再被认领）· 配置项（权重/档位/阈值，含覆盖与回落）
  * · miao 薄桥（开发工作区无 miao → 必须给出可读的失败原因，而不是抛异常）· app 与模板接线。
  */
 import fs from 'node:fs'
@@ -29,14 +29,14 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
   // 2026-10-15 用户定：UID 形态属遗留问题，已移除（路由仍命中，由 app 层给改用提示）
   ok('带 UID 仍能命中规则（由 app 层拒绝并提示）',
     C.matchCommand('#练度查询 胡桃 100000000')?.key === 'grade')
-  ok('app 明确拒绝 UID 形态并指向 #练度榜', (() => {
+  ok('app 明确拒绝 UID 形态（只接角色名）', (() => {
     const src = readText(path.join(pluginRoot, 'src', 'apps', 'grade.ts'))
-    return /\^\\d\{9\}\$/.test(src) && src.includes('#练度榜') && src.includes('不写 UID')
+    return /\^\\d\{9\}\$/.test(src) && src.includes('不写 UID')
   })())
-  const legacy = ['#练度榜 胡桃', '#练度榜', '#DPS榜', '#meta状态', '#危战']
+  const legacy = ['#DPS榜', '#meta状态', '#危战']
   push('旧 `#DPS…` 命令不被新入口吞掉', legacy.filter(t => C.matchCommand(t)?.key === 'grade'), [])
-  push('旧 `#练度榜` 仍由旧规则命中', legacy.slice(0, 2).filter(t => C.matchCommand(t)?.key !== 'build'), [])
-  ok('新入口不抢旧命令的规则键', C.RULES.build.test('#练度榜 胡桃') && !C.RULES.grade.test('#练度榜 胡桃'))
+  // 2026-10-17：阿卡莎功能移除，`#练度榜` 不再被任何入口认领
+  push('已移除的 `#练度榜` 不再命中任何入口', ['#练度榜 胡桃', '#练度榜'].filter(t => C.matchCommand(t) !== null), [])
   ok('COMMANDS 登记了 grade', C.COMMANDS.some(c => c.rules.includes('grade')))
 }
 

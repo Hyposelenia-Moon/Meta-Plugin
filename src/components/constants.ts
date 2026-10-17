@@ -117,23 +117,6 @@ export const SITE_NAME = '原神DPS数据库'
 export const SITE_ORIGIN = 'https://www.mhydps.cn'
 export const SITE_HOST = 'www.mhydps.cn'
 
-/**
- * 数据源二：akasha.cv（练度查询）
- *
- * akasha 按 UID 记录单角色练度，与 mhydps.cn 是**两套口径**：
- *   - mhydps：匿名配队记录的期望 DPS / 金数 / 危战耗时（榜单用它）
- *   - akasha：单角色伤害与名次（它自己的公式与赛道榜，练度查询用它）
- * 两者数值不可互相解释，出图与文案都必须标注来源。
- */
-export const AKASHA_NAME = 'akasha.cv'
-export const AKASHA_BASE = 'https://akasha.cv'
-/** 接口前缀（实测得出，非官方文档） */
-export const AKASHA_API = `${AKASHA_BASE}/api`
-/** 中文化语言码（角色名走本插件角色表，武器/套装名走它的 textmap） */
-export const AKASHA_LANG = 'zh-CN'
-/** 缓存目录（`data/` 下） */
-export const AKASHA_CACHE_DIR = 'akasha'
-
 /** 站点接口路径（站点前端 bundle 实际调用的接口，非公开文档） */
 export const API_PATH = {
   teams: '/api/teams',
@@ -336,7 +319,6 @@ export const TALENT_POSITION_CN: Record<string, string> = {
  * | 功能 | 命令 | 原命令 |
  * |---|---|---|
  * | DPS 榜（含角色档位视图） | `#DPS榜` / `#DPS`（榜字可省） | 合并 `#DPS榜` + `#DPS榜 胡桃` |
- * | 练度名次面板 | `#练度榜 [角色] [UID]` | `#练度榜` |
  * | 榜单视频 | `#DPS榜 … 视频N` / `#危战 … n6\|n7 视频N`（**后缀式**） | 原 `#视频` / `#危战视频`（已废除） |
  * | 危战分档 | `#危战 <筛选> n6\|n7` | `#危战`（已废除） |
  * | 插件状态 | `#meta状态` | `#meta状态` |
@@ -355,8 +337,6 @@ export const RULES = {
    * 序号 = 在当前筛选（含金数）之内按伤害排名的第 N 名，由 app 用 `takeVideoToken` 摘出。
    */
   rank: /^#?(?:dps|DPS)(?:榜(?!视频))?(?!榜|视频|帮助|状态|更新|强制|刷新|练度|危战)\s*([\s\S]*)$/,
-  /** `#练度榜 <角色> [名次]` —— 阿卡莎角色榜；省略名次 = 前 20 名列表，写名次 = 该名次配装详情 */
-  build: /^#?练度榜\s*([\s\S]*)$/,
   /**
    * `#危战 <版本/首领/角色> n6|n7 [视频N]` —— 档位**必填**；`视频N` 是后缀式视频名次
    * （第 3 组；名次按全榜排序，与档页每行标的「全榜 #N」同口径）。
@@ -367,7 +347,7 @@ export const RULES = {
   /**
    * `#练度查询 胡桃 [UID]` —— 攻略目标 × 当前配装
    *
-   * UID 可省略：账号默认走 miao 的米游社绑定；`#练度榜`（阿卡莎名次面板）是另一条命令。
+   * UID 可省略：账号默认走 miao 的米游社绑定。
    */
   grade: /^#?练度查询(?:\s+([\s\S]+))?$/,
   /**
@@ -402,7 +382,7 @@ export type RuleKey = keyof typeof RULES
 export function matchCommand (msg: string): { key: RuleKey, match: RegExpMatchArray } | null {
   const text = String(msg ?? '')
   const order: RuleKey[] = [
-    'raidTiers', 'admin', 'help', 'status', 'build', 'grade', 'teamDamage', 'raidTiersPrompt', 'rank'
+    'raidTiers', 'admin', 'help', 'status', 'grade', 'teamDamage', 'raidTiersPrompt', 'rank'
   ]
   for (const key of order) {
     const match = text.match(RULES[key])
@@ -435,7 +415,6 @@ export interface CommandMeta {
 export const COMMANDS: ReadonlyArray<CommandMeta> = [
   { key: 'rank', rules: ['rank'], name: 'MetaDPS榜', dsc: '#DPS榜 [角色] [金数] [标签] [主C] [绿玩] [页N]（榜字可省；带角色名看该角色各金档；加 `视频N` 取该名次的视频）', permission: 'all', priorityOffset: 0 },
   { key: 'raidTiers', rules: ['raidTiers', 'raidTiersPrompt'], name: 'Meta危战档位', dsc: '#危战 [版本/首领/角色] n6|n7 [视频N] — 幽境危战分档（n7 ≤70s 速通档 / n6 险胜档）', permission: 'all', priorityOffset: -5 },
-  { key: 'build', rules: ['build'], name: 'Meta练度榜', dsc: '#练度榜 <角色> [名次] — 阿卡莎角色榜（练度排名，榜单数据，与查询者账号无关；省略名次=前 20 名，写名次=该名次配装详情；需联网与代理）', permission: 'all', priorityOffset: -50 },
   { key: 'grade', rules: ['grade'], name: 'Meta练度提升指南', dsc: '#练度查询 胡桃 — 攻略目标 × 当前配装 → 总体练度 + 面板档 + 提升建议', permission: 'all', priorityOffset: -5 },
   { key: 'teamDamage', rules: ['teamDamage'], name: 'Meta队伍伤害', dsc: '#队伍伤害<N> 胡桃 行秋 夜兰 钟离 [暴击+20 爆伤+40] — 整队关键伤害 + 参考 DPS + 同阵容参考（N = 轴序号，省略 = 1）', permission: 'all', priorityOffset: -5 },
   { key: 'status', rules: ['status'], name: 'Meta状态', dsc: '#meta状态', permission: 'all', priorityOffset: -10 },

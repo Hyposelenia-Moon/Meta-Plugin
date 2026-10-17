@@ -73,12 +73,6 @@ const submitted = {
   dpsCacheTtlMinutes: 15,
   dpsPageSize: 20,
   dpsAvatarEnabled: false,
-  akashaDefaultUid: '100000000',
-  akashaEnabled: false,
-  akashaProxy: 'http://proxy.example:1080',
-  akashaTimeoutMs: 45000,
-  akashaCacheTtlMinutes: 90,
-  akashaMaxChars: 20,
   // v3 P2 新增三项（评分权重与档位阈值；同为"可存可读"的普通字段）
   gradeWeights: 'panel:40,weapon:10,artifact:30,talent:20',
   gradePanelTiers: 'big:0.95,normal:0.5,small:0.2',
@@ -89,7 +83,7 @@ const submitted = {
   ...Object.fromEntries(Object.entries(defaultConfig.modules).map(([key, value]) => [`module_${key}`, value]))
 }
 
-check('模块开关数量为 10', Object.keys(defaultConfig.modules).length === 10)
+check('模块开关数量为 9', Object.keys(defaultConfig.modules).length === 9)
 check('模块开关默认值：teamDamage 关闭、其余开启',
   defaultConfig.modules.teamDamage === false &&
   Object.entries(defaultConfig.modules).filter(([k]) => k !== 'teamDamage').every(([, v]) => v === true))
@@ -113,13 +107,8 @@ check('写入可被 YAML 解析', (() => {
 const written = YAML.parse(writtenText)
 check('写入值正确', written.priority === 7000 && written.renderScale === 2 && written.dpsAvatarEnabled === false)
 check('代理值正确', written.proxy === 'http://proxy.example:8080')
-check('akasha 五项也已写入', written.akashaEnabled === false &&
-  written.akashaProxy === 'http://proxy.example:1080' &&
-  written.akashaTimeoutMs === 45000 &&
-  written.akashaCacheTtlMinutes === 90 &&
-  written.akashaMaxChars === 20, JSON.stringify(written))
-check('模块开关写成嵌套的 modules（10 键、teamDamage 保持默认关闭）',
-  Object.keys(written.modules || {}).length === 10 && written.modules?.teamDamage === false,
+check('模块开关写成嵌套的 modules（9 键、teamDamage 保持默认关闭）',
+  Object.keys(written.modules || {}).length === 9 && written.modules?.teamDamage === false,
   JSON.stringify(written.modules))
 
 const roundTrip = configInfo.getConfigData()

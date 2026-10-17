@@ -30,9 +30,6 @@ const TEMPLATES = {
   tiers: { app: 'tiers' },
   grade: { app: 'grade' },
   'team-damage': { app: 'team-damage' },
-  // 2026-10-16 合并：`build` = 列表视图、`akasha-build` = 配装详情视图（同属 `#练度榜`），两页都不再有 uid
-  'build': ['title', 'subtitle', 'hint', 'footerMethod', 'rows', 'copyright', 'buildTimeText', 'rank', 'charName', 'elemClass', 'cons', 'nickname'],
-  'akasha-build': { app: 'akasha-build' }
 }
 
 // ---------- 1. 模板 ----------
@@ -142,10 +139,7 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   // 2026-10-15：新增「当前配装 / 参考 DPS / 角色立绘」三块（后两块可缺省 → 模板用 {{if}} 兜着）
   grade: ['title', 'subtitle', 'charName', 'ranks', 'rankClass', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'buildInfo', 'panelRows', 'uidText', 'consIcons', 'talentIcons', 'elemClass', 'heroImg', 'refDps', 'mx', 'assessable', 'notes', '$index'],   // $index 是 art-template 内置循环下标（参考 DPS 徽标档位用）
   'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes', 'referenceDps', 'referenceTotal', 'window', 'axisLabel', 'axisManual', 'patchLabel', 'contributions'],
-  // 2026-10-16：`#配装` 并入 `#练度榜`，两页同属一条命令（列表 / 配装详情），都不再有 uid
-  'build': ['title', 'subtitle', 'hint', 'footerMethod', 'rows', 'copyright', 'buildTimeText', 'rank', 'charName', 'elemClass', 'cons', 'nickname'],
   // 2026-10-17：数值口径随榜（`metricLabel`）与榜名（`boardName`）——榜不都是伤害
-  'akasha-build': ['title', 'subtitle', 'charName', 'elemClass', 'rank', 'nickname', 'cons', 'damageText', 'metricLabel', 'boardName', 'critValueText', 'talent', 'weapon', 'artis', 'setsText', 'panel', 'mx'],
     status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'disabledModules', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
   }
   const LOOP = new Set(['row', 'rows', 'c', 'item', 's', 'r', '$data', 'member', 'team'])
@@ -263,16 +257,5 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   }
 }
 
-/*
- * 练度榜页（build）专项门禁（2026-10-16）：
- *  ① 页脚必须给出配装更新时间（阿卡莎 lastBuildUpdate），不允许拿抓取时刻冒充、也不允许漏字段；
- *  ② 行必须是两段式（武器+数值一行、套装独立成行），防止有人改回"三项挤一行被省略号截断"。
- */
-{
-  const buildTpl = readText(path.join(tplDir, 'build.html'))
-  ok('练度榜页：页脚含配装更新时间字段', buildTpl.includes('{{buildTimeText}}'))
-  ok('练度榜页：行两段式（套装独立成行、不再有 .bl-sets 内联）',
-    buildTpl.includes('bl-sets-line') && /class="bl-sub"[\s\S]{0,260}bl-num/.test(buildTpl) && !/class="bl-sets"/.test(buildTpl))
-}
 const bad = report()
 process.exit(bad ? 1 : 0)

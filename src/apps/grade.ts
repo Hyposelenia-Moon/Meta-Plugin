@@ -123,7 +123,6 @@ export class MetaGrade extends plugin {
       await e.reply(
         `[Meta] #练度查询 只接角色名（账号走 miao 的米游社绑定，不写 UID）`
         + `${name ? `\n例：#练度查询 ${name}` : ''}`
-        + `\n要按 UID 看阿卡莎练度名次面板：#练度榜 ${name || '<角色>'} ${uidToken}`
       )
       return true
     }
@@ -264,7 +263,6 @@ export class MetaGrade extends plugin {
     /*
      * 套装表述（用户定，规则见 `components/presentation.ts` 的 `setSummary`）：
      * 只写 **4 件套 / 2+2 / 2 件套**，不列散件；凑不出套装加成就写「散件」。
-     * 2026-10-17：从本文件提成共享纯函数，练度榜（`apps/build.ts`）用同一份规则。
      */
     const setSummaryText = setSummary(
       [...setCounts.entries()].map(([name, count]) => ({ name, count }))

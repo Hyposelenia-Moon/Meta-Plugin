@@ -42,8 +42,8 @@ push('示例文件键集合 == defaultConfig 键集合', Object.keys(example).so
 
 // ---------- 2. defSet 模板占位符与配置键一一对应 ----------
 // `modules` 是**嵌套对象**：模板与锅巴表单按模块逐项展开（`meta_module_<key>` / 字段 `module_<key>`），
-// 所以这里比较的是"标量键 + 10 个模块键"的并集（2026-10-15 起：`charDps` / `raid` 随命令合并移除；
-// 2026-10-16：`akashaBuild` 随 `#配装` 并入 `#练度榜` 移除）
+// 所以这里比较的是"标量键 + 9 个模块键"的并集（2026-10-15 起：`charDps` / `raid` 随命令合并移除；
+// 2026-10-17：阿卡莎全部功能（`build` / `akashaBuild` 与六个 akasha 配置键）整体移除）
 const moduleKeys = [...C.MODULE_KEYS].sort()
 const scalarKeys = keys.filter(k => k !== 'modules')
 const expectedVars = [...scalarKeys.map(k => `meta_${k}`), ...moduleKeys.map(k => `meta_module_${k}`)].sort()
@@ -54,7 +54,7 @@ delete flatDefaults.modules
 ok('模块开关默认值：teamDamage 关闭', C.defaultModules.teamDamage === false)
 ok('模块开关默认值：其余全部开启',
   moduleKeys.filter(k => k !== 'teamDamage').every(k => C.defaultModules[k] === true))
-push('模块键数量 == 10', moduleKeys.length, 10)
+push('模块键数量 == 9', moduleKeys.length, 9)
 
 const defsetPath = path.join(pluginRoot, 'defSet', 'config.yaml')
 ok('defSet/config.yaml 存在', fs.existsSync(defsetPath))
@@ -94,13 +94,12 @@ if (fs.existsSync(target)) {
   const written = readText(target)
   push('写入后无残留占位符', [...written.matchAll(/\$\{[A-Za-z0-9_]+\}/g)].map(m => m[0]), [])
   ok('模板注释保留（未 YAML.stringify 重写）',
-    written.includes('# Meta-Plugin 配置模板') && written.includes('数据源一 · mhydps.cn'))
+    written.includes('# Meta-Plugin 配置模板') && written.includes('数据源 · mhydps.cn'))
 
   const wrote = YAML.parse(written)
   push('写入值 priority', wrote.priority, 123)
   push('写入值 networkEnabled', wrote.networkEnabled, true)
   push('兜底值 dpsPageSize', wrote.dpsPageSize, defaults.dpsPageSize)
-  push('兜底值 akashaProxy（空串键）', wrote.akashaProxy, '')
   push('写入后键集合不变', Object.keys(wrote).sort(), keys)
   push('写入后 modules 键集合不变', Object.keys(wrote.modules || {}).sort(), moduleKeys)
   push('未提交的模块开关回落默认（teamDamage 仍关闭）', (wrote.modules || {}).teamDamage, false)

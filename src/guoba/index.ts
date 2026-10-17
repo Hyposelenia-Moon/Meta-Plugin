@@ -3,12 +3,10 @@
  *
  * 对应 `defSet/config.yaml` 的模板变量：`meta_priority` / `meta_renderScale` / `meta_networkEnabled` /
  * `meta_proxy` / `meta_dpsTimeoutMs` / `meta_dpsCacheTtlMinutes` / `meta_dpsPageSize` / `meta_dpsAvatarEnabled` /
- * `meta_akashaEnabled` / `meta_akashaDefaultUid` / `meta_akashaProxy` / `meta_akashaTimeoutMs` /
- * `meta_akashaCacheTtlMinutes` / `meta_akashaMaxChars` /
  * `meta_module_<模块键>` × 10（模块开关：配置文件里是嵌套的 `modules:`，表单按模块逐项）
  *
  * 三层开关的界面分组（2026-10-15 起）：
- *   「模块开关」（功能层：命令是否响应）→「业务查询联网」（查询联网层）→「数据源二 · akasha」（数据通道层）。
+ *   「模块开关」（功能层：命令是否响应）→「业务查询联网」（查询联网层）。
  *   三者正交，说明文字不得互相替代（见 `AGENTS.md` 硬约束 8/12）。
  *
  * 沿用 Mhydps-Plugin 的三条约定：
@@ -41,12 +39,6 @@ const TEMPLATE_VARS: Record<ScalarConfigKey, string> = {
   gradeWeights: 'meta_gradeWeights',
   gradePanelTiers: 'meta_gradePanelTiers',
   gradeRankThresholds: 'meta_gradeRankThresholds',
-  akashaEnabled: 'meta_akashaEnabled',
-  akashaDefaultUid: 'meta_akashaDefaultUid',
-  akashaProxy: 'meta_akashaProxy',
-  akashaTimeoutMs: 'meta_akashaTimeoutMs',
-  akashaCacheTtlMinutes: 'meta_akashaCacheTtlMinutes',
-  akashaMaxChars: 'meta_akashaMaxChars',
   teamDamageAxes: 'meta_teamDamageAxes'
 }
 
@@ -127,7 +119,7 @@ export function supportGuoba (): Record<string, unknown> {
       link: 'https://github.com/Hyposelenia-Moon/Meta-Plugin',
       isV3: true,
       isV2: false,
-      description: '原神角色攻略（六模块一图）+ DPS / 危战榜单 + 练度查询（13 个模块可逐项开关）',
+      description: '原神角色攻略（六模块一图）+ DPS / 危战榜单 + 练度查询（9 个模块可逐项开关）',
       icon: 'mdi:book-open-variant',
       iconColor: '#4a9eff'
     },
@@ -236,63 +228,6 @@ export function supportGuoba (): Record<string, unknown> {
           component: 'Switch',
           required: true,
           componentProps: { defaultValue: true }
-        },
-
-        // ==================== 数据源二 · akasha.cv ====================
-        { label: '数据源二 · akasha.cv（练度名次榜单）', component: 'SOFT_GROUP_BEGIN' },
-        {
-          field: 'akashaEnabled',
-          label: '阿卡莎数据通道（数据通道层）',
-          helpMessage: '练度数据来自 akasha.cv（mhydps.cn 没有练度排名）；本项只控制"能不能走阿卡莎通道"',
-          bottomHelpMessage: '⚠ 与「模块开关」正交：关掉它，模块即使开着也取不到练度数据；关掉 modules.build 则命令直接不响应',
-          component: 'Switch',
-          required: true,
-          componentProps: { defaultValue: true }
-        },
-        {
-          field: 'akashaDefaultUid',
-          label: '默认 UID',
-          helpMessage: '练度查询命令里不写 UID 时用它',
-          bottomHelpMessage: '填了以后可以直接「#练度查询 胡桃」；留空则必须带 9 位 UID',
-          component: 'Input',
-          required: false,
-          componentProps: { placeholder: '123456789' }
-        },
-        {
-          field: 'akashaProxy',
-          label: '请求代理（akasha）',
-          helpMessage: 'akasha.cv 的代理，留空 = 直连',
-          bottomHelpMessage: 'akasha 通常可直连；只有本机确实需要时才填',
-          component: 'Input',
-          required: false,
-          componentProps: { placeholder: '留空 = 直连' }
-        },
-        {
-          field: 'akashaTimeoutMs',
-          label: '请求超时（毫秒，akasha）',
-          helpMessage: 'akasha 取数单次最大等待',
-          bottomHelpMessage: '默认 60000 = 60 秒；需要浏览器会话取数时会明显偏慢',
-          component: 'InputNumber',
-          required: true,
-          componentProps: { min: 5000, max: 180000, step: 1000, defaultValue: 60000 }
-        },
-        {
-          field: 'akashaCacheTtlMinutes',
-          label: '缓存有效期（分钟，akasha）',
-          helpMessage: '练度数据缓存多久',
-          bottomHelpMessage: '默认 30 分钟；接口非官方，调太小容易触发限流',
-          component: 'InputNumber',
-          required: true,
-          componentProps: { min: 1, max: 1440, defaultValue: 30 }
-        },
-        {
-          field: 'akashaMaxChars',
-          label: '最多展示角色数（akasha）',
-          helpMessage: '一次练度查询最多列几个角色',
-          bottomHelpMessage: '默认 12，上限 30；超出按名次先后截断',
-          component: 'InputNumber',
-          required: true,
-          componentProps: { min: 1, max: 30, defaultValue: 12 }
         },
 
         // ==================== 练度评分（v3 P2） ====================

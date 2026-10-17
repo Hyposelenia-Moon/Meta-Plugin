@@ -8,7 +8,7 @@
  *   - 旧仓库删除后本套件依然有效。
  *
  * 覆盖：DPS 榜查询（rows/分页/副标题/成员与命座/徽章/视频）→ 危战榜查询 → 文本回退 →
- * 单条视频文本 → 四个参数解析函数。头像路径依赖本地缓存文件，两份都为空 → 不参与比对。
+ * 单条视频文本 → 三个参数解析函数（`parseBuildArgs` 随阿卡莎功能移除于 2026-10-17）。头像路径依赖本地缓存文件，两份都为空 → 不参与比对。
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -160,7 +160,6 @@ const strip = (r) => {
     a.filter((t, i) => JSON.stringify(stripTier(QA.parseRaidArgs(t))) !== JSON.stringify(stripTier(snap.arg.raid[i]))), [])
   ok('parseRaidArgs 的 tier 缺省为 null 且不影响其它字段',
     QA.parseRaidArgs('胡桃 金≤12').tier === null && QA.parseRaidArgs('胡桃 金≤12').costMax === 12)
-  push('parseBuildArgs 与合并前一致', a.filter((t, i) => JSON.stringify(QA.parseBuildArgs(t)) !== JSON.stringify(snap.arg.build[i])), [])
   push('takeRankNo 与合并前一致', a.filter((t, i) => JSON.stringify(QA.takeRankNo(t)) !== JSON.stringify(snap.arg.takeRankNo[i])), [])
 }
 

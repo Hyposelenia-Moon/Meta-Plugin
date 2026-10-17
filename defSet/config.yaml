@@ -19,7 +19,6 @@ modules:
   help: ${meta_module_help}
   rank: ${meta_module_rank}
   raidTiers: ${meta_module_raidTiers}
-  build: ${meta_module_build}
   grade: ${meta_module_grade}
   # 队伍伤害：默认关闭（用户 2026-10-15 定）
   teamDamage: ${meta_module_teamDamage}
@@ -29,11 +28,11 @@ modules:
 
 # ---------- 业务查询联网开关（查询联网层） ----------
 # 默认关闭。**只**管辖 DPS 榜 / 危战 / 练度等业务查询的远程访问与刷新
-# （mhydps / akasha / miao 面板 / 队伍 / 榜单头像下载）；关闭时这些请求一律不发，攻略查询完全离线。
+# （mhydps / miao 面板 / 队伍 / 榜单头像下载）；关闭时这些请求一律不发，攻略查询完全离线。
 # ⚠ 它**不是**整个插件的全局联网禁令：别名服务、可选插件探测、依赖安装等其他网络操作不受它限制
 networkEnabled: ${meta_networkEnabled}
 
-# ---------- 数据源一 · mhydps.cn（DPS榜 / 危战榜） ----------
+# ---------- 数据源 · mhydps.cn（DPS榜 / 危战榜） ----------
 # 抓取 mhydps.cn 使用的代理，留空 = 直连
 # 实测国内直连 www.mhydps.cn 会被重置（TLS 握手阶段 RST），通常需要本地代理
 proxy: "${meta_proxy}"
@@ -49,27 +48,6 @@ dpsPageSize: ${meta_dpsPageSize}
 
 # 是否缓存并渲染角色立绘
 dpsAvatarEnabled: ${meta_dpsAvatarEnabled}
-
-# ---------- 数据源二 · akasha.cv（练度查询） ----------
-# 阿卡莎数据通道（数据通道层：是否允许走 akasha.cv 的浏览器会话）
-# ⚠ 与上面的模块开关正交：关掉它，模块即使开着也取不到练度数据
-akashaEnabled: ${meta_akashaEnabled}
-
-
-# akasha 的代理，留空 = 直连（akasha 通常可直连）
-akashaProxy: "${meta_akashaProxy}"
-
-# ⚠ 已废弃（2026-10-16）：练度榜改为「#练度榜 <角色> [名次]」纯角色榜查询，不再涉及任何 UID；此项保留仅为兼容旧配置
-akashaDefaultUid: "${meta_akashaDefaultUid}"
-
-# akasha 单次请求超时（毫秒；需要浏览器会话时会明显偏慢）
-akashaTimeoutMs: ${meta_akashaTimeoutMs}
-
-# akasha 练度数据缓存有效期（分钟）
-akashaCacheTtlMinutes: ${meta_akashaCacheTtlMinutes}
-
-# 一次练度查询最多列几个角色
-akashaMaxChars: ${meta_akashaMaxChars}
 
 # 练度评分权重（综合 / 武器 / 天赋；只对攻略里有目标的维度加权）
 # 「综合」= 圣遗物有效词条（miao 评分规则）为主 + 套装符合度，面板目标不计分

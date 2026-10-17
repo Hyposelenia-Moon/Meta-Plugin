@@ -5,7 +5,7 @@
  * 所以这里做两层断言：
  *   1. **结构**：类继承框架 plugin、`name`/`dsc`/`permission`/优先级偏移**全部取自 `COMMANDS`**、
  *      规则用 `RULES.*`、handler 名与规则里的 `fnc` 对得上、框架 import 是 4 级且带 `@ts-expect-error`；
- *   2. **一致性与等价性**：6 个 app 覆盖的规则键与 `COMMANDS` 对齐（`help` 归阶段 5）；
+ *   2. **一致性与等价性**：5 个 app 覆盖的规则键与 `COMMANDS` 对齐（`help` 归阶段 5）；
  *      用户可见文案仍是合并前的 `[Mhydps]` 前缀（阶段 4 的逐字等价要求，改名留阶段 6）。
  */
 import fs from 'node:fs'
@@ -20,7 +20,7 @@ process.env.META_DATA_DIR = path.join(tmpRoot, 'data')
 process.env.META_CONFIG_FILE = path.join(tmpRoot, 'config.yaml')
 fs.mkdirSync(process.env.META_DATA_DIR, { recursive: true })
 // 用一份显式配置驱动优先级公式的断言：priority = 8000 + 偏移
-fs.writeFileSync(process.env.META_CONFIG_FILE, 'priority: 9000\nnetworkEnabled: false\nakashaEnabled: true\nproxy: http://127.0.0.1:7890\n', 'utf8')
+fs.writeFileSync(process.env.META_CONFIG_FILE, 'priority: 9000\nnetworkEnabled: false\nproxy: http://127.0.0.1:7890\n', 'utf8')
 
 const C = await import(pathToFileURL(path.join(libDir, 'components', 'constants.js')).href)
 const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.js')).href)
@@ -29,11 +29,11 @@ const PV = await import(pathToFileURL(path.join(libDir, 'components', 'pluginVer
 /**
  * 本组 app（2026-10-15 命令面重构后）：
  * `rank`（榜单，已吸收原 `charDps`，后缀式 `视频N` 也在它里面）/ `raidTiers`（危战分档，旧 `raid` 危战榜已废除）/
- * `build`（练度榜）/ `status` / `admin`（榜单刷新）
+ * `status` / `admin`（榜单刷新）
  *
  * ⚠ `video` app 已删除（用户 2026-10-15 定：视频名次改成后缀式、原前缀式废除）。
  */
-const APPS = ['rank', 'raidTiers', 'status', 'admin', 'build']
+const APPS = ['rank', 'raidTiers', 'status', 'admin']
 
 // ---------- 1. 每个 app 的结构与元数据 ----------
 for (const name of APPS) {
@@ -63,10 +63,10 @@ for (const name of APPS) {
     const src = readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`))
     return [...src.matchAll(/reg:\s*RULES\.(\w+)/g)].map(m => m[1])
   })
-  ok('本组 5 个 app 共认领 6 条规则（raidTiers 认领 raidTiers + raidTiersPrompt）', covered.length === 6)
+  ok('本组 4 个 app 共认领 5 条规则（raidTiers 认领 raidTiers + raidTiersPrompt）', covered.length === 5)
   push('覆盖的规则键不重复', covered.filter((k, i) => covered.indexOf(k) !== i), [])
   // 其余规则各有归属：grade/teamDamage 在 v3 app 里、help 在帮助页、raidTiers 在危战 app
-  // （2026-10-16：`akashaBuild` 随 `#配装` 并入 `#练度榜` 删除，其规则也一并摘除）
+  // （2026-10-17：阿卡莎全部功能移除，`build` 与 `akashaBuild` 两条规则都已摘除）
   const otherApps = ['raidTiers', 'grade', 'teamDamage']
   const otherCovered = otherApps.flatMap(name =>
     [...readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`)).matchAll(/reg:\s*RULES\.(\w+)/g)].map(m => m[1]))
@@ -94,7 +94,6 @@ for (const name of APPS) {
   ok('versionText 形如合并前的页脚', PV.versionText === `Created By Yz-Bot ${PV.yunzaiVersion} & ${C.PLUGIN_SIGN} ${PV.pluginVersion}`)
 
   ok('getProxy 读配置', CFG.getProxy() === 'http://127.0.0.1:7890')
-  ok('getAkashaEnabled 默认为开', CFG.getAkashaEnabled() === true)
   ok('getPageSize 读配置且为数字', Number.isFinite(CFG.getPageSize()))
   ok('getPluginConfig 返回完整配置', CFG.getPluginConfig().priority === 9000)
   ok('priority 配置被 apps 采用（不是写死 8000）', CFG.getPluginConfig().priority === 9000)

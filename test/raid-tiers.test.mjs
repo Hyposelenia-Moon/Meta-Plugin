@@ -61,7 +61,7 @@ const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFi
   push('miao 的危战形态一个都不认领', miaoForms.filter(t => C.matchCommand(t) !== null), [])
 
   // 其它命令不被危战规则吞掉
-  const others = ['#危战视频 3', '#DPS榜', '#meta状态', '#练度榜 胡桃']
+  const others = ['#危战视频 3', '#DPS榜', '#meta状态', '#练度查询 胡桃']
   push('其它命令不被危战规则吞掉',
     others.filter(t => ['raidTiers', 'raidTiersPrompt'].includes(String(C.matchCommand(t)?.key))), [])
 }

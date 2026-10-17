@@ -21,7 +21,6 @@ const { RULES } = await import(mod('components/constants.js'))
 const rankCmd = RULES.rank
 const raidTierCmd = RULES.raidTiers
 const raidPromptCmd = RULES.raidTiersPrompt
-const buildCmd = RULES.build
 const adminCmd = RULES.admin
 const statusCmd = RULES.status
 const helpCmd = RULES.help
@@ -35,7 +34,7 @@ check('后缀式危战：档位与视频名次都进捕获组',
   (() => { const m = raidTierCmd.exec('#危战 矮灵 n7 视频3'); return m?.[1] === '矮灵' && m?.[2] === '7' && m?.[3] === '3' })())
 check('视频名次写在档位前面 → 走"请选档"兜底（由 app 再转视频查询）', raidPromptCmd.test('#危战 矮灵 视频3 n7'))
 check('原前缀式不再命中任何入口（已废除）',
-  ['#视频 3', '#榜视频 3', '#危战视频 3'].every(m => !rankCmd.test(m) && !raidTierCmd.test(m) && !raidPromptCmd.test(m) && !buildCmd.test(m) && !statusCmd.test(m) && !adminCmd.test(m)))
+  ['#视频 3', '#榜视频 3', '#危战视频 3'].every(m => !rankCmd.test(m) && !raidTierCmd.test(m) && !raidPromptCmd.test(m) && !statusCmd.test(m) && !adminCmd.test(m)))
 check('#DPS视频 3 等旧名也不命中', ['#DPS视频 3', '#DPS危战视频 3'].every(m => !rankCmd.test(m) && !raidTierCmd.test(m) && !raidPromptCmd.test(m)))
 
 // ---- 榜单 / 危战 / 练度：简化写法仍然可用 ----
@@ -46,12 +45,9 @@ check('#危战 矮灵 n7 / n6 命中危战入口（档位必填）',
 check('裸 #危战 与 #危战数据/#危战排名 都不认领（那是 miao 的命令）',
   ['#危战', '#危战数据', '#危战排名', '#危战单人'].every(m => !raidTierCmd.test(m) && !raidPromptCmd.test(m)))
 check('写了筛选但没档位 → 提示选档入口', raidPromptCmd.test('#危战 矮灵') && !raidTierCmd.test('#危战 矮灵'))
-check('#练度榜 <UID> 命中练度入口', buildCmd.test('#练度榜 100000000'))
-check('省略「查询」或前缀不再命中（避免抢别的插件的 #练度）', !buildCmd.test('#DPS练度 100000000') && !buildCmd.test('#练度查询 100000000'))
-check('#练度榜 <角色> [UID] 命中练度入口', buildCmd.test('#练度榜 胡桃') && buildCmd.test('#练度榜 胡桃 100000000'))
-// 2026-10-16 合并：`#配装` 删除（不做别名）——两个视图都由 `#练度榜 <角色> [名次]` 承载
-check('`#配装 胡桃 3` 不再命中任何入口（已并入 #练度榜）',
-  ['#配装', '#配装 胡桃 3'].every(m => !rankCmd.test(m) && !buildCmd.test(m) && !statusCmd.test(m) && !adminCmd.test(m)))
+// 阿卡莎功能已整体移除：`#练度榜` / `#配装` 都不再命中任何入口
+check('`#练度榜` / `#配装` 不再命中任何入口（阿卡莎功能已移除）',
+  ['#练度榜 胡桃', '#练度榜 胡桃 3', '#配装', '#配装 胡桃 3'].every(m => !rankCmd.test(m) && !statusCmd.test(m) && !adminCmd.test(m) && !raidTierCmd.test(m) && !raidPromptCmd.test(m)))
 check('#榜单刷新 命中管理入口', adminCmd.test('#榜单刷新'))
 check('#meta状态 与 #DPS帮助 各归各家', statusCmd.test('#meta状态') && helpCmd.test('#DPS帮助'))
 
@@ -59,11 +55,9 @@ check('#meta状态 与 #DPS帮助 各归各家', statusCmd.test('#meta状态') &
 check('#DPS帮助 不被榜单入口匹配', !rankCmd.test('#DPS帮助'))
 check('#meta状态 不被榜单入口匹配', !rankCmd.test('#meta状态'))
 check('#榜单刷新 不被榜单入口匹配', !rankCmd.test('#榜单刷新'))
-check('#练度榜 <UID> 不被榜单入口匹配', !rankCmd.test('#练度榜 100000000'))
-check('#练度榜 <角色> 不被危战入口匹配', !raidTierCmd.test('#练度榜 胡桃'))
 check('#危战 7.1 n6 不被榜单入口匹配', !rankCmd.test('#危战 7.1 n6'))
 check('已废除的旧名不再命中任何入口',
-  ['#DPS练度查询 胡桃', '#DPS状态', '#DPS视频 3', '#DPS危战视频 3', '#DPS更新', '#DPS危战榜 7.1', '#胡桃dps', '#视频 3', '#危战视频 3'].every(m => !rankCmd.test(m) && !buildCmd.test(m) && !statusCmd.test(m) && !adminCmd.test(m) && !raidTierCmd.test(m) && !raidPromptCmd.test(m)))
+  ['#DPS练度查询 胡桃', '#DPS状态', '#DPS视频 3', '#DPS危战视频 3', '#DPS更新', '#DPS危战榜 7.1', '#胡桃dps', '#视频 3', '#危战视频 3'].every(m => !rankCmd.test(m) && !statusCmd.test(m) && !adminCmd.test(m) && !raidTierCmd.test(m) && !raidPromptCmd.test(m)))
 
 // ---- 大小写（`#DPS…` 只剩榜单与帮助两条，其余命令不再带 DPS 前缀） ----
 check('小写 #dps 前缀仍认榜单', rankCmd.test('#dps 3金') && rankCmd.test('#dps榜 3金'))

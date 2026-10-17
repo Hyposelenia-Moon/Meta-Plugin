@@ -1,10 +1,9 @@
 /**
  * 模块开关（功能层，2026-10-15）—— **行为层**
  *
- * 结构（三层正交，见 `AGENTS.md` 硬约束 8）：
+ * 结构（两层正交，见 `AGENTS.md` 硬约束 8）：
  *   - `modules.<key>`（本套件）：功能是否可用 —— 关闭时命令不响应
  *   - `networkEnabled`：业务查询是否允许远程访问/刷新（阿修定义的那层）
- *   - `akashaEnabled`：是否允许走阿卡莎通道
  *
  * 关闭行为（用户 2026-10-15 定）：
  *   - 非接管类：回一条统一文本并消费消息（命名空间稳定）
@@ -24,14 +23,15 @@ const { moduleGateReply, moduleOff } = await load('modules/moduleGate.js')
 // ---------- ① 键表与默认值 ----------
 {
   /*
-   * 2026-10-16：`akashaBuild`（榜上配装）随 `#配装` 并入 `#练度榜` 删除 ——
-   * 模块键由 11 个减为 10 个，该开关不再存在（旧的 `modules.akashaBuild` 配置项会被忽略）。
+   * 2026-10-17：阿卡莎全部功能移除 —— 模块键由 10 个减为 9 个（`build` 练度榜随之删除）。
    */
-  ok('模块键 10 个且含全部命令模块',
-    C.MODULE_KEYS.length === 10 &&
-    ['codex', 'help', 'rank', 'raidTiers', 'build', 'grade', 'teamDamage', 'video', 'status', 'admin']
+  ok('模块键 9 个且含全部命令模块',
+    C.MODULE_KEYS.length === 9 &&
+    ['codex', 'help', 'rank', 'raidTiers', 'grade', 'teamDamage', 'video', 'status', 'admin']
       .every(k => C.MODULE_KEYS.includes(k)))
-  ok('已删除的模块键不再出现（akashaBuild）', !C.MODULE_KEYS.includes('akashaBuild') && C.MODULE_LABELS.akashaBuild === undefined)
+  ok('已删除的模块键不再出现（build / akashaBuild）',
+    !C.MODULE_KEYS.includes('build') && !C.MODULE_KEYS.includes('akashaBuild') &&
+    C.MODULE_LABELS.build === undefined && C.MODULE_LABELS.akashaBuild === undefined)
   ok('默认：队伍伤害关闭、其余全部开启',
     C.defaultModules.teamDamage === false &&
     C.MODULE_KEYS.filter(k => k !== 'teamDamage').every(k => C.defaultModules[k] === true))
@@ -86,7 +86,6 @@ const { moduleGateReply, moduleOff } = await load('modules/moduleGate.js')
     ok('③ 模块开 + 联网开', C.isModuleEnabled('rank') === true && C.isQueryNetworkEnabled() === true)
     ok('③ 联网关闭的文案写明"只管辖查询类远程访问"',
       C.QUERY_NETWORK_OFF_HINT.includes('networkEnabled=false') && C.QUERY_NETWORK_OFF_HINT.includes('只管辖查询类远程访问'))
-    ok('③ akashaEnabled 是独立的数据通道开关', typeof C.getAkashaEnabled() === 'boolean')
   } finally {
     if (old === undefined) delete process.env.META_CONFIG_FILE
     else process.env.META_CONFIG_FILE = old
@@ -126,7 +125,7 @@ const { moduleGateReply, moduleOff } = await load('modules/moduleGate.js')
 {
   const files = fs.readdirSync(path.join(pluginRoot, 'src', 'apps')).filter(f => f.endsWith('.ts'))
   const gateCallers = files.filter(f => readText(path.join(pluginRoot, 'src', 'apps', f)).includes('moduleGateReply('))
-  ok('⑤ 非接管类 7 个 app 都接了闸门（akashaBuild 已随 #配装 删除）', gateCallers.length === 7, gateCallers.join(','))
+  ok('⑤ 非接管类 6 个 app 都接了闸门（build 随阿卡莎一并删除）', gateCallers.length === 6, gateCallers.join(','))
   /*
    * 2026-10-15 用户定：视频名次改成后缀式、原 `#视频` / `#危战视频` 前缀式废除（video app 已删除），
    * 于是「榜单视频」模块开关的拦截点搬到榜单/危战两个 app 的后缀分发处

@@ -50,7 +50,7 @@ export const MODE_TEXT: Record<string, string> = {
 
 /** 来源条（规格 §3）：只写可核实字段 */
 export interface SourceInfo {
-  /** `miao` / `akasha` / `mhydps` */
+  /** `miao` / `mhydps` / `local` */
   source: string
   name: string
   mode: 'local' | 'refreshed' | 'cache' | 'fallback'
@@ -429,7 +429,7 @@ export function labelLinesOf (label: string): string[] {
  * 圣遗物套装表述（纯函数，2026-10-15 用户定；2026-10-17 从 `apps/grade.ts` 提成共享）
  *
  * 规则：**只写 4 件套 / 2+2 / 2 件套；凑不出套装加成就写「散件」，不列单件散件**。
- * （曾经写成 `魔女×4 + 乐团×1` 会把单件散件也列出来；练度榜行同样适用这条。）
+ * （曾经写成 `魔女×4 + 乐团×1` 会把单件散件也列出来。）
  *
  * @param sets 每套的**展示名**与件数（名一律由调用方给中文；按入参顺序做稳定排序，排名相同的保序）
  */

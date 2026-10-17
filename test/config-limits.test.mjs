@@ -25,7 +25,7 @@ fs.writeFileSync(cfgFile, [
 
 process.env.META_CONFIG_FILE = cfgFile
 
-const { getPluginConfig, getProxy, getRenderScale, clampRenderScale, getPageSize, getDpsCacheTtlMinutes, getDpsTimeoutMs, defaultConfig, getAkashaEnabled, getAkashaProxy, getAkashaTimeoutMs, getAkashaCacheTtlMinutes, getAkashaMaxChars } = await import(mod('components/config.js'))
+  const { getPluginConfig, getProxy, getRenderScale, clampRenderScale, getPageSize, getDpsCacheTtlMinutes, getDpsTimeoutMs, defaultConfig } = await import(mod('components/config.js'))
 
 const { check, finish } = checker()
 
@@ -51,23 +51,5 @@ process.env.META_CONFIG_FILE = path.join(cfgDir, 'not-exists.yaml')
 const cfg2 = await import(`${mod('components/config.js')}?fresh=1`)
 check('配置文件缺失时回落默认值', cfg2.getPluginConfig().dpsPageSize === defaultConfig.dpsPageSize)
 check('缺失时 priority 为 8000', cfg2.getPluginConfig().priority === 8000)
-// 这一段的 env 改回来了：后面 akasha 段继续写同一个 cfgFile 并读它
-process.env.META_CONFIG_FILE = cfgFile
-
-// ---- 数据源二（akasha）取值同样夹取 ----
-const writeCfg = (obj) => fs.writeFileSync(cfgFile, Object.entries(obj).map(([k, v]) => `${k}: ${typeof v === 'string' ? JSON.stringify(v) : v}`).join('\n'), 'utf8')
-
-writeCfg({ akashaEnabled: false, akashaProxy: '  http://p:1  ', akashaTimeoutMs: 999999, akashaCacheTtlMinutes: 0, akashaMaxChars: 999 })
-check('akasha 开关关闭时返回 false', getAkashaEnabled() === false)
-check('akasha 代理修剪空白', getAkashaProxy() === 'http://p:1', getAkashaProxy())
-check('akasha 超时上限 180s', getAkashaTimeoutMs() === 180000, String(getAkashaTimeoutMs()))
-check('akasha 缓存 TTL 非法值回落默认', getAkashaCacheTtlMinutes() === 30, String(getAkashaCacheTtlMinutes()))
-check('akasha 角色数上限 30', getAkashaMaxChars() === 30, String(getAkashaMaxChars()))
-
-writeCfg({ akashaEnabled: true, akashaProxy: '', akashaTimeoutMs: 1, akashaCacheTtlMinutes: 'abc', akashaMaxChars: 0 })
-check('akasha 超时下限 5s', getAkashaTimeoutMs() === 5000, String(getAkashaTimeoutMs()))
-check('akasha 非法 TTL 回落默认（第二次）', getAkashaCacheTtlMinutes() === 30, String(getAkashaCacheTtlMinutes()))
-check('akasha 非法角色数回落默认', getAkashaMaxChars() === 12, String(getAkashaMaxChars()))
-check('akasha 开关默认开启', getAkashaEnabled() === true)
 
 finish()

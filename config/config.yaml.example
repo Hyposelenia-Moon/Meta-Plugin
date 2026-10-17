@@ -18,7 +18,6 @@ modules:
   help: true
   rank: true
   raidTiers: true
-  build: true
   grade: true
   # 队伍伤害：默认关闭（用户 2026-10-15 定）
   teamDamage: false
@@ -44,24 +43,6 @@ dpsPageSize: 10
 
 # 是否缓存并渲染角色立绘
 dpsAvatarEnabled: true
-
-# 阿卡莎数据通道（数据通道层；与上面的 modules 模块开关正交）
-akashaEnabled: true
-
-# 默认 UID：命令里不写 UID 时用它
-akashaDefaultUid: ""
-
-# akasha 的代理，留空 = 直连
-akashaProxy: ""
-
-# akasha 单次请求超时（毫秒）
-akashaTimeoutMs: 60000
-
-# akasha 练度数据缓存有效期（分钟）
-akashaCacheTtlMinutes: 30
-
-# 一次练度查询最多列几个角色
-akashaMaxChars: 12
 
 # 练度评分权重（综合 / 武器 / 天赋；「综合」= 圣遗物有效词条为主 + 套装符合度）
 gradeWeights: "comprehensive:65,weapon:20,talent:15"
