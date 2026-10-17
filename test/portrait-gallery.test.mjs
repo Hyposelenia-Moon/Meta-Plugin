@@ -102,7 +102,7 @@ export const profileImgSrc = [
     readText(path.join(pluginRoot, 'src', 'model', 'ProfileImgRes.ts')).includes("['splash0.webp', 'splash.webp']"), true)
 }
 
-// ---------- 5. 攻略页立绘：图库优先，只排除"比默认立绘小"的图（2026-10-17） ----------
+// ---------- 5. 攻略页立绘：图库优先，按「真实渲染尺寸」排除会发虚的小图（2026-10-17） ----------
 {
   const base = path.join(ensureTmp(), 'gallery-page-portrait')
   fs.rmSync(base, { recursive: true, force: true })
@@ -141,12 +141,25 @@ export const profileImgSrc = [
   push('尺寸读取：WebP VP8X 头', mod.imageSizeOf(std), { w: 1482, h: 1024, type: 'webp' })
   push('尺寸读取：坏图返回 null', mod.imageSizeOf(path.join(charDir, '胡桃_4_坏图.png')), null)
 
-  const stdSize = { w: 1482, h: 1024, type: 'webp' }
-  push('筛选：更小的图不合格', mod.fitsPortrait({ w: 741, h: 512, type: 'webp' }, stdSize), false)
-  push('筛选：同尺寸合格', mod.fitsPortrait({ w: 1482, h: 1024, type: 'webp' }, stdSize), true)
-  push('筛选：更大不同比例也合格（比例不卡，页面 cover 裁）', mod.fitsPortrait({ w: 1920, h: 1080, type: 'webp' }, stdSize), true)
-  push('筛选：宽够高不够不合格', mod.fitsPortrait({ w: 1920, h: 1000, type: 'webp' }, stdSize), false)
-  push('筛选：读不出尺寸不合格', mod.fitsPortrait(null, stdSize), false)
+  /* 2026-10-17 口径：**不再拿默认立绘当基准**，改成「按卡片真实渲染尺寸算放大倍数」
+     卡片 = 780 CSS 宽 × renderScale 1.5 → 1170px 宽；比例 1.4473 时高 808px */
+  const NO_CROP = { left: 0, right: 0, top: 0, bottom: 0 }
+  push('渲染需求：比例 1.4473 → 1170×808（780 × 1.5）', mod.renderTargetOf(1.4473, { renderScale: 1.5 }), { width: 1170, height: 808 })
+  push('渲染需求：比例缺失 → 0×0', mod.renderTargetOf(0), { width: 0, height: 0 })
+  push('筛选：1920×1080 铺进 1.4473 是缩小（合格）', mod.fitsRenderSize({ w: 1920, h: 1080, type: 'webp' }, NO_CROP, 1.4473), true)
+  push('筛选：1373×772 只需放大 4.7%（≤15% 合格）', mod.fitsRenderSize({ w: 1373, h: 772, type: 'webp' }, NO_CROP, 1.4473), true)
+  push('筛选：900×500 要放大 1.6 倍（不合格）', mod.fitsRenderSize({ w: 900, h: 500, type: 'webp' }, NO_CROP, 1.4473), false)
+  push('筛选：300×200 要放大 4 倍（不合格）', mod.fitsRenderSize({ w: 300, h: 200, type: 'webp' }, NO_CROP, 1.4473), false)
+  /* 裁白边后按**裁后**尺寸算：方形卡片(1.0) 下，1920×1080 砍掉上边 30% → 只剩 756 高，装不下 1170 高 */
+  push('筛选：按裁后尺寸算（方形卡片下 1920×1080 无裁 = 合格、裁掉上 30% = 不合格）',
+    [mod.fitsRenderSize({ w: 1920, h: 1080, type: 'webp' }, NO_CROP, 1.0),
+      mod.fitsRenderSize({ w: 1920, h: 1080, type: 'webp' }, { left: 0, right: 0, top: 0.3, bottom: 0 }, 1.0)],
+    [true, false])
+  push('筛选：读不出尺寸不合格', mod.fitsRenderSize(null, NO_CROP, 1.4473), false)
+  push('筛选：容差可调（同图 5% 容差下不合格、30% 下合格）',
+    [mod.fitsRenderSize({ w: 1373, h: 772, type: 'webp' }, NO_CROP, 1.4473, { tolerance: 0.01 }),
+      mod.fitsRenderSize({ w: 1373, h: 772, type: 'webp' }, NO_CROP, 1.4473, { tolerance: 0.3 })],
+    [false, true])
 
   const pickedFirst = mod.pickPagePortrait('胡桃', { sources, stdFile: std, random: () => 0 })
   ok('取图：小图被挡、随机取第一张合格图', pickedFirst.src.includes(encodeURIComponent('胡桃_2_同尺寸.png')), pickedFirst.src)
@@ -161,7 +174,7 @@ export const profileImgSrc = [
   writeWebp(path.join(onlySmall, 'normal-character', '胡桃', '胡桃_1_小.webp'), 300, 200)
   const fallback = mod.pickPagePortrait('胡桃', { sources: [onlySmall], stdFile: std })
   push('取图：图库全不合格时退回默认立绘', fallback.source, 'miao')
-  ok('取图：退回时说明原因（比默认立绘小）', fallback.note.includes('比默认立绘小'), fallback.note)
+  ok('取图：退回时说明原因（放大后发虚）', fallback.note.includes('发虚'), fallback.note)
   ok('取图：退回后仍给出地址', fallback.src.length > 0, fallback.src)
 
   /* 默认立绘也读不出尺寸 → 不能比较，退回默认立绘；连默认立绘都没有 → 空 */
@@ -272,8 +285,8 @@ export const profileImgSrc = [
   fs.mkdirSync(path.join(onlyTiny, 'normal-character', '胡桃'), { recursive: true })
   writePng(path.join(onlyTiny, 'normal-character', '胡桃', '胡桃_1_小.png'), 300, 200)
   const fallback = mod.pickPagePortrait('胡桃', { sources: [onlyTiny], stdFile: std })
-  push('取图：全比默认立绘小 → 退回默认立绘', fallback.source, 'miao')
-  ok('取图：退回原因写"比默认立绘小"', fallback.note.includes('比默认立绘小'), fallback.note)
+  push('取图：池里全是放大会发虚的小图 → 退回默认立绘', fallback.source, 'miao')
+  ok('取图：退回原因写「放大后都会发虚」', fallback.note.includes('发虚'), fallback.note)
   push('取图：退回默认立绘时也给出铺满盒（= 1:1）', fallback.box.width, '100.000%')
 
   /* `面板图N`（2026-10-17 加，`#胡桃攻略 面板图3`）：点名要哪张就照用 */

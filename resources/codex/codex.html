@@ -31,15 +31,13 @@
     .codex-head { position: relative; margin: 8px -10px 8px -10px; }   /* 上下对称留白（2026-10-16） */   /* 扩到页面四边：抵消 .page-inner 的 8px/10px 内边距，看不见卡片形状 */   /* 高度由立绘框的 aspect-ratio 决定（见 .codex-portrait） */
     /* 立绘区三行（旧版 miao 口径：右对齐 + 金字标签 + miao 文字阴影） */
     /*
-     * 立绘区（2026-10-17 用户定稿第二轮：**放大铺满 + 居中 + 边缘模糊描边**）
-     *   ① `.codex-portrait`：取景窗 —— 宽度撑满卡片，高度由 `aspect-ratio`（= 默认立绘宽高比）锁定；
-     *   ② `.codex-portrait-img`：主体层 —— 服务器按「四边白边」裁掉后 **cover 放大到铺满**（最长边先满、
-     *      溢出的部分裁掉）并在取景窗里居中（inline 定位由 `planPortraitBox(..., 'cover')` 算出）；
-     *   ③ `.codex-portrait-edge`：**模糊描边** —— 外圈用 `backdrop-filter` 把图本身虚化成一个过渡边，
-     *      中间保持清晰；不再用"整块模糊底"去填空缺（图已铺满，没有空缺）。
-     *   ④ `.codex-portrait-bg`：兜底底色（同图 cover + blur），只在图还没加载/极端比例时可见。
-     *   ⑤ 取景窗四角圆角 10px（2026-10-17 用户定，与页面卡片同值）—— `overflow:hidden` 会把
-     *      主体层、兜底层与边缘模糊线一起裁成圆角，不用再给各层单独设圆角。
+     * 立绘区（2026-10-17 用户定稿第三轮：**一张圆角图，铺满卡片，无内框**）
+     *   ① `.codex-portrait`：取景窗 —— 宽度撑满卡片，高度由 `aspect-ratio`（= 默认立绘宽高比）锁定，
+     *      四角圆角 20px（`overflow:hidden` 负责裁圆）；
+     *   ② `.codex-portrait-img`：唯一的图层 —— 服务器按「四边白边」裁掉后 **cover 放大到铺满**
+     *      （最长边先满、溢出裁掉）并在取景窗里居中（inline 定位由 `planPortraitBox(..., 'cover')` 算出）。
+     * ⚠ 不要再往立绘外面套图层（`bg` 模糊底 / `edge` 边缘描边都删了）：那两层会形成「卡片套卡片」
+     *   的观感（用户 2026-10-17 反馈），而且图已用 cover 铺满，本来就没有空缺需要填。
      */
     .codex-portrait {
       flex: none;
@@ -51,33 +49,6 @@
       overflow: hidden;
       border: none;
       border-radius: 20px;
-    }
-    .codex-portrait-bg {
-      position: absolute;
-      inset: -10%;
-      background-position: center;
-      background-size: cover;
-      background-repeat: no-repeat;
-      filter: blur(28px) brightness(.68) saturate(1.08);
-      transform: translateZ(0);
-    }
-    .codex-portrait-edge {
-      /*
-       * 边缘模糊「线」（2026-10-17 第三轮修正）：只把**最外一圈**（14px）虚化，
-       * 不再用径向渐变从 58% 就开始过渡 —— 那样会在四边压出一整条糊带（用户报过左侧糊一条）。
-       * 做法是标准的「只保留边框」遮罩：整块 mask ⊕ 内容盒 mask，剩下的就是那圈边。
-       */
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      padding: 14px;
-      box-sizing: border-box;
-      backdrop-filter: blur(10px) brightness(.86);
-      -webkit-backdrop-filter: blur(10px) brightness(.86);
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor;
-      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      mask-composite: exclude;
     }
     .codex-portrait-img {
       position: absolute;
@@ -459,15 +430,11 @@
         <div class="codex-head">
           {{if portraitSrc}}
           <div class="codex-portrait"{{if portraitRatio}} style="aspect-ratio: {{portraitRatio}}"{{/if}}>
-            <div class="codex-portrait-bg" style="background-image: url('{{portraitSrc}}')"></div>
             <img class="codex-portrait-img" src="{{portraitSrc}}"{{if portraitBox.width}} style="width:{{portraitBox.width}};height:{{portraitBox.height}};left:{{portraitBox.left}};top:{{portraitBox.top}}"{{/if}} alt=""/>
-            <div class="codex-portrait-edge"></div>
           </div>
           {{else if portrait}}
           <div class="codex-portrait"{{if portraitRatio}} style="aspect-ratio: {{portraitRatio}}"{{/if}}>
-            <div class="codex-portrait-bg" style="background-image: url('{{_miao_path}}{{portrait}}')"></div>
             <img class="codex-portrait-img" src="{{_miao_path}}{{portrait}}" alt=""/>
-            <div class="codex-portrait-edge"></div>
           </div>
           {{/if}}
           <div class="codex-head-main">

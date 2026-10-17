@@ -211,7 +211,7 @@ export async function renderCodexPage (opts = {}) {
     let portraitBox = { width: '', height: '', left: '', top: '' }
     let portraitNote = ''
     try {
-      const hero = deps.pickPagePortrait(name)
+      const hero = deps.pickPagePortrait(name, { renderScale: Number(opts.renderScale) || 1.5 })
       portraitSrc = hero.src || ''
       portraitRatio = hero.ratio || ''
       portraitBox = hero.box || portraitBox

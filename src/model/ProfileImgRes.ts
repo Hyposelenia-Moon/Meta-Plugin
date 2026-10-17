@@ -300,15 +300,48 @@ export function imageSizeOf (file: string): ImageSize | null {
 }
 
 /**
- * 这张图能不能当攻略页立绘
+ * 卡片真实渲染出来的像素需求（设备像素）
  *
- * 唯一条件（用户 2026-10-17 定，**比例不卡**）：**不得比默认立绘小** —— 宽和高都要 ≥ 默认立绘。
- * 理由：页面用 `object-fit: cover` 把图裁进卡片区（宽度撑满、高度按默认立绘的比例定），
- * 所以任何比例的大图都能用；只有被放大发虚的小图不要。
+ * 页面结构：`body{zoom:renderScale}` + 卡片 CSS 宽 780（AGENTS 里的页面基准宽），
+ * 高 = 宽 ÷ 卡片比例。于是「卡片要多大一块像素」是可算的 —— 这就是给图库图做
+ * 「面积是否够用」判定的基准（**不再拿 miao 默认立绘当基准**，2026-10-17 用户定）。
  */
-export function fitsPortrait (size: ImageSize | null, std: ImageSize | null): boolean {
-  if (!size || !std || !size.w || !size.h || !std.w || !std.h) return false
-  return size.w >= std.w && size.h >= std.h
+export interface RenderTarget {
+  width: number
+  height: number
+}
+
+/** 由卡片比例算渲染像素需求（比例缺失时返回 0×0） */
+export function renderTargetOf (cardRatio: number, opts: { cardCssWidth?: number, renderScale?: number } = {}): RenderTarget {
+  const w = Number(opts.cardCssWidth) || 780
+  const scale = Number(opts.renderScale) || 1.5
+  const ratio = Number(cardRatio)
+  if (!Number.isFinite(ratio) || ratio <= 0) return { width: 0, height: 0 }
+  return { width: Math.round(w * scale), height: Math.round((w / ratio) * scale) }
+}
+
+/**
+ * 这张图放到卡片上**会不会被放大**（= 面积过小、发虚）
+ *
+ * 判据（用户 2026-10-17 定，替代旧的「不得比默认立绘小」）：
+ *   按 `cover` 把「裁掉白边后的那块」铺进卡片，放大倍数 = max(卡片需求宽 ÷ 裁后宽, 卡片需求高 ÷ 裁后高)；
+ *   **超过 1 + tolerance（默认 15%）就不要**。面积远大于需求的大图、比例不同的图都能通过。
+ */
+export function fitsRenderSize (size: ImageSize | null, crop: PortraitCrop, cardRatio: number, opts: {
+  cardCssWidth?: number
+  renderScale?: number
+  tolerance?: number
+} = {}): boolean {
+  if (!size || !size.w || !size.h) return false
+  const target = renderTargetOf(cardRatio, opts)
+  if (!target.width || !target.height) return false
+  const clamp = (v: number) => (Number.isFinite(v) ? Math.max(0, Math.min(0.45, v)) : 0)
+  const cw = size.w * (1 - clamp(crop.left) - clamp(crop.right))
+  const ch = size.h * (1 - clamp(crop.top) - clamp(crop.bottom))
+  if (cw <= 0 || ch <= 0) return false
+  const scale = Math.max(target.width / cw, target.height / ch)
+  const tolerance = Number.isFinite(opts.tolerance) ? Number(opts.tolerance) : 0.15
+  return scale <= 1 + tolerance
 }
 
 /**
@@ -512,6 +545,8 @@ export function pickPagePortrait (name: string, opts: {
   paddingList?: string
   /** `面板图N`：指定图库里的第 N 张（`{角色}_{序号}_…`）；不传 = 随机取合格图 */
   index?: number
+  /** 页面渲染缩放（`getRenderScale()`，默认 1.5）—— 用来算卡片真实像素需求 */
+  renderScale?: number
   random?: () => number
 } = {}): PagePortrait {
   const charName = String(name || '').trim()
@@ -523,13 +558,21 @@ export function pickPagePortrait (name: string, opts: {
       : miaoSplashFile(charName, opts.isSuper === true)
     const std = stdFile ? imageSizeOf(stdFile) : null
     const pool = profileImgPool(charName, opts.isSuper === true, opts.sources)
-    const ratio = std && std.w && std.h ? (std.w / std.h).toFixed(4) : ''
+    /*
+     * 没有 miao 默认立绘的角色（图库里不少，如 Saber / 三月七 / 丹恒）：卡片比例**没有基准**。
+     * 以前这里会让整张立绘都不画（图库明明有图）—— 现在改用**图库第一张的比例**当基准，
+     * 这样同一角色每次出的卡片高度稳定，其余图按 cover 裁进去。
+     */
+    const poolFirst = pool.length && !std ? imageSizeOf(pool[0]) : null
+    const fallbackStd: ImageSize | null = poolFirst && poolFirst.w && poolFirst.h ? poolFirst : null
+    const basis = std ?? fallbackStd
+    const ratio = basis && basis.w && basis.h ? (basis.w / basis.h).toFixed(4) : ''
 
     /** 组装一张图的结果（白边裁剪 + 铺满盒都算好） */
     const of = (file: string, note: string): PagePortrait => {
       const size = imageSizeOf(file)
       const crop = portraitCropOf(file, opts.paddingList)
-      return { src: pageImageUrl(file), source: '图库', note, size, std, ratio, crop, box: planPortraitBox(size, std, crop, 'cover') }
+      return { src: pageImageUrl(file), source: '图库', note, size, std: basis, ratio, crop, box: planPortraitBox(size, basis, crop, 'cover') }
     }
 
     /*
@@ -546,37 +589,41 @@ export function pickPagePortrait (name: string, opts: {
 
     const fit: Array<{ file: string, size: ImageSize }> = []
     for (const file of pool) {
-      // 只保留"不比默认立绘小"的图：太小的放大后发虚，模糊层也救不回来
+      /*
+       * 判据（2026-10-17 用户定）：**不再拿 miao 默认立绘当基准**，而是按「卡片真实渲染尺寸」
+       * 算 cover 后的放大倍数 —— 放大超过 5% 的图不要（面积过小会发虚），大图/不同比例都能通过。
+       */
       const size = imageSizeOf(file)
-      if (fitsPortrait(size, std)) fit.push({ file, size: size as ImageSize })
+      if (!size) continue
+      const crop = portraitCropOf(file, opts.paddingList)
+      if (fitsRenderSize(size, crop, Number(ratio), { renderScale: opts.renderScale })) fit.push({ file, size })
     }
 
     if (fit.length > 0) {
       const rand = typeof opts.random === 'function' ? Number(opts.random()) : Math.random()
       const idx = Math.min(fit.length - 1, Math.max(0, Math.floor((Number.isFinite(rand) ? rand : 0.5) * fit.length)))
       const picked = fit[idx]
-      // 白边不再"跳过"，改成**裁掉 + 模糊铺满**：清单里有四边比例就照它裁
+      // 白边不跳过，改成**裁掉 + cover 铺满**：清单里有四边比例就照它裁
       const crop = portraitCropOf(picked.file, opts.paddingList)
       return {
         src: pageImageUrl(picked.file),
         source: '图库',
         note: missNote ? `${missNote}已随机取一张）` : '',
         size: picked.size,
-        std,
+        std: basis,
         ratio,
         crop,
-        box: planPortraitBox(picked.size, std, crop, 'cover')
+        box: planPortraitBox(picked.size, basis, crop, 'cover')
       }
     }
 
     if (stdFile) {
+      const target = renderTargetOf(Number(ratio), { renderScale: opts.renderScale })
       const note = pool.length > 0
-        ? (std
-            ? `图库 ${pool.length} 张都比默认立绘小（${std.w}×${std.h} 起），已用默认立绘`
-            : `图库 ${pool.length} 张无法比较（默认立绘尺寸读不出），已用默认立绘`)
+        ? `图库 ${pool.length} 张放大后都会发虚（卡片要 ${target.width}×${target.height}px），已用默认立绘`
         : ''
       const crop = { ...ZERO_CROP }
-      return { src: pageImageUrl(stdFile), source: 'miao', note, size: std, std, ratio, crop, box: planPortraitBox(std, std, crop, 'cover') }
+      return { src: pageImageUrl(stdFile), source: 'miao', note, size: std, std: basis ?? std, ratio, crop, box: planPortraitBox(std, basis ?? std, crop, 'cover') }
     }
 
     return {

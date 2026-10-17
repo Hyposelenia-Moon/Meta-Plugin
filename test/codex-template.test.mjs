@@ -56,17 +56,13 @@ ok('页头卡片已移除（不再有 .header-title / 独立 header 卡）',
   !tpl.includes('header-title') && !tpl.includes('header-sub') && !tpl.includes('class="header"'))
 ok('立绘卡用 `.head-card--portrait` 标记（选择器不再依赖"第二个 head-card"）',
   tpl.includes('head-card head-card--portrait') && tpl.includes('.card.head-card.head-card--portrait'))
-/* 2026-10-17 第二轮：只虚化最外一圈（border-only mask），不许再退回「径向渐变压出一整条糊带」 */
-ok('立绘边缘只有一条模糊线（`.codex-portrait-edge`：backdrop-filter + mask-composite: exclude）',
-  tpl.includes('class="codex-portrait-edge"') &&
-  /\.codex-portrait-edge\s*\{[^}]*backdrop-filter:\s*blur\(/.test(tpl) &&
-  /\.codex-portrait-edge\s*\{[^}]*mask-composite:\s*exclude/.test(tpl) &&
-  !/\.codex-portrait-edge\s*\{[^}]*radial-gradient\(/.test(tpl))
+/* 2026-10-17 第三轮：立绘 = **一张圆角图**（取景窗 aspect-ratio 定高 + 单层 img cover 铺满）
+   不允许再套模糊底 / 边缘描边 —— 那两层会造成「卡片套卡片」的观感（用户反馈） */
+ok('立绘是单层图（不再有 `.codex-portrait-bg` / `.codex-portrait-edge` 这两层）',
+  !tpl.includes('codex-portrait-bg') && !tpl.includes('codex-portrait-edge'))
 ok('立绘结构：取景窗按默认立绘比例定高（`aspect-ratio: {{portraitRatio}}`）',
   tpl.includes('aspect-ratio: {{portraitRatio}}') && tpl.includes('class="codex-portrait"'))
-ok('立绘结构：模糊层兜底在（同图 background + `filter: blur`）',
-  /\.codex-portrait-bg\s*\{[^}]*filter:\s*blur\(/.test(tpl) && tpl.includes('class="codex-portrait-bg"'))
-/* 2026-10-17：立绘四角圆角 20px（比页面卡片的 10px 大一号），靠 overflow:hidden 把各层一起裁圆
+/* 2026-10-17：立绘四角圆角 20px（比页面卡片的 10px 大一号），靠 overflow:hidden 裁圆
    ⚠ 用 `[^}]*` 限定在**同一条规则内**，别用 `[\s\S]*?` —— 那样会匹配到后面别的元素的 10px */
 ok('立绘四角圆角 20px（`.codex-portrait` 的 border-radius + overflow:hidden）',
   /\.codex-portrait\s*\{[^}]*border-radius:\s*20px/.test(tpl) &&
