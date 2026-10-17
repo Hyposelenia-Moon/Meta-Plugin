@@ -31,11 +31,13 @@
     .codex-head { position: relative; margin: 8px -10px 8px -10px; }   /* 上下对称留白（2026-10-16） */   /* 扩到页面四边：抵消 .page-inner 的 8px/10px 内边距，看不见卡片形状 */   /* 高度由立绘框的 aspect-ratio 决定（见 .codex-portrait） */
     /* 立绘区三行（旧版 miao 口径：右对齐 + 金字标签 + miao 文字阴影） */
     /*
-     * 立绘区（2026-10-17 用户定：**裁白边 + 边缘模糊铺满**，结构照练度页的「清晰层 + 边界外同图模糊」）
+     * 立绘区（2026-10-17 用户定稿第二轮：**放大铺满 + 居中 + 边缘模糊描边**）
      *   ① `.codex-portrait`：取景窗 —— 宽度撑满卡片，高度由 `aspect-ratio`（= 默认立绘宽高比）锁定；
-     *   ② `.codex-portrait-bg`：**同图** cover 铺满 + blur —— 图铺不满的边（16:9 图上下、白边图左右）由它兜住；
-     *   ③ `.codex-portrait-img`：主体层 —— 服务器按「清单里的四边白边」裁好后 contain 摆进来（inline 定位）。
-     * 于是白边不再需要跳过：**裁掉白边 + 模糊补边**，卡片始终是满的。
+     *   ② `.codex-portrait-img`：主体层 —— 服务器按「四边白边」裁掉后 **cover 放大到铺满**（最长边先满、
+     *      溢出的部分裁掉）并在取景窗里居中（inline 定位由 `planPortraitBox(..., 'cover')` 算出）；
+     *   ③ `.codex-portrait-edge`：**模糊描边** —— 外圈用 `backdrop-filter` 把图本身虚化成一个过渡边，
+     *      中间保持清晰；不再用"整块模糊底"去填空缺（图已铺满，没有空缺）。
+     *   ④ `.codex-portrait-bg`：兜底底色（同图 cover + blur），只在图还没加载/极端比例时可见。
      */
     .codex-portrait {
       flex: none;
@@ -56,6 +58,15 @@
       background-repeat: no-repeat;
       filter: blur(28px) brightness(.68) saturate(1.08);
       transform: translateZ(0);
+    }
+    .codex-portrait-edge {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      backdrop-filter: blur(14px) brightness(.92);
+      -webkit-backdrop-filter: blur(14px) brightness(.92);
+      -webkit-mask-image: radial-gradient(115% 115% at 50% 50%, transparent 58%, #000 100%);
+      mask-image: radial-gradient(115% 115% at 50% 50%, transparent 58%, #000 100%);
     }
     .codex-portrait-img {
       position: absolute;
@@ -214,14 +225,14 @@
     .mx-content--glass .codex-team-note { font-size: 18px; }
     .mx-content--glass .codex-source { font-size: 18px; }
     .mx-content--glass .codex-empty { font-size: 21px; }
-    /* 立绘区去边框（结构选择器版，2026-10-16）：.page-inner 内第二个 .card.head-card 即立绘卡 */
-    .page-inner > .card.head-card ~ .card.head-card {
+    /* 立绘区去边框（2026-10-17：页头卡片已移除，立绘卡改用 `.head-card--portrait` 标记，选择器不再靠"第二个 head-card"） */
+    .page-inner > .card.head-card.head-card--portrait {
       border: none !important; background: none !important; box-shadow: none !important;
       border-radius: 0 !important; padding: 0 !important; margin: 0 !important;
     }
-    .page-inner > .card.head-card ~ .card.head-card .codex-head,
-    .page-inner > .card.head-card ~ .card.head-card .codex-head::after,
-    .page-inner > .card.head-card ~ .card.head-card img.codex-portrait {
+    .page-inner > .card.head-card.head-card--portrait .codex-head,
+    .page-inner > .card.head-card.head-card--portrait .codex-head::after,
+    .page-inner > .card.head-card.head-card--portrait img.codex-portrait {
       border: none !important; outline: none !important; box-shadow: none !important; border-radius: 0 !important;
     }
     /* 分区卡片（2026-10-16 定稿）：一个分区 = 一张卡片，底片/圆角/阴影沿用共享样式（与修改前一致），
@@ -332,9 +343,9 @@
     .mx-content--glass .mx-section > .codex-talents { padding: 6px 14px 8px; }
     .mx-content--glass .mx-section { margin: 6px -10px; padding-bottom: 0; }
     .mx-content--glass .mx-section__head { padding: 12px 20px; }
-    .page-inner > .card.head-card ~ .card.head-card .codex-desc,
-    .page-inner > .card.head-card ~ .card.head-card .codex-meta { font-size: 24px; }
-    .page-inner > .card.head-card ~ .card.head-card .codex-name .codex-name-sub { font-size: 30px; }
+    .page-inner > .card.head-card.head-card--portrait .codex-desc,
+    .page-inner > .card.head-card.head-card--portrait .codex-meta { font-size: 24px; }
+    .page-inner > .card.head-card.head-card--portrait .codex-name .codex-name-sub { font-size: 30px; }
     /* 子层行补齐内缩（2026-10-16）：`.codex-row--long`（月结晶/月感电）外面多包了一层 div，
        吃不到共享规则 `.mx-section > *:not(.mx-section__head)` 的 `--mx-inset` 内缩，
        导致比下方标签靠左约 20px。此处显式补齐（用重复类名把特异性提到 0,5,0，压过"块内归零"规则）。 */
@@ -343,8 +354,7 @@
     }
     /* 副标题加大（2026-10-16）：立绘右上「角色攻略」与页头副标题 */
     .codex-name .codex-name-sub { font-size: 28px; }
-    .page-inner > .card.head-card ~ .card.head-card .codex-name .codex-name-sub { font-size: 34px; }
-    .page-inner .header-sub { font-size: 26px; }
+    .page-inner > .card.head-card.head-card--portrait .codex-name .codex-name-sub { font-size: 34px; }
     /* 数据区副标题（章节头右侧说明，如「四星/三星武器默认为精5」）加大（2026-10-16）：
        原为 16px，与放大的正文（26px）严重不匹配 → 提到 22px。 */
     .mx-content--glass .mx-section__hint { font-size: 16px; }
@@ -417,11 +427,11 @@
 
     /* 立绘区「建议等级 90级」等 meta 行加大（2026-10-16 用户指定）：
        原 24px → 28px；标签与数值同步，保持同行可读。 */
-    .page-inner > .card.head-card ~ .card.head-card .codex-meta,
-    .page-inner > .card.head-card ~ .card.head-card .codex-meta .kv-label,
-    .page-inner > .card.head-card ~ .card.head-card .codex-meta .kv-value { font-size: 28px; }
+    .page-inner > .card.head-card.head-card--portrait .codex-meta,
+    .page-inner > .card.head-card.head-card--portrait .codex-meta .kv-label,
+    .page-inner > .card.head-card.head-card--portrait .codex-meta .kv-value { font-size: 28px; }
     /* 立绘右上：定位与建议等级同字号（2026-10-16 用户指定）——定位由 24px 提到 28px，与 meta 行一致 */
-    .page-inner > .card.head-card ~ .card.head-card .codex-desc { font-size: 28px; }
+    .page-inner > .card.head-card.head-card--portrait .codex-desc { font-size: 28px; }
     /* 章节头字号（2026-10-16 第三轮）：**真凶是共享样式 meta-ui.css:469**
        `.mx-content--glass .mx-section__head .mx-section__title { font-size: 19px }`（特异性 0,3,0）
        一直压住页面里的 (0,2,0) 规则 → 「武器」永远 19px、加不上去。
@@ -433,25 +443,19 @@
 <body class="gd-elem-{{element}}" style="zoom:{{renderScale}}">
   <div class="page page--elem">
     <div class="page-inner">
-      <div class="card head-card">
-        <div class="header">
-          <div class="header-title">Meta-Plugin · 角色攻略</div>
-          <div class="header-sub">#{{name}} · 角色攻略</div>
-          <div class="header-note">{{subTitle}}</div>
-        </div>
-      </div>
-
-      <div class="card head-card">
+      <div class="card head-card head-card--portrait">
         <div class="codex-head">
           {{if portraitSrc}}
           <div class="codex-portrait"{{if portraitRatio}} style="aspect-ratio: {{portraitRatio}}"{{/if}}>
             <div class="codex-portrait-bg" style="background-image: url('{{portraitSrc}}')"></div>
             <img class="codex-portrait-img" src="{{portraitSrc}}"{{if portraitBox.width}} style="width:{{portraitBox.width}};height:{{portraitBox.height}};left:{{portraitBox.left}};top:{{portraitBox.top}}"{{/if}} alt=""/>
+            <div class="codex-portrait-edge"></div>
           </div>
           {{else if portrait}}
           <div class="codex-portrait"{{if portraitRatio}} style="aspect-ratio: {{portraitRatio}}"{{/if}}>
             <div class="codex-portrait-bg" style="background-image: url('{{_miao_path}}{{portrait}}')"></div>
             <img class="codex-portrait-img" src="{{_miao_path}}{{portrait}}" alt=""/>
+            <div class="codex-portrait-edge"></div>
           </div>
           {{/if}}
           <div class="codex-head-main">

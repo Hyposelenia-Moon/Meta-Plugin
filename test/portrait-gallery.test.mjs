@@ -216,15 +216,15 @@ export const profileImgSrc = [
 
   /* 铺满盒：把裁掉白边后的整块 contain 进卡片，剩下的边交给模糊层 */
   const stdSize = { w: 1482, h: 1024, type: 'png' }
-  push('铺满盒：无白边 16:9 → 100% 宽、上下各留 9.3% 给模糊层',
+  push('铺满盒：无白边 16:9 → 放大到铺满（cover）并居中裁掉两侧',
     mod.planPortraitBox({ w: 1920, h: 1080, type: 'webp' }, stdSize, { left: 0, right: 0, top: 0, bottom: 0 }),
-    { width: '100.000%', height: '81.409%', left: '0.000%', top: '9.296%' })
-  push('铺满盒：左白边 20% → 裁掉后正好铺满（主体层放大到 119.8% 并左移）',
-    mod.planPortraitBox({ w: 1920, h: 1107, type: 'png' }, stdSize, { left: 0.2, right: 0, top: 0, bottom: 0 }),
-    { width: '119.841%', height: '100.000%', left: '-21.905%', top: '0.000%' })
-  push('铺满盒：左右各 10% → 居中裁掉两侧',
-    mod.planPortraitBox({ w: 1920, h: 1080, type: 'webp' }, stdSize, { left: 0.1, right: 0.1, top: 0, bottom: 0 }),
     { width: '122.837%', height: '100.000%', left: '-11.419%', top: '0.000%' })
+  push('铺满盒：左白边 20% → 先裁白边再放大铺满（125% 宽、左移 25%）',
+    mod.planPortraitBox({ w: 1920, h: 1107, type: 'png' }, stdSize, { left: 0.2, right: 0, top: 0, bottom: 0 }),
+    { width: '125.000%', height: '104.305%', left: '-25.000%', top: '-2.152%' })
+  push('铺满盒：左右各 10% → 裁掉白边后放大铺满、左右居中',
+    mod.planPortraitBox({ w: 1920, h: 1080, type: 'webp' }, stdSize, { left: 0.1, right: 0.1, top: 0, bottom: 0 }),
+    { width: '125.000%', height: '101.761%', left: '-12.500%', top: '-0.880%' })
   push('铺满盒：默认立绘自己 → 严丝合缝 100%×100%',
     mod.planPortraitBox({ w: 1482, h: 1024, type: 'png' }, stdSize, { left: 0, right: 0, top: 0, bottom: 0 }),
     { width: '100.000%', height: '100.000%', left: '0.000%', top: '0.000%' })
@@ -237,7 +237,7 @@ export const profileImgSrc = [
   const pickedPadded = mod.pickPagePortrait('胡桃', { sources, stdFile: std, paddingList: listFile, random: () => 0 })
   ok('取图：白边图照常入池（不再跳过）', pickedPadded.src.includes(encodeURIComponent('胡桃_10_sohnka_Pixiv.png')), pickedPadded.src)
   push('取图：带上该图的白边比例', pickedPadded.crop, { left: 0.2, right: 0, top: 0, bottom: 0 })
-  push('取图：铺满盒按裁剪后计算', pickedPadded.box.height, '100.000%')
+  push('取图：铺满盒按裁剪后计算（cover：高度超过 100%）', pickedPadded.box.height, '104.305%')
   ok('取图：铺满盒宽度大于 100%（裁掉白边后放大）', parseFloat(pickedPadded.box.width) > 100, pickedPadded.box.width)
   push('取图：卡片比例仍是默认立绘的', pickedPadded.ratio, '1.4473')
 

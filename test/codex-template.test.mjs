@@ -51,10 +51,16 @@ ok('迭代前版式的结构类齐全（页头 + 单张内容卡 + 分块）',
 ok('页头字段：立绘（图库优先，缺了退回 miao 相对路径）/ 名字 / 副标题 / 定位 / 属性行',
   tpl.includes('{{if portraitSrc}}') && tpl.includes('{{else if portrait}}') && tpl.includes('{{name}}') &&
   tpl.includes('{{subTitle}}') && tpl.includes("meta['定位']") && tpl.includes('{{each metaRows row}}'))
-/* 2026-10-17 改版：立绘 = 取景窗（aspect-ratio 定高）+ 同图模糊层铺满 + 主体层按裁白边后的盒摆放 */
+/* 2026-10-17 改版：立绘 = 取景窗（aspect-ratio 定高）+ 主体层 cover 铺满 + 边缘模糊描边；页头卡片整块移除 */
+ok('页头卡片已移除（不再有 .header-title / 独立 header 卡）',
+  !tpl.includes('header-title') && !tpl.includes('header-sub') && !tpl.includes('class="header"'))
+ok('立绘卡用 `.head-card--portrait` 标记（选择器不再依赖"第二个 head-card"）',
+  tpl.includes('head-card head-card--portrait') && tpl.includes('.card.head-card.head-card--portrait'))
+ok('立绘边缘模糊描边（`.codex-portrait-edge` + `backdrop-filter: blur`）',
+  tpl.includes('class="codex-portrait-edge"') && /\.codex-portrait-edge\s*\{[\s\S]*?backdrop-filter:\s*blur\(/.test(tpl))
 ok('立绘结构：取景窗按默认立绘比例定高（`aspect-ratio: {{portraitRatio}}`）',
   tpl.includes('aspect-ratio: {{portraitRatio}}') && tpl.includes('class="codex-portrait"'))
-ok('立绘结构：模糊层铺满卡片（同图 background + `filter: blur`）',
+ok('立绘结构：模糊层兜底在（同图 background + `filter: blur`）',
   /\.codex-portrait-bg\s*\{[\s\S]*?filter:\s*blur\(/.test(tpl) && tpl.includes('class="codex-portrait-bg"'))
 ok('立绘结构：主体层按裁白边后的盒摆放（inline width/height/left/top）',
   tpl.includes('class="codex-portrait-img"') &&
