@@ -20,12 +20,32 @@ import { avatarIdsOf, memberViews, tagViews } from './teamView.js'
 import type { QueryFailure, QueryOptions } from './rankQuery.js'
 import type { ViewRow } from './formatText.js'
 
-/** 排序口径 */
+/** 排序口径的文案（摘要用） */
+export const SORT_TEXT: Record<string, string> = {
+  speedDesc: '耗时降序（同耗时按金数升序、金数相同按限定金数升序）',
+  speed: '耗时升序',
+  costAsc: '金数升序',
+  costDesc: '金数降序'
+}
+
+/**
+ * 排序口径
+ *
+ * `speedDesc` = **危战榜展示口径**（2026-10-17 用户定，A 方案）：
+ *   ① 耗时**降序**（越长越好，越接近站点上限越"险胜"）；
+ *   ② 同耗时按**总金数升序**（金数越低越好）；
+ *   ③ 总金数也相同 → 按**限定金数升序**（限定越少越平民，更容易抄的阵容排前面）。
+ * 这是**唯一来源**：档位页（`raidTiersQuery`）与一览查询都用它，别再写内联比较器。
+ */
 export const RAID_SORTS: Record<string, (a: RaidRecord, b: RaidRecord) => number> = {
-  // 站点默认：低金优先，同金数比耗时
+  // 站点默认：低金优先，同金数比耗时（`#危战视频 N` 的「全榜 #N」仍走这个口径）
   costAsc: (a, b) => a.cost - b.cost || a.speed - b.speed,
   speed: (a, b) => a.speed - b.speed || a.cost - b.cost,
-  costDesc: (a, b) => b.cost - a.cost || a.speed - b.speed
+  costDesc: (a, b) => b.cost - a.cost || a.speed - b.speed,
+  speedDesc: (a, b) =>
+    b.speed - a.speed ||
+    a.cost - b.cost ||
+    (Number(a.limitcost) || 0) - (Number(b.limitcost) || 0)
 }
 
 /** 筛选条件 */
@@ -123,7 +143,7 @@ function describe (q: RaidQuery, ctx: { character: CharacterRecord | null, bossR
   if (ctx.bossRecord) parts.push(String(ctx.bossRecord.name || ''))
   if (ctx.character) parts.push(ctx.character.name)
   if (Number.isFinite(q.costMax)) parts.push(`≤${q.costMax}金`)
-  parts.push(q.sort === 'speed' ? '按耗时升序' : q.sort === 'costDesc' ? '按金数降序' : '按金数升序')
+  parts.push(`按${SORT_TEXT[String(q.sort || 'speedDesc')] || '耗时降序（同耗时金数升序）'}`)
   return parts.join(' · ')
 }
 

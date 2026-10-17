@@ -76,10 +76,10 @@ const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFi
     const n6 = r.tiers.find(t => t.key === 'n6')
     ok('n7 上限常量是 70s（65s + 最多 5s 浮动）', N7_SECONDS_LIMIT === 70)
     ok('单档默认最多列 10 条（2026-10-15 用户定）', DEFAULT_TIER_ROWS === 10)
-    ok('n7 收录 69s 与 70s（各档计数正确）', n7.count === 2 && n7.rows.map(x => x.speed).join(',') === '70,69')
-    ok('n7 也按耗时降序（2026-10-15：时间越长越靠前）', n7.rows[0].speed === 70 && n7.rows[1].speed === 69)
+    ok('n7 收录 69s 与 70s（各档计数正确）', n7.count === 2 && n7.rows.map(x => x.speed).sort().join(',') === '69,70')
+    ok('n7 按金数优先（s69 是 4 金、s70 是 8 金 → 69s 在前）', n7.rows[0].speed === 69 && n7.rows[1].speed === 70)
     ok('n6 收录 71s 与 120s', n6.count === 2)
-    ok('n6 按耗时降序（越接近上限越前）', n6.rows[0].speed === RAID_SPEED_CAP && n6.rows[1].speed === 71)
+    ok('n6 按金数优先（s120 是 0 金、s71 是 12 金 → 120s 在前）', n6.rows[0].speed === RAID_SPEED_CAP && n6.rows[1].speed === 71)
     ok('两档计数之和 = 命中总数', n7.count + n6.count === r.total)
     ok('副标题写明两档条数', /n7 2 \/ n6 2/.test(r.subtitle))
     ok('行的 rank 在档内从 1 连续', n7.rows.every((x, i) => x.rank === i + 1) && n6.rows.every((x, i) => x.rank === i + 1))
@@ -98,9 +98,9 @@ const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFi
     ok('n7 全部 ≤ 70s', n7.rows.every(x => x.speed <= N7_SECONDS_LIMIT))
     ok('n6 全部 > 70s', n6.rows.every(x => x.speed > N7_SECONDS_LIMIT))
     ok('两档覆盖全部记录', n7.count + n6.count === r.total && r.total === fixture.length)
-    ok('两档都按耗时降序（n7 内越接近 70s 越前 / n6 内越接近 120s 越前）',
-      n7.rows.every((x, i) => i === 0 || n7.rows[i - 1].speed >= x.speed) &&
-      n6.rows.every((x, i) => i === 0 || n6.rows[i - 1].speed >= x.speed))
+    ok('两档都按「金数升序 → 同金数耗时升序」',
+      [n7, n6].every(t => t.rows.every((x, i) => i === 0 || (t.rows[i - 1].cost < x.cost) ||
+        (t.rows[i - 1].cost === x.cost && t.rows[i - 1].speed <= x.speed))))
     ok('行上保留了视频与首领名', n7.rows.every(x => typeof x.video === 'string' && 'bossName' in x))
 
     const v = await queryRaidTiers({ ver: '7.1' }, { downloadAvatars: false })
