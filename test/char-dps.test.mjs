@@ -35,18 +35,29 @@ fs.writeFileSync(process.env.META_CONFIG_FILE, [
 ].join('\n') + '\n', 'utf8')
 
 const C = await import(pathToFileURL(path.join(libDir, 'components', 'constants.js')).href)
-const { queryCharDps, DEFAULT_PER_TIER, COST_STEP, costBucketOf, costRangeOf } = await import(pathToFileURL(path.join(libDir, 'modules', 'charDpsQuery.js')).href)
+const { queryCharDps, PER_TIER_LOW, PER_TIER_MID, PER_TIER_HIGH, COST_STEP, MERGED_TIER_MIN, MERGED_TIER_MAX, costBucketOf, costRangeOf, perTierOf, DEFAULT_MAX_TIERS } = await import(pathToFileURL(path.join(libDir, 'modules', 'charDpsQuery.js')).href)
 
-// ---------- 0. 分档口径：每 4 金一档（2026-10-15 用户定） ----------
+// ---------- 0. 分档口径（2026-10-17 实测后定稿：低金每 4 金一档 + 29-48 合并档） ----------
 {
-  push('步长常量是 4 金', COST_STEP, 4)
+  push('步长常量仍是 4 金', COST_STEP, 4)
+  push('合并档边界 = 29-48 金', [MERGED_TIER_MIN, MERGED_TIER_MAX], [29, 48])
+  push('每档条数：≤16 金 6 条、17-20 金 5 条、21 金以上 4 条',
+    [PER_TIER_LOW, PER_TIER_MID, PER_TIER_HIGH], [6, 5, 4])
   push('档序号：≤4 → 0、5-8 → 1、9-12 → 2（含 0 金也归第一档）',
     [0, 1, 4, 5, 8, 9, 12, 13].map(c => costBucketOf(c)), [0, 0, 0, 1, 1, 2, 2, 3])
-  push('区间标题：第一档写 ≤4 金，其余写 a-b 金',
-    [0, 1, 2].map(b => costRangeOf(b).label), ['≤ 4 金', '5-8 金', '9-12 金'])
+  push('16/17 与 20/21 的档界', [16, 17, 20, 21].map(c => costBucketOf(c)), [3, 4, 4, 5])
+  push('29-31 并入合并档（实测全库仅 4 条、且从不单独出现）',
+    [28, 29, 30, 31, 32, 48, 60].map(c => costBucketOf(c)), [6, 7, 7, 7, 7, 7, 7])
+  push('区间标题：≤4 / a-b 金 / 29-48',
+    [0, 1, 2, 3, 4, 5, 6, 7].map(b => costRangeOf(b).label),
+    ['≤ 4 金', '5-8 金', '9-12 金', '13-16 金', '17-20 金', '21-24 金', '25-28 金', '29-48 金'])
   push('区间上下界与档序号自洽',
-    [0, 1, 2].map(b => `${costRangeOf(b).min}-${costRangeOf(b).max}`), ['0-4', '5-8', '9-12'])
-  push('每档默认最多 4 条', DEFAULT_PER_TIER, 4)
+    [0, 1, 6, 7].map(b => `${costRangeOf(b).min}-${costRangeOf(b).max}`), ['0-4', '5-8', '25-28', '29-48'])
+  push('档序号越界（练度页往后取档）不越出合并档', costRangeOf(99).label, '29-48 金')
+  push('每档条数按档位取：0…3 → 6、4 → 5、5…7 → 4',
+    [0, 1, 2, 3, 4, 5, 6, 7].map(b => perTierOf(b)), [6, 6, 6, 6, 5, 4, 4, 4])
+  push('档数上限覆盖全部 8 档', DEFAULT_MAX_TIERS, 8)
+  push('最坏行数（各档都满）= 41 行，比旧口径 44 行更矮', [0, 1, 2, 3, 4, 5, 6, 7].reduce((s, b) => s + perTierOf(b), 0), 41)
 }
 
 // ---------- 1. 路由（2026-10-15 合并：`#DPS榜 胡桃` 即角色档位视图） ----------
@@ -68,7 +79,7 @@ if (hu.ok) {
   ok('每个金档只出现一次且按区间升序',
     hu.tiers.length > 0 && new Set(hu.tiers.map(t => `${t.min}-${t.max}`)).size === hu.tiers.length &&
     hu.tiers.every((t, i) => i === 0 || hu.tiers[i - 1].max < t.min))
-  ok('每档区间都与"每 4 金一档"口径一致（标题与上下界对得上）',
+  ok('每档区间都与新口径一致（标题与上下界对得上，含 29-31 与 32-48）',
     hu.tiers.every(t => {
       const want = costRangeOf(costBucketOf(t.min || t.max))
       return t.min === want.min && t.max === want.max && t.label === want.label
@@ -76,11 +87,17 @@ if (hu.ok) {
   ok('每档计数 = 命中记录里金数落在该区间的条数（区间不重不漏）',
     hu.tiers.every(t => raw.filter(x => { const c = Number(x.cost) || 0; return c >= t.min && c <= t.max }).length === t.count) &&
     hu.tiers.reduce((s, t) => s + t.count, 0) === raw.length)
-  ok('每档条数不超过每档上限', hu.tiers.every(t => t.rows.length <= DEFAULT_PER_TIER), String(DEFAULT_PER_TIER))
+  ok('每档条数不超过该档上限（32 金以下 5 条、32-48 合并档 4 条）',
+    hu.tiers.every(t => t.rows.length <= perTierOf(costBucketOf(t.min || t.max))),
+    hu.tiers.map(t => `${t.label}:${t.rows.length}`).join(' '))
   ok('各档记录数之和等于命中条数', hu.tiers.reduce((s, t) => s + t.count, 0) === hu.total)
   ok('档内按伤害降序',
     hu.tiers.every(t => t.rows.every((r, i) => i === 0 || (t.rows[i - 1].damage || 0) >= (r.damage || 0))))
-  ok('副标题写明了分档口径与来源', /每 4 金一档/.test(hu.subtitle) && /mhydps\.cn/.test(hu.subtitle))
+  ok('副标题写明分档口径（含合并档与条数）与来源',
+    /每 4 金一档的最高伤害队伍/.test(hu.subtitle) &&
+    /29 金以上合并为 29-48 金一档/.test(hu.subtitle) &&
+    /mhydps\.cn/.test(hu.subtitle),
+    hu.subtitle.slice(0, 120))
   ok('每档的 rank 从 1 开始连续', hu.tiers.every(t => t.rows.every((r, i) => r.rank === i + 1)))
 }
 

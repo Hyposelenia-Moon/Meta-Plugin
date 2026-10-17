@@ -300,8 +300,8 @@ export class MetaGrade extends plugin {
     const hero = heroImageOf(charDir, { isSuper, index: panelImgIdx })
 
     /*
-     * 参考 DPS（2026-10-15 用户定；同日分档口径改为"每 4 金一档"）：
-     * 以**当前金数所在的那一档**为起点、往后取 3 档（`≤4 金` → `5-8 金` → `9-12 金` …）。
+     * 参考 DPS（2026-10-15 用户定；2026-10-17 分档改为低金每 4 金一档 + `29-48 金`合并档）：
+     * 以**当前金数所在的那一档**为起点、往后取 3 档（`≤4 金` → `5-8 金` → `9-12 金` …，到合并档就自然收敛）。
      *
      * "当前金数" = 该角色自身投入：角色 1 金 + 命座每级 1 金 + 5★ 武器 1 金（练度页只面对单个角色，
      * 拿不到整队金数）。每档取"含该角色"的**最高伤害**那条记录；榜单缓存不可用（未联网/无缓存）时这一块不渲染。
@@ -313,8 +313,16 @@ export class MetaGrade extends plugin {
       const res = await queryCharDps(targets.charName || charName, {}, { proxy: getProxy(), downloadAvatars: true })
       if (res.ok) {
         const base = costBucketOf(ownCost)
+        /*
+         * 2026-10-17：高档位现在是「29-48 金」合并档 → `base+1 / base+2` 会指到同一个区间，
+         * 用 `seen` 去重，避免同一档在参考区重复出现两次。
+         */
+        const seen = new Set<string>()
         for (const bucket of [base, base + 1, base + 2]) {
           const range = costRangeOf(bucket)
+          const key = `${range.min}-${range.max}`
+          if (seen.has(key)) continue
+          seen.add(key)
           const tier = res.tiers.find(t => t.min === range.min && t.max === range.max)
           const row = tier?.rows?.[0]
           if (!row) continue
