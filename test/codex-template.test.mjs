@@ -60,6 +60,19 @@ ok('立绘卡用 `.head-card--portrait` 标记（选择器不再依赖"第二个
    不允许再套模糊底 / 边缘描边 —— 那两层会造成「卡片套卡片」的观感（用户反馈） */
 ok('立绘是单层图（不再有 `.codex-portrait-bg` / `.codex-portrait-edge` 这两层）',
   !tpl.includes('codex-portrait-bg') && !tpl.includes('codex-portrait-edge'))
+/* 2026-10-17 第四轮：**页面内自量自裁** —— 清单按文件名索引，图库不同步就会漏裁，
+   所以立绘改用 `data:` URL 内嵌（canvas 不被污染），页面脚本量完立刻摆正并居中 */
+ok('立绘用 data: URL（`portraitData` 优先，配不出时退回原地址）',
+  tpl.includes('src="{{portraitData || portraitSrc}}"') &&
+  tpl.includes('src="{{portraitData || (_miao_path + portrait)}}"'))
+ok('页面内自量自裁脚本在位（取像素 + 同款 cover 数学 + 参数来自 cropCfg）',
+  tpl.includes('getImageData(0, 0, w, h)') &&
+  tpl.includes('Math.max(W / cw, H / ch)') &&
+  tpl.includes('{{cropCfg.tol}}') &&
+  tpl.includes('{{cropCfg.colorCap}}') &&
+  tpl.includes('{{cropCfg.whiteLineCover}}'))
+ok('自量自裁失败时有兜底（try/catch 后直接 return，保持服务端盒）',
+  /catch \(e\) \{ return \}/.test(tpl))
 ok('立绘结构：取景窗按默认立绘比例定高（`aspect-ratio: {{portraitRatio}}`）',
   tpl.includes('aspect-ratio: {{portraitRatio}}') && tpl.includes('class="codex-portrait"'))
 /* 2026-10-17：立绘四角圆角 20px（比页面卡片的 10px 大一号），靠 overflow:hidden 裁圆

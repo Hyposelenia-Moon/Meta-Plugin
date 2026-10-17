@@ -430,11 +430,11 @@
         <div class="codex-head">
           {{if portraitSrc}}
           <div class="codex-portrait"{{if portraitRatio}} style="aspect-ratio: {{portraitRatio}}"{{/if}}>
-            <img class="codex-portrait-img" src="{{portraitSrc}}"{{if portraitBox.width}} style="width:{{portraitBox.width}};height:{{portraitBox.height}};left:{{portraitBox.left}};top:{{portraitBox.top}}"{{/if}} alt=""/>
+            <img class="codex-portrait-img" src="{{portraitData || portraitSrc}}"{{if portraitBox.width}} style="width:{{portraitBox.width}};height:{{portraitBox.height}};left:{{portraitBox.left}};top:{{portraitBox.top}}"{{/if}} alt=""/>
           </div>
           {{else if portrait}}
           <div class="codex-portrait"{{if portraitRatio}} style="aspect-ratio: {{portraitRatio}}"{{/if}}>
-            <img class="codex-portrait-img" src="{{_miao_path}}{{portrait}}" alt=""/>
+            <img class="codex-portrait-img" src="{{portraitData || (_miao_path + portrait)}}" alt=""/>
           </div>
           {{/if}}
           <div class="codex-head-main">
@@ -524,5 +524,110 @@
         <p class="mx-copyright">{{copyright}}</p>
     </div>
   </div>
+  {{if portraitSrc || portrait}}
+  <script>
+  /*
+   * 立绘「自量自裁」（2026-10-17 第四轮，用户定）：
+   *   清单是按**文件名**索引的，图库不同步/换图时那张图不在清单里 → 就会漏裁（实测：某机瓦雷莎左侧
+   *   有 19.7% 纯白没被裁）。所以改成**页面自己量**：立绘以 `data:` URL 内嵌（同源，canvas 不被污染），
+   *   用与 `scripts/scan-portrait-padding.mjs` 同一套判据量四边，再用与 `planPortraitBox()` 同一套
+   *   cover 数学摆正并居中。服务端算好的盒只是**首帧兜底**，这里量到就覆盖。
+   *   取像素失败（被污染等）→ 什么都不做，保持服务端盒，不闪不空。
+   */
+  (function () {
+    var CFG = {
+      tol: {{cropCfg.tol}},          // 同一条线内各通道与均值偏差上限
+      cover: {{cropCfg.cover}},      // 该线中满足 tol 的像素占比下限
+      min: {{cropCfg.min}},          // 最小留白宽度（占该边）
+      cap: {{cropCfg.colorCap}},     // 非白留白宽度上限（防黑底画作被整块裁掉）
+      white: {{cropCfg.whiteLevel}}, // 三通道都 ≥ 此值算白
+      whiteLine: {{cropCfg.whiteLineCover}}
+    }
+    var wrap = document.querySelector('.codex-portrait')
+    var img = wrap && wrap.querySelector('.codex-portrait-img')
+    if (!wrap || !img) return
+
+    function lineOf (d, w, h, kind, idx) {
+      var n = kind === 'col' ? h : w
+      var step = Math.max(1, Math.floor(n / 60))
+      var pts = []
+      for (var t = 0; t < n; t += step) {
+        var i = (kind === 'col' ? t * w + idx : idx * w + t) * 4
+        pts.push(d[i + 3] < 8 ? [255, 255, 255] : [d[i], d[i + 1], d[i + 2]])
+      }
+      var mean = [0, 0, 0]
+      for (var k = 0; k < pts.length; k++) { mean[0] += pts[k][0]; mean[1] += pts[k][1]; mean[2] += pts[k][2] }
+      mean[0] /= pts.length; mean[1] /= pts.length; mean[2] /= pts.length
+      var near = 0, white = 0
+      for (var j = 0; j < pts.length; j++) {
+        var p = pts[j]
+        if (Math.abs(p[0] - mean[0]) <= CFG.tol && Math.abs(p[1] - mean[1]) <= CFG.tol && Math.abs(p[2] - mean[2]) <= CFG.tol) near++
+        if (p[0] > 248 && p[1] > 248 && p[2] > 248) white++
+      }
+      var whiteLine = white / pts.length >= CFG.whiteLine
+      return { mean: mean, flat: near / pts.length >= CFG.cover || whiteLine, white: whiteLine }
+    }
+
+    function nearColor (a, b) {
+      return Math.abs(a[0] - b[0]) <= CFG.tol && Math.abs(a[1] - b[1]) <= CFG.tol && Math.abs(a[2] - b[2]) <= CFG.tol
+    }
+
+    function walk (d, w, h, kind, idx, step, limit, dim) {
+      var prev = null, count = 0, whiteEdge = false
+      while (idx >= 0 && idx < limit) {
+        var l = lineOf(d, w, h, kind, idx)
+        if (!l.flat) break
+        if (!l.white && prev && !nearColor(l.mean, prev)) break
+        prev = l.mean; whiteEdge = l.white; count++; idx += step
+      }
+      if (!count) return 0
+      var frac = count / dim
+      if (frac < CFG.min) return 0
+      var isWhite = prev && Math.min(prev[0], prev[1], prev[2]) >= CFG.white
+      return (whiteEdge || isWhite || frac <= CFG.cap) ? frac : 0
+    }
+
+    function clamp (v) { return isFinite(v) ? Math.max(0, Math.min(0.45, v)) : 0 }
+
+    function run () {
+      var w = img.naturalWidth, h = img.naturalHeight
+      if (!w || !h) return
+      var crop
+      try {
+        var c = document.createElement('canvas')
+        c.width = w; c.height = h
+        var ctx = c.getContext('2d', { willReadFrequently: true })
+        ctx.drawImage(img, 0, 0)
+        var d = ctx.getImageData(0, 0, w, h).data   // data: URL 不污染；污染会抛，直接放弃
+        crop = {
+          left: walk(d, w, h, 'col', 0, 1, Math.floor(w / 2), w),
+          right: walk(d, w, h, 'col', w - 1, -1, Math.floor(w / 2), w),
+          top: walk(d, w, h, 'row', 0, 1, Math.floor(h / 2), h),
+          bottom: walk(d, w, h, 'row', h - 1, -1, Math.floor(h / 2), h)
+        }
+      } catch (e) { return }
+      var ratio = Number({{portraitRatio}}) || (w / h)
+      if (!wrap.style.aspectRatio) wrap.style.aspectRatio = String(ratio)
+      var iw = w / h
+      var l = clamp(crop.left), r = clamp(crop.right), t = clamp(crop.top), b = clamp(crop.bottom)
+      var cw = iw * (1 - l - r)
+      var ch = 1 - t - b
+      if (cw <= 0.01 || ch <= 0.01) return
+      var W = 1, H = 1 / ratio
+      var s = Math.max(W / cw, H / ch)                  // cover：最长边先满
+      var dw = iw * s, dh = s
+      var left = -(l * iw * s) - (cw * s - W) / 2       // 裁掉的白边推到窗外，再让裁后区域居中
+      var top = -(t * s) - (ch * s - H) / 2
+      img.style.width = (dw * 100).toFixed(3) + '%'
+      img.style.height = (dh * ratio * 100).toFixed(3) + '%'
+      img.style.left = (left * 100).toFixed(3) + '%'
+      img.style.top = (top * ratio * 100).toFixed(3) + '%'
+    }
+
+    if (img.complete && img.naturalWidth) run()
+    else img.addEventListener('load', run)
+  })()
+  </script>
+  {{/if}}
 </body>
 </html>

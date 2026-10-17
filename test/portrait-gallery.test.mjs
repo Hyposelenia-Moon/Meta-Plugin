@@ -164,6 +164,7 @@ export const profileImgSrc = [
   const pickedFirst = mod.pickPagePortrait('胡桃', { sources, stdFile: std, random: () => 0 })
   ok('取图：小图被挡、随机取第一张合格图', pickedFirst.src.includes(encodeURIComponent('胡桃_2_同尺寸.png')), pickedFirst.src)
   push('取图：来源标记为图库', pickedFirst.source, '图库')
+  ok('取图：结果带绝对路径（页面自量要用）', typeof pickedFirst.file === 'string' && pickedFirst.file.endsWith('胡桃_2_同尺寸.png'), pickedFirst.file)
   push('取图：卡片区比例取默认立绘（1482/1024 → 1.4473）', pickedFirst.ratio, '1.4473')
   const pickedLast = mod.pickPagePortrait('胡桃', { sources, stdFile: std, random: () => 0.999 })
   ok('取图：随机到末位时能取到另一张合格图', pickedLast.src.includes(encodeURIComponent('胡桃_3_大图16x9.webp')), pickedLast.src)
@@ -236,6 +237,23 @@ export const profileImgSrc = [
   push('基线路径在 data/ 下、文件名带下划线前缀',
     [path.basename(mod.baselinePaddingListPath()), path.basename(path.dirname(mod.baselinePaddingListPath()))],
     ['_portrait-padding.json', 'data'])
+
+  /* 2026-10-17 第四轮：页面内自量自裁要的 data: URL + 判定参数（唯一来源 cropCfg） */
+  push('留白判定参数唯一来源 cropCfg',
+    [mod.cropCfg.tol, mod.cropCfg.cover, mod.cropCfg.min, mod.cropCfg.colorCap, mod.cropCfg.whiteLevel, mod.cropCfg.whiteLineCover],
+    [6, 0.98, 0.03, 0.12, 240, 0.95])
+  ok('data: URL：PNG 出头正确且可解码回原字节',
+    (() => {
+      const png = padded
+      const url = mod.imageDataUrl(png)
+      if (!url.startsWith('data:image/png;base64,')) return false
+      const back = Buffer.from(url.split(',')[1], 'base64')
+      return back.equals(fs.readFileSync(png))
+    })(), 'png data url')
+  push('data: URL：文件不存在 → 空串', mod.imageDataUrl(path.join(base, 'no-such.webp')), '')
+  push('data: URL：超过体积上限 → 空串',
+    mod.imageDataUrl(padded, 10), '')
+
   push('基线：本机清单缺失时按**文件名**命中',
     mod.portraitCropOf(padded, path.join(base, 'no-such.json'), baselineFile),
     { left: 0.201, right: 0, top: 0, bottom: 0 })

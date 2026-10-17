@@ -105,6 +105,10 @@ export interface PageOptions {
    * 图库图可能在别的盘，不能像 miao 资源那样拼 {{_miao_path}}，所以要传整串地址。
    */
   portraitSrc?: string
+  /** 立绘的 data: URL（页面内自量自裁用；空则退回 portraitSrc） */
+  portraitData?: string
+  /** 留白判定参数（页面脚本用；来自 ProfileImgRes.cropCfg） */
+  cropCfg?: { tol: number, cover: number, min: number, colorCap: number, whiteLevel: number, whiteLineCover: number }
   /**
    * 立绘区宽高比（ProfileImgRes.pickPagePortrait().ratio）
    *
@@ -136,6 +140,9 @@ export interface CodexPageData extends CodexView {
   portrait: string
   /** 立绘完整地址（优先于 portrait） */
   portraitSrc: string
+  portraitData: string
+  /** 留白判定参数（页面脚本用，来自 ProfileImgRes.cropCfg） */
+  cropCfg: { tol: number, cover: number, min: number, colorCap: number, whiteLevel: number, whiteLineCover: number }
   /** 立绘区宽高比（空串 = 不锁定，退回图片自身比例） */
   portraitRatio: string
   /** 立绘主体层定位（宽高/左上角，百分比字符串；空串 = 走模板默认铺满） */
@@ -154,6 +161,8 @@ export function toPageData (view: CodexView, opts: PageOptions = {}): CodexPageD
     renderScale: opts.renderScale ?? 1,
     portrait: opts.portrait ?? '',
     portraitSrc: opts.portraitSrc ?? '',
+    portraitData: opts.portraitData ?? '',
+    cropCfg: opts.cropCfg ?? { tol: 6, cover: 0.98, min: 0.03, colorCap: 0.12, whiteLevel: 240, whiteLineCover: 0.95 },
     portraitRatio: opts.portraitRatio ?? '',
     portraitBox: opts.portraitBox ?? { width: '', height: '', left: '', top: '' },
     subTitle: opts.subTitle ?? '角色攻略',

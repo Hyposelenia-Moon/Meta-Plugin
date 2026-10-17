@@ -145,6 +145,7 @@ async function loadDeps (pluginRoot, botRoot) {
     withIcons: subViews.withIcons,
     toPageData: subViews.toPageData,
     pickPagePortrait: profileImg.pickPagePortrait,
+  imageDataUrl: profileImg.imageDataUrl,
     findCharacter: charIndex.findCharacter,
     resetIndexCache: charIndex.resetCache,
     copyright: constants.COPYRIGHT ?? ''
@@ -207,12 +208,14 @@ export async function renderCodexPage (opts = {}) {
      * `ratio` 是默认立绘宽高比，模板用它给立绘框定高、`object-fit: cover` 裁满。
      */
     let portraitSrc = ''
+let portraitData = ''
     let portraitRatio = ''
     let portraitBox = { width: '', height: '', left: '', top: '' }
     let portraitNote = ''
     try {
       const hero = deps.pickPagePortrait(name, { renderScale: Number(opts.renderScale) || 1.5 })
       portraitSrc = hero.src || ''
+  portraitData = hero.file ? (profileImg.imageDataUrl(hero.file) || '') : ''
       portraitRatio = hero.ratio || ''
       portraitBox = hero.box || portraitBox
       portraitNote = hero.note || ''

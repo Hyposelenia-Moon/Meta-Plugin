@@ -355,6 +355,47 @@ const PADDED_HINTS = ['偏移', '右移', '左移', '留白', '白边']
 
 /** 离线白边清单文件名（落在 out/，未跟踪） */
 const PADDING_LIST_NAME = 'portrait-padding.json'
+
+/**
+ * 留白判定参数（**唯一来源**）
+ *
+ * 三处用到：① 维护期扫描脚本（`scripts/scan-portrait-padding.mjs` 读 `cropCfg`）；
+ * ② 运行期清单兜底（`portraitCropOf`）；③ 页面内「自量自裁」脚本（模板里注入这些数值）。
+ * 改这里就够了，三处同步。
+ */
+export const cropCfg = {
+  /** 同一条线内各通道与均值的偏差上限（算“纯色线”） */
+  tol: 6,
+  /** 一条线里满足 tol 的像素占比下限 */
+  cover: 0.98,
+  /** 最小留白宽度（占该边比例） */
+  min: 0.03,
+  /** 非白留白的宽度上限（防止黑底画作整块底色被当留白裁掉） */
+  colorCap: 0.12,
+  /** 三通道都 ≥ 此值算“纯白” */
+  whiteLevel: 240,
+  /** 一条线里纯白像素占比达到此值 → 白线（宽度不受 colorCap 限制） */
+  whiteLineCover: 0.95
+} as const
+
+/** 图片 → `data:` URL（页面内自量自裁要靠它拿到同源像素）；读不出/过大返回空串 */
+export function imageDataUrl (file: string, maxBytes = 16 * 1024 * 1024): string {
+  try {
+    const abs = path.resolve(String(file || ''))
+    const st = fs.statSync(abs)
+    if (!st.isFile() || !st.size || st.size > maxBytes) return ''
+    const ext = path.extname(abs).toLowerCase()
+    const mime = ext === '.png'
+      ? 'image/png'
+      : ext === '.jpg' || ext === '.jpeg'
+        ? 'image/jpeg'
+        : ext === '.gif' ? 'image/gif' : ext === '.webp' ? 'image/webp' : ''
+    if (!mime) return ''
+    return `data:${mime};base64,${fs.readFileSync(abs).toString('base64')}`
+  } catch {
+    return ''
+  }
+}
 /** 入库的基线清单（键 = 文件名） */
 const BASELINE_LIST_NAME = '_portrait-padding.json'
 /** 四边裁剪比例 */
@@ -499,6 +540,8 @@ export function planPortraitBox (size: ImageSize | null, std: ImageSize | null, 
 export interface PagePortrait {
   /** 页面可直接引用的地址（bot 内相对前缀 / bot 外 file://） */
   src: string
+  /** 选中的图片绝对路径（空 = 没选到）；页面自量自裁据此生成 data: URL */
+  file: string
   source: '图库' | 'miao' | ''
   /** 降级原因（正常取到图时为空串） */
   note: string
@@ -552,7 +595,7 @@ export function pickPagePortrait (name: string, opts: {
   random?: () => number
 } = {}): PagePortrait {
   const charName = String(name || '').trim()
-  const none: PagePortrait = { src: '', source: '', note: '', size: null, std: null, ratio: '', crop: { ...ZERO_CROP }, box: { width: '', height: '', left: '', top: '' } }
+  const none: PagePortrait = { src: '', file: '', source: '', note: '', size: null, std: null, ratio: '', crop: { ...ZERO_CROP }, box: { width: '', height: '', left: '', top: '' } }
   if (!charName) return { ...none, note: '未给出角色名' }
   try {
     const stdFile = opts.stdFile !== undefined
@@ -574,7 +617,7 @@ export function pickPagePortrait (name: string, opts: {
     const of = (file: string, note: string): PagePortrait => {
       const size = imageSizeOf(file)
       const crop = portraitCropOf(file, opts.paddingList, opts.baselineList)
-      return { src: pageImageUrl(file), source: '图库', note, size, std: basis, ratio, crop, box: planPortraitBox(size, basis, crop, 'cover') }
+      return { src: pageImageUrl(file), file, source: '图库', note, size, std: basis, ratio, crop, box: planPortraitBox(size, basis, crop, 'cover') }
     }
 
     /*
@@ -609,6 +652,7 @@ export function pickPagePortrait (name: string, opts: {
       const crop = portraitCropOf(picked.file, opts.paddingList, opts.baselineList)
       return {
         src: pageImageUrl(picked.file),
+        file: picked.file,
         source: '图库',
         note: missNote ? `${missNote}已随机取一张）` : '',
         size: picked.size,
@@ -625,7 +669,7 @@ export function pickPagePortrait (name: string, opts: {
         ? `图库 ${pool.length} 张放大后都会发虚（卡片要 ${target.width}×${target.height}px），已用默认立绘`
         : ''
       const crop = { ...ZERO_CROP }
-      return { src: pageImageUrl(stdFile), source: 'miao', note, size: std, std: basis ?? std, ratio, crop, box: planPortraitBox(std, basis ?? std, crop, 'cover') }
+      return { src: pageImageUrl(stdFile), file: stdFile, source: 'miao', note, size: std, std: basis ?? std, ratio, crop, box: planPortraitBox(std, basis ?? std, crop, 'cover') }
     }
 
     return {
