@@ -9,7 +9,7 @@
  * 按列统计「几乎整列都是纯白」的宽度占比，超过阈值就记进清单。
  *
  * 产物：`out/portrait-padding.json`（`out/` 未跟踪，不进仓库）
- *   { "scannedAt": "...", "threshold": 0.05, "entries": { "<图片绝对路径>": { "left": 0.25, "right": 0 } } }
+ *   { "scannedAt": "...", "threshold": 0.05, "entries": { "<图片绝对路径>": { "left": 0.25, "right": 0, "top": 0, "bottom": 0 } } }
  *
  * 用法：
  *   node scripts/scan-portrait-padding.mjs                 # 扫描图库里所有角色的图
@@ -134,7 +134,27 @@ const MEASURE = async (dataUrl) => {
   while (left < w / 2 && isWhiteCol(left)) left++
   let right = 0
   while (right < w / 2 && isWhiteCol(w - 1 - right)) right++
-  return { w, h, left: left / w, right: right / w }
+  const stepX = Math.max(1, Math.floor(w / 60))
+  const isWhiteRow = (y) => {
+    let white = 0
+    let total = 0
+    for (let x = 0; x < w; x += stepX) {
+      const i = (y * w + x) * 4
+      if (data[i + 3] < 8) { white++; total++; continue }
+      if (data[i] > 248 && data[i + 1] > 248 && data[i + 2] > 248) white++
+      total++
+    }
+    return total > 0 && white / total >= 0.95
+  }
+  let top = 0
+  while (top < h / 2 && isWhiteRow(top)) top++
+  let bottom = 0
+  while (bottom < h / 2 && isWhiteRow(h - 1 - bottom)) bottom++
+  return {
+    w, h,
+    left: left / w, right: right / w,
+    top: top / h, bottom: bottom / h
+  }
 }
 
 const entries = {}
@@ -151,12 +171,12 @@ try {
       const mime = ext === 'png' ? 'image/png' : ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/webp'
       const dataUrl = `data:${mime};base64,${buf.toString('base64')}`
       const box = await page.evaluate(MEASURE, dataUrl)
-      const frac = Math.max(box.left, box.right)
+      const frac = Math.max(box.left, box.right, box.top, box.bottom)
       const hit = frac >= THRESHOLD
       if (hit) bad++
       const rel = path.relative(pluginRoot, file)
       console.log(`${hit ? '●白边' : '○干净'} ${String(Math.round(frac * 100)).padStart(3)}%  ${box.w}×${box.h}  ${rel}`)
-      if (hit) entries[path.resolve(file)] = { left: Number(box.left.toFixed(3)), right: Number(box.right.toFixed(3)) }
+      if (hit) entries[path.resolve(file)] = { left: Number(box.left.toFixed(3)), right: Number(box.right.toFixed(3)), top: Number(box.top.toFixed(3)), bottom: Number(box.bottom.toFixed(3)) }
     } catch (err) {
       console.log(`？读取失败 ${path.basename(file)}：${(err && err.message) || err}`)
     }

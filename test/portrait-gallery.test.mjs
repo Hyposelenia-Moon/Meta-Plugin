@@ -171,15 +171,14 @@ export const profileImgSrc = [
   push('空角色名也优雅失败', mod.pickPagePortrait('').src, '')
 }
 
-// ---------- 6. 白边图要跳过（文件名标注 + 离线清单，2026-10-17） ----------
+// ---------- 6. 白边→裁掉 + 边缘模糊铺满（2026-10-17 改版：不再跳过） ----------
 {
-  push('白边判据：名字带「右移」', mod.looksPadded('胡桃_17_BLACKmeow_Pixiv_右移.webp'), true)
-  push('白边判据：名字带「偏移」', mod.looksPadded('胡桃_2_River源_米游社_偏移.webp'), true)
-  push('白边判据：名字带「翻转偏移」', mod.looksPadded('胡桃_16_Minamo_pixiv_翻转偏移.webp'), true)
-  push('白边判据：正常文件名不算', mod.looksPadded('胡桃_11_Varlyn@西め38ab_Pixiv.webp'), false)
-  push('白边判据：空输入不抛错', mod.looksPadded(''), false)
+  push('文件名判据：名字带「右移」', mod.looksPadded('胡桃_17_BLACKmeow_Pixiv_右移.webp'), true)
+  push('文件名判据：名字带「偏移」', mod.looksPadded('胡桃_2_River源_米游社_偏移.webp'), true)
+  push('文件名判据：正常文件名不算', mod.looksPadded('胡桃_11_Varlyn@西め38ab_Pixiv.webp'), false)
+  push('文件名判据：空输入不抛错', mod.looksPadded(''), false)
 
-  const base = path.join(ensureTmp(), 'gallery-padding')
+  const base = path.join(ensureTmp(), 'gallery-crop')
   fs.rmSync(base, { recursive: true, force: true })
   const srcDir = path.join(base, 'src')
   const charDir = path.join(srcDir, 'normal-character', '胡桃')
@@ -194,35 +193,66 @@ export const profileImgSrc = [
     fs.writeFileSync(file, buf)
   }
   const std = path.join(base, 'splash.png')
-  writePng(std, 1482, 1024)
-  // 名字里没有标注、尺寸也够大 —— 只能靠离线清单挡
-  const unmarked = path.join(charDir, '胡桃_10_sohnka_Pixiv.png')
-  writePng(unmarked, 1920, 1107)
-  const clean = path.join(charDir, '胡桃_11_Varlyn_Pixiv.png')
+  writePng(std, 1482, 1024)                                   // 卡片比例 1.4473
+  const padded = path.join(charDir, '胡桃_10_sohnka_Pixiv.png') // 名字没标注、左白边 20%
+  writePng(padded, 1920, 1107)
+  const clean = path.join(charDir, '胡桃_11_Varlyn_Pixiv.png')  // 干净 16:9
   writePng(clean, 1920, 1080)
+  const tiny = path.join(charDir, '胡桃_12_小图.png')           // 比默认立绘小 → 仍要排除
+  writePng(tiny, 300, 200)
+
   const listFile = path.join(base, 'portrait-padding.json')
-  fs.writeFileSync(listFile, JSON.stringify({ scannedAt: 'x', threshold: 0.05, entries: { [unmarked]: { left: 0.2, right: 0 } } }), 'utf8')
+  fs.writeFileSync(listFile, JSON.stringify({
+    scannedAt: 'x',
+    threshold: 0.05,
+    entries: { [padded]: { left: 0.2, right: 0, top: 0, bottom: 0 } }
+  }), 'utf8')
 
-  push('清单命中：被判为白边图', mod.isPaddedPortrait(unmarked, listFile), true)
-  push('清单未命中：正常可用', mod.isPaddedPortrait(clean, listFile), false)
-  push('清单不存在时不影响判定', mod.isPaddedPortrait(clean, path.join(base, 'no-such.json')), false)
+  /* 清单读取：四边比例 */
+  push('清单：读到四边白边比例', mod.portraitCropOf(padded, listFile), { left: 0.2, right: 0, top: 0, bottom: 0 })
+  push('清单：没量过的图 → 全 0（照常整张用）', mod.portraitCropOf(clean, listFile), { left: 0, right: 0, top: 0, bottom: 0 })
+  push('清单：文件不存在也不抛错', mod.portraitCropOf(clean, path.join(base, 'no-such.json')), { left: 0, right: 0, top: 0, bottom: 0 })
+  push('清单路径落在 out/', path.basename(mod.paddingListPath()), 'portrait-padding.json')
 
+  /* 铺满盒：把裁掉白边后的整块 contain 进卡片，剩下的边交给模糊层 */
+  const stdSize = { w: 1482, h: 1024, type: 'png' }
+  push('铺满盒：无白边 16:9 → 100% 宽、上下各留 9.3% 给模糊层',
+    mod.planPortraitBox({ w: 1920, h: 1080, type: 'webp' }, stdSize, { left: 0, right: 0, top: 0, bottom: 0 }),
+    { width: '100.000%', height: '81.409%', left: '0.000%', top: '9.296%' })
+  push('铺满盒：左白边 20% → 裁掉后正好铺满（主体层放大到 119.8% 并左移）',
+    mod.planPortraitBox({ w: 1920, h: 1107, type: 'png' }, stdSize, { left: 0.2, right: 0, top: 0, bottom: 0 }),
+    { width: '119.841%', height: '100.000%', left: '-21.905%', top: '0.000%' })
+  push('铺满盒：左右各 10% → 居中裁掉两侧',
+    mod.planPortraitBox({ w: 1920, h: 1080, type: 'webp' }, stdSize, { left: 0.1, right: 0.1, top: 0, bottom: 0 }),
+    { width: '122.837%', height: '100.000%', left: '-11.419%', top: '0.000%' })
+  push('铺满盒：默认立绘自己 → 严丝合缝 100%×100%',
+    mod.planPortraitBox({ w: 1482, h: 1024, type: 'png' }, stdSize, { left: 0, right: 0, top: 0, bottom: 0 }),
+    { width: '100.000%', height: '100.000%', left: '0.000%', top: '0.000%' })
+  push('铺满盒：读不出尺寸 → 空串（模板退回默认铺满）',
+    mod.planPortraitBox(null, stdSize, { left: 0, right: 0, top: 0, bottom: 0 }),
+    { width: '', height: '', left: '', top: '' })
+
+  /* 取图：白边图**不再被跳过**，而是带上裁剪比例与铺满盒 */
   const sources = [srcDir]
-  const picked = mod.pickPagePortrait('胡桃', { sources, stdFile: std, paddingList: listFile, random: () => 0 })
-  ok('取图：白边图（清单命中）被跳过', picked.src.includes(encodeURIComponent('胡桃_11_Varlyn_Pixiv.png')), picked.src)
+  const pickedPadded = mod.pickPagePortrait('胡桃', { sources, stdFile: std, paddingList: listFile, random: () => 0 })
+  ok('取图：白边图照常入池（不再跳过）', pickedPadded.src.includes(encodeURIComponent('胡桃_10_sohnka_Pixiv.png')), pickedPadded.src)
+  push('取图：带上该图的白边比例', pickedPadded.crop, { left: 0.2, right: 0, top: 0, bottom: 0 })
+  push('取图：铺满盒按裁剪后计算', pickedPadded.box.height, '100.000%')
+  ok('取图：铺满盒宽度大于 100%（裁掉白边后放大）', parseFloat(pickedPadded.box.width) > 100, pickedPadded.box.width)
+  push('取图：卡片比例仍是默认立绘的', pickedPadded.ratio, '1.4473')
 
-  /* 只剩白边图 → 退回默认立绘，原因里说清是白边 */
-  const onlyPadded = path.join(base, 'only-padded')
-  fs.mkdirSync(path.join(onlyPadded, 'normal-character', '胡桃'), { recursive: true })
-  const padOnly = path.join(onlyPadded, 'normal-character', '胡桃', '胡桃_9_page.webp')
-  fs.mkdirSync(path.dirname(padOnly), { recursive: true })
-  fs.writeFileSync(padOnly, 'x')
-  const list2 = path.join(base, 'list2.json')
-  fs.writeFileSync(list2, JSON.stringify({ entries: { [padOnly]: { left: 0.3, right: 0 } } }), 'utf8')
-  const fallback = mod.pickPagePortrait('胡桃', { sources: [onlyPadded], stdFile: std, paddingList: list2 })
-  push('取图：全被白边挡掉时退回默认立绘', fallback.source, 'miao')
-  ok('取图：退回原因写明白边', fallback.note.includes('白边'), fallback.note)
-  push('清单路径可查（默认落在 out/）', path.basename(mod.paddingListPath()), 'portrait-padding.json')
+  const pickedClean = mod.pickPagePortrait('胡桃', { sources, stdFile: std, paddingList: listFile, random: () => 0.99 })
+  ok('取图：干净图也可能抽到（随机不受裁剪影响）', pickedClean.src.includes(encodeURIComponent('胡桃_11_Varlyn_Pixiv.png')), pickedClean.src)
+  push('取图：干净图无裁剪', pickedClean.crop, { left: 0, right: 0, top: 0, bottom: 0 })
+
+  /* 太小的图仍然排除（放大发虚，模糊层救不回来）→ 池里只剩小图时退回默认立绘 */
+  const onlyTiny = path.join(base, 'only-tiny')
+  fs.mkdirSync(path.join(onlyTiny, 'normal-character', '胡桃'), { recursive: true })
+  writePng(path.join(onlyTiny, 'normal-character', '胡桃', '胡桃_1_小.png'), 300, 200)
+  const fallback = mod.pickPagePortrait('胡桃', { sources: [onlyTiny], stdFile: std })
+  push('取图：全比默认立绘小 → 退回默认立绘', fallback.source, 'miao')
+  ok('取图：退回原因写"比默认立绘小"', fallback.note.includes('比默认立绘小'), fallback.note)
+  push('取图：退回默认立绘时也给出铺满盒（= 1:1）', fallback.box.width, '100.000%')
 }
 
 const bad = report()

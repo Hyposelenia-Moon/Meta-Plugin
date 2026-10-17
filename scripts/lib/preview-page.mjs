@@ -208,11 +208,13 @@ export async function renderCodexPage (opts = {}) {
      */
     let portraitSrc = ''
     let portraitRatio = ''
+    let portraitBox = { width: '', height: '', left: '', top: '' }
     let portraitNote = ''
     try {
       const hero = deps.pickPagePortrait(name)
       portraitSrc = hero.src || ''
       portraitRatio = hero.ratio || ''
+      portraitBox = hero.box || portraitBox
       portraitNote = hero.note || ''
     } catch { /* 没有立绘就空着，模板里 `{{if portraitSrc}}` 会跳过 */ }
 
@@ -221,6 +223,7 @@ export async function renderCodexPage (opts = {}) {
       renderScale: Number(opts.renderScale) || 1.5,
       portraitSrc,
       portraitRatio,
+      portraitBox,
       element,
       subTitle: '角色攻略'
     })

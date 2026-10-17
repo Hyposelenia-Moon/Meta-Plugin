@@ -165,6 +165,7 @@ export class MetaCodex extends plugin {
         renderScale: getRenderScale(),
         portraitSrc: hero.src,
         portraitRatio: hero.ratio,
+        portraitBox: hero.box,
         // 元素决定 miao 布局套哪张底图（`elem-pyro` 等）；取不到就交给布局默认
         element: miaoRes.characterElement(view.name) ?? '',
         subTitle: notes.length ? notes.join(' · ') : '角色攻略'

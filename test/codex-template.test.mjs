@@ -51,9 +51,14 @@ ok('迭代前版式的结构类齐全（页头 + 单张内容卡 + 分块）',
 ok('页头字段：立绘（图库优先，缺了退回 miao 相对路径）/ 名字 / 副标题 / 定位 / 属性行',
   tpl.includes('{{if portraitSrc}}') && tpl.includes('{{else if portrait}}') && tpl.includes('{{name}}') &&
   tpl.includes('{{subTitle}}') && tpl.includes("meta['定位']") && tpl.includes('{{each metaRows row}}'))
-/* 2026-10-17 图库接入：立绘铺满卡片区 —— cover 裁切 + 按默认立绘比例定高（口径改动必须过这条门禁） */
-ok('立绘铺满卡片区：`object-fit: cover` + `aspect-ratio: {{portraitRatio}}`',
-  /\.codex-portrait\s*\{[\s\S]*?object-fit:\s*cover/.test(tpl) && tpl.includes('aspect-ratio: {{portraitRatio}}'))
+/* 2026-10-17 改版：立绘 = 取景窗（aspect-ratio 定高）+ 同图模糊层铺满 + 主体层按裁白边后的盒摆放 */
+ok('立绘结构：取景窗按默认立绘比例定高（`aspect-ratio: {{portraitRatio}}`）',
+  tpl.includes('aspect-ratio: {{portraitRatio}}') && tpl.includes('class="codex-portrait"'))
+ok('立绘结构：模糊层铺满卡片（同图 background + `filter: blur`）',
+  /\.codex-portrait-bg\s*\{[\s\S]*?filter:\s*blur\(/.test(tpl) && tpl.includes('class="codex-portrait-bg"'))
+ok('立绘结构：主体层按裁白边后的盒摆放（inline width/height/left/top）',
+  tpl.includes('class="codex-portrait-img"') &&
+  tpl.includes('width:{{portraitBox.width}};height:{{portraitBox.height}};left:{{portraitBox.left}};top:{{portraitBox.top}}'))
 ok('遍历六个模块（数据来自投影，不写死章节数）', tpl.includes('{{each mx.sections section}}'))
 ok('空模块分支', tpl.includes('{{if section.empty}}') && tpl.includes('{{section.emptyText}}'))
 ok('配队分支', tpl.includes('section.teams.length > 0'))

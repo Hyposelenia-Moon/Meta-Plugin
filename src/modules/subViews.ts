@@ -112,6 +112,12 @@ export interface PageOptions {
    * 这样「比例不同的大图」也能用，而版面高度与用默认立绘时一致。
    */
   portraitRatio?: string
+  /**
+   * 主体层定位（ProfileImgRes.planPortraitBox() 的产物，百分比字符串）
+   *
+   * 白边图裁掉白边后按 contain 摆进卡片，铺不满的边由模板里的模糊层兜住。
+   */
+  portraitBox?: { width: string, height: string, left: string, top: string }
   /** 页头副标题（默认「角色攻略」） */
   subTitle?: string
   /**
@@ -132,6 +138,8 @@ export interface CodexPageData extends CodexView {
   portraitSrc: string
   /** 立绘区宽高比（空串 = 不锁定，退回图片自身比例） */
   portraitRatio: string
+  /** 立绘主体层定位（宽高/左上角，百分比字符串；空串 = 走模板默认铺满） */
+  portraitBox: { width: string, height: string, left: string, top: string }
   subTitle: string
   element: string
   /** 展示层投影（2026-10-15 UI 重构：章节序号 + 共享行组件 + 来源条；旧字段全部保留） */
@@ -147,6 +155,7 @@ export function toPageData (view: CodexView, opts: PageOptions = {}): CodexPageD
     portrait: opts.portrait ?? '',
     portraitSrc: opts.portraitSrc ?? '',
     portraitRatio: opts.portraitRatio ?? '',
+    portraitBox: opts.portraitBox ?? { width: '', height: '', left: '', top: '' },
     subTitle: opts.subTitle ?? '角色攻略',
     element: opts.element ?? '',
     mx: buildCodexPresentation(view, { copyright: opts.copyright ?? '' })

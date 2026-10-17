@@ -322,10 +322,17 @@ const PADDED_HINTS = ['偏移', '右移', '左移', '留白', '白边']
 
 /** 离线白边清单文件名（落在 out/，未跟踪） */
 const PADDING_LIST_NAME = 'portrait-padding.json'
+/** 四边裁剪比例 */
+export interface PortraitCrop {
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
 /** 清单缓存：键含 mtime + 字节数，重扫后自动失效 */
-let padListCache: { stamp: string, set: Set<string> } | null = null
+let padListCache: { stamp: string, map: Map<string, PortraitCrop> } | null = null
 
-/** 文件名看起来是"挪过画布 / 补过白边"的图 */
+/** 文件名看起来是"挪过画布 / 补过白边"的图（只用于提示"还没量过"，不再据此跳过） */
 export function looksPadded (file: string): boolean {
   let base = ''
   try {
@@ -340,49 +347,94 @@ export function looksPadded (file: string): boolean {
 /**
  * 离线白边清单（`scripts/scan-portrait-padding.mjs` 生成，落 `out/portrait-padding.json`）
  *
- * 为什么要有它：图库里带白边的图**只有一部分**在文件名里标了「偏移/右移」（实测胡桃 10 张里
- * 标注了 4 张），只靠文件名会漏。纯 JS 零依赖又解不了 WebP 像素，于是把"量像素"这一步放到维护期，
- * 运行时只读这份清单。`out/` 未跟踪，换图后重跑一次脚本即可。
+ * 为什么要有它：图库里有一部分图**画布被挪过、四周留了纯白**（实测胡桃 21 张里 10 张有 6%–25%），
+ * 文件名里标注的只有 4 张；纯 JS 零依赖又解不了 WebP 像素，于是把"量像素"放到维护期，
+ * 运行时只读这份清单里的**四边白边比例**，据此裁掉白边。`out/` 未跟踪，换图后重跑一次即可。
  */
 export function paddingListPath (): string {
   return path.join(outDir, PADDING_LIST_NAME)
 }
 
-/** 读取白边清单（键为图片绝对路径；文件不存在 / 坏 JSON 都按"空清单"处理） */
-export function readPaddingList (file = paddingListPath()): Set<string> {
+const ZERO_CROP: PortraitCrop = { left: 0, right: 0, top: 0, bottom: 0 }
+
+/** 读清单里的四边比例（键为图片绝对路径；坏数据 / 缺字段都按 0 处理） */
+export function readPaddingMap (file = paddingListPath()): Map<string, PortraitCrop> {
   try {
     const st = fs.statSync(file)
     const stamp = `${st.mtimeMs}:${st.size}`
-    if (padListCache && padListCache.stamp === stamp) return padListCache.set
+    if (padListCache && padListCache.stamp === stamp) return padListCache.map
     const raw = JSON.parse(fs.readFileSync(file, 'utf8')) as { entries?: Record<string, unknown> } | Record<string, unknown>
     const entries = (raw && typeof raw === 'object' && 'entries' in raw && raw.entries && typeof raw.entries === 'object')
       ? raw.entries as Record<string, unknown>
       : raw as Record<string, unknown>
-    const set = new Set<string>()
-    for (const key of Object.keys(entries)) {
-      if (key === 'scannedAt' || key === 'threshold') continue
-      set.add(path.resolve(key).toLowerCase())
+    const map = new Map<string, PortraitCrop>()
+    const num = (v: unknown): number => {
+      const n = Number(v)
+      return Number.isFinite(n) && n > 0 ? Math.min(0.45, n) : 0
     }
-    padListCache = { stamp, set }
-    return set
+    for (const key of Object.keys(entries)) {
+      if (key === 'scannedAt' || key === 'threshold' || key === 'note') continue
+      const e = entries[key] as Partial<PortraitCrop> | undefined
+      if (!e || typeof e !== 'object') continue
+      map.set(path.resolve(key).toLowerCase(), { left: num(e.left), right: num(e.right), top: num(e.top), bottom: num(e.bottom) })
+    }
+    padListCache = { stamp, map }
+    return map
   } catch {
     padListCache = null
-    return new Set()
+    return new Map()
   }
 }
 
 /**
- * 是不是白边图：**文件名标注** 或 **离线清单命中**
+ * 某张图要裁掉多少白边（清单没有就是 0 —— 照常整张用，模糊层兜住边缘）
  *
  * @param file 图片绝对路径
  * @param listFile 清单路径（套件注入用；默认 `out/portrait-padding.json`）
  */
-export function isPaddedPortrait (file: string, listFile?: string): boolean {
-  if (looksPadded(file)) return true
+export function portraitCropOf (file: string, listFile?: string): PortraitCrop {
   const abs = path.resolve(String(file || ''))
-  if (!abs) return false
-  const set = readPaddingList(listFile)
-  return set.size > 0 && set.has(abs.toLowerCase())
+  if (!abs) return { ...ZERO_CROP }
+  const map = readPaddingMap(listFile)
+  return map.get(abs.toLowerCase()) ?? { ...ZERO_CROP }
+}
+
+/**
+ * 「主体层」在卡片里的定位（百分比字符串，直接写进 inline style）
+ *
+ * 目标：把**裁掉白边后的那块**按 contain 放进卡片（整块可见、不裁人），把卡片铺满的活交给模糊层。
+ * 单位换算：以卡片宽 = 1、卡片高 = 1/`ratio` 为坐标系，最后换算回百分比。
+ */
+export function planPortraitBox (size: ImageSize | null, std: ImageSize | null, crop: PortraitCrop): {
+  width: string
+  height: string
+  left: string
+  top: string
+} {
+  const empty = { width: '', height: '', left: '', top: '' }
+  if (!size || !std || !size.w || !size.h || !std.w || !std.h) return empty
+  const cardRatio = std.w / std.h
+  if (!cardRatio) return empty
+  const iw = size.w / size.h // 图片宽高比（把高度归一成 1）
+  const clamp = (v: number) => (Number.isFinite(v) ? Math.max(0, Math.min(0.45, v)) : 0)
+  const l = clamp(crop.left)
+  const r = clamp(crop.right)
+  const t = clamp(crop.top)
+  const b = clamp(crop.bottom)
+  const cw = iw * (1 - l - r) // 裁剪后的宽（高仍是 1）
+  const ch = 1 - t - b        // 裁剪后的高
+  if (cw <= 0.01 || ch <= 0.01) return empty
+
+  const W = 1
+  const H = 1 / cardRatio
+  const s = Math.min(W / cw, H / ch) // contain：裁后的整块放进卡片
+  const dw = iw * s
+  const dh = s * 1
+  // 裁掉的白边仍然占位，只是被推到卡片外面；再让"裁后区域"在卡片里居中
+  const left = -(l * iw * s) - (cw * s - W) / 2
+  const top = -(t * s) - (ch * s - H) / 2
+  const pct = (v: number) => `${(v * 100).toFixed(3)}%`
+  return { width: pct(dw), height: pct(dh * cardRatio), left: pct(left), top: pct(top * cardRatio) }
 }
 
 /** 攻略页立绘取图结果 */
@@ -399,10 +451,17 @@ export interface PagePortrait {
   /**
    * 卡片区宽高比（= 默认立绘 `w/h`，保留 4 位小数；读不出来为空串）
    *
-   * 页面把它写进 `aspect-ratio`，再用 `object-fit: cover` 把图库大图裁进这个框 ——
-   * 于是「比例不同的大图」也能用，而版面高度与现在用 miao 立绘时完全一致。
+   * 页面把它写进 `aspect-ratio` 给立绘区定高 —— 版面高度与用 miao 立绘时完全一致。
    */
   ratio: string
+  /** 这张图要裁掉多少白边（清单没量过就是全 0） */
+  crop: PortraitCrop
+  /**
+   * 主体层在卡片里的定位（百分比），配 `planPortraitBox()`；读不出尺寸时全空串
+   *
+   * 页面结构 = **模糊层铺满卡片**（同图 `cover` + blur）+ **主体层**按这个盒摆好（裁掉白边后 contain）。
+   */
+  box: { width: string, height: string, left: string, top: string }
 }
 
 /**
@@ -429,7 +488,7 @@ export function pickPagePortrait (name: string, opts: {
   random?: () => number
 } = {}): PagePortrait {
   const charName = String(name || '').trim()
-  const none: PagePortrait = { src: '', source: '', note: '', size: null, std: null, ratio: '' }
+  const none: PagePortrait = { src: '', source: '', note: '', size: null, std: null, ratio: '', crop: { ...ZERO_CROP }, box: { width: '', height: '', left: '', top: '' } }
   if (!charName) return { ...none, note: '未给出角色名' }
   try {
     const stdFile = opts.stdFile !== undefined
@@ -440,11 +499,8 @@ export function pickPagePortrait (name: string, opts: {
     const ratio = std && std.w && std.h ? (std.w / std.h).toFixed(4) : ''
 
     const fit: Array<{ file: string, size: ImageSize }> = []
-    let padded = 0
     for (const file of pool) {
-      // ① 先按文件名挡掉"挪过画布/补过白边"的图（抽中会出一条白带）
-      if (isPaddedPortrait(file, opts.paddingList)) { padded++; continue }
-      // ② 再要求不比默认立绘小（放大发虚的不要）
+      // 只保留"不比默认立绘小"的图：太小的放大后发虚，模糊层也救不回来
       const size = imageSizeOf(file)
       if (fitsPortrait(size, std)) fit.push({ file, size: size as ImageSize })
     }
@@ -453,22 +509,28 @@ export function pickPagePortrait (name: string, opts: {
       const rand = typeof opts.random === 'function' ? Number(opts.random()) : Math.random()
       const idx = Math.min(fit.length - 1, Math.max(0, Math.floor((Number.isFinite(rand) ? rand : 0.5) * fit.length)))
       const picked = fit[idx]
-      return { src: pageImageUrl(picked.file), source: '图库', note: '', size: picked.size, std, ratio }
+      // 白边不再"跳过"，改成**裁掉 + 模糊铺满**：清单里有四边比例就照它裁
+      const crop = portraitCropOf(picked.file, opts.paddingList)
+      return {
+        src: pageImageUrl(picked.file),
+        source: '图库',
+        note: '',
+        size: picked.size,
+        std,
+        ratio,
+        crop,
+        box: planPortraitBox(picked.size, std, crop)
+      }
     }
 
     if (stdFile) {
-      let note = ''
-      if (pool.length > 0) {
-        if (!std) {
-          note = `图库 ${pool.length} 张无法比较（默认立绘尺寸读不出），已用默认立绘`
-        } else {
-          const why: string[] = []
-          if (padded > 0) why.push(`${padded} 张标着「偏移/右移」等白边图`)
-          if (pool.length - padded > 0) why.push(`${pool.length - padded} 张比默认立绘小（${std.w}×${std.h} 起）`)
-          note = `图库 ${pool.length} 张都不合用（${why.join('、')}），已用默认立绘`
-        }
-      }
-      return { src: pageImageUrl(stdFile), source: 'miao', note, size: std, std, ratio }
+      const note = pool.length > 0
+        ? (std
+            ? `图库 ${pool.length} 张都比默认立绘小（${std.w}×${std.h} 起），已用默认立绘`
+            : `图库 ${pool.length} 张无法比较（默认立绘尺寸读不出），已用默认立绘`)
+        : ''
+      const crop = { ...ZERO_CROP }
+      return { src: pageImageUrl(stdFile), source: 'miao', note, size: std, std, ratio, crop, box: planPortraitBox(std, std, crop) }
     }
 
     return {

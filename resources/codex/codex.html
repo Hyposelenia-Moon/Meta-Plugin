@@ -30,20 +30,41 @@
        不沿用 miao 图鉴的卡片外壳（`wiki-cont`/`cont`）；只有天赋图标用 miao 的 `.talent-icon`。 */
     .codex-head { position: relative; margin: 8px -10px 8px -10px; }   /* 上下对称留白（2026-10-16） */   /* 扩到页面四边：抵消 .page-inner 的 8px/10px 内边距，看不见卡片形状 */   /* 高度由立绘框的 aspect-ratio 决定（见 .codex-portrait） */
     /* 立绘区三行（旧版 miao 口径：右对齐 + 金字标签 + miao 文字阴影） */
+    /*
+     * 立绘区（2026-10-17 用户定：**裁白边 + 边缘模糊铺满**，结构照练度页的「清晰层 + 边界外同图模糊」）
+     *   ① `.codex-portrait`：取景窗 —— 宽度撑满卡片，高度由 `aspect-ratio`（= 默认立绘宽高比）锁定；
+     *   ② `.codex-portrait-bg`：**同图** cover 铺满 + blur —— 图铺不满的边（16:9 图上下、白边图左右）由它兜住；
+     *   ③ `.codex-portrait-img`：主体层 —— 服务器按「清单里的四边白边」裁好后 contain 摆进来（inline 定位）。
+     * 于是白边不再需要跳过：**裁掉白边 + 模糊补边**，卡片始终是满的。
+     */
     .codex-portrait {
-      /* 照 profile-detail.css:36 `.main-pic` —— 固定取景窗 + 负 margin 左移 */
-      /* 2026-10-17 图库接入：宽度撑满卡片区，高度由 `aspect-ratio`（= 默认立绘宽高比）锁定，
-         图库大图（常见 1920×1080）按 `object-fit: cover` **铺满**这个框并居中裁切 ——
-         于是「比例与默认立绘不同的大图」也能用，而版面高度与用 miao 立绘时完全一致。 */
       flex: none;
-      display: block; width: 100%; height: auto;
-      object-fit: cover;
-      object-position: center;
+      display: block;
+      width: 100%;
       margin-left: 0;
       position: relative;
       z-index: 2;
+      overflow: hidden;
       border: none;
       border-radius: 0;
+    }
+    .codex-portrait-bg {
+      position: absolute;
+      inset: -10%;
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      filter: blur(28px) brightness(.68) saturate(1.08);
+      transform: translateZ(0);
+    }
+    .codex-portrait-img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
     }
     .codex-head-main { position: absolute; right: 18px; top: 20px; z-index: 3; max-width: 470px; text-align: right; }   /* 照 .detail + 图鉴页覆盖 right:18px */
     .codex-name, .codex-desc, .codex-meta { text-shadow: 0 0 3px #000, 2px 2px 4px rgba(0, 0, 0, .7); }
@@ -423,9 +444,15 @@
       <div class="card head-card">
         <div class="codex-head">
           {{if portraitSrc}}
-          <img class="codex-portrait" src="{{portraitSrc}}"{{if portraitRatio}} style="aspect-ratio: {{portraitRatio}}"{{/if}} alt=""/>
+          <div class="codex-portrait"{{if portraitRatio}} style="aspect-ratio: {{portraitRatio}}"{{/if}}>
+            <div class="codex-portrait-bg" style="background-image: url('{{portraitSrc}}')"></div>
+            <img class="codex-portrait-img" src="{{portraitSrc}}"{{if portraitBox.width}} style="width:{{portraitBox.width}};height:{{portraitBox.height}};left:{{portraitBox.left}};top:{{portraitBox.top}}"{{/if}} alt=""/>
+          </div>
           {{else if portrait}}
-          <img class="codex-portrait" src="{{_miao_path}}{{portrait}}" alt=""/>
+          <div class="codex-portrait"{{if portraitRatio}} style="aspect-ratio: {{portraitRatio}}"{{/if}}>
+            <div class="codex-portrait-bg" style="background-image: url('{{_miao_path}}{{portrait}}')"></div>
+            <img class="codex-portrait-img" src="{{_miao_path}}{{portrait}}" alt=""/>
+          </div>
           {{/if}}
           <div class="codex-head-main">
             <div class="codex-name">{{name}}<span class="codex-name-sub">{{subTitle}}</span></div>
