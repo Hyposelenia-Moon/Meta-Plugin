@@ -101,11 +101,15 @@
       background: linear-gradient(90deg, rgba(255, 214, 138, 0), rgba(255, 214, 138, .9));
     }
     .codex-name .codex-name-sub {
-      display: inline-block; margin-left: 12px; padding: 1px 14px;
+      display: inline-block; margin-left: 12px; padding: 2px 12px;
       /* 2026-10-17 用户定：标题区「角色攻略」用**原神字体**（汉仪文黑-65W，`genshinFont`）；
-         字号小，字重保持 400（不合成粗体），找不到字体文件时回落系统中文无衬。 */
+         找不到字体文件时回落系统中文无衬。
+         2026-10-17 二次定（用户反馈「chip 大小突兀」+「四个字加粗」）：
+         ① 字号不再随名字放大：原 34px 只比 42px 的名字小 8px，会抢主标题层级 → 统一 26px；
+         ② 字重取 700。本字体只有 65W 一档，Chromium 会**合成**粗体；若边缘发糊，
+            改用 `-webkit-text-stroke: .6px currentColor` 并把 font-weight 退回 400。 */
       font-family: var(--codex-title-font, "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", sans-serif);
-      font-size: 22px; font-weight: 400; letter-spacing: 1px; line-height: 1.6;
+      font-size: 22px; font-weight: 700; letter-spacing: 1px; line-height: 1.45;
       color: #3a2a12; background: linear-gradient(180deg, #ffeccb, #e3cfa6);
       border-radius: 999px; text-shadow: none; vertical-align: middle;
     }
@@ -151,6 +155,12 @@
     .codex-item.sig-alt .codex-item-text { color: var(--green); font-weight: 700; }
     .codex-note-inline { margin-left: 2px; font-size: 16px; color: var(--muted-2); font-style: italic; }
     .codex-sep { margin: 0 12px; color: var(--muted-2); font-size: 28px; }   /* 头像 64px：加号两侧留 12px（2026-10-16） */
+    /* 分隔符间距（2026-10-17 用户：副词条里大于号两侧间距过大）。
+       上一条的 12px 外边距 + `.codex-sep` 基础规则的 3px 内边距 + 28px 字号，本来是给**带 46px 图标**
+       的条目调的；纯文字行（副词条/推荐/可选）正文只有 19px，再叠加副词条自己的 `column-gap` 后，
+       全角 ＞ 两侧空隙接近 33px，远大于正文行距 → 文字行改紧凑，宽间距只留给带图标的条目。 */
+    .codex-sep { margin: 0 1px; padding: 0; font-size: .8em; }
+    .codex-item:has(.codex-icon) > .codex-sep { margin: 0 12px; padding: 0 3px; font-size: 28px; }
     .codex-empty { font-size: 18px; color: var(--muted-2); }
     .codex-hint { margin-top: 4px; font-size: 16px; color: var(--muted-2); }
 
@@ -374,18 +384,26 @@
     .mx-content--glass .mx-section > .codex-talents { padding: 6px 14px 8px; }
     .mx-content--glass .mx-section { margin: 6px -10px; padding-bottom: 0; }
     .mx-content--glass .mx-section__head { padding: 12px 20px; }
-    .page-inner > .card.head-card.head-card--portrait .codex-desc,
-    .page-inner > .card.head-card.head-card--portrait .codex-meta { font-size: 24px; }
-    .page-inner > .card.head-card.head-card--portrait .codex-name .codex-name-sub { font-size: 30px; }
+    /* 立绘区字号**唯一一处口径**（2026-10-17 用户定：区域大小失衡、副标题胶囊突兀）：
+         名字 42px（主标题锚点）
+         副标题胶囊 19px + **700 粗体**（用户要求「角色攻略」加粗）+ 更紧的内边距 → 读作标签，不抢主标题
+         定位 19px / meta 19px（建议等级、100级提升）—— 三者同属次要信息，字号一致才不失衡
+       历史遗留的 24/26/28/30px 覆盖已全部删除（它们互相打架，最终生效果的是 28px，把副标题挤成「大头贴」）。 */
+    .page-inner > .card.head-card.head-card--portrait .codex-name { font-size: 42px; }
+    .page-inner > .card.head-card.head-card--portrait .codex-name .codex-name-sub {
+      font-size: 19px; font-weight: 700; padding: 2px 12px; line-height: 1.5; letter-spacing: 1px;
+    }
+    .page-inner > .card.head-card.head-card--portrait .codex-desc { font-size: 19px; }
+    .page-inner > .card.head-card.head-card--portrait .codex-meta,
+    .page-inner > .card.head-card.head-card--portrait .codex-meta .kv-label,
+    .page-inner > .card.head-card.head-card--portrait .codex-meta .kv-value { font-size: 19px; }
     /* 子层行补齐内缩（2026-10-16）：`.codex-row--long`（月结晶/月感电）外面多包了一层 div，
        吃不到共享规则 `.mx-section > *:not(.mx-section__head)` 的 `--mx-inset` 内缩，
        导致比下方标签靠左约 20px。此处显式补齐（用重复类名把特异性提到 0,5,0，压过"块内归零"规则）。 */
     .mx-content--glass .mx-section > * > .codex-row--long.codex-row--long {
       padding-left: var(--mx-inset); padding-right: var(--mx-inset);
     }
-    /* 副标题加大（2026-10-16）：立绘右上「角色攻略」与页头副标题 */
-    .codex-name .codex-name-sub { font-size: 28px; }
-    .page-inner > .card.head-card.head-card--portrait .codex-name .codex-name-sub { font-size: 34px; }
+    /* 副标题（页头/立绘右上「角色攻略」）：字号统一在立绘区那段口径里（19px），这里不再重复设置 */
     /* 数据区副标题（章节头右侧说明，如「四星/三星武器默认为精5」）加大（2026-10-16）：
        原为 16px，与放大的正文（26px）严重不匹配 → 提到 22px。 */
     .mx-content--glass .mx-section__hint { font-size: 16px; }
@@ -472,11 +490,10 @@
        `输出向` 行按用户选择 **A**：接受换行，不动字号。 */
     .mx-content--glass .mx-section .codex-row:has(.label-副词条) > .codex-row-items {
       display: flex; flex-wrap: wrap;
-      grid-template-columns: repeat(3, max-content);
       justify-content: start;          /* 左对齐：不居中、不撑满 */
-      
-      
-      column-gap: 18px;
+      /* 2026-10-17 用户定：大于号两侧间距过大 → 条目间距 18px 收到 6px，
+         再加分隔符自身 1px 外边距，`＞` 左右各约 7px，与文字行距相称。 */
+      column-gap: 6px;
       row-gap: 4px;
     }
     /* 换行后的正文与正文列对齐（2026-10-16 用户规则）：
@@ -488,13 +505,7 @@
       width: max-content; justify-self: start;
     }    .mx-content--glass .mx-section .codex-item-break { flex: 0 0 100%; height: 0; }   /* 每 3 条断行 */
 
-    /* 立绘区「建议等级 90级」等 meta 行加大（2026-10-16 用户指定）：
-       原 24px → 28px；标签与数值同步，保持同行可读。 */
-    .page-inner > .card.head-card.head-card--portrait .codex-meta,
-    .page-inner > .card.head-card.head-card--portrait .codex-meta .kv-label,
-    .page-inner > .card.head-card.head-card--portrait .codex-meta .kv-value { font-size: 28px; }
-    /* 立绘右上：定位与建议等级同字号（2026-10-16 用户指定）——定位由 24px 提到 28px，与 meta 行一致 */
-    .page-inner > .card.head-card.head-card--portrait .codex-desc { font-size: 28px; }
+    /* 立绘区 meta（建议等级 / 100级提升）字号：见上方「立绘区字号唯一一处口径」（19px） */
     /* 章节头字号（2026-10-16 第三轮）：**真凶是共享样式 meta-ui.css:469**
        `.mx-content--glass .mx-section__head .mx-section__title { font-size: 19px }`（特异性 0,3,0）
        一直压住页面里的 (0,2,0) 规则 → 「武器」永远 19px、加不上去。

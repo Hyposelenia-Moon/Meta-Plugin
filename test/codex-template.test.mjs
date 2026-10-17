@@ -95,9 +95,15 @@ ok('面板格不画独立底板（无 background / border-left，左边界与其
   /\.codex-stat\s*\{[^}]*border-bottom:[^}]*\}/.test(tpl) &&
   !/\.codex-stat\s*\{[^}]*\bbackground:/.test(tpl) &&
   !/\.codex-stat\s*\{[^}]*border-left:/.test(tpl))
-ok('立绘标题不用粗体（名字与副标题都是 400）',
+/* 2026-10-17 用户定：名字 400（装饰字体本身够重，合成粗体会发糊）；副标题胶囊**要加粗**（700）并缩小到 19px */
+ok('立绘标题字号/字重：名字 400、副标题胶囊 700 + 19px、定位与 meta 19px',
   /\.codex-name\s*\{[^}]*font-weight:\s*400/.test(tpl) &&
-  /\.codex-name \.codex-name-sub\s*\{[^}]*font-weight:\s*400/.test(tpl))
+  /portrait \.codex-name \.codex-name-sub\s*\{[^}]*font-size:\s*19px[^}]*font-weight:\s*700/.test(tpl) &&
+  /portrait \.codex-desc\s*\{[^}]*font-size:\s*19px/.test(tpl) &&
+  /portrait \.codex-meta \.kv-value\s*\{[^}]*font-size:\s*19px/.test(tpl))
+ok('副词条分隔符不松散（条目间距 6px、分隔符外边距 1px）',
+  /codex-row:has\(\.label-副词条\) > \.codex-row-items\s*\{[^}]*column-gap:\s*6px/.test(tpl) &&
+  /\.codex-sep\s*\{[^}]*margin:\s*0 1px/.test(tpl))
 /* 2026-10-17 用户定：标题区「角色攻略」用原神字体（汉仪文黑-65W）。
    ⚠ 不能用模板里那个 `YS`：`{{_miao_path}}` 的 URL 带空格未编码 → 字体静默回落系统字体。 */
 ok('标题区副标题用原神字体（@font-face 注入 + --codex-title-font 变量）',
