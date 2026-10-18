@@ -155,6 +155,18 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
   ok('有数据时「综合」回到 met/below', ['met', 'below'].includes(String(r2.dims.find(d => d.key === 'comprehensive').state)))
 }
 
+// ---------- 4d. 达标线 = miao ACE 档（2026-10-18 用户反馈：40 多词条仍被要求继续提升） ----------
+{
+  const ace = G.gradeBuild(targets, { ...good, artis: goodArtis, artiMark: { total: 246.4, markClass: 'ACE' } })
+  const comp = ace.dims.find(d => d.key === 'comprehensive')
+  ok('ACE 词条 + 推荐套装 → 综合判达标（0.96 ≥ 0.95）', comp.state === 'met' && comp.ratio >= 0.95, `${comp.state}/${comp.ratio}`)
+  ok('ACE 达标时不再给「继续提升词条」类建议', !ace.suggestions.some(s => s.includes('提升有效词条')), JSON.stringify(ace.suggestions))
+
+  const sOnly = G.gradeBuild(targets, { ...good, artis: goodArtis, artiMark: { total: 200, markClass: 'S' } })
+  const comp2 = sOnly.dims.find(d => d.key === 'comprehensive')
+  ok('S 档（0.7+0.2×套装）仍判未达标', comp2.state === 'below', `${comp2.state}/${comp2.ratio}`)
+}
+
 // ---------- 4c. 同名不同方向（2026-10-18 核对 #10 残留） ----------
 {
   const v = G.extractTargets({

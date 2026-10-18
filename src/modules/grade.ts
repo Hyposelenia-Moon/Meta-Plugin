@@ -36,6 +36,15 @@ export const DEFAULT_WEIGHTS: Record<GradeDimKey, number> = {
 export const LEGACY_WEIGHT_KEYS = ['panel', 'artifact'] as const
 
 /** 面板三档阈值（配置项 `gradePanelTiers` 可覆盖） */
+/**
+ * 综合（圣遗物）维度的**达标线**（2026-10-18 用户反馈：40 多词条、miao 评分 ACE 仍被要求"继续提升"）。
+ *
+ * 原有 `ratio >= 1` 等于"必须 miao 满分（MAX）才算达标"，而综合分 = 0.8×词条档 + 0.2×套装，
+ * ACE(0.95) + 推荐套装(1) 只有 0.96 → 永远判未达标，跟进阶建议互相打脸。
+ * 现在按 miao 的 **ACE 档**作为达标线；武器 / 天赋仍按 100% 判（它们本来就是离散档位）。
+ */
+export const COMPREHENSIVE_MET_RATIO = 0.95
+
 export const DEFAULT_PANEL_TIERS = { big: 0.9, normal: 0.6, small: 0.3 }
 
 /** 九档阈值：分数 ≥ 阈值即该档（配置项 `gradeRankThresholds` 可覆盖） */
@@ -586,7 +595,7 @@ function scoreComprehensive (targets: GuideTargets, build: BuildSnapshot): Grade
    *   ② 攻略**没有**圣遗物目标 → unscored（攻略缺项，本就不该计分）。
    */
   const state: AssessmentState = ratio !== null
-    ? (ratio >= 1 ? 'met' : 'below')
+    ? (ratio >= COMPREHENSIVE_MET_RATIO ? 'met' : 'below')
     : (hasSetTarget ? 'unknown' : 'unscored')
   const reason: AssessmentReason | undefined = state === 'met' || state === 'below'
     ? undefined
@@ -903,7 +912,7 @@ export function buildSuggestionRows (targets: GuideTargets, build: BuildSnapshot
   if (!out.length) {
     const hasUnknown = dims.some(d => d.state === 'unknown')
     if (hasUnknown) add('data-gap', '数据不全：先补上缺失的装备 / 圣遗物信息再评估，暂不判定达标', ['data-gap'])
-    else add('all-met', '各维度均已达标：可继续提升圣遗物词条质量', [])
+    else add('all-met', '各维度均已达标：词条已到 ACE 档以上，继续刷属可选优化', [])
   }
   return out.slice(0, 4)
 }

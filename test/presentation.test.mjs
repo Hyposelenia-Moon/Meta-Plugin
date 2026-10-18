@@ -385,6 +385,14 @@ const fullBuild = {
   {
     const mk = (rows) => P.buildPresentation({ result: { dims: [], rows, suggestionRows: [], total: 0, rank: "D", notes: [], assessable: true, panelTier: "", charName: "X" } })
     const cons = mk([{ id: "cons:key", group: "命座", name: "关键命座", target: "2 / 6", actual: "C1", verdict: "info", state: "unscored", scored: false }])
+  // 2026-10-18：未达标项的收尾文案 —— 全部达标时写「已全部达标」
+  {
+    const all = P.buildPresentation({ result: { dims: [], rows: [{ id: "a", group: "综合", name: "套装", target: "t", actual: "a", verdict: "ok", state: "met", scored: true }], suggestionRows: [], total: 100, rank: "MAX", notes: [], assessable: true, panelTier: "", charName: "X" } })
+    ok("全部达标 → metText 为「已全部达标」", all.metText === "已全部达标", JSON.stringify(all.metText))
+    const mixed = P.buildPresentation({ result: { dims: [], rows: [{ id: "a", group: "综合", name: "套装", target: "t", actual: "a", verdict: "warn", state: "below", scored: true }, { id: "b", group: "武器", name: "w", target: "t", actual: "a", verdict: "ok", state: "met", scored: true }], suggestionRows: [], total: 60, rank: "A", notes: [], assessable: true, panelTier: "", charName: "X" } })
+    ok("有未达标 → metText 仍为「其余 N 项达标」", mixed.metText === "其余 1 项达标", JSON.stringify(mixed.metText))
+  }
+
     ok("参考项只有命座 → refOnlyCons", cons.refOnlyCons === true && cons.refHasDir === false)
     const plain = mk([{ id: "panel:x", group: "参考", name: "暴击率", target: "70%", actual: "68%", verdict: "info", state: "unscored", scored: false }])
     ok("参考项无方向 → refHasDir=false（不占方向列）", plain.refHasDir === false && plain.refOnlyCons === false)

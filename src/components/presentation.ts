@@ -311,7 +311,13 @@ export function buildPresentation (input: {
     refOnlyCons,
     suggestions,
     metCount,
-    metText: metCount ? `其余 ${metCount} 项达标` : '',
+    /*
+     * 未达标项的收尾文案（2026-10-18 用户定）：没有未达标项时写「已全部达标」，
+     * 而不是在"未达标项"标题下只写「其余 N 项达标」。
+     */
+    metText: evidence.length === 0
+      ? ""
+      : (evidence.every(e => e.state === "met") ? "已全部达标" : (metCount ? `其余 ${metCount} 项达标` : "")),
     sources: [miaoSource(input.source, observedAt), ...(input.extraSources || [])]
   }
 }
