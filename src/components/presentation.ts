@@ -134,6 +134,10 @@ export interface PresentationMeta {
   evidence: EvidenceRow[]
   /** `info` 参考行（面板 / 命座）—— 即使有差距也不计分 */
   references: EvidenceRow[]
+  /** 参考项里是否有方向（辅助/输出…）；无方向时不渲染方向列 */
+  refHasDir: boolean
+  /** 参考项是否只有「命座」一条（是则整块不显示） */
+  refOnlyCons: boolean
   suggestions: SuggestionRowView[]
   /** 达标项覆盖说明（"其余 N 项达标"） */
   metCount: number
@@ -289,11 +293,22 @@ export function buildPresentation (input: {
     evidence
   )
   const metCount = evidence.filter(e => e.state === 'met').length
+  /*
+   * 参考项区的两条展示口径（2026-10-18 用户定）：
+   *   refHasDir  —— 参考项里有没有**方向**（辅助/输出…）。没有就不为方向留列（省横向空间）；
+   *   refOnlyCons —— 参考项只有「命座」一条 → 整块不显示（没有可参考的面板目标，纯占版面）。
+   * 「参考」是面板无方向时的兜底 group，不算方向。
+   */
+  const refGroups = references.map(r => String(r.group || ''))
+  const refHasDir = refGroups.some(g => g && g !== '参考' && g !== '命座')
+  const refOnlyCons = references.length > 0 && refGroups.every(g => g === '命座')
   return {
     score: buildScoreContext(input.result, { targetVersion: input.targetVersion }),
     dims,
     evidence,
     references,
+    refHasDir,
+    refOnlyCons,
     suggestions,
     metCount,
     metText: metCount ? `其余 ${metCount} 项达标` : '',

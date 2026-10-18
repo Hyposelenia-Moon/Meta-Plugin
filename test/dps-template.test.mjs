@@ -59,6 +59,13 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   ok('grade 模板：方向标有样式', tplGrade.includes('.mx-reference-row__group {'))
 }
 
+// 2026-10-18：参考项区两条展示口径要有模板接线
+{
+  const tplGrade = readText(path.join(tplDir, 'grade.html'))
+  ok('grade 模板：参考项只有命座时整块不渲染', tplGrade.includes('!mx.refOnlyCons'))
+  ok('grade 模板：有方向时才挂 .mx--ref-dir', tplGrade.includes('mx.refHasDir') && tplGrade.includes('mx--ref-dir'))
+}
+
 // ---------- 2. CSS 引用的资源都能解析 ----------
 {
   const refs = new Set()

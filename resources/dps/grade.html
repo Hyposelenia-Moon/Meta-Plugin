@@ -227,18 +227,17 @@
  * 现在改成 **三列网格**：标签列吃掉剩余宽度（方向标占固定 132px 槽，属性名因此从同一 x 起），
  * `当前` 96px、`参考目标` 112px，两列都右对齐 —— 表头与数据行共用同一套列线。
  */
-.mx-content--glass .mx-reference-row {
-  display: grid;
-  grid-template-columns: 132px minmax(0, 1fr) 96px 112px;
-  column-gap: 10px;
-  align-items: baseline;
-}
+/* 默认：**恢复修改前的 flex 排布**（无方向时不占方向列，正文贴左、数值右对齐） */
+.mx-content--glass .mx-reference-row { display: flex; align-items: baseline; column-gap: 10px; }
+.mx--ref-dir .mx-reference-row { display: grid; grid-template-columns: 132px minmax(0, 1fr) 96px 112px; }
+/* 方向列默认不占位；只有参考项里确实有方向（.mx--ref-dir）才显示 */
+.mx-reference-row__group { display: none; }
+.mx--ref-dir .mx-reference-row__group { display: inline-block; }
 .mx-content--glass .mx-reference-row__value,
 .mx-content--glass .mx-reference-row__extra { text-align: right; }
 /* 参考项方向标（辅助 / 输出）：固定槽宽，保证属性名统一从 132px 后起 */
 .mx-reference-row__group:empty { visibility: hidden; }   /* 表头占位：保留列宽但不画空胶囊 */
 .mx-reference-row__group {
-  display: inline-block;
   box-sizing: border-box;
   justify-self: start;
   max-width: 100%;
@@ -435,8 +434,8 @@
           {{/if}}
         </section>
 
-        {{if mx.references.length > 0}}
-        <section class="mx-section">
+        {{if mx.references.length > 0 && !mx.refOnlyCons}}
+        <section class="mx-section{{if mx.refHasDir}} mx--ref-dir{{/if}}">
           <header class="mx-section__head">
             <span class="mx-section__index">05</span>
             <h2 class="mx-section__title">参考项</h2>

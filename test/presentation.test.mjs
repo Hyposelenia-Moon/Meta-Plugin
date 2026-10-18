@@ -381,6 +381,17 @@ const fullBuild = {
   // 防回归：这条门禁曾被"声明数组但从不填"架空，这里钉住"确实量了三处高度"
   ok('对比度门禁确实跑了 10%/50%/95% 三处高度', rep.length === 3, `rep=${rep.length}`)
 
+  // 2026-10-18 参考项展示口径：只有命座 → 整块隐藏；无方向 → 不占方向列
+  {
+    const mk = (rows) => P.buildPresentation({ result: { dims: [], rows, suggestionRows: [], total: 0, rank: "D", notes: [], assessable: true, panelTier: "", charName: "X" } })
+    const cons = mk([{ id: "cons:key", group: "命座", name: "关键命座", target: "2 / 6", actual: "C1", verdict: "info", state: "unscored", scored: false }])
+    ok("参考项只有命座 → refOnlyCons", cons.refOnlyCons === true && cons.refHasDir === false)
+    const plain = mk([{ id: "panel:x", group: "参考", name: "暴击率", target: "70%", actual: "68%", verdict: "info", state: "unscored", scored: false }])
+    ok("参考项无方向 → refHasDir=false（不占方向列）", plain.refHasDir === false && plain.refOnlyCons === false)
+    const dir = mk([{ id: "panel:辅助:cpct", group: "辅助", name: "暴击率", target: "70%", actual: "68%", verdict: "info", state: "unscored", scored: false }])
+    ok("参考项有方向 → refHasDir=true", dir.refHasDir === true)
+  }
+
   /*
    * 方向标（辅助 / 输出）的配色也要过门禁（2026-10-18）：
    * 当初用 #9fb3c8 在最浅的卡底部只有 4.19:1 —— 门禁管不到模板硬编码色，这里补上。
