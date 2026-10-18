@@ -166,13 +166,18 @@
     .codex-empty { font-size: 18px; color: var(--muted-2); }
     .codex-hint { margin-top: 4px; font-size: 16px; color: var(--muted-2); }
 
-    .codex-teams { display: flex; flex-direction: column; gap: 3px; }
+    .codex-teams { display: flex; flex-direction: column; gap: 10px; }   /* 2026-10-18：行距 3 → 10（两行头像挨太近） */
     .codex-team { font-size: 19px; color: var(--text); }
     /* 配队标签（2026-10-17 用户定）：与前面模块的标签**同色** —— 其它模块的 row 标签被统一成
        金色（见下面 `.codex-row-label .codex-tier.label-*` 的 0,4,0 规则，连「可选」也是金色），
        所以配队这里也一律金色；模板里标签仍带 `label-<tag>` 类，将来要按档位分色时再加规则。
        ⚠ 注释里不要写模板占位符（art-template 连 CSS 注释也会求值）。 */
-    .codex-team-tag { font-weight: 700; margin-right: 6px; color: var(--gold); }
+    /*
+ * 标签固定占一列（2026-10-18 用户定）：`推荐`(2 字) 与 `月感电`(3 字) 宽度不同，
+ * 不固定的话每行头像的起始 x 都不一样，看着像没对齐。固定 4.6em（≈97px）后，
+ * 短标签留白、长标签（≤4 字）都放得下，头像列跨行严格对齐。
+ */
+.codex-team-tag { flex: 0 0 auto; min-width: 4.6em; font-weight: 700; margin-right: 6px; color: var(--gold); }
     .codex-team-note { font-size: 16px; color: var(--muted-2); font-style: italic; }
 
     /* 条目图标 / 配队头像（引用 miao 资源，尺寸按数据区比例） */
