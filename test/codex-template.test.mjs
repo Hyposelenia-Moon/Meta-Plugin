@@ -219,6 +219,12 @@ if (fs.existsSync(subViewsFile)) {
   const view = SV.buildCodexView(store.getGuide('胡桃'), { signature: store.getSignature('胡桃'), weaponTags: store.getWeaponTags() })
   const page = SV.toPageData(view, { copyright: 'x', renderScale: 1.5 })
 
+// 2026-10-18 核对 #9：配队多选槽必须逐个渲染候选（否则只画得到首选）
+{
+  const tplCodex = readText(path.join(pluginRoot, 'resources', 'codex', 'codex.html'))
+  ok('配队多选槽：模板渲染 alts 逐项', tplCodex.includes('codex-team-slot') && tplCodex.includes('member.alts'))
+  ok('配队多选槽：候选间有分隔符样式', tplCodex.includes('.codex-team-altsep {'))
+}
   const LOCAL = new Set(['if', 'else', 'each', 'set', 'block', 'extend', 'true', 'false', 'null', 'undefined', 'length', 'index'])
   // 2026-10-18：多选槽候选循环变量 lt（members[].alts）也属于循环局部名
   const LOOP = new Set(['section', 'row', 'item', 'team', 'member', 'alt', 's', 'l'])

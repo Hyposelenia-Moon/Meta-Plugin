@@ -200,6 +200,19 @@ const fullBuild = {
   // 2026-10-17 复审 #10：方向前缀单独成组，两种方向的同名属性不再混成两行一样的东西
   push('面板格拆分：`辅助：暴击率：70%` → group=辅助', P.splitStatCell('辅助：暴击率：70%'), { group: '辅助', k: '暴击率', v: '70%' })
   push('面板格拆分：`输出向：暴击伤害：220%` → group=输出向', P.splitStatCell('输出向：暴击伤害：220%'), { group: '输出向', k: '暴击伤害', v: '220%' })
+  // 2026-10-18 核对 #9：多选槽（`莫娜 / 沃雅妮莎`）拆成候选，模板才能逐个画
+  {
+    const view = { sections: [{ title: '配队', kind: 'teams', teams: [{ tag: '推荐', members: [
+      { name: '莫娜 / 沃雅妮莎', icon: '', note: '' },
+      { name: '爱可菲', icon: 'a.webp', note: '' }
+    ] }] }] }
+    const mx = P.buildCodexPresentation(view, {})
+    const [t1] = mx.sections
+    const m1 = t1.teams[0].members[0]
+    push('候选槽拆成两个 alt', (m1.alts || []).map(a => a.name), ['莫娜', '沃雅妮莎'])
+    push('单名成员只有 1 个 alt', (t1.teams[0].members[1].alts || []).length, 1)
+    push('原始 name 仍保留整串（文本回退用）', m1.name, '莫娜 / 沃雅妮莎')
+  }
   push('面板格拆分：首段不是方向词时不拆三瓣', P.splitStatCell('宗室：暴击率：70%'), { group: '', k: '宗室', v: '暴击率：70%' })
   const tpl = readText(path.join(pluginRoot, 'resources', 'codex', 'codex.html'))
   const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css'))

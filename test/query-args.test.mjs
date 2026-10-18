@@ -166,7 +166,6 @@ check('不写档位 = null（交给 app 提示选档）', r.tier === null)
 
   // 2026-10-18 核对：#2 兜底（无 own 文本段）+ #3 全角指纹
   {
-    const { stripQuotedArgs: strip2 } = { stripQuotedArgs }
     // #2：引用原文 = 用户重打的全部参数 → 剔完为空时必须保留
     const sameNoSeg = {
       reply_id: 'q11',
