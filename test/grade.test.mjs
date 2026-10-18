@@ -155,6 +155,37 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
   ok('有数据时「综合」回到 met/below', ['met', 'below'].includes(String(r2.dims.find(d => d.key === 'comprehensive').state)))
 }
 
+// ---------- 4e. 2+2 也是合法推荐（2026-10-18 用户定：按攻略实际写法评） ----------
+{
+  // 解析：`2如雷 + 2宗室` → 配对 spec；普通名字 → 4 件套 spec
+  push("parseSetSpecs：2+2 配对", G.parseSetSpecs(["2如雷 + 2宗室"]).map(s => `${s.kind}:${s.sets.join("+")}`), ["pair:如雷+宗室"])
+  push("parseSetSpecs：4 件套", G.parseSetSpecs(["炽烈的炎之魔女"]).map(s => `${s.kind}:${s.sets.join("+")}`), ["pc4:炽烈的炎之魔女"])
+
+  // 攻略推荐就是 2+2（丽莎：2如雷 + 2宗室），穿对就该按推荐档给分
+  const lisa = { metaRows: [], sections: [{ title: "圣遗物推荐", lines: ["推荐：2如雷 + 2宗室", "可选：教官"] }] }
+  // 用真实攻略数据（丽莎的推荐本身就是 2如雷 + 2宗室）——extractTargets 吃的是 buildCodexView 的产物
+  const lisaView = SV.buildCodexView(JSON.parse(readText(path.join(pluginRoot, "data", "gi", "丽莎.json"))), {})
+  const lisaTargets = G.extractTargets(lisaView, "丽莎")
+  ok("丽莎的推荐被解析成 2+2 条目", lisaTargets.artifact.recommend.some(s => /2/.test(s) && /\+/.test(s)), JSON.stringify(lisaTargets.artifact.recommend))
+  const pairArtis = [
+    { slot: "生之花", set: "如雷的盛怒", mainName: "生命值", level: 20 },
+    { slot: "死之羽", set: "如雷的盛怒", mainName: "攻击力", level: 20 },
+    { slot: "时之沙", set: "昔日宗室之仪", mainName: "元素充能效率", level: 20 },
+    { slot: "空之杯", set: "昔日宗室之仪", mainName: "雷元素伤害加成", level: 20 },
+    { slot: "理之冠", set: "战狂", mainName: "暴击率", level: 20 }
+  ]
+  const r2 = G.gradeBuild(lisaTargets, { ...good, artis: pairArtis, artiMark: { total: 250, markClass: "ACE" } })
+  const c2 = r2.dims.find(d => d.key === "comprehensive")
+  ok("推荐 2+2 穿对 + ACE → 综合判达标（套装按推荐档 1.0）", c2.state === "met" && c2.ratio >= 0.95, `${c2.state}/${c2.ratio}`)
+  ok("详情写明是推荐 2+2", /推荐 2\+2/.test(c2.detail), c2.detail)
+
+  // 非推荐的 2+2 仍按 0.7 算（不能被上面放宽）
+  const offArtis = pairArtis.map(a => ({ ...a, set: a.set === "如雷的盛怒" ? "追忆之注连" : "沙上楼阁史话" }))
+  const r3 = G.gradeBuild(lisaTargets, { ...good, artis: offArtis, artiMark: { total: 250, markClass: "ACE" } })
+  const c3 = r3.dims.find(d => d.key === "comprehensive")
+  ok("非推荐 2+2 仍按兜底档（0.90）", Math.abs(c3.ratio - 0.9) < 0.02, `${c3.state}/${c3.ratio}`)
+}
+
 // ---------- 4d. 达标线 = miao ACE 档（2026-10-18 用户反馈：40 多词条仍被要求继续提升） ----------
 {
   const ace = G.gradeBuild(targets, { ...good, artis: goodArtis, artiMark: { total: 246.4, markClass: 'ACE' } })
