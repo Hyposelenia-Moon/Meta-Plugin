@@ -155,6 +155,23 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
   ok('有数据时「综合」回到 met/below', ['met', 'below'].includes(String(r2.dims.find(d => d.key === 'comprehensive').state)))
 }
 
+// ---------- 4c. 同名不同方向（2026-10-18 核对 #10 残留） ----------
+{
+  const v = G.extractTargets({
+    metaRows: [],
+    sections: [{ title: '面板', kind: 'stats', rows: [
+      { label: '辅助', items: [{ text: '暴击率：70%' }, { text: '元素充能效率：240%' }] },
+      { label: '输出', items: [{ text: '暴击率：90%' }, { text: '暴击伤害：220%' }] }
+    ] }]
+  }, '测试角色')
+  const rows = G.buildCompareRows(v, { ...good, attrs: { cpct: 70, recharge: 240, cdmg: 180 } })
+    .filter(r => r.verdict === 'info')
+  const cpct = rows.filter(r => r.name === '暴击率')
+  ok('同名属性按方向各成一行（不被合并）', cpct.length === 2, JSON.stringify(rows.map(r => `${r.group}:${r.name}`)))
+  ok('参考项带上方向（辅助 / 输出）', cpct.map(r => r.group).sort().join(',') === '辅助,输出', JSON.stringify(cpct.map(r => r.group)))
+  ok('参考项都是 info（不进未达标）', rows.every(r => r.verdict === 'info'))
+}
+
 // ---------- 5. 档位与阈值 ----------
 {
   ok('毕业档三档边界（按综合分）', G.panelTierOf(0.9, good, targets).tier === '大毕业' &&

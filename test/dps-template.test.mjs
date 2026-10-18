@@ -52,6 +52,13 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   ok(`${tpl}: 引用 out/ 下的头像缓存路径`, readText(path.join(tplDir, `${tpl}.html`)).includes('{{_data_path}}/avatar/'))
 }
 
+// 2026-10-18 核对修复 #10：练度页「参考项」必须带方向标（辅助 / 输出 等），否则同名属性读不出区别
+{
+  const tplGrade = readText(path.join(tplDir, 'grade.html'))
+  ok('grade 模板：参考项渲染方向标', tplGrade.includes('mx-reference-row__group') && /\{\{if r\.group[^}]*\}\}/.test(tplGrade))
+  ok('grade 模板：方向标有样式', tplGrade.includes('.mx-reference-row__group {'))
+}
+
 // ---------- 2. CSS 引用的资源都能解析 ----------
 {
   const refs = new Set()

@@ -219,7 +219,20 @@
     .gd-sug { font-size: 19px; padding: 5px 0; }
     .gd-foot { font-size: 15px; color: var(--muted-2, #999); padding: 2px 0; }
       /* 参考 DPS 行（DPS 榜同款）：榜单共享 .rank-* 之外，补本页需要的尺寸与间距 */
-    .mx-refdps-row { display: flex; align-items: center; gap: 10px; padding: 6px 20px; }
+    /* 参考项方向标（辅助 / 输出）：2026-10-18 核对修复 #10，与攻略页面板同一口径 */
+.mx-reference-row__group {
+  display: inline-block;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 6px;
+  margin-right: 6px;
+  border-radius: 6px;
+  color: var(--mx-sub, #9fb3c8);
+  background: rgba(159, 179, 200, .12);
+  border: 1px solid rgba(159, 179, 200, .28);
+  vertical-align: middle;
+}
+.mx-refdps-row { display: flex; align-items: center; gap: 10px; padding: 6px 20px; }
     .mx-refdps-row .rank-badge { flex: 0 0 auto; min-width: 68px; text-align: center; }
     .mx-refdps-row .rank-main { flex: 0 0 auto; display: flex; align-items: baseline; gap: 4px; margin-left: auto; }
     .mx-refdps-row .rank-tags { flex: 0 0 auto; }
@@ -409,7 +422,8 @@
           <div class="mx-reference-row mx-reference-row--head"><span class="mx-reference-row__name">　</span><span class="mx-reference-row__value">当前</span><span class="mx-reference-row__extra">参考目标</span></div>
           {{each mx.references r}}
           <div class="mx-reference-row">
-            <span class="mx-reference-row__name"><span class="mx-reference-row__attr">{{r.name}}</span></span>
+            <!-- 2026-10-18 核对修复：#10 残留 —— 参考项同名不同方向（辅助 70% / 输出 90%）必须带方向标 -->
+            <span class="mx-reference-row__name">{{if r.group && r.group !== '参考'}}<span class="mx-reference-row__group">{{r.group}}</span>{{/if}}<span class="mx-reference-row__attr">{{r.name}}</span></span>
             <span class="mx-reference-row__value">{{r.actual}}</span>
             <span class="mx-reference-row__extra">{{r.target}}</span>
           </div>
