@@ -164,6 +164,30 @@ check('不写档位 = null（交给 app 提示选档）', r.tier === null)
   const pureEcho = { message: [{ type: 'text', text: '数据来自 mhydps.cn' }], msg: '数据来自 mhydps.cn' }
   check('自环：own 自身就是我们的输出 → echo=true', (await resolveCommandArgs(pureEcho, rankRule)).echo === true)
 
+  // 2026-10-18 核对：#2 兜底（无 own 文本段）+ #3 全角指纹
+  {
+    const { stripQuotedArgs: strip2 } = { stripQuotedArgs }
+    // #2：引用原文 = 用户重打的全部参数 → 剔完为空时必须保留
+    const sameNoSeg = {
+      reply_id: 'q11',
+      msg: '#DPS榜 胡桃 12金\n#DPS榜 胡桃 12金',
+      getReply: async () => ({ message: [{ type: 'text', text: '#DPS榜 胡桃 12金' }] })
+    }
+    check('#2 兜底：无 message 段且引用与参数相同 → 不剔空',
+      (await stripQuotedArgs(sameNoSeg, '胡桃 12金')) === '胡桃 12金')
+
+    // #3：无 own 段时，引用里的输出指纹不能把新命令判成回灌
+    const { looksLikeOurEcho } = await import(mod('modules/quoteGuard.js'))
+    check('#3 全角「数据：」也命中断言指纹', looksLikeOurEcho('数据：原神DPS数据库 · 抓取于 2026-10-18 10:00') === true)
+    const echoNoSeg = {
+      reply_id: 'q12',
+      msg: '#DPS榜 胡桃\n数据：原神DPS数据库',
+      getReply: async () => ({ message: [{ type: 'text', text: '数据：原神DPS数据库' }] })
+    }
+    const r4 = await resolveCommandArgs(echoNoSeg, rankRule)
+    check('#3 兜底：剔掉引用里的指纹后仍能正常解析', r4.echo === false && r4.text === '胡桃', JSON.stringify(r4))
+  }
+
   // 危战：own 文本按 raidTiers 规则取参数
   const raidOwn = { message: [{ type: 'text', text: '#危战 矮灵 n7' }], msg: '#危战 矮灵 n7' }
   check('危战 own 文本取参数', (await resolveCommandArgs(raidOwn, raidRule)).text === '矮灵')

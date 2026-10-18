@@ -548,15 +548,21 @@ function scoreComprehensive (targets: GuideTargets, build: BuildSnapshot): Grade
     ? `miao 词条评分 ${num(Number(build.artiMark?.total) || 0)}（${markClass}）`
     : '未取到 miao 词条评分'
 
-  // 有词条评分 → 以它为主；没有评分但穿着推荐套装 → 只按套装算（并在 notes 里说明）
-  let ratio: number | null
-  if (hasMark) ratio = hasSetTarget ? 0.8 * markScore + 0.2 * setScore : markScore
-  else if (hasSetTarget && artis.length) ratio = setScore
-  else ratio = null
+  /*
+   * 2026-10-18 核对修复（#1 残留分支）：**没有 miao 词条评分时不再用套装分顶替**。
+   * 旧写法 `else if (hasSetTarget && artis.length) ratio = setScore` 会让"5 件推荐套装 + 缺评分"
+   * 拿到 setScore = 1 → 综合满分 → total 100 / MAX / 大毕业 / 「各维度均已达标」，
+   * 而实际上词条质量根本没被评估。现在只认 miao 评分；套装符合度进 detail 供参考。
+   */
+  const ratio: number | null = hasMark
+    ? (hasSetTarget ? 0.8 * markScore + 0.2 * setScore : markScore)
+    : null
 
-  const detail = ratio === null
-    ? (artis.length ? '未取到 miao 词条评分（不计分）' : '未读取到圣遗物')
-    : (hasSetTarget ? `${setNote}；${markNote}` : markNote)
+  const detail = !artis.length
+    ? '未读取到圣遗物'
+    : !hasMark
+      ? `未取到 miao 词条评分（不计分）${hasSetTarget ? `；${setNote}` : ''}`
+      : (hasSetTarget ? `${setNote}；${markNote}` : markNote)
 
   /*
    * 四态：`ratio === null` 的两种来源要分开 ——
@@ -574,9 +580,14 @@ function scoreComprehensive (targets: GuideTargets, build: BuildSnapshot): Grade
    *   ratio 空 且读到了圣遗物（>0 件）  → 一定是攻略没给套装/评分口径 → unscored + target-missing；
    *   ratio 空 且一件都没读到           → unknown + data-missing（总分转"待评"）。
    */
+  /*
+   * 2026-10-18：`ratio` 为空还要再分两种情况 ——
+   *   ① 攻略**有**圣遗物目标（hasSetTarget），只是没取到评分/没读到装备 → unknown（数据缺失，总分待评）；
+   *   ② 攻略**没有**圣遗物目标 → unscored（攻略缺项，本就不该计分）。
+   */
   const state: AssessmentState = ratio !== null
     ? (ratio >= 1 ? 'met' : 'below')
-    : (artis.length ? 'unscored' : 'unknown')
+    : (hasSetTarget ? 'unknown' : 'unscored')
   const reason: AssessmentReason | undefined = state === 'met' || state === 'below'
     ? undefined
     : (state === 'unknown' ? 'data-missing' : 'target-missing')

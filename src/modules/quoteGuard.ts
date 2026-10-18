@@ -69,8 +69,12 @@ export async function stripQuotedArgs (e: unknown, text: unknown): Promise<strin
         hit = true
       }
     }
-    // 没整段命中 → 不做任何改动（旧的 token 级剔除会在这里误删用户正文）
-    return hit ? squeeze(out) : raw
+    /*
+     * 2026-10-18 核对修复（#2 兜底）：整段命中但**剔完什么都不剩**时，说明用户重打的参数与引用原文
+     * 完全相同（引用 `胡桃12金` → 再打 `胡桃12金`）→ 保留原文，否则参数变空、掉成总榜。
+     */
+    const stripped = hit ? squeeze(out) : ''
+    return stripped ? stripped : raw
   } catch {
     return raw
   }
@@ -94,10 +98,13 @@ const ECHO_MARKERS = [
   '没有查询到该角色的配队记录'      // charDpsText 空态
 ]
 
+/** 半角/全角冒号归一（我们的文本输出用全角「数据：」，ASCII 指纹 `数据:` 会漏判 → 2026-10-18 修复） */
+const canon = (s: string): string => String(s || '').replace(/：/g, ':')
+
 export function looksLikeOurEcho (text: unknown): boolean {
-  const s = String(text || '')
+  const s = canon(String(text || ''))
   if (!s) return false
-  return ECHO_MARKERS.some(m => s.includes(m))
+  return ECHO_MARKERS.some(m => s.includes(canon(m)))
 }
 /**
  * 解析命令参数：**优先用「用户自己打的文本」**，拿不到段信息时才退回旧路径。
@@ -119,14 +126,20 @@ export async function resolveCommandArgs (
   rule: RegExp
 ): Promise<{ echo: boolean, text: string }> {
   const own = ownTextOf(e).trim()
-  if (own && rule.test(own)) {
+  if (own) {
+    // 自环/转发：own 自身就是我们的输出（不见得带命令前缀，所以先判指纹再判规则）
     if (looksLikeOurEcho(own)) return { echo: true, text: '' }
-    return { echo: false, text: (own.match(rule) || [])[1] || '' }
+    if (rule.test(own)) return { echo: false, text: (own.match(rule) || [])[1] || '' }
   }
 
   const msg = String((e as { msg?: unknown } | null)?.msg || '')
-  if (looksLikeOurEcho(msg)) return { echo: true, text: '' }
   const raw = (msg.match(rule) || [])[1] || ''
   if (!raw) return { echo: false, text: '' }
-  return { echo: false, text: await stripQuotedArgs(e, raw) }
+  /*
+   * 2026-10-18 核对修复（#3 兜底）：先剔引用**再**判回灌 ——
+   * 旧写法直接 `looksLikeOurEcho(msg)`，而 msg 含着引用正文，用户引用我们回复后零回复。
+   */
+  const stripped = await stripQuotedArgs(e, raw)
+  if (looksLikeOurEcho(stripped)) return { echo: true, text: '' }
+  return { echo: false, text: stripped }
 }

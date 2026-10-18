@@ -90,6 +90,6 @@ export function guideUpdatedDate (dataDir: string, name: string): string {
   } catch {
     date = ''
   }
-  cache.set(`${file}:${stamp}`, date)
+  cache.set(key2, date)   // 2026-10-18 复审修复：写入键必须与读取键一致（否则永不命中、每次都跑 git log）
   return date
 }

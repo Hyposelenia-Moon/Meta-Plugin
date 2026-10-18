@@ -494,6 +494,10 @@
   border: 1px solid rgba(159, 179, 200, .28);
 }
 /* 配队成员缺头像时的名字兜底（2026-10-17 复审 #9） */
+/* 多选槽候选（2026-10-18 核对 #9）：候选之间用细斜杠分隔，第二个及以后头像略小 */
+.codex-team-slot { display: inline-flex; align-items: center; vertical-align: middle; }
+.codex-team-slot--alt .avatar { width: 44px; height: 44px; }
+.codex-team-altsep { margin: 0 3px; font-size: 18px; color: var(--mx-sub, #9fb3c8); opacity: .8; }
 .codex-team-name { font-size: 20px; color: var(--mx-text, #dbe6f2); margin-right: 4px; }
 .codex-stat-k { flex: 0 0 auto; font-size: 22px; font-weight: 700; color: var(--gold); }
     .codex-stat-v { flex: 1 1 auto; min-width: 0; margin-left: auto; text-align: right; font-size: 26px; font-weight: 700; color: var(--text); word-break: break-word; }
@@ -614,7 +618,7 @@
             {{each section.teams team}}
             <div class="codex-team">
               {{if team.tag}}<span class="codex-team-tag label-{{team.tag}}">{{team.tag}}</span>{{/if}}
-              {{each team.members member}}{{if member.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{member.icon}}"/>{{if member.constellation}}<span class="avatar-con">{{member.constellation}}</span>{{/if}}</span></span></span>{{else}}<span class="codex-team-name">{{member.name || member.note}}</span>{{/if}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}
+              {{each team.members member}}{{if member.alts && member.alts.length > 1}}{{each member.alts alt}}<span class="codex-team-slot{{if $index > 0}} codex-team-slot--alt{{/if}}">{{if alt.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{alt.icon}}"/></span></span></span>{{else}}<span class="codex-team-name">{{alt.name}}</span>{{/if}}</span>{{if $index < member.alts.length - 1}}<span class="codex-team-altsep">/</span>{{/if}}{{/each}}{{else if member.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{member.icon}}"/>{{if member.constellation}}<span class="avatar-con">{{member.constellation}}</span>{{/if}}</span></span></span>{{else}}<span class="codex-team-name">{{member.name || member.note}}</span>{{/if}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}
               {{if team.text}}<span class="codex-team-note">{{team.text}}</span>{{/if}}
             </div>
             {{/each}}

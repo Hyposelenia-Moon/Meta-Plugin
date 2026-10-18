@@ -220,7 +220,8 @@ if (fs.existsSync(subViewsFile)) {
   const page = SV.toPageData(view, { copyright: 'x', renderScale: 1.5 })
 
   const LOCAL = new Set(['if', 'else', 'each', 'set', 'block', 'extend', 'true', 'false', 'null', 'undefined', 'length', 'index'])
-  const LOOP = new Set(['section', 'row', 'item', 'team', 'member', 's', 'l'])
+  // 2026-10-18：多选槽候选循环变量 lt（members[].alts）也属于循环局部名
+  const LOOP = new Set(['section', 'row', 'item', 'team', 'member', 'alt', 's', 'l'])
   const SETVARS = new Set(['emptyText', 'refineHint'])
   // 模板里 `{{set NAME = …}}` 声明的局部变量（如行类名 rowCls）不算页级字段
   for (const m of tpl.matchAll(/\{\{\s*set\s+([A-Za-z_$][\w$]*)/g)) SETVARS.add(m[1])

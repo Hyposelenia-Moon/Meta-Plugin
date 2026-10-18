@@ -139,6 +139,17 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
   ok('不再给出「各维度均已达标」', !r.suggestions.some(s => s.includes('均已达标')), JSON.stringify(r.suggestions))
   ok('改为提示补数据', r.suggestions.some(s => s.includes('数据不全')), JSON.stringify(r.suggestions))
 
+  // 2026-10-18 核对：#1 残留分支 —— 穿着推荐套装但缺 miao 评分，不得再算成 100 分/MAX
+  {
+    const r3 = G.gradeBuild(targets, { ...good, artiMark: null })
+    const comp3 = r3.dims.find(d => d.key === 'comprehensive')
+    ok('有推荐套装但缺词条评分 → 综合不计分（ratio=null）', comp3.ratio === null, JSON.stringify(comp3))
+    ok('缺评分时标为数据缺失而非达标', comp3.state === 'unknown' && comp3.reason === 'data-missing')
+    ok('缺评分时总分待评（assessable=false）', r3.assessable === false)
+    // 内部 total 仍按可评维度归一（旧口径不变），但页面/文本按 assessable=false 显示「无法评估」
+    ok('缺评分时不说「各维度均已达标」', !r3.suggestions.some(s => s.includes('均已达标')), JSON.stringify(r3.suggestions))
+  }
+
   // 对照：有圣遗物 + 有评分时，normal 路径仍是 met/below
   const r2 = G.gradeBuild(targets, good)
   ok('有数据时「综合」回到 met/below', ['met', 'below'].includes(String(r2.dims.find(d => d.key === 'comprehensive').state)))

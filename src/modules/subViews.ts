@@ -268,7 +268,17 @@ export function withIcons (view: CodexView, ctx: { character: string }): CodexVi
         ...team,
         members: (team.members ?? []).map(member => {
           const icon = iconForRef(String(member.ref ?? ''), { character: ctx.character })
-          return icon ? { ...member, icon: icon.rel } : member
+          /*
+           * 多选槽（`莫娜 / 沃雅妮莎`）：逐个候选解析图标（2026-10-18 核对修复 #9）。
+           * 首选之外的候选没有 `ref`，按 `character:<名字>` 现拼一个再解析；解析不到就留空，模板画名字。
+           */
+          const altList = (member as { alts?: unknown[] }).alts ?? []
+          const alts = altList.map(alt => {
+            if (!alt || typeof alt !== 'object') return alt
+            const altIcon = iconForRef(`character:${String((alt as { name?: string }).name ?? '')}`, { character: ctx.character })
+            return altIcon ? { ...alt, icon: altIcon.rel } : alt
+          })
+          return { ...(icon ? { ...member, icon: icon.rel } : member), alts }
         })
       }))
     }
