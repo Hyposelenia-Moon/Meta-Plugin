@@ -272,7 +272,15 @@ export function withIcons (view: CodexView, ctx: { character: string }): CodexVi
            * 多选槽（`莫娜 / 沃雅妮莎`）：逐个候选解析图标（2026-10-18 核对修复 #9）。
            * 首选之外的候选没有 `ref`，按 `character:<名字>` 现拼一个再解析；解析不到就留空，模板画名字。
            */
-          const altList = (member as { alts?: unknown[] }).alts ?? []
+          /*
+           * 2026-10-18：候选槽（`莫娜 / 沃雅妮莎`）必须在**这一层**拆好，
+           * 因为图标解析（iconForRef）就发生在这里；presentation 之后才拆的话 alts 永远没有图标。
+           */
+          const nameRaw = String((member as { name?: unknown }).name ?? '')
+          const splitNames = nameRaw.split(/[／/]/).map(s => s.trim()).filter(Boolean)
+          const altList = (member as { alts?: unknown[] }).alts?.length
+            ? (member as { alts: unknown[] }).alts
+            : (splitNames.length ? splitNames : [nameRaw]).map(n => ({ name: n, icon: '' }))
           const alts = altList.map(alt => {
             if (!alt || typeof alt !== 'object') return alt
             const altIcon = iconForRef(`character:${String((alt as { name?: string }).name ?? '')}`, { character: ctx.character })

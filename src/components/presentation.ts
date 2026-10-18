@@ -558,12 +558,16 @@ export function buildCodexPresentation (view: {
            * 旧实现只当一整个名字 → 模板只画得到首选头像、其余候选直接消失。
            * 这里拆成 `alts`，模板逐个渲染（有图标画头像、没图标画名字）。
            */
-          const alts = name.split(/[／/]/).map(s => s.trim()).filter(Boolean)
+          const existing = (member as { alts?: Array<{ name: string, icon?: string }> }).alts
+          const split = name.split(/[／/]/).map(s => s.trim()).filter(Boolean)
           return {
             name,
             icon: String(member.icon ?? ''),
             note: String(member.note ?? ''),
-            alts: (alts.length ? alts : [name]).map(n => ({ name: n, icon: '' }))
+            // 上游（subViews.withIcons）已经拆好并解析过图标时直接用，避免这里把图标丢掉
+            alts: Array.isArray(existing) && existing.length
+              ? existing.map(a => ({ name: String(a?.name ?? ''), icon: String(a?.icon ?? '') }))
+              : (split.length ? split : [name]).map(n => ({ name: n, icon: '' }))
           }
         })
       }

@@ -399,10 +399,30 @@ const fullBuild = {
   console.log('     [C 方案实测报告] ' + rep.join(' ｜ '))
   console.log('     [人工验收例外] warn（未达标红）=' + [0.10, 0.50, 0.95].map(h => cr(rgbOf(darkTokens.warn || '#ff6b66'), mixc(TEX_RGB, ALPHA_AT(h), art)).toFixed(2) + ':1').join(' / '))
 
-  // 回退场景（审核 §7.1）：纹理或元素图缺失时的合成底 —— 无纹理时文字直接落在元素底上
-  const fbBg = art
-  const fbBad = textKeys.filter(([k]) => k !== 'warn').filter(([, hex]) => cr(rgbOf(hex), fbBg) < 4.5).map(([k]) => k)
-  console.log(`     [回退场景] 纹理缺失 → 文字落在元素底 p99.9 rgb(${fbBg.map(v => Math.round(v)).join(',')}) 上：` + (fbBad.length ? `未达标 ${fbBad.join(' ')}（${cr(rgbOf(darkTokens.text || '#ffffff'), fbBg).toFixed(2)}:1）` : '全部达标'))
+  /*
+   * 底片来源（2026-10-18 用户决定 A）：纹理必须是**本仓库副本**，不再依赖 miao 相对路径。
+   * 理由：无纹理时卡片没有底色，文字直接压在元素底上（实测 13 个令牌 1.0~1.8:1）；
+   * 又不能垫同色实底（会把 miao 的"下半段透出元素底"压成实色，改变既有观感）。
+   * 所以做法是"让纹理一定存在"：文件入库 + 与 miao 一致性校验（miao 在时才比）。
+   */
+  {
+    const localTex = path.join(pluginRoot, 'resources', 'common', 'cont', 'card-bg.png')
+    ok('模块卡底片已入本仓库（纹理不会 404）', fs.existsSync(localTex), localTex)
+    // miao resources 候选：环境变量 → bot（META_BOT_ROOT 或默认路径）→ 插件同级
+    const miaoRoots = [
+      process.env.META_MIAO_DIR,
+      path.join(process.env.META_BOT_ROOT || 'D:/Program Files/Yunzai/Yunzai', 'plugins', 'miao-plugin', 'resources'),
+      path.resolve(pluginRoot, '..', 'miao-plugin', 'resources')
+    ].filter(Boolean)
+    const miaoTex = miaoRoots.map(r => path.join(r, 'common', 'cont', 'card-bg.png')).find(f => fs.existsSync(f)) || ''
+    if (fs.existsSync(localTex) && miaoTex) {
+      ok('底片副本与 miao 版字节一致（不一致请跑 node scripts/sync-card-bg.mjs）',
+        fs.readFileSync(localTex).equals(fs.readFileSync(miaoTex)))
+    } else {
+      console.log('     跳过：没找到 miao 的 card-bg.png，只校验本仓库副本存在')
+    }
+    ok('CSS 的底片地址指向本仓库副本', /url\("\.\/cont\/card-bg\.png"\)/.test(css))
+  }
   // 级联顺序（审核 §5.3）：变体覆盖块必须在通用规则之后，否则声明等于没写
   const posGeneric = css.indexOf('.mx-content .mx-section__title')
   const posGlass = css.lastIndexOf('.mx-content--glass .mx-section__head .mx-section__title')
