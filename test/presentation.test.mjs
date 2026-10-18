@@ -373,9 +373,29 @@ const fullBuild = {
     const rawBg = mixc(TEX_RGB, ALPHA_AT(h), art)
     const bg = mixc([0, 0, 0], 0.5, rawBg)   // miao .cont-body/.cont-msg 的内容块黑底 rgba(0,0,0,.5)
     const bad = textKeys.filter(([k]) => k !== 'warn').filter(([, hex]) => cr(rgbOf(hex), bg) < 4.5).map(([k]) => `${k}=${cr(rgbOf(darkTokens[k]), bg).toFixed(2)}`)
+    // 2026-10-18 核对修复：原先只把不合格项写进日志、bodyBad 从未填充 → 门禁恒过
+    if (bad.length) bodyBad.push(`h=${(h * 100).toFixed(0)}% ${bad.join(' ')}`)
     rep.push(`h=${(h * 100).toFixed(0)}% rgb(${bg.map(v => Math.round(v)).join(',')}) 正文 ${cr(rgbOf(darkTokens.text || '#ffffff'), bg).toFixed(2)}:1` + (bad.length ? ` ← 低于 4.5：${bad.join(' ')}` : ' 全达标'))
   }
   push('内容块黑底（照 miao .cont-body rgba(0,0,0,.5)）上的文字全部 ≥4.5:1', bodyBad, [])
+  // 防回归：这条门禁曾被"声明数组但从不填"架空，这里钉住"确实量了三处高度"
+  ok('对比度门禁确实跑了 10%/50%/95% 三处高度', rep.length === 3, `rep=${rep.length}`)
+
+  /*
+   * 方向标（辅助 / 输出）的配色也要过门禁（2026-10-18）：
+   * 当初用 #9fb3c8 在最浅的卡底部只有 4.19:1 —— 门禁管不到模板硬编码色，这里补上。
+   */
+  {
+    const worstBg = mixc([0, 0, 0], 0.5, mixc(TEX_RGB, ALPHA_AT(0.95), art))
+    const chips = []
+    for (const rel of ["resources/codex/codex.html", "resources/dps/grade.html"]) {
+      const src = readText(path.join(pluginRoot, rel))
+      for (const m of src.matchAll(/--mx-sub,\s*(#[0-9a-fA-F]{6})/g)) chips.push(`${rel}:${m[1]}`)
+    }
+    const badChip = [...new Set(chips)].filter(s => cr(rgbOf(s.split(":").pop()), worstBg) < 4.5)
+      .map(s => `${s}=${cr(rgbOf(s.split(":").pop()), worstBg).toFixed(2)}`)
+    push("方向标配色在卡最浅处（h=95%）仍 ≥4.5:1", badChip, [])
+  }
   console.log('     [C 方案实测报告] ' + rep.join(' ｜ '))
   console.log('     [人工验收例外] warn（未达标红）=' + [0.10, 0.50, 0.95].map(h => cr(rgbOf(darkTokens.warn || '#ff6b66'), mixc(TEX_RGB, ALPHA_AT(h), art)).toFixed(2) + ':1').join(' / '))
 
