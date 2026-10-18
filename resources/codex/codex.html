@@ -161,7 +161,7 @@
        全角 ＞ 两侧空隙接近 33px，远大于正文行距 → 文字行改紧凑，宽间距只留给带图标的条目。 */
     .codex-row .codex-sep { margin: 0 1px; padding: 0; font-size: .8em; }   /* 只作用于正文行（副词条/推荐/可选） */
     /* 配队头像之间的「+」：**显式固定**间距与字号（2026-10-17 用户反馈：头像间距曾被行内规则带跑了） */
-    .codex-team .codex-sep { margin: 0 10px; padding: 0; font-size: 24px; color: var(--muted-2); }
+    .codex-team .codex-sep { margin: 0 6px; padding: 0; font-size: 24px; color: var(--muted-2); }   /* 2026-10-18：主成员间距 10 → 6（更紧凑） */
     .codex-item:has(.codex-icon) > .codex-sep { margin: 0 12px; padding: 0 3px; font-size: 28px; }
     .codex-empty { font-size: 18px; color: var(--muted-2); }
     .codex-hint { margin-top: 4px; font-size: 16px; color: var(--muted-2); }
@@ -503,9 +503,10 @@
 /* 多选槽候选（2026-10-18 核对 #9）：候选之间用细斜杠分隔，第二个及以后头像略小 */
 .codex-team-slot { display: inline-flex; align-items: center; vertical-align: middle; }
 /* 候选头像略小一档（2026-10-18 用户定 D）：容器与头像一起缩，否则 .char-item 的宽度会把头像撑回原尺寸 */
-.mx-content--glass .codex-team .codex-team-slot--alt .char-item { width: 56px; }
-.mx-content--glass .codex-team .codex-team-slot--alt .avatar { width: 56px; height: 56px; }
-.codex-team-altsep { margin: 0 3px; font-size: 18px; color: var(--mx-sub, #cfe0ee); opacity: .8; }
+
+
+/* 候选槽分隔 `/`：比主成员的 `+` 更紧（2026-10-18 用户定）——负外边距抵掉 flex gap，视觉上贴一起 */
+.codex-team-altsep { margin: 0 -3px; font-size: 16px; color: var(--mx-sub, #cfe0ee); opacity: .75; }
 .codex-team-name { font-size: 20px; color: var(--mx-text, #dbe6f2); margin-right: 4px; }
 .codex-stat-k { flex: 0 0 auto; font-size: 22px; font-weight: 700; color: var(--gold); }
     .codex-stat-v { flex: 1 1 auto; min-width: 0; margin-left: auto; text-align: right; font-size: 26px; font-weight: 700; color: var(--text); word-break: break-word; }

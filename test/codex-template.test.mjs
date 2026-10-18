@@ -134,8 +134,8 @@ ok('来源行文案：`最后更新时间：xxxx.xx.xx · 攻略数据仅供参�
   tpl.includes('攻略数据仅供参考') &&
   !tpl.includes('{{s.modeText}}') &&
   !/codex-source[^>]*>本仓库攻略数据/.test(tpl))
-ok('配队头像间距显式固定（`.codex-team .codex-sep` 10px / 24px，不被行内规则带跑）',
-  /\.codex-team \.codex-sep\s*\{[^}]*margin:\s*0 10px/.test(tpl) &&
+ok('配队头像间距显式固定（`.codex-team .codex-sep` 6px / 24px，不被行内规则带跑；2026-10-18 由 10px 收紧）',
+  /\.codex-team \.codex-sep\s*\{[^}]*margin:\s*0 6px/.test(tpl) &&
   /\.codex-team \.codex-sep\s*\{[^}]*font-size:\s*24px/.test(tpl) &&
   /\.codex-row \.codex-sep\s*\{[^}]*margin:\s*0 1px/.test(tpl))
 ok('配队标签与其它模块标签同色（`.codex-team-tag` 取 --gold；模板仍带 label-<tag> 类）',
