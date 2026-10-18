@@ -340,8 +340,14 @@
        （`.avatar` 64×64、`.char-item` 宽度 74px、`.avatar-img` width:100%）。 */
     .codex-team-list { display: inline-flex; vertical-align: middle; }
     .mx-content--glass .codex-team { line-height: 1.5; }
-       成员区 `flex: 1` 且 `space-between` → 头像之间的间距自动撑开，右侧不再留大片空白。 */
-    .mx-content--glass .codex-team { display: flex; align-items: center; gap: 8px; }
+    /*
+ * 配队行（2026-10-18 用户定 A + D）：说明文字（`（高金）` 之类）**不参与收缩**、永不竖排折字；
+ * 一行放不下时整行折到第二行，折行后说明仍**右对齐**（margin-left:auto 让它始终贴行尾）。
+ */
+.mx-content--glass .codex-team { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; row-gap: 4px; }
+/* 成员组自己成一块：头像绝不拆行（否则 `+` `/` 会孤零零掉到下一行），只有说明文字会折到第二行 */
+.codex-team-main { display: flex; align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; }
+.codex-team-main > * { flex: 0 0 auto; }
     .codex-team-list { display: inline-flex; vertical-align: middle; }
     /* ===== 版式定稿（2026-10-16，按真渲染自审决定）=====
        ① 字号层级（我自审后选定）：章节标题 24px / 行标签 18px / 行内容 22px / 备注 17px / 页脚统一 17px
@@ -367,7 +373,7 @@
     .mx-content--glass .codex-row-label { font-size: 24px; }
     .mx-content--glass .codex-row-items { font-size: 28px; }
     .mx-content--glass .codex-note-inline,
-    .mx-content--glass .codex-team-note { font-size: 22px; }
+    .mx-content--glass .codex-team-note { font-size: 22px; flex: 0 0 auto; white-space: nowrap; margin-left: auto; }
     .mx-content--glass .codex-empty { font-size: 28px; }
     .page-inner .mx-footer__method, .page-inner .mx-copyright { font-size: 20px; }
     .mx-content--glass .codex-row { min-height: 58px; line-height: 58px; }
@@ -496,7 +502,9 @@
 /* 配队成员缺头像时的名字兜底（2026-10-17 复审 #9） */
 /* 多选槽候选（2026-10-18 核对 #9）：候选之间用细斜杠分隔，第二个及以后头像略小 */
 .codex-team-slot { display: inline-flex; align-items: center; vertical-align: middle; }
-.codex-team-slot--alt .avatar { width: 44px; height: 44px; }
+/* 候选头像略小一档（2026-10-18 用户定 D）：容器与头像一起缩，否则 .char-item 的宽度会把头像撑回原尺寸 */
+.mx-content--glass .codex-team .codex-team-slot--alt .char-item { width: 56px; }
+.mx-content--glass .codex-team .codex-team-slot--alt .avatar { width: 56px; height: 56px; }
 .codex-team-altsep { margin: 0 3px; font-size: 18px; color: var(--mx-sub, #cfe0ee); opacity: .8; }
 .codex-team-name { font-size: 20px; color: var(--mx-text, #dbe6f2); margin-right: 4px; }
 .codex-stat-k { flex: 0 0 auto; font-size: 22px; font-weight: 700; color: var(--gold); }
@@ -617,8 +625,7 @@
           <div class="codex-teams">
             {{each section.teams team}}
             <div class="codex-team">
-              {{if team.tag}}<span class="codex-team-tag label-{{team.tag}}">{{team.tag}}</span>{{/if}}
-              {{each team.members member}}{{if member.alts && member.alts.length > 1}}{{each member.alts alt}}<span class="codex-team-slot{{if $index > 0}} codex-team-slot--alt{{/if}}">{{if alt.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{alt.icon}}"/></span></span></span>{{else}}<span class="codex-team-name">{{alt.name}}</span>{{/if}}</span>{{if $index < member.alts.length - 1}}<span class="codex-team-altsep">/</span>{{/if}}{{/each}}{{else if member.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{member.icon}}"/>{{if member.constellation}}<span class="avatar-con">{{member.constellation}}</span>{{/if}}</span></span></span>{{else}}<span class="codex-team-name">{{member.name || member.note}}</span>{{/if}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}
+              <span class="codex-team-main">{{if team.tag}}<span class="codex-team-tag label-{{team.tag}}">{{team.tag}}</span>{{/if}}{{each team.members member}}{{if member.alts && member.alts.length > 1}}{{each member.alts alt}}<span class="codex-team-slot{{if $index > 0}} codex-team-slot--alt{{/if}}">{{if alt.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{alt.icon}}"/></span></span></span>{{else}}<span class="codex-team-name">{{alt.name}}</span>{{/if}}</span>{{if $index < member.alts.length - 1}}<span class="codex-team-altsep">/</span>{{/if}}{{/each}}{{else if member.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{member.icon}}"/>{{if member.constellation}}<span class="avatar-con">{{member.constellation}}</span>{{/if}}</span></span></span>{{else}}<span class="codex-team-name">{{member.name || member.note}}</span>{{/if}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}</span>
               {{if team.text}}<span class="codex-team-note">{{team.text}}</span>{{/if}}
             </div>
             {{/each}}
