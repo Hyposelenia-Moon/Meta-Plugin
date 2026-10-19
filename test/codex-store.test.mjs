@@ -62,7 +62,8 @@ ok('胡桃 v2.weapons 非空', Array.isArray(hutao?.v2?.weapons) && hutao.v2.wea
 ok('胡桃 武器档位含 items', Array.isArray(hutao?.v2?.weapons?.[0]?.items) && hutao.v2.weapons[0].items.length > 0)
 ok('胡桃 meta.定位 有值', String(hutao?.meta?.定位 ?? '').trim().length > 0)
 ok('isFilled("胡桃") === true', real.isFilled('胡桃') === true)
-ok('isFilled("米提亚") === false（空档）', real.isFilled('米提亚') === false)
+// 2026-10-18 复审：米提亚已补数据，空档语义改用「库里不存在的名字」验证，不再绑定真实角色
+ok('isFilled(不存在的角色) === false（空档）', real.isFilled('空档夹具·不存在的角色') === false)
 
 // 专武 / 武器标签 / 索引
 const sig = real.getSignature('胡桃')

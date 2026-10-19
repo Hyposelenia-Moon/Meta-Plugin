@@ -177,7 +177,7 @@
  * 不固定的话每行头像的起始 x 都不一样，看着像没对齐。固定 4.6em（≈97px）后，
  * 短标签留白、长标签（≤4 字）都放得下，头像列跨行严格对齐。
  */
-.codex-team-tag { flex: 0 0 auto; min-width: 4.6em; font-weight: 700; margin-right: 6px; color: var(--gold); }
+.codex-team-tag { font-weight: 700; color: var(--gold); }   /* 列宽由 .codex-team 的 grid 第一列统一给（4.6em），跨行对齐 */
     .codex-team-note { font-size: 16px; color: var(--muted-2); font-style: italic; }
 
     /* 条目图标 / 配队头像（引用 miao 资源，尺寸按数据区比例） */
@@ -349,9 +349,17 @@
  * 配队行（2026-10-18 用户定 A + D）：说明文字（`（高金）` 之类）**不参与收缩**、永不竖排折字；
  * 一行放不下时整行折到第二行，折行后说明仍**右对齐**（margin-left:auto 让它始终贴行尾）。
  */
-.mx-content--glass .codex-team { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; row-gap: 4px; }
+.mx-content--glass .codex-team { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); column-gap: 6px; row-gap: 4px; align-items: center; }   /* 标签列固定，成员列可折行（2026-10-18 R5） */
 /* 成员组自己成一块：头像绝不拆行（否则 `+` `/` 会孤零零掉到下一行），只有说明文字会折到第二行 */
-.codex-team-main { display: flex; align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; }
+/*
+ * 成员组（2026-10-18 复审 R5）：整组**允许折行**（按成员槽为断点），否则长配队（如菈乌玛 6 位 + 2 候选）
+ * 会顶出卡宽、被 overflow:hidden 裁掉末尾头像。折行的最小单位是 `.codex-team-cell`（成员 + 其后分隔符），
+ * 所以 `+` / `/` 不会孤零零掉到下一行。
+ */
+
+.codex-team-main { display: flex; align-items: center; gap: 8px; row-gap: 6px; min-width: 0; flex-wrap: wrap; grid-column: 2; }
+.codex-team-note { grid-column: 2; justify-self: end; }
+.codex-team-cell { display: flex; align-items: center; gap: inherit; flex: 0 0 auto; }
 .codex-team-main > * { flex: 0 0 auto; }
     .codex-team-list { display: inline-flex; vertical-align: middle; }
     /* ===== 版式定稿（2026-10-16，按真渲染自审决定）=====
@@ -631,7 +639,8 @@
           <div class="codex-teams">
             {{each section.teams team}}
             <div class="codex-team">
-              <span class="codex-team-main">{{if team.tag}}<span class="codex-team-tag label-{{team.tag}}">{{team.tag}}</span>{{/if}}{{each team.members member}}{{if member.alts && member.alts.length > 1}}{{each member.alts alt}}<span class="codex-team-slot{{if $index > 0}} codex-team-slot--alt{{/if}}">{{if alt.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{alt.icon}}"/></span></span></span>{{else}}<span class="codex-team-name">{{alt.name}}</span>{{/if}}</span>{{if $index < member.alts.length - 1}}<span class="codex-team-altsep">/</span>{{/if}}{{/each}}{{else if member.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{member.icon}}"/>{{if member.constellation}}<span class="avatar-con">{{member.constellation}}</span>{{/if}}</span></span></span>{{else}}<span class="codex-team-name">{{member.name || member.note}}</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}{{/each}}</span>
+              {{if team.tag}}<span class="codex-team-tag label-{{team.tag}}">{{team.tag}}</span>{{/if}}
+              <span class="codex-team-main">{{each team.members member}}<span class="codex-team-cell">{{if member.alts && member.alts.length > 1}}{{each member.alts alt}}<span class="codex-team-slot{{if $index > 0}} codex-team-slot--alt{{/if}}">{{if alt.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{alt.icon}}"/></span></span></span>{{else}}<span class="codex-team-name">{{alt.name}}</span>{{/if}}</span>{{if $index < member.alts.length - 1}}<span class="codex-team-altsep">/</span>{{/if}}{{/each}}{{else if member.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{member.icon}}"/>{{if member.constellation}}<span class="avatar-con">{{member.constellation}}</span>{{/if}}</span></span></span>{{else}}<span class="codex-team-name">{{member.name || member.note}}</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}</span>{{/each}}</span>
               {{each team.members member}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{/each}}
               {{if team.text}}<span class="codex-team-note">{{team.text}}</span>{{/if}}
             </div>

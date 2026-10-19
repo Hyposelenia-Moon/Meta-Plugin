@@ -155,6 +155,26 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
   ok('有数据时「综合」回到 met/below', ['met', 'below'].includes(String(r2.dims.find(d => d.key === 'comprehensive').state)))
 }
 
+// ---------- 4f. 生产链路（第三参传原始 guide）也要保留 2+2 组合（2026-10-18 复审 R1） ----------
+{
+  const lisaGuide = JSON.parse(readText(path.join(pluginRoot, "data", "gi", "丽莎.json")))
+  const lisaView2 = SV.buildCodexView(lisaGuide, {})
+  const withGuide = G.extractTargets(lisaView2, "丽莎", lisaGuide)
+  ok("生产链路：丽莎推荐是一条 2+2 组合（不是两个四件套）",
+    withGuide.artifact.recommend.length === 1 && /\+/.test(withGuide.artifact.recommend[0]),
+    JSON.stringify(withGuide.artifact.recommend))
+  const pairArtis2 = [
+    { slot: "生之花", set: "如雷的盛怒", mainName: "生命值", level: 20 },
+    { slot: "死之羽", set: "如雷的盛怒", mainName: "攻击力", level: 20 },
+    { slot: "时之沙", set: "昔日宗室之仪", mainName: "元素充能效率", level: 20 },
+    { slot: "空之杯", set: "昔日宗室之仪", mainName: "雷元素伤害加成", level: 20 },
+    { slot: "理之冠", set: "战狂", mainName: "暴击率", level: 20 }
+  ]
+  const r6 = G.gradeBuild(withGuide, { ...good, artis: pairArtis2, artiMark: { total: 250, markClass: "ACE" } })
+  const c6 = r6.dims.find(d => d.key === "comprehensive")
+  ok("生产链路：按推荐 2+2 + ACE → 综合达标 96%", c6.state === "met" && Math.abs(c6.ratio - 0.96) < 0.01, `${c6.state}/${c6.ratio}`)
+}
+
 // ---------- 4e. 2+2 也是合法推荐（2026-10-18 用户定：按攻略实际写法评） ----------
 {
   // 解析：`2如雷 + 2宗室` → 配对 spec；普通名字 → 4 件套 spec

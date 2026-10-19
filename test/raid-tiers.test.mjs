@@ -128,6 +128,14 @@ const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFi
   }
 }
 
+// ---------- 3d. 档位必须取自隔离后的自身文本（2026-10-18 复审 R4） ----------
+{
+  const QG = await import(pathToFileURL(path.join(libDir, 'modules', 'quoteGuard.js')).href)
+  const own = { message: [{ type: 'text', text: '#危战 矮灵 n7' }], msg: '#危战 矮灵 n7\n请用 n6', reply_id: 'q1', getReply: async () => ({ message: [{ type: 'text', text: '请用 n6' }] }) }
+  ok('own 文本能取出档位 n7（而不是引用里的 n6）', (own.message[0].text.match(C.RULES.raidTiers)[2] || '') === '7')
+  ok('resolveCommandArgs 解析到筛选词 矮灵', (await QG.resolveCommandArgs(own, C.RULES.raidTiers)).text === '矮灵')
+}
+
 // ---------- 3b. 首领简写表（手动维护） ----------
 {
   const fsMod = await import('node:fs')

@@ -117,10 +117,11 @@ push('抽样 20 角色：模块标题合法', titleBad, [])
 push('抽样 20 角色：模块形状正常', shapeBad, [])
 ok('存在空模块角色（empty 标记可用）', emptySectionChars.length > 0)
 
-// ---------- 空档角色与边界 ----------
-const empty = buildCodexView(store.getGuide('米提亚'), { signature: signatureOf('米提亚'), weaponTags })
-ok('米提亚 视图存在（点名查询可回「待补充」）', !!empty)
-ok('米提亚 hasContent === false', empty.hasContent === false)
+// ---------- 空档角色与边界（2026-10-18 复审：不再拿真实角色当空档） ----------
+// 真实角色随时可能补数据（米提亚已补），空档语义必须用**构造的空档 guide** 验证，别绑定具体名字。
+const empty = buildCodexView({ schema: 'codex/v2', name: '空档测试角色', game: 'gs', meta: {}, sections: [] }, { signature: null, weaponTags })
+ok('空档 guide 视图存在（点名查询可回「待补充」）', !!empty)
+ok('空档 guide hasContent === false', empty.hasContent === false)
 push('buildCodexView(null) → null', buildCodexView(null), null)
 
 // ---------- 分支取用 ----------

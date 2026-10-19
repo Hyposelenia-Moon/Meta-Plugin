@@ -187,6 +187,20 @@ check('不写档位 = null（交给 app 提示选档）', r.tier === null)
     check('#3 兜底：剔掉引用里的指纹后仍能正常解析', r4.echo === false && r4.text === '胡桃', JSON.stringify(r4))
   }
 
+  // 2026-10-18 复审 R3：短引用（参数级文本）不得被整段剔掉，追加筛选词必须保留
+  {
+    const shortQuote = {
+      reply_id: "q13",
+      msg: "#DPS榜 胡桃 12金\n#DPS榜 胡桃 12金 绿玩",
+      getReply: async () => ({ message: [{ type: "text", text: "#DPS榜 胡桃 12金" }] })
+    }
+    const r5 = await resolveCommandArgs(shortQuote, rankRule)
+    check("R3 兜底：短引用不整段剔除，角色与金数保留", r5.echo === false && r5.text === "胡桃 12金 绿玩", JSON.stringify(r5))
+
+    const kept = await stripQuotedArgs(shortQuote, "胡桃 12金 绿玩")
+    check("R3：stripQuotedArgs 对短参数引用原样返回", kept === "胡桃 12金 绿玩", kept)
+  }
+
   // 危战：own 文本按 raidTiers 规则取参数
   const raidOwn = { message: [{ type: 'text', text: '#危战 矮灵 n7' }], msg: '#危战 矮灵 n7' }
   check('危战 own 文本取参数', (await resolveCommandArgs(raidOwn, raidRule)).text === '矮灵')

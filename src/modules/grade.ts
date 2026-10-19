@@ -327,29 +327,39 @@ export function extractTargets (view: CodexLikeView, charName = '', guide?: Guid
 
   // 圣遗物套装 + 主词条
   const v2Artifacts = Array.isArray(guide?.v2?.artifacts) ? guide?.v2?.artifacts : null
-  if (v2Artifacts) {
-    // 结构化口径：按 `kind` 的语义分桶（`preferred` → 推荐、`optional`/`transition` → 可选），
-    // 标签（如「月结晶/月感电」）只负责显示 —— 只认「推荐/可选」字面量会漏掉自定义标签
-    for (const row of v2Artifacts) {
-      const kind = String(row?.kind || '').trim()
-      const sets = Array.isArray(row?.sets) ? row.sets : []
-      if (sets.length && ['preferred', 'optional', 'transition', ''].includes(kind)) {
-        const bucket = kind === 'preferred' || kind === '' ? targets.artifact.recommend : targets.artifact.optional
-        for (const s of sets) {
-          const name = String((s as Record<string, any>)?.name ?? s ?? '').trim()
-          if (name) bucket.push(name)
+    if (v2Artifacts) {
+      // 结构化口径：按 `kind` 的语义分桶（`preferred` → 推荐、`optional`/`transition` → 可选），
+      // 标签（如「月结晶/月感电」）只负责显示 —— 只认「推荐/可选」字面量会漏掉自定义标签
+      for (const row of v2Artifacts) {
+        const kind = String(row?.kind || '').trim()
+        const sets = Array.isArray(row?.sets) ? row.sets : []
+        const sep = String(row?.sep || '')
+        if (sets.length && ['preferred', 'optional', 'transition', ''].includes(kind)) {
+          const bucket = kind === 'preferred' || kind === '' ? targets.artifact.recommend : targets.artifact.optional
+          /*
+           * 2026-10-18 复审 R1：`sep` 是 `+` 且每项都带 `2` 前缀时，这是**一条 2+2 组合**
+           * （`2如雷` + `2宗室`），必须合成一个条目；旧代码逐个 push 成两个"四件套目标"，
+           * 于是按攻略穿 2+2 也算不中推荐，还会建议"凑『2如雷』4 件"。
+           */
+          const names = sets.map((s: Record<string, any> | string) => String((s as Record<string, any>)?.name ?? s ?? '').trim()).filter(Boolean)
+          const isPair = /\+|＋/.test(sep) && names.length === 2 && names.every(n => /^(?:2|两)\s*/.test(n))
+          if (isPair) {
+            bucket.push(names.join(' + '))
+          } else {
+            for (const name of names) bucket.push(name)
+          }
+          continue
         }
-        continue
-      }
-      if (kind === 'main' && row?.stats && typeof row.stats === 'object') {
-        for (const [slot, raw] of Object.entries(row.stats as Record<string, unknown>)) {
+        if (kind === 'main') {
+          const stats = (row?.stats && typeof row.stats === 'object') ? row.stats as Record<string, unknown> : {}
+          for (const [slot, raw] of Object.entries(stats)) {
           const options = (Array.isArray(raw) ? raw : [raw]).map(x => String(x).trim()).filter(Boolean)
           const slotName = String(slot).trim()
           if (slotName && options.length) targets.mainStats.push({ slot: slotName, options, optionViews: options.map(parseCondMark) })
         }
       }
+      }
       // `sub` / `text`：副词条与自由文本只用于展示与建议，不参与这里的评分口径
-    }
   } else {
     for (const row of section('圣遗物')?.rows || []) {
       const label = String(row.label || '').trim()
@@ -962,8 +972,14 @@ export function buildSuggestionRows (targets: GuideTargets, build: BuildSnapshot
    */
   if (!out.length) {
     const hasUnknown = dims.some(d => d.state === 'unknown')
+    const below = dims.filter(d => d.state === 'below')
+    /*
+     * 2026-10-18 复审 R2：兜底文案必须跟**维度真实状态**一致 ——
+     * 之前只排除 unknown，`综合 92% (below)` + 武器/天赋达标 时会打出「各维度均已达标」，
+     * 与 02 三维里的「!未达标」自相矛盾。现在低于达标线的维度一律不算"已达标"。
+     */
     if (hasUnknown) add('data-gap', '数据不全：先补上缺失的装备 / 圣遗物信息再评估，暂不判定达标', ['data-gap'])
-    // 2026-10-18 用户定：全部达标时只保留结论句，不再附加继续刷的建议
+    else if (below.length) add('below-kept', `未达标：${below.map(d => `${d.label} ${Math.round((d.ratio ?? 0) * 100)}%`).join('、')}（按上面的对比项逐条优化）`, ['below-kept'])
     else add('all-met', '各维度均已达标', [])
   }
   return out.slice(0, 4)

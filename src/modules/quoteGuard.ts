@@ -60,7 +60,12 @@ export async function stripQuotedArgs (e: unknown, text: unknown): Promise<strin
     const quoted = quotedText(await ev.getReply())
     if (!quoted) return raw
     // 候选形态：原文、空白归一后的原文（适配器可能改写换行）
-    const variants = [...new Set([quoted, squeeze(quoted)])].filter(v => v.length >= 4)
+    /*
+     * 2026-10-18 复审 R3：只有**长到像一条消息**（≥12 字）的引用原文才允许整段剔除。
+     * 短文本（`胡桃12金` 这种 6 字参数）与用户重打/追加的筛选词无法区分，
+     * 按包含关系删掉就会把角色与金数一起吃掉（`胡桃 12金 绿玩` → 只剩 `绿玩`）。
+     */
+    const variants = [...new Set([quoted, squeeze(quoted)])].filter(v => v.length >= 12 || looksLikeOurEcho(v))
     let out = raw
     let hit = false
     for (const v of variants) {
