@@ -155,6 +155,33 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
   ok('有数据时「综合」回到 met/below', ['met', 'below'].includes(String(r2.dims.find(d => d.key === 'comprehensive').state)))
 }
 
+// ---------- 4g. 效果型套装（2精通+2精通 / 2生命+2生命，2026-10-18 复审 R1 后半） ----------
+{
+  const miteGuide = JSON.parse(readText(path.join(pluginRoot, "data", "gi", "米提亚.json")))
+  const miteView = SV.buildCodexView(miteGuide, {})
+  const miteTargets = G.extractTargets(miteView, "米提亚", miteGuide)
+  ok("米提亚推荐里含效果型条目 2精通+2精通", miteTargets.artifact.recommend.some(s => s.includes("2精通")), JSON.stringify(miteTargets.artifact.recommend))
+
+  // 注入效果解析（真实实现来自 model/artiEffect，会读 miao；这里用等价映射，保证套件不依赖 miao）
+  const effectSets = eff => (eff === "精通" ? ["流浪大地的乐团", "饰金之梦", "乐园遗落之花"] : [])
+  const masteryArtis = [
+    { slot: "生之花", set: "流浪大地的乐团", mainName: "生命值", level: 20 },
+    { slot: "死之羽", set: "流浪大地的乐团", mainName: "攻击力", level: 20 },
+    { slot: "时之沙", set: "饰金之梦", mainName: "元素精通", level: 20 },
+    { slot: "空之杯", set: "饰金之梦", mainName: "元素精通", level: 20 },
+    { slot: "理之冠", set: "战狂", mainName: "暴击率", level: 20 }
+  ]
+  const rm = G.gradeBuild(miteTargets, { ...good, artis: masteryArtis, artiMark: { total: 250, markClass: "ACE" } }, { effectSets })
+  const cm = rm.dims.find(d => d.key === "comprehensive")
+  ok("两套精通 2 件套 → 命中推荐组合，综合 96% 达标", cm.state === "met" && Math.abs(cm.ratio - 0.96) < 0.01, `${cm.state}/${cm.ratio}`)
+  ok("详情写明推荐 2+2", /推荐 2\+2/.test(cm.detail), cm.detail)
+
+  // 不注入解析器时保持旧行为（不得凭空命中）
+  const rm2 = G.gradeBuild(miteTargets, { ...good, artis: masteryArtis, artiMark: { total: 250, markClass: "ACE" } })
+  const cm2 = rm2.dims.find(d => d.key === "comprehensive")
+  ok("未注入效果解析 → 效果型条目不命中（综合 90%）", Math.abs(cm2.ratio - 0.9) < 0.01, `${cm2.state}/${cm2.ratio}`)
+}
+
 // ---------- 4f. 生产链路（第三参传原始 guide）也要保留 2+2 组合（2026-10-18 复审 R1） ----------
 {
   const lisaGuide = JSON.parse(readText(path.join(pluginRoot, "data", "gi", "丽莎.json")))

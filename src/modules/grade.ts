@@ -454,6 +454,8 @@ export interface BuildSnapshot {
 
 export interface GradeOptions {
   weights?: Partial<Record<GradeDimKey, number>>
+  /** 效果词 → 提供该两件套效果的套装名（由 app 注入；本模块保持纯函数，不读 miao） */
+  effectSets?: (effect: string) => string[]
   panelTiers?: { big: number, normal: number, small: number }
   rankThresholds?: Array<[string, number]>
 }
@@ -534,6 +536,53 @@ const num = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1))
  * 2026-10-15 用户定：面板与圣遗物合并成一维，且"以圣遗物词条数为主、毕业面板不设严格限制"——
  * 所以这里**不看面板数值**（面板只作参考展示），只看 miao 的圣遗物评分与套装是否穿对。
  */
+/**
+ * 通用套装判定（2026-10-18：计分 / 对比行 / 建议三处共用）
+ *
+ * @param specs   攻略条目（`炽烈的炎之魔女` / `2如雷 + 2宗室` / `2精通+2精通`）
+ * @param counts  当前配装的「套装名 → 件数」
+ * @param effectSets 效果词 → 提供该两件套效果的套装名（可选，由 app 注入）
+ * @returns 命中的 spec；都没命中返回 null
+ */
+export function matchSetSpec (
+  specs: string[],
+  counts: Map<string, number>,
+  effectSets?: (effect: string) => string[]
+): SetSpec | null {
+  const sameSet = (a: string, b: string) => a === b || a.includes(b) || b.includes(a)
+  const groupOf = (name: string): string[] => {
+    const eff = effectWordOf(name)
+    return eff ? (effectSets?.(eff) ?? []) : [name]
+  }
+  const hasPieces = (name: string, n: number) => [...counts.entries()].some(([set, c]) => c >= n && sameSet(set, name))
+  const hitGroup = (set: string, cands: string[]) => cands.some(c => sameSet(set, c))
+  for (const spec of parseSetSpecs(specs)) {
+    if (spec.kind !== 'pair') {
+      if (hasPieces(spec.sets[0], 4)) return spec
+      continue
+    }
+    if (spec.sets.length !== 2) continue
+    const ga = groupOf(spec.sets[0])
+    const gb = groupOf(spec.sets[1])
+    for (const [setA, nA] of counts) {
+      if (nA < 2 || !hitGroup(setA, ga)) continue
+      for (const [setB, nB] of counts) {
+        if (setB !== setA && nB >= 2 && hitGroup(setB, gb)) return spec
+      }
+    }
+  }
+  return null
+}
+/** 效果别名（攻略里的 `2精通` / `2生命`）→ 归档名；不是效果词返回空串（纯函数，不读文件） */
+export function effectWordOf (name: string): string {
+  const n = String(name || '').trim()
+  if (!n || n.length > 4) return ''
+  const hit = EFFECT_WORDS.find(w => n === w || n.includes(w))
+  return hit || ''
+}
+
+/** 效果词表（与 `model/artiEffect.ts` 的桶名一致） */
+const EFFECT_WORDS = ['精通', '充能', '暴击', '爆伤', '治疗', '生命', '攻击', '防御', '增伤']
 /** 攻略圣遗物条目的两种合法形态：4 件套 / 2+2 配对（2026-10-18） */
 export interface SetSpec {
   kind: 'pc4' | 'pair'
@@ -568,7 +617,7 @@ export function parseSetSpecs (list: string[]): SetSpec[] {
   }
   return out
 }
-function scoreComprehensive (targets: GuideTargets, build: BuildSnapshot): GradeDim {
+function scoreComprehensive (targets: GuideTargets, build: BuildSnapshot, effectSets?: (effect: string) => string[]): GradeDim {
   const label = '综合'
   const artis = build.artis || []
   const hasSetTarget = targets.artifact.recommend.length > 0 || targets.artifact.optional.length > 0
@@ -590,10 +639,32 @@ function scoreComprehensive (targets: GuideTargets, build: BuildSnapshot): Grade
   const sameSet = (a: string, b: string) => a === b || a.includes(b) || b.includes(a)
   const hasPieces = (name: string, n: number) => sets.some(([set, c]) => c >= n && sameSet(set, name))
   /** spec 是否被玩家当前配装满足 */
-  const meetsSpec = (spec: SetSpec): boolean => spec.kind === "pair"
-    ? spec.sets.length === 2 && spec.sets.every(n => hasPieces(n, 2)) &&
-      !spec.sets.some((a, i) => spec.sets.some((b, j) => j > i && sameSet(a, b)))
-    : hasPieces(spec.sets[0], 4)
+  /*
+   * spec 是否被玩家当前配装满足（2026-10-18 复审 R1 后半：支持**效果型**名字）。
+   *
+   * `2精通+2精通` / `2生命+2生命` 指的是"任意两套该效果的 2 件套"，名字不是套装名，
+   * 旧实现按子串匹配永远命不中。现在：名字是效果别名 → 用 miao 的两件套效果索引展开成套装集合；
+   * 且两个 2 件套必须是**不同**套装（同一套装不可能同时提供两套 2 件效果）。
+   */
+  const groupOf = (name: string): string[] => {
+    const eff = effectWordOf(name)
+    return eff ? (effectSets?.(eff) ?? []) : [name]
+  }
+  const hitGroup = (set: string, cands: string[]): boolean => cands.some(c => sameSet(set, c))
+  const meetsSpec = (spec: SetSpec): boolean => {
+    if (spec.kind !== "pair") return hasPieces(spec.sets[0], 4)
+    if (spec.sets.length !== 2) return false
+    const ga = groupOf(spec.sets[0])
+    const gb = groupOf(spec.sets[1])
+    for (const [setA, nA] of sets) {
+      if (nA < 2 || !hitGroup(setA, ga)) continue
+      for (const [setB, nB] of sets) {
+        if (setB === setA || nB < 2 || !hitGroup(setB, gb)) continue
+        return true
+      }
+    }
+    return false
+  }
   const recSpec = parseSetSpecs(targets.artifact.recommend).find(meetsSpec)
   const optSpec = parseSetSpecs(targets.artifact.optional).find(meetsSpec)
   const loosePairs = sets.filter(([, c]) => c >= 2).map(([s]) => s)
@@ -743,7 +814,7 @@ export function rankOf (total: number, thresholds = DEFAULT_RANK_THRESHOLDS): st
 /** 主评分：攻略目标 × 玩家配装 → 总分 / 档位 / 对比表 / 建议 */
 export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: GradeOptions = {}): GradeResult {
   const weights = { ...DEFAULT_WEIGHTS, ...(opts.weights || {}) }
-  const dims = [scoreComprehensive(targets, build), scoreWeapon(targets, build), scoreTalent(targets, build)]
+  const dims = [scoreComprehensive(targets, build, opts.effectSets), scoreWeapon(targets, build), scoreTalent(targets, build)]
 
   // 只对"有目标"的维度加权（缺项不扣分），权重重归一
   const scored = dims.filter(d => d.ratio !== null)
@@ -761,8 +832,8 @@ export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: G
   for (const d of dims) if (d.ratio === null) notes.push(`${d.label}：${d.detail}（不计入总分）`)
   if (!build.artiMark) notes.push('圣遗物评分：未取到 miao 词条评分，本次只按套装计分')
 
-  const rows = buildCompareRows(targets, build)
-  const suggestionRows = buildSuggestionRows(targets, build, dims, compDim)
+  const rows = buildCompareRows(targets, build, opts)
+  const suggestionRows = buildSuggestionRows(targets, build, dims, compDim, opts)
   const suggestions = suggestionRows.map(s => s.text)
 
   /*
@@ -792,7 +863,7 @@ function cappedNote (targets: GuideTargets, build: BuildSnapshot, capped: boolea
 }
 
 /** 对比表（只列主词条，不列副词条） */
-export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot): CompareRow[] {
+export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot, opts: GradeOptions = {}): CompareRow[] {
   const rows: CompareRow[] = []
   /** 行统一收口：补稳定键、四态与"是否计分"（页面证据号用稳定键关联，不用中文名） */
   const push = (row: Omit<CompareRow, 'state' | 'scored'> & { id: string }): void => {
@@ -824,17 +895,23 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot): 
     })
   }
 
-  // 套装 + miao 词条评分（2026-10-15 起与面板合并为「综合」组）
+  /*
+   * 2026-10-18 复审 R1：对比行的"套装是否达标"必须与计分**同一套判定**。
+   * 旧写法只按"与推荐名有交集"判 ok，认不出 2+2（`2如雷 + 2宗室`）与效果型（`2精通+2精通`），
+   * 结果页面说未达标、计分却按推荐给了 1.0。
+   */
   if (targets.artifact.recommend.length || targets.artifact.optional.length) {
-    const sets = [...new Set((build.artis || []).map(a => a.set))].filter(Boolean)
-    const hit = sets.some(s => matchesGuideName(s, targets.artifact.recommend))
+    const counts = new Map<string, number>()
+    for (const a of build.artis || []) counts.set(a.set, (counts.get(a.set) || 0) + 1)
+    const hit = Boolean(matchSetSpec(targets.artifact.recommend, counts, opts.effectSets) ||
+      matchSetSpec(targets.artifact.optional, counts, opts.effectSets))
     push({
       id: 'artifact:set',
       group: '综合',
       name: '套装',
       target: targets.artifact.recommend.join(' / ') || '—',
-      actual: sets.map(s => `${s}×${(build.artis || []).filter(a => a.set === s).length}`).join(' / ') || '—',
-      verdict: hit ? 'ok' : sets.length ? 'warn' : 'off'
+      actual: [...counts.entries()].map(([s, n]) => `${s}×${n}`).join(' / ') || '—',
+      verdict: hit ? 'ok' : counts.size ? 'warn' : 'off'
     })
   }
 
@@ -924,7 +1001,7 @@ export interface SuggestionView {
 }
 
 /** 提升建议（按"投入产出"排序，最多 4 条） —— 返回带证据绑定的行；字符串版由它派生 */
-export function buildSuggestionRows (targets: GuideTargets, build: BuildSnapshot, dims: GradeDim[], compDim: GradeDim): SuggestionView[] {
+export function buildSuggestionRows (targets: GuideTargets, build: BuildSnapshot, dims: GradeDim[], compDim: GradeDim, opts: GradeOptions = {}): SuggestionView[] {
   const out: SuggestionView[] = []
   const add = (id: string, text: string, evidenceIds: string[]): void => {
     out.push({ id, text, evidenceIds: evidenceIds.filter(Boolean), priority: out.length + 1, priorityBasis: 'cost-step' })
@@ -951,9 +1028,16 @@ export function buildSuggestionRows (targets: GuideTargets, build: BuildSnapshot
   if (compDim.ratio !== null && compDim.ratio < 1) {
     const counts = new Map<string, number>()
     for (const a of build.artis || []) counts.set(a.set, (counts.get(a.set) || 0) + 1)
-    const covered = [...counts.entries()].some(([set, n]) => n >= 4 && matchesGuideName(set, targets.artifact.recommend))
-    if (targets.artifact.recommend.length && !covered) {
-      add('artifact:set', `圣遗物：凑「${targets.artifact.recommend[0]}」4 件`, ['artifact:set'])
+    /*
+     * 2026-10-18 复审 R1：建议里的「凑套装」也要用**同一套 spec 判定**（含 2+2 / 效果型），
+     * 并按 spec 形态措辞 —— 推荐本身是 2+2 时不要说"凑 4 件"。
+     */
+    const recSpec = matchSetSpec(targets.artifact.recommend, counts, opts.effectSets)
+    if (targets.artifact.recommend.length && !recSpec) {
+      const first = parseSetSpecs([targets.artifact.recommend[0]])[0]
+      add('artifact:set', first?.kind === 'pair'
+        ? `圣遗物：凑推荐 2+2（${first.label}）`
+        : `圣遗物：凑「${targets.artifact.recommend[0]}」4 件`, ['artifact:set'])
     } else if (compDim.ratio < 0.8) {
       add('artifact:mark', '圣遗物：提升有效词条（暴击 / 爆伤 / 攻击等，按 miao 评分口径）', ['artifact:mark'])
     }
