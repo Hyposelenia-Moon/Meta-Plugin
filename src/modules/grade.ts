@@ -57,6 +57,170 @@ export const MIAO_MARK_SCORE: Record<string, number> = {
   MAX: 1, ACE: 0.95, SSS: 0.9, SS: 0.8, S: 0.7, A: 0.55, B: 0.4, C: 0.25, D: 0.1
 }
 
+/* ------------------------------------------------------------------ *
+ * 评分规则（2026-10-25：每个角色一套规则）
+ * ------------------------------------------------------------------ */
+
+/** 综合维度的四个独立分量（词条 / 套装 / 主词条 / 面板） */
+export type PartKey = 'mark' | 'set' | 'main' | 'panel'
+
+/** 角色分档（只在数据表里没有该角色时兜底用；副C 必须写进数据表） */
+export type GradeRole = 'dps' | 'support'
+
+/** 内置预设名 */
+export type RuleName = 'dps' | 'subdps' | 'support'
+
+/**
+ * 一条评分规则
+ *
+ * 规则是**纯数据**：`weights` 决定参与加权的分量，`floors` 决定达标下限。
+ * 每个角色在 `data/gi/_grade-rules.json` 里绑定一条（预设名或内联对象），
+ * 代码只负责执行 —— 见 `resolveGradeRule()` 与 `scoreParts()`。
+ */
+export interface GradeRule {
+  /** 参与加权的分量（相对权重，自动归一）；未列出的分量不计入综合分 */
+  weights: Partial<Record<PartKey, number>>
+  /** 各分量必须达到的下限（0~1）；只对「参与且有数据」的分量生效 */
+  floors: Partial<Record<PartKey, number>>
+  /** mark 取不到时是否直接判「待评」（默认 = weights 里写了 mark） */
+  requireMark?: boolean
+  /** 至少需要几个可用分量才计分（默认 2，防止「只有一个分量凑出满分」） */
+  minParts?: number
+  /** custom 规则：加权分达标线（可选，与 floors 同时生效） */
+  metRatio?: number
+}
+
+const PART_KEYS: PartKey[] = ['mark', 'set', 'main', 'panel']
+
+/** 内置预设（用户 2026-10-25 定，阿修建议「每个角色一套规则」） */
+export const GRADE_RULE_PRESETS: Record<RuleName, GradeRule> = {
+  dps: { weights: { mark: 80, set: 20 }, floors: { mark: 0.95, set: 0.8 }, requireMark: true, minParts: 2 },
+  subdps: { weights: { mark: 45, set: 25, panel: 30 }, floors: { mark: 0.8, set: 0.8, panel: 0.9 }, requireMark: true, minParts: 2 },
+  support: { weights: { set: 40, main: 30, panel: 30 }, floors: { set: 0.8, main: 1, panel: 0.9 }, requireMark: false, minParts: 2 }
+}
+
+/** 是否内置预设名 */
+export function isRuleName (value: unknown): value is RuleName {
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(GRADE_RULE_PRESETS, value)
+}
+
+/**
+ * 把数据表 / 配置里的规则写法归一成 `GradeRule`
+ *
+ * 接受：预设名字符串、内联对象（可带 `preset` 打底）、或已经是规则对象。
+ * 非法（无有效权重 / 未知分量 / 非正权重）返回 null，调用方回落。
+ */
+export function normalizeGradeRule (raw: unknown): GradeRule | null {
+  if (isRuleName(raw)) return { ...GRADE_RULE_PRESETS[raw], weights: { ...GRADE_RULE_PRESETS[raw].weights }, floors: { ...GRADE_RULE_PRESETS[raw].floors } }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const obj = raw as Record<string, any>
+  const base = isRuleName(obj.preset) ? GRADE_RULE_PRESETS[obj.preset] : undefined
+  const weights: Partial<Record<PartKey, number>> = { ...(base?.weights || {}) }
+  const floors: Partial<Record<PartKey, number>> = { ...(base?.floors || {}) }
+  for (const [key, value] of Object.entries(obj.weights || {})) {
+    const n = Number(value)
+    if (PART_KEYS.includes(key as PartKey) && Number.isFinite(n) && n > 0) weights[key as PartKey] = n
+  }
+  for (const [key, value] of Object.entries(obj.floors || {})) {
+    const n = Number(value)
+    if (PART_KEYS.includes(key as PartKey) && Number.isFinite(n) && n >= 0 && n <= 1) floors[key as PartKey] = n
+  }
+  if (!Object.keys(weights).length) return null
+  const requireMark = typeof obj.requireMark === 'boolean' ? obj.requireMark : (base?.requireMark ?? (weights.mark !== undefined))
+  const minParts = Number.isFinite(Number(obj.minParts)) ? Math.max(1, Number(obj.minParts)) : (base?.minParts ?? 2)
+  const metRatio = Number.isFinite(Number(obj.metRatio)) ? Math.min(1, Math.max(0, Number(obj.metRatio))) : base?.metRatio
+  return { weights, floors, requireMark, minParts, ...(metRatio === undefined ? {} : { metRatio }) }
+}
+
+const ROLE_DPS_RE = /主C|主c|主\/|主／|站场|前台输出|输出/
+const ROLE_SUP_RE = /辅|奶|盾|拐|治疗|副C|副c|位|挂|专|减抗|增伤|加攻/
+
+/**
+ * 按攻略「定位」判断口径（**只作数据表缺条目时的兜底**）
+ *
+ * 定位是自由文本，靠关键词只能近似；真正生效的是 `data/gi/_grade-rules.json` 的逐角色声明。
+ * 兜底信号：面板目标含暴击率 / 暴击伤害（输出向）优先按 dps。
+ */
+export function classifyGradeRole (input: {
+  roleText?: string
+  panel?: PanelTarget[]
+  mainStats?: MainStatTarget[]
+}): GradeRole {
+  const text = String(input.roleText ?? '').trim()
+  const panel = input.panel || []
+  const mainStats = input.mainStats || []
+  const critPanel = panel.some(t => t.attrKey === 'cpct' || t.attrKey === 'cdmg')
+  const critMain = mainStats.some(t => {
+    const views = t.optionViews?.length ? t.optionViews : t.options.map(o => parseCondMark(o))
+    return views.some(v => /暴击/.test(String(v.name || '')))
+  })
+  const crit = critPanel || critMain
+  if (!text || text === '___') return crit ? 'dps' : 'support'
+  const dpsTok = ROLE_DPS_RE.test(text)
+  const supTok = ROLE_SUP_RE.test(text)
+  if (dpsTok && supTok) return crit ? 'dps' : 'support'
+  if (dpsTok) return 'dps'
+  if (supTok) return 'support'
+  if (/C$/i.test(text)) return 'dps'
+  return crit ? 'dps' : 'support'
+}
+
+/** 规则来源（状态与 detail 用） */
+export type RuleSource = 'override' | 'global' | 'data' | 'auto'
+
+export interface RuleResolution {
+  rule: GradeRule
+  /** 规则名（预设名 / `inline` / `custom` / `auto`） */
+  name: string
+  source: RuleSource
+}
+
+/**
+ * 取某个角色要跑的规则
+ *
+ * 优先级（高 → 低）：配置逐角色覆盖 → 全局强制（非 auto）→ 数据表 → 定位兜底。
+ * 全局强制优先于数据表，用于整站回退（`gradeRule: dps`）；逐角色覆盖用于个别纠偏。
+ */
+export function resolveGradeRule (input: {
+  charName?: string
+  role?: GradeRole
+  table?: Record<string, unknown> | null
+  globalRule?: string
+  overrides?: Record<string, string> | null
+  customWeights?: Partial<Record<PartKey, number>> | null
+  customMet?: number | null
+}): RuleResolution {
+  const name = String(input.charName || '').trim()
+  const overrides = input.overrides || {}
+  if (name && overrides[name]) {
+    const rule = normalizeGradeRule(overrides[name])
+    if (rule) return { rule, name: String(overrides[name]), source: 'override' }
+  }
+  const global = String(input.globalRule || 'auto').trim()
+  if (global && global !== 'auto') {
+    if (global === 'custom') {
+      const weights = { ...(input.customWeights || {}) }
+      if (!Object.keys(weights).length) for (const k of PART_KEYS) weights[k] = 25
+      const rule = normalizeGradeRule({ weights })
+      if (rule) {
+        const met = Number(input.customMet)
+        if (Number.isFinite(met)) rule.metRatio = Math.min(1, Math.max(0, met))
+        return { rule, name: 'custom', source: 'global' }
+      }
+    } else {
+      const rule = normalizeGradeRule(global)
+      if (rule) return { rule, name: global, source: 'global' }
+    }
+  }
+  const fromTable = name ? input.table?.[name] : undefined
+  if (fromTable !== undefined) {
+    const rule = normalizeGradeRule(fromTable)
+    if (rule) return { rule, name: isRuleName(fromTable) ? fromTable : 'inline', source: 'data' }
+  }
+  const preset: RuleName = input.role === 'support' ? 'support' : 'dps'
+  return { rule: normalizeGradeRule(preset)!, name: 'auto', source: 'auto' }
+}
+
 /** 面板属性名 → 玩家侧属性键（miao 面板 `attr` 的键；元素伤害统一取 `dmg`） */
 const PANEL_ATTR_KEY: Record<string, string> = {
   生命值: 'hp',
@@ -181,6 +345,10 @@ export function mainStatAcceptable (target: MainStatTarget, actual: string, cons
 
 export interface GuideTargets {
   charName: string
+  /** 角色定位原文（`meta.定位`），用于数据表缺条目时的兜底分档 */
+  roleText?: string
+  /** 兜底分档结果（数据表里有条目时以表为准，见 `resolveGradeRule()`） */
+  gradeRole?: GradeRole
   /** 建议等级下限（解析自 `建议等级：81-90级`） */
   levelMin: number | null
   levelText: string
@@ -248,6 +416,8 @@ export function matchesGuideName (name: string, list: readonly string[]): boolea
 export function extractTargets (view: CodexLikeView, charName = '', guide?: GuideSourceShape | null): GuideTargets {
   const targets: GuideTargets = {
     charName,
+    roleText: '',
+    gradeRole: 'dps',
     levelMin: null,
     levelText: '',
     panel: [],
@@ -404,6 +574,15 @@ export function extractTargets (view: CodexLikeView, charName = '', guide?: Guid
     if (m) targets.consKeys.push(Number(m[1]))
   }
 
+  /*
+   * 兜底分档（2026-10-25）：读 `meta.定位` + 已解析的面板/主词条。
+   * 真正生效的口径来自 `data/gi/_grade-rules.json`（逐角色一套规则），
+   * 这里只在表里没有该角色时被 `resolveGradeRule()` 取用。
+   */
+  const roleRow = (view.metaRows || []).find(r => String(r.label || '').includes('定位'))
+  targets.roleText = String(roleRow?.value || '').trim()
+  targets.gradeRole = classifyGradeRole({ roleText: targets.roleText, panel: targets.panel, mainStats: targets.mainStats })
+
   return targets
 }
 
@@ -458,6 +637,13 @@ export interface GradeOptions {
   effectSets?: (effect: string) => string[]
   panelTiers?: { big: number, normal: number, small: number }
   rankThresholds?: Array<[string, number]>
+  /** 本角色绑定的评分规则（缺省 = `resolveGradeRule()` 的定位兜底） */
+  rule?: GradeRule
+  /** 规则名与来源（写进结果，供状态页与套件断言） */
+  ruleName?: string
+  ruleSource?: RuleSource
+  /** 四分量（由 `gradeBuild` 算好后传给对比行/建议，避免三处各判一次） */
+  parts?: PartScores
 }
 
 export interface CompareRow {
@@ -520,6 +706,10 @@ export interface GradeResult {
    */
   assessable: boolean
   notes: string[]
+  /** 本次跑的规则名（预设名 / `inline` / `custom` / `auto`） */
+  ruleName?: string
+  /** 规则来源：配置覆盖 / 全局强制 / 数据表 / 定位兜底 */
+  ruleSource?: RuleSource
 }
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
@@ -617,123 +807,220 @@ export function parseSetSpecs (list: string[]): SetSpec[] {
   }
   return out
 }
-function scoreComprehensive (targets: GuideTargets, build: BuildSnapshot, effectSets?: (effect: string) => string[]): GradeDim {
-  const label = '综合'
-  const artis = build.artis || []
-  const hasSetTarget = targets.artifact.recommend.length > 0 || targets.artifact.optional.length > 0
+/** 单个分量的结果（综合维度的原料；对比行、证据与建议共用同一份判定） */
+export interface PartScore {
+  key: PartKey
+  /** 0~1；null = 该分量不可评（看 state / reason） */
+  ratio: number | null
+  state: AssessmentState
+  reason?: AssessmentReason
+  detail: string
+}
 
-  /*
-   * 套装符合度（2026-10-18 用户定：按**攻略实际写法**评，不要一刀切 4 件套）。
-   *
-   * 攻略里的推荐有两种合法形态：
-   *   ① 4 件套：`推荐：炽烈的炎之魔女`（默认按 4 件判）
-   *   ② 2+2：`推荐：2如雷 + 2宗室`（部分角色的毕业搭法就是 2+2，不能当成"散搭"扣分）
-   * 所以先把攻略条目解析成 spec（4 件 / 2+2 配对），再拿玩家实际套装去对：
-   *   命中推荐 spec → 1.0；命中可选 spec → 0.8；只是别的 2+2 → 0.7；完全不在表内 → 0.3。
-   * 权重仍是 词条 0.8 / 套装 0.2（不改），改的只是"套装分怎么算"。
-   */
-  const count = new Map<string, number>()
-  for (const a of artis) count.set(a.set, (count.get(a.set) || 0) + 1)
-  const sets = [...count.entries()]
-  /** 套装名互相包含即算同一套（攻略常写简称：`如雷` ↔ `如雷的盛怒`） */
-  const sameSet = (a: string, b: string) => a === b || a.includes(b) || b.includes(a)
-  const hasPieces = (name: string, n: number) => sets.some(([set, c]) => c >= n && sameSet(set, name))
-  /** spec 是否被玩家当前配装满足 */
-  /*
-   * spec 是否被玩家当前配装满足（2026-10-18 复审 R1 后半：支持**效果型**名字）。
-   *
-   * `2精通+2精通` / `2生命+2生命` 指的是"任意两套该效果的 2 件套"，名字不是套装名，
-   * 旧实现按子串匹配永远命不中。现在：名字是效果别名 → 用 miao 的两件套效果索引展开成套装集合；
-   * 且两个 2 件套必须是**不同**套装（同一套装不可能同时提供两套 2 件效果）。
-   */
-  const groupOf = (name: string): string[] => {
-    const eff = effectWordOf(name)
-    return eff ? (effectSets?.(eff) ?? []) : [name]
-  }
-  const hitGroup = (set: string, cands: string[]): boolean => cands.some(c => sameSet(set, c))
-  const meetsSpec = (spec: SetSpec): boolean => {
-    if (spec.kind !== "pair") return hasPieces(spec.sets[0], 4)
-    if (spec.sets.length !== 2) return false
-    const ga = groupOf(spec.sets[0])
-    const gb = groupOf(spec.sets[1])
-    for (const [setA, nA] of sets) {
-      if (nA < 2 || !hitGroup(setA, ga)) continue
-      for (const [setB, nB] of sets) {
-        if (setB === setA || nB < 2 || !hitGroup(setB, gb)) continue
-        return true
-      }
-    }
-    return false
-  }
-  const recSpec = parseSetSpecs(targets.artifact.recommend).find(meetsSpec)
-  const optSpec = parseSetSpecs(targets.artifact.optional).find(meetsSpec)
-  const loosePairs = sets.filter(([, c]) => c >= 2).map(([s]) => s)
+export interface PartScores {
+  mark: PartScore
+  set: PartScore
+  main: PartScore
+  panel: PartScore
+  /** 面板计分选中的方向（多方向角色；空 = 无方向或未选中） */
+  panelDirection: string[]
+}
+
+/** 分量在 detail 里的中文名（顺序固定：词条 → 套装 → 主词条 → 面板） */
+const PART_LABEL: Record<PartKey, string> = { mark: '词条', set: '套装', main: '主词条', panel: '面板' }
+
+const partNull = (key: PartKey, reason: AssessmentReason, detail: string): PartScore => ({
+  key,
+  ratio: null,
+  state: reason === 'target-missing' ? 'unscored' : 'unknown',
+  reason,
+  detail
+})
+
+/**
+ * 套装分（沿用 2026-10-18 的 spec 判定：4 件套 / 2+2 / 效果型）
+ *
+ * 与「词条评分」完全独立：这里只看穿了什么套装，不看副词条质量。
+ */
+function scoreSetPart (targets: GuideTargets, build: BuildSnapshot, effectSets?: (effect: string) => string[]): PartScore {
+  const hasTarget = targets.artifact.recommend.length > 0 || targets.artifact.optional.length > 0
+  if (!hasTarget) return partNull('set', 'target-missing', '攻略没有套装目标')
+  const artis = build.artis || []
+  if (!artis.length) return partNull('set', 'data-missing', '未读取到圣遗物')
+
+  const counts = new Map<string, number>()
+  for (const a of artis) counts.set(a.set, (counts.get(a.set) || 0) + 1)
+  const recSpec = matchSetSpec(targets.artifact.recommend, counts, effectSets)
+  const optSpec = matchSetSpec(targets.artifact.optional, counts, effectSets)
+  const loosePairs = [...counts.entries()].filter(([, c]) => c >= 2).map(([s]) => s)
+
   let setScore = 0.3
-  let setNote = "套装不在攻略推荐内"
+  let setNote = '套装不在攻略推荐内'
   if (recSpec) {
     setScore = 1
-    setNote = recSpec.kind === "pair" ? `推荐 2+2（${recSpec.label}）` : `推荐套装 4 件（${recSpec.label}）`
+    setNote = recSpec.kind === 'pair' ? `推荐 2+2（${recSpec.label}）` : `推荐套装 4 件（${recSpec.label}）`
   } else if (optSpec) {
     setScore = 0.8
-    setNote = optSpec.kind === "pair" ? `可选 2+2（${optSpec.label}）` : `可选套装 4 件（${optSpec.label}）`
+    setNote = optSpec.kind === 'pair' ? `可选 2+2（${optSpec.label}）` : `可选套装 4 件（${optSpec.label}）`
   } else if (loosePairs.length >= 2) {
     setScore = 0.7
-    setNote = `2+2 组合（${loosePairs.join(" + ")}）`
+    setNote = `2+2 组合（${loosePairs.join(' + ')}）`
   }
+  return { key: 'set', ratio: setScore, state: setScore >= 1 ? 'met' : 'below', detail: setNote }
+}
 
-  // miao 评分档位（词条口径）
+/** 词条分（miao 评分档位；与套装无绑定关系） */
+function scoreMarkPart (build: BuildSnapshot): PartScore {
   const markClass = String(build.artiMark?.markClass || '').toUpperCase()
   const markScore = MIAO_MARK_SCORE[markClass]
-  const hasMark = Number.isFinite(markScore)
-  const markNote = hasMark
-    ? `miao 词条评分 ${num(Number(build.artiMark?.total) || 0)}（${markClass}）`
-    : '未取到 miao 词条评分'
+  if (!build.artiMark || !Number.isFinite(markScore)) {
+    return partNull('mark', 'data-missing', '未取到 miao 词条评分')
+  }
+  return {
+    key: 'mark',
+    ratio: markScore,
+    state: markScore >= 1 ? 'met' : 'below',
+    detail: `miao 词条评分 ${num(Number(build.artiMark.total) || 0)}（${markClass}）`
+  }
+}
 
-  /*
-   * 2026-10-18 核对修复（#1 残留分支）：**没有 miao 词条评分时不再用套装分顶替**。
-   * 旧写法 `else if (hasSetTarget && artis.length) ratio = setScore` 会让"5 件推荐套装 + 缺评分"
-   * 拿到 setScore = 1 → 综合满分 → total 100 / MAX / 大毕业 / 「各维度均已达标」，
-   * 而实际上词条质量根本没被评估。现在只认 miao 评分；套装符合度进 detail 供参考。
-   */
-  const ratio: number | null = hasMark
-    ? (hasSetTarget ? 0.8 * markScore + 0.2 * setScore : markScore)
-    : null
+/** 主词条分：命中的目标部位 ÷ 玩家有装备的目标部位 */
+export function scoreMainPart (targets: GuideTargets, build: BuildSnapshot): PartScore {
+  if (!targets.mainStats.length) return partNull('main', 'target-missing', '攻略没有主词条目标')
+  const artis = build.artis || []
+  const pairs = targets.mainStats
+    .map(t => ({ t, piece: artis.find(a => a.slot === t.slot) }))
+    .filter((x): x is { t: MainStatTarget, piece: BuildArtifact } => Boolean(x.piece))
+  if (!pairs.length) return partNull('main', 'data-missing', '未读取到主词条')
+  const cons = Number(build.cons) || 0
+  const hits = pairs.filter(x => mainStatAcceptable(x.t, x.piece.mainName, cons)).length
+  const ratio = hits / pairs.length
+  return { key: 'main', ratio, state: hits === pairs.length ? 'met' : 'below', detail: `主词条 ${hits}/${pairs.length}` }
+}
 
-  const detail = !artis.length
-    ? '未读取到圣遗物'
-    : !hasMark
-      ? `未取到 miao 词条评分（不计分）${hasSetTarget ? `；${setNote}` : ''}`
-      : (hasSetTarget ? `${setNote}；${markNote}` : markNote)
+/**
+ * 面板目标达成度（多方向取达成度最高的方向）
+ *
+ * 条件型目标（`元素充能效率：185%（满命）`）在命座不足时跳过；取不到实际值的条目不进分母。
+ */
+export function panelAssessment (
+  targets: GuideTargets,
+  build: BuildSnapshot
+): { ratio: number | null, direction: string[], met: number, total: number, detail: string } {
+  const list = targets.panel || []
+  if (!list.length) return { ratio: null, direction: [], met: 0, total: 0, detail: '攻略没有面板目标' }
+  const cons = Number(build.cons) || 0
+  const groups = new Map<string, { met: number, total: number, sum: number }>()
+  let usable = 0
+  for (const t of list) {
+    if (!condSatisfied(t.cond, cons)) continue
+    const actual = Number(build.attrs?.[t.attrKey])
+    if (!Number.isFinite(actual)) continue
+    const score = t.min > 0 ? clamp01(actual / t.min) : 1
+    usable++
+    const dirs = t.groups.length ? t.groups : ['参考']
+    for (const dir of dirs) {
+      const g = groups.get(dir) || { met: 0, total: 0, sum: 0 }
+      g.total += 1
+      g.sum += score
+      if (score >= 0.999) g.met += 1
+      groups.set(dir, g)
+    }
+  }
+  if (!usable) return { ratio: null, direction: [], met: 0, total: 0, detail: '未读取到面板数据' }
+  let best: { ratio: number, met: number, total: number } | null = null
+  for (const g of groups.values()) {
+    const ratio = g.sum / g.total
+    if (!best || ratio > best.ratio + 1e-9) best = { ratio, met: g.met, total: g.total }
+  }
+  const direction = [...groups.entries()]
+    .filter(([, g]) => Math.abs(g.sum / g.total - (best as { ratio: number }).ratio) < 1e-9)
+    .map(([dir]) => dir)
+  return {
+    ratio: best ? best.ratio : null,
+    direction,
+    met: best ? best.met : 0,
+    total: best ? best.total : 0,
+    detail: `面板 ${best ? best.met : 0}/${best ? best.total : 0} 达标`
+  }
+}
 
-  /*
-   * 四态：`ratio === null` 的两种来源要分开 ——
-   *   数据缺失（没读到圣遗物 / 没读到评分）→ unknown；
-   *   攻略缺项（既没有推荐套装也没有评分口径）→ unscored。
-   * 现场核对 §三：旧实现把两者都写成 pct:0，页面看不出区别。
-   */
-  /*
-   * 2026-10-17 复审修复（#1）：**没读到圣遗物就是"数据缺失"**，不是"攻略缺项"。
-   * 旧写法 `artis.length || build.hasMark ? 'unknown' : 'unscored'` 把「玩家没穿/没读到圣遗物」
-   * 也判成 unscored（= 攻略没写这一项、不计入分母），于是 assessable 仍为 true → 只按武器/天赋
-   * 归一出 100 分、还附「各维度均已达标」。
-   * 现在的四态：
-   *   ratio 有值                        → met / below；
-   *   ratio 空 且读到了圣遗物（>0 件）  → 一定是攻略没给套装/评分口径 → unscored + target-missing；
-   *   ratio 空 且一件都没读到           → unknown + data-missing（总分转"待评"）。
-   */
-  /*
-   * 2026-10-18：`ratio` 为空还要再分两种情况 ——
-   *   ① 攻略**有**圣遗物目标（hasSetTarget），只是没取到评分/没读到装备 → unknown（数据缺失，总分待评）；
-   *   ② 攻略**没有**圣遗物目标 → unscored（攻略缺项，本就不该计分）。
-   */
-  const state: AssessmentState = ratio !== null
-    ? (ratio >= COMPREHENSIVE_MET_RATIO ? 'met' : 'below')
-    : (hasSetTarget ? 'unknown' : 'unscored')
-  const reason: AssessmentReason | undefined = state === 'met' || state === 'below'
-    ? undefined
-    : (state === 'unknown' ? 'data-missing' : 'target-missing')
+function scorePanelPart (targets: GuideTargets, build: BuildSnapshot): { part: PartScore, direction: string[] } {
+  const pa = panelAssessment(targets, build)
+  if (pa.ratio === null) {
+    return { part: partNull('panel', targets.panel.length ? 'data-missing' : 'target-missing', pa.detail), direction: [] }
+  }
+  return {
+    part: { key: 'panel', ratio: pa.ratio, state: pa.ratio >= 0.9 ? 'met' : 'below', detail: pa.detail },
+    direction: pa.direction
+  }
+}
 
-  return { key: 'comprehensive', label, ratio, weight: 0, detail, state, reason }
+/** 一次性算齐四个分量（计分 / 对比行 / 建议共用，避免三处各判一次） */
+export function scoreParts (targets: GuideTargets, build: BuildSnapshot, opts: { effectSets?: (effect: string) => string[] } = {}): PartScores {
+  const panel = scorePanelPart(targets, build)
+  return {
+    mark: scoreMarkPart(build),
+    set: scoreSetPart(targets, build, opts.effectSets),
+    main: scoreMainPart(targets, build),
+    panel: panel.part,
+    panelDirection: panel.direction
+  }
+}
+
+/**
+ * 综合维度：按规则聚合四个分量
+ *
+ * 规则决定「谁参与加权」与「谁必须过线」；加权分只用于三维条、毕业档与总分，
+ * 达标由 `floors` 决定 —— 这样不会出现「综合 96% 却写未达标」这类矛盾（复审 R2）。
+ */
+function comprehensiveDimFromParts (parts: PartScores, rule: GradeRule): GradeDim {
+  const label = '综合'
+  const weightOf = (k: PartKey): number => Number(rule.weights[k]) || 0
+  const active = PART_KEYS.filter(k => weightOf(k) > 0 && parts[k].ratio !== null)
+  const anyTarget = PART_KEYS.some(k => parts[k].reason !== 'target-missing')
+  const detailOf = (): string => PART_KEYS
+    .filter(k => weightOf(k) > 0 || parts[k].ratio !== null)
+    .map(k => `${PART_LABEL[k]}：${parts[k].detail}`)
+    .join('；')
+
+  if (rule.requireMark && weightOf('mark') > 0 && parts.mark.ratio === null) {
+    return {
+      key: 'comprehensive',
+      label,
+      ratio: null,
+      weight: 0,
+      detail: `${detailOf() || parts.mark.detail}（规则要求词条评分，暂不计分）`,
+      state: 'unknown',
+      reason: 'data-missing'
+    }
+  }
+  if (active.length < (rule.minParts ?? 2)) {
+    return {
+      key: 'comprehensive',
+      label,
+      ratio: null,
+      weight: 0,
+      detail: detailOf() || '攻略没有可评的圣遗物目标',
+      state: anyTarget ? 'unknown' : 'unscored',
+      reason: anyTarget ? 'data-missing' : 'target-missing'
+    }
+  }
+  const weightSum = active.reduce((s, k) => s + weightOf(k), 0)
+  const ratio = active.reduce((s, k) => s + weightOf(k) * (parts[k].ratio as number), 0) / (weightSum || 1)
+  const failed = active.filter(k => {
+    const floor = Number(rule.floors[k])
+    return Number.isFinite(floor) && (parts[k].ratio as number) + 1e-9 < floor
+  })
+  const metByRatio = !Number.isFinite(Number(rule.metRatio)) || ratio >= Number(rule.metRatio)
+  return {
+    key: 'comprehensive',
+    label,
+    ratio,
+    weight: 0,
+    detail: detailOf(),
+    state: failed.length === 0 && metByRatio ? 'met' : 'below'
+  }
 }
 
 function scoreWeapon (targets: GuideTargets, build: BuildSnapshot): GradeDim {
@@ -814,7 +1101,14 @@ export function rankOf (total: number, thresholds = DEFAULT_RANK_THRESHOLDS): st
 /** 主评分：攻略目标 × 玩家配装 → 总分 / 档位 / 对比表 / 建议 */
 export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: GradeOptions = {}): GradeResult {
   const weights = { ...DEFAULT_WEIGHTS, ...(opts.weights || {}) }
-  const dims = [scoreComprehensive(targets, build, opts.effectSets), scoreWeapon(targets, build), scoreTalent(targets, build)]
+  /*
+   * 规则（2026-10-25）：调用方传「角色绑定的规则」；没传时按定位兜底
+   * （数据表 → 配置 → 全局的解析在 app 层做，见 `resolveGradeRule()`）。
+   */
+  const rule = opts.rule ?? resolveGradeRule({ charName: targets.charName, role: targets.gradeRole }).rule
+  const parts = opts.parts ?? scoreParts(targets, build, opts)
+  const compDim = comprehensiveDimFromParts(parts, rule)
+  const dims = [compDim, scoreWeapon(targets, build), scoreTalent(targets, build)]
 
   // 只对"有目标"的维度加权（缺项不扣分），权重重归一
   const scored = dims.filter(d => d.ratio !== null)
@@ -822,7 +1116,6 @@ export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: G
   for (const d of dims) d.weight = d.ratio === null ? 0 : (Number(weights[d.key]) || 0) / (weightSum || 1)
 
   const total = scored.length ? scored.reduce((s, d) => s + d.ratio! * d.weight, 0) * 100 : 0
-  const compDim = dims.find(d => d.key === 'comprehensive')!
   const panelInfo = panelTierOf(compDim.ratio, build, targets, opts.panelTiers)
 
   const notes: string[] = []
@@ -830,10 +1123,13 @@ export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: G
     notes.push(`等级 ${build.level} 未达建议等级 ${targets.levelText}（毕业档按门槛最高「小毕业」）`)
   }
   for (const d of dims) if (d.ratio === null) notes.push(`${d.label}：${d.detail}（不计入总分）`)
-  if (!build.artiMark) notes.push('圣遗物评分：未取到 miao 词条评分，本次只按套装计分')
+  // 只有规则要求词条评分时才提示（辅助口径不看词条，缺评分不是问题）
+  if (!build.artiMark && (Number(rule.weights.mark) || 0) > 0) {
+    notes.push('圣遗物评分：未取到 miao 词条评分（该角色规则要求词条，综合判待评）')
+  }
 
-  const rows = buildCompareRows(targets, build, opts)
-  const suggestionRows = buildSuggestionRows(targets, build, dims, compDim, opts)
+  const rows = buildCompareRows(targets, build, { ...opts, rule, parts })
+  const suggestionRows = buildSuggestionRows(targets, build, dims, compDim, { ...opts, rule, parts })
   const suggestions = suggestionRows.map(s => s.text)
 
   /*
@@ -854,7 +1150,9 @@ export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: G
     suggestions,
     suggestionRows,
     assessable,
-    notes
+    notes,
+    ruleName: opts.ruleName ?? 'auto',
+    ruleSource: opts.ruleSource
   }
 }
 
@@ -967,18 +1265,34 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot, o
     })
   }
 
-  // 面板（2026-10-15 用户定：只作参考，不设严格限制 → 判定 `info`，不进"未达标项"）
+  /*
+   * 面板（2026-10-25：**由规则决定是否计分**）
+   *
+   * `dps` 权重里没有 panel → 只作参考（`info`，与 2026-10-15 口径一致）；
+   * `subdps` / `support` / 自定义规则含 panel → 计入未达标项（多方向角色只算选中的方向）。
+   */
+  const rule = opts.rule
+  const parts = opts.parts ?? scoreParts(targets, build, opts)
+  const panelScored = Boolean(rule && (Number(rule.weights.panel) || 0) > 0)
   for (const t of targets.panel) {
     const actual = build.attrs?.[t.attrKey]
     const unit = t.percent ? '%' : ''
+    const dirs = t.groups.length ? t.groups : ['参考']
+    const inDirection = parts.panelDirection.length === 0 || dirs.some(d => parts.panelDirection.includes(d))
+    let verdict: CompareRow['verdict'] = 'info'
+    if (panelScored && inDirection) {
+      verdict = !Number.isFinite(actual)
+        ? 'off'
+        : clamp01(Number(actual) / (t.min > 0 ? t.min : 1)) >= 0.999 ? 'ok' : 'warn'
+    }
     push({
       // 稳定键**含方向**（审核 4.3）：同一属性在不同方向下是不同目标
-      id: `panel:${(t.groups.length ? t.groups : ['参考']).join('+')}:${t.attrKey}`,
+      id: `panel:${dirs.join('+')}:${t.attrKey}`,
       group: t.groups.length ? t.groups.join('/') : '参考',
       name: t.name,
       target: `${t.max > t.min ? `${num(t.min)}~${num(t.max)}` : num(t.min)}${unit}`,
       actual: Number.isFinite(actual) ? `${num(Number(actual))}${unit}` : '—',
-      verdict: 'info'
+      verdict
     })
   }
 
@@ -1024,22 +1338,70 @@ export function buildSuggestionRows (targets: GuideTargets, build: BuildSnapshot
       mainMiss.map(t => `artifact:main:${t.slot}`))
   }
 
-  // ③ 圣遗物词条质量（综合维度的主依据；套装覆盖与词条质量分开判断）
-  if (compDim.ratio !== null && compDim.ratio < 1) {
-    const counts = new Map<string, number>()
-    for (const a of build.artis || []) counts.set(a.set, (counts.get(a.set) || 0) + 1)
-    /*
-     * 2026-10-18 复审 R1：建议里的「凑套装」也要用**同一套 spec 判定**（含 2+2 / 效果型），
-     * 并按 spec 形态措辞 —— 推荐本身是 2+2 时不要说"凑 4 件"。
-     */
-    const recSpec = matchSetSpec(targets.artifact.recommend, counts, opts.effectSets)
-    if (targets.artifact.recommend.length && !recSpec) {
-      const first = parseSetSpecs([targets.artifact.recommend[0]])[0]
-      add('artifact:set', first?.kind === 'pair'
-        ? `圣遗物：凑推荐 2+2（${first.label}）`
-        : `圣遗物：凑「${targets.artifact.recommend[0]}」4 件`, ['artifact:set'])
-    } else if (compDim.ratio < 0.8) {
-      add('artifact:mark', '圣遗物：提升有效词条（暴击 / 爆伤 / 攻击等，按 miao 评分口径）', ['artifact:mark'])
+  /*
+   * ③ 综合（2026-10-25：按规则给「套装 / 词条 / 面板」里真正没过闸的那几项）
+   *
+   * 权重从高到低取最多 2 条；判据与对比行、计分完全同源（`scoreParts()`），
+   * 不再出现「页面说达标、建议让换」或「未达标却建议提升词条」。
+   */
+  {
+    const rule = opts.rule
+    const parts = opts.parts ?? scoreParts(targets, build, opts)
+    if (compDim.ratio !== null && rule) {
+      const weightOf = (k: PartKey): number => Number(rule.weights[k]) || 0
+      const floorOf = (k: PartKey): number => Number(rule.floors[k])
+      const ratioOf = (k: PartKey): number => (parts[k].ratio === null ? 1 : (parts[k].ratio as number))
+      const items: Array<{ id: string, weight: number, text: string, evidence: string[] }> = []
+
+      if (weightOf('set') > 0 && Number.isFinite(floorOf('set')) && ratioOf('set') < floorOf('set')) {
+        const want = targets.artifact.recommend[0] || targets.artifact.optional[0] || ''
+        const first = parseSetSpecs([want])[0]
+        items.push({
+          id: 'artifact:set',
+          weight: weightOf('set'),
+          text: first?.kind === 'pair' ? `圣遗物：凑推荐 2+2（${first.label}）` : `圣遗物：凑「${want}」4 件`,
+          evidence: ['artifact:set']
+        })
+      }
+
+      if (weightOf('mark') > 0 && Number.isFinite(floorOf('mark')) && ratioOf('mark') < floorOf('mark')) {
+        items.push({
+          id: 'artifact:mark',
+          weight: weightOf('mark'),
+          text: '圣遗物：提升有效词条（暴击 / 爆伤 / 攻击等，按 miao 评分口径）',
+          evidence: ['artifact:mark']
+        })
+      }
+
+      if (weightOf('panel') > 0 && Number.isFinite(floorOf('panel')) && ratioOf('panel') < floorOf('panel')) {
+        const cons = Number(build.cons) || 0
+        const gaps: Array<{ text: string, id: string }> = []
+        for (const t of targets.panel) {
+          if (!condSatisfied(t.cond, cons)) continue
+          const actual = Number(build.attrs?.[t.attrKey])
+          if (!Number.isFinite(actual)) continue
+          const dirs = t.groups.length ? t.groups : ['参考']
+          // 只给「计分方向」内的缺口提建议（另一方向仍在参考区，不催）
+          if (parts.panelDirection.length && !dirs.some(d => parts.panelDirection.includes(d))) continue
+          if (t.min > 0 && actual / t.min >= 0.999) continue
+          const unit = t.percent ? '%' : ''
+          gaps.push({
+            text: `${t.name} ${num(Number(actual))}${unit}→${num(t.min)}${unit}`,
+            id: `panel:${dirs.join('+')}:${t.attrKey}`
+          })
+        }
+        if (gaps.length) {
+          items.push({
+            id: 'panel',
+            weight: weightOf('panel'),
+            text: `面板：${gaps.slice(0, 2).map(g => g.text).join('、')}`,
+            evidence: gaps.slice(0, 2).map(g => g.id)
+          })
+        }
+      }
+
+      items.sort((a, b) => b.weight - a.weight)
+      for (const item of items.slice(0, 2)) add(item.id, item.text, item.evidence)
     }
   }
 

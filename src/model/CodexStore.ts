@@ -6,6 +6,7 @@
  *   `gi/<角色>.json`         单个角色攻略（`v2` 为结构化六模块；`sections` 是旧文本层，暂不使用）
  *   `gi/_signature.json`     专武表：`{ 角色: { 专武: '名' | ['名', …], 实际: … } }`
  *   `gi/_weapon-tags.json`   武器标签：`{ 活动: ['名', …] }`
+ *   `gi/_grade-rules.json`   评分规则表（每个角色一套规则，见 `GradeRulesData`）
  *   `_index.json`            权威清单与覆盖统计（`characters/weapons/artifacts` 均为名字数组）
  *
  * 约定：
@@ -79,6 +80,23 @@ export interface CodexStats {
   generatedAt: string | null
 }
 
+/**
+ * 评分规则表（`gi/_grade-rules.json`，2026-10-25）
+ *
+ * 每个角色一套规则：值可以是预设名（`dps` / `subdps` / `support`）或内联规则对象。
+ * 这里只做「读 + 形状校验」，规则归一与执行在 `modules/grade.ts`。
+ */
+export interface GradeRulesData {
+  /** 角色 → 规则写法（原样透传） */
+  characters: Record<string, unknown>
+  /** 校验告警（未知角色 / 非法取值） */
+  warnings: string[]
+  /** 表里的 `updatedAt`（可缺省） */
+  updatedAt: string
+  /** 表文件签名（`mtime:size`；缺文件为 `missing`） */
+  sig: string
+}
+
 interface CacheEntry {
   sig: string
   guide: Guide | null
@@ -92,6 +110,7 @@ export class CodexStore {
   private signatures: Record<string, unknown> | null = null
   private weaponTags: Record<string, unknown> | null = null
   private index: CodexIndex | null = null
+  private gradeRules: GradeRulesData | null = null
   private readonly cache = new Map<string, CacheEntry>()
 
   constructor (root: string = path.join(dataDir, 'gi')) {
@@ -133,6 +152,7 @@ export class CodexStore {
     this.signatures = null
     this.weaponTags = null
     this.index = null
+    this.gradeRules = null
     this.cache.clear()
   }
 
@@ -199,6 +219,57 @@ export class CodexStore {
       this.weaponTags = this.readJson<Record<string, unknown>>(path.join(this.root, '_weapon-tags.json'), {})
     }
     return this.weaponTags
+  }
+
+  /**
+   * 评分规则表（`gi/_grade-rules.json`）
+   *
+   * 每个角色一套规则：预设名（`dps` / `subdps` / `support`）或内联规则对象。
+   * 文件缺失 / 非对象 / 条目不合法 → 不抛错，返回空表并记告警（调用方回落定位兜底）。
+   */
+  getGradeRules (): GradeRulesData {
+    const file = path.join(this.root, '_grade-rules.json')
+    const sig = this.sigOf(file)
+    if (this.gradeRules && this.gradeRules.sig === sig) return this.gradeRules
+
+    const data: GradeRulesData = { characters: {}, warnings: [], updatedAt: '', sig }
+    const raw = sig === 'missing' ? null : this.readJson<Record<string, unknown> | null>(file, null)
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+      data.updatedAt = String((raw as Record<string, unknown>).updatedAt || '')
+      const chars = (raw as Record<string, unknown>).characters
+      if (chars && typeof chars === 'object' && !Array.isArray(chars)) {
+        for (const [name, value] of Object.entries(chars as Record<string, unknown>)) {
+          const key = String(name || '').trim()
+          if (!key) continue
+          if (typeof value === 'string' || (value && typeof value === 'object' && !Array.isArray(value))) {
+            data.characters[key] = value
+          } else {
+            data.warnings.push(`${key} 的规则写法不合法（既不是预设名也不是对象），已忽略`)
+          }
+        }
+      }
+    }
+    const known = new Set(this.listAll())
+    for (const name of Object.keys(data.characters)) {
+      if (!known.has(name)) data.warnings.push(`${name} 不在角色数据里（拼写或改名？），已忽略`)
+    }
+    for (const warning of data.warnings) logger?.warn?.(`[Meta] 评分规则表：${warning}`)
+    this.gradeRules = data
+    return data
+  }
+
+  /** 规则表覆盖情况（状态页用） */
+  gradeRuleStats (): { total: number, configured: number, missing: string[], warnings: number, updatedAt: string } {
+    const data = this.getGradeRules()
+    const names = this.listCharacters()
+    const missing = names.filter(name => data.characters[name] === undefined)
+    return {
+      total: names.length,
+      configured: names.length - missing.length,
+      missing,
+      warnings: data.warnings.length,
+      updatedAt: data.updatedAt
+    }
   }
 
   /** 索引（`data/_index.json`，在数据根的上一级） */

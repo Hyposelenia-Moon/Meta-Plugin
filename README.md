@@ -43,6 +43,10 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - `networkEnabled` **默认关**：它**只管辖查询类远程访问与刷新**（DPS 榜 / 危战 / 练度 / 榜单头像下载），
   **不是整个插件的全局联网禁令** —— 别名服务、可选插件探测、依赖安装等不受它影响。
 - `proxy` 供 `mhydps.cn` 使用。
+- **练度评分规则**（2026-10-25 起**每个角色一套**）：数据表 `data/gi/_grade-rules.json` 逐角色登记，
+  预设 `dps`（词条为主）/ `subdps`（词条＋面板）/ `support`（套装＋主词条＋面板）。
+  配置里四项可调：`gradeRule`（`auto` = 按数据表；也可整站强制某套规则）、`gradeRuleOverrides`（逐角色临时纠偏）、
+  `gradeRuleWeights` / `gradeRuleMet`（仅 `custom` 使用）。
 - 米游社 ck 由 **miao** 保存，本插件不保存任何凭据；状态页只回显"是否配置代理"与"已关闭的模块"。
 
 ## 数据与许可
@@ -54,7 +58,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 回归套件
 
 ```bash
-pnpm build && pnpm test     # 55 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 57 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 详见 [docs/测试.md](./docs/测试.md)。

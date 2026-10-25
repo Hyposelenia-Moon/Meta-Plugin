@@ -97,6 +97,19 @@ export interface MetaConfig {
   teamDamageAxes: string
   /** 总体练度九档阈值（`MAX:95,ACE:88,…`，低于最后一项记 D） */
   gradeRankThresholds: string
+  /**
+   * 评分规则（2026-10-25：每个角色一套规则，见 `data/gi/_grade-rules.json`）
+   *
+   * `auto` = 按数据表逐角色执行（表里没有的角色按定位兜底）；
+   * 也可强制 `dps` / `subdps` / `support` / `custom`（整站回退或试验用，优先于数据表）。
+   */
+  gradeRule: string
+  /** `custom` 规则的分量权重（`mark:25,set:25,main:25,panel:25`） */
+  gradeRuleWeights: string
+  /** 逐角色覆盖（`胡桃:dps,钟离:support`，优先级最高，仅部署侧临时纠偏用） */
+  gradeRuleOverrides: string
+  /** `custom` 规则的加权达标线（0~1） */
+  gradeRuleMet: string
 }
 
 /** 默认配置（与 `config/config.yaml.example` 保持一致） */
@@ -112,6 +125,10 @@ export const defaultConfig: MetaConfig = {
   dpsAvatarEnabled: true,
   gradeWeights: 'comprehensive:65,weapon:20,talent:15',
   gradePanelTiers: 'big:0.9,normal:0.6,small:0.3',
+  gradeRule: 'auto',
+  gradeRuleWeights: '',
+  gradeRuleOverrides: '',
+  gradeRuleMet: '0.9',
   teamDamageAxes: '1:保守轴=默认',
   gradeRankThresholds: 'MAX:95,ACE:88,SSS:80,SS:72,S:64,A:55,B:45,C:30'
 }
@@ -310,6 +327,47 @@ export function getGradePanelTiers (): { big: number, normal: number, small: num
 /** 总体练度九档阈值（写法 `MAX:95,ACE:88,…`；解析失败回落默认） */
 export function getGradeRankThresholds (): Array<[string, number]> {
   return parseRankThresholdsSafe(loadConfig().gradeRankThresholds)
+}
+
+/* ---------- 评分规则（2026-10-25：每个角色一套规则） ---------- */
+
+/** 综合维度的分量键（与 `modules/grade.ts` 的 `PartKey` 对齐） */
+export type GradePartKey = 'mark' | 'set' | 'main' | 'panel'
+
+/** 全局规则：`auto` / `dps` / `subdps` / `support` / `custom`（非法值回落 `auto`） */
+export function getGradeRule (): string {
+  const value = String(loadConfig().gradeRule || '').trim()
+  return ['auto', 'dps', 'subdps', 'support', 'custom'].includes(value) ? value : 'auto'
+}
+
+/** `custom` 规则的分量权重（空 / 非法 → 返回空对象，评分器按四等分处理） */
+export function getGradeRuleWeights (): Partial<Record<GradePartKey, number>> {
+  const parsed = parseSpecSafe(loadConfig().gradeRuleWeights)
+  const keys: GradePartKey[] = ['mark', 'set', 'main', 'panel']
+  const out: Partial<Record<GradePartKey, number>> = {}
+  for (const key of keys) {
+    const value = Number(parsed[key])
+    if (Number.isFinite(value) && value > 0) out[key] = value
+  }
+  return out
+}
+
+/** 逐角色覆盖（`胡桃:dps,钟离:support`；值可以是预设名或内联 JSON 写法不支持，仅预设名） */
+export function getGradeRuleOverrides (): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const part of String(loadConfig().gradeRuleOverrides || '').split(/[,，;；\s]+/)) {
+    const [rawKey, rawValue] = part.split(/[:：=]/)
+    const key = String(rawKey || '').trim()
+    const value = String(rawValue || '').trim()
+    if (key && value) out[key] = value
+  }
+  return out
+}
+
+/** `custom` 规则的加权达标线（0~1，非法回落 0.9） */
+export function getGradeRuleMet (): number {
+  const value = Number(loadConfig().gradeRuleMet)
+  return Number.isFinite(value) && value > 0 && value <= 1 ? value : 0.9
 }
 
 /** 紧凑写法解析（本文件内部用；评分模块另有一份带默认值的实现供离线单测） */

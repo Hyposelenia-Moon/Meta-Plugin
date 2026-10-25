@@ -155,7 +155,7 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   grade: ['title', 'subtitle', 'charName', 'ranks', 'rankClass', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'buildInfo', 'panelRows', 'uidText', 'consIcons', 'talentIcons', 'elemClass', 'heroImg', 'refDps', 'mx', 'assessable', 'notes', '$index'],   // $index 是 art-template 内置循环下标（参考 DPS 徽标档位用）
   'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes', 'referenceDps', 'referenceTotal', 'window', 'axisLabel', 'axisManual', 'patchLabel', 'contributions'],
   // 2026-10-17：数值口径随榜（`metricLabel`）与榜名（`boardName`）——榜不都是伤害
-    status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'disabledModules', 'codexFilled', 'codexTotal', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
+    status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'disabledModules', 'codexFilled', 'codexTotal', 'gradeRuleText', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']
   }
   const LOOP = new Set(['row', 'rows', 'c', 'item', 's', 'r', '$data', 'member', 'team'])
 

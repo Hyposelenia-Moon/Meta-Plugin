@@ -77,6 +77,11 @@ const submitted = {
   gradeWeights: 'panel:40,weapon:10,artifact:30,talent:20',
   gradePanelTiers: 'big:0.95,normal:0.5,small:0.2',
   gradeRankThresholds: 'MAX:90,ACE:80,SSS:70,SS:60,S:50,A:40,B:30,C:20',
+  // 2026-10-25 新增：评分规则（每个角色一套）
+  gradeRule: 'dps',
+  gradeRuleWeights: 'mark:40,set:20,panel:40',
+  gradeRuleOverrides: '胡桃:dps,钟离:support',
+  gradeRuleMet: '0.85',
   // 队伍伤害序号轴（2026-10-15 新增；配置里是一条紧凑字符串，锅巴用单行 Input 编辑）
   teamDamageAxes: '1:保守轴=默认,2:重击轴=重击×8@20s',
   // 模块开关（2026-10-15 新增）：面板按模块**逐项**提交，配置文件里写成嵌套的 `modules:`

@@ -11,7 +11,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **源码**：`src/` → `tsc` → `lib/`（目录结构一致）。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
-- **常用命令**：`pnpm build`、`pnpm test`（56 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（57 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -22,7 +22,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 | 帮助（两小一大） | `Meta攻略帮助`（-100000） | `#meta`（总）/ `#攻略帮助`（=`#攻略`/`#攻略说明`）/ `#DPS帮助` | 三条规则同一 handler；图失败回落同源文本 |
 | DPS 榜（含角色档位视图） | `MetaDPS榜`（8000+0） | `#DPS榜 [角色] [金数] [标签] [主C] [绿玩] [页N]`（`榜` 可省） | 2026-10-15 合并原 `#胡桃dps`；2026-10-17 重定分档：低金**每 4 金一档**（`≤4` … `25-28 金`）+ **`29-48 金` 合并档**，条数 **≤16 金 6 条 / 17-20 金 5 条 / 21 金以上 4 条** |
 | 危战分档 | `Meta危战档位`（8000-5） | `#危战 <版本/首领/角色> n6\|n7` | n6/n7 **剥离**，档位必填；裸 `#危战` 是 miao 的命令，不认领；单档最多列 **10** 条，页头**不渲染副标题行**；排序 **金数升序 → 同金数耗时升序**（2026-10-17，n7/n6 同口径） |
-| 练度提升指南 | `Meta练度提升指南`（8000-5） | `#练度查询 胡桃` | v3；攻略目标 × 当前配装（**不带 UID**） |
+| 练度提升指南 | `Meta练度提升指南`（8000-5） | `#练度查询 胡桃` | v3；攻略目标 × 当前配装（**不带 UID**）；综合按**角色绑定的评分规则**算（`data/gi/_grade-rules.json`：dps / subdps / support） |
 | 队伍伤害 | `Meta队伍伤害`（8000-5） | `#队伍伤害<N> A B C D [词条…] [UID]` | v3；N = 配置 `teamDamageAxes` 的序号轴（省略 = 1），词条**免前缀**；旧 `轴:`/`词条:` 已废除 |
 | 榜单视频（**后缀式**） | 随 `rank` / `raidTiers`（无独立 app） | `#DPS榜 刻晴 48金视频1` / `#危战 矮灵 n7 视频3` | 原 `#视频` / `#危战视频` 前缀式与 `video` app **已废除**（用户 2026-10-15 定）；「榜单视频」模块开关保留，在后缀分发处拦截 |
 | 状态 | `Meta状态`（8000-10） | `#meta状态` | |
@@ -156,7 +156,10 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 3. **命令表单一来源** — 所有命令正则只在 `src/components/constants.ts` 的 `RULES` 定义一处，元数据（插件名 / 文案 / 权限 / 优先级偏移 / 模块键）只在 `COMMANDS`，判定只在 `matchCommand`；app 里只允许 `reg: RULES.x` + `COMMANDS.find(...)`。改命令必须同轮更新 `COMMANDS.dsc`、帮助页（`resources/help/help-cfg.js`）、README、[docs/功能与命令.md](./docs/功能与命令.md) 与相关套件。
    历史：合并前的 `DPS_RULES` 冻结面已按用户 2026-10-15 的决定**整体废除**（偏差 **B17**，`test/constants-parity.test.mjs` 守着"旧名一个都不许复活"）；快照仍守着**非命令**常量（标量 / 映射表 / 纯函数）与合并前逐字一致。
    子项：**帮助页只写使用者向内容**（`resources/help/help-cfg.js`）——不得出现配置键、文件名、"改配置"这类要开发者/管理员处理的说明；**不展示需要管理员先配置的非默认序号轴**（只写 `#队伍伤害 四人名`）；标题过长靠 CSS 换行（`resources/{codex,dps}/help.html` 的 `.entry-cmd` 已去掉 `nowrap`+`ellipsis`）。`test/dps-help-config.test.mjs` 三个门禁守着这三点。
-13. **练度评分口径（2026-10-15 用户定）** — `#练度查询` 的三维加权是 `综合 / 武器 / 天赋`：**综合 = 圣遗物有效词条为主**（miao 评分档位 ×0.8 + 套装符合度 ×0.2，走 miao 的评分规则）；**面板目标不计分、只作参考**（对比表 `参考` 组、`verdict: info`），毕业档按综合分判定、等级仍作门槛。旧配置写 `panel`+`artifact` 会自动相加折进 `comprehensive`（`getGradeWeights()`）。
+13. **练度评分口径（2026-10-15 用户定；2026-10-25 起「每个角色一套规则」）** — `#练度查询` 的三维加权是 `综合 / 武器 / 天赋`；
+    **综合内部按角色绑定的规则计算**（数据表 `data/gi/_grade-rules.json`，预设 `dps` / `subdps` / `support`，
+    四分量 `mark` / `set` / `main` / `panel` 各自计分、各自达标下限；绑定优先级 = 配置覆盖 → 全局强制 → 数据表 → 定位兜底）。
+    **主C**：**综合 = 圣遗物有效词条为主**（miao 评分档位 ×0.8 + 套装符合度 ×0.2，走 miao 的评分规则）；**面板目标不计分、只作参考**（对比表 `参考` 组、`verdict: info`），毕业档按综合分判定、等级仍作门槛。旧配置写 `panel`+`artifact` 会自动相加折进 `comprehensive`（`getGradeWeights()`）。
    页面宽度与立绘行（2026-10-15 用户定：**照抄 miao，不许自己发挥**）：**立绘行已定稿 —— 保持 miao 同款，任何会话不得再改**（结构 / 尺寸 / 字号 / 层级 / 配色 / 图标 / 文字，一律不动；连"顺手优化"也不行，要改必须先问用户）。它现在的样子就是 miao `resources/character/profile-detail.{html,css}` 的逐条复制（只加 `gd-` 前缀、**数值一字不改**）：练度页整页 **600px**（= miao 面板 `body{width:600px}`），立绘行以下分区随 600px 自适应；`.basic`→`.gd-basic`、`.main-pic`(1400×500/`margin-left:-545px`)→`.gd-main-pic`、`.detail`(right/top 20px)→`.gd-detail`（内含 `.char-name`50px / `.char-lv` / `.char-talents` / `.char-attr`）、`.char-cons`(250px/bottom 5/left 20)→`.gd-char-cons`；面板 = `.char-attr li`（**300×32**、斑马行、五列 `.icon`26/`.title`75/`.weight`36/`.value`100/`.value2`70（白字基础值 + 绿字 `+加成`），图标精灵图 `character/imgs/icon.png` + `.i-*` 偏移；`.value`/`.value2` 的文本**直接调 miao 的 `Format.comma`/`Format.pct`**（照抄 `apps/profile/ProfileDetail.js:216-242`：`hp` 取整 + 千分位、其余 1 位小数，`phy > dmg` 时 `dmg` 行显示物伤），权重取 `getArtisMark(true).charWeight`），**只写属性名与数值**（不加目标、不加达标条）；天赋图标**照抄 `CharImg.getImgs()`**：`talentCons[key]>0` 用命座图标 `icons/cons-N.webp`，否则 `icons/talent-{key}.webp`；`level > original` 加 `talent-plus`（深底金字）、`original >= 10` 叠 `character/imgs/crown.png`（`top:0`）；图标圆环按元素（`<body>` 挂 `gd-elem-{elem}`，照抄 `common.css:208-266` 的 `common/bg/talent-{elem}.webp`），`.gd-talent-icon` **必须带 `z-index: 90`**，否则左下角命座行会被 `z-index:2` 的立绘盖住；命座行条目是 `.cons-item`（不参与 flex 均分）；命座徽章照抄 `.char-lv .cons` + `common/css/common.css` 的 `.cons`/`.cons-N`（0 `#666`/1 `#5cbac2`/2 `#339d61`/3 `#3e95b9`/4 `#3955b7`/5 `#531ba9cf`/6 `#ff5722`，白字）；立绘图**取图逻辑照抄 miao**（`src/model/ProfileImgRes.ts`；只读 miao 的配置与图库目录，**不写它的配置、也不复制图片**）：图库源 = `CharImg.getProfileImgSrc()`（`config/profile.js` → `config/system/profile_system.js` → `['profile']`，**第一个非空生效**，相对路径以 miao `resources` 为基准、绝对路径原样）→ 候选池 = `getProfileImgPool/Files()`（`super-character` 彩蛋层 / `normal-character` 普通层 **+ 平铺 `{源}/{角色}/`**，同层多源合并，只认 webp/png/jpg/jpeg）→ 选图 = `ProfileAvatar.getCostumeSplash()`（`#练度查询 胡桃 面板图N` 按 `{角色}_{序号}_…` 取第 N 张、彩蛋层优先，否则层内随机；彩蛋判据 = C6 / 圣遗物 ACE·MAX / 天赋原始等级 `101010`）→ 兜底 miao 自带 `imgs/splash0.webp`（彩蛋）·`splash.webp`；bot 内用 5 级相对前缀引用、跨盘走 `file://`。**不许**改成"复制到 out/"或另起一套源列表 → 结论（档位 + 三维条）→ **当前配装**（武器 → 套装 + miao 评分与有效词条数，不列单件与伤害；等级/命座与天赋都已在立绘行）→ 未达标项 → 提升建议 → **参考 DPS**（当前金数向下取 4 的倍数、步长 4、最多 3 档，每档取含该角色的最高伤害）→ 脚注**口径一行 + 版权，合计不超过 2 行**。套装只写 4 件套 / 2+2 / 2 件套，凑不出就写「散件」；圣遗物行右侧显示 `评分 246.4 ACE　词条数：42.4` —— 词条数只累加 miao `charWeight[key] > 0` 的有效词条 `eff`（**无效词条不计**；也不是数条目数，那是 20）。
    改这套口径必须同轮更新 `resources/dps/grade.html` 的口径行、`docs/功能与命令.md` 的「练度评分口径」与相关套件（`grade` / `grade-guide-targets` / `dps-template` / `portrait-gallery`）。
    配色：**档位颜色与 miao 同款**（MAX/ACE 红 `#e85656`、SSS/SS 金 `#ffe699`、S/A 紫 `#d699ff`、B 以下默认色），综合档位与圣遗物评分同样上色，**未达标项用同一红色**。
