@@ -5,7 +5,7 @@
  *
  * ⚠ 本文件只导出插件类：`src/index.ts` 的加载器取「模块首个导出」当插件类。
  */
-import { disabledModules, getPluginConfig, getProxy, isQueryNetworkEnabled, MODULE_LABELS } from '../components/config.js'
+import { disabledModules, getGradeRule, getGradeRuleOverrides, getPluginConfig, getProxy, isQueryNetworkEnabled, MODULE_LABELS } from '../components/config.js'
 import { proxyHasAuth, proxySafe } from '../components/proxy.js'
 import { COMMANDS, DPS_COPYRIGHT, RULES, SITE_NAME, agoText, formatTime } from '../components/constants.js'
 import { avatarStats } from '../model/AvatarStore.js'
@@ -44,7 +44,7 @@ interface StatusData {
   /** 攻略数据：有内容的角色数 / 收录总数 */
   codexFilled: number
   codexTotal: number
-  /** 评分规则表覆盖情况（每个角色一套规则） */
+  /** 评分规则（不是数据表：跟随 miao 面板 / 全局强制 / 逐角色覆盖） */
   gradeRuleText: string
   /** 资源来源探测（miao 必需 / Atlas 可选） */
   miaoOk: boolean
@@ -96,15 +96,13 @@ export class MetaStatus extends plugin {
       miaoOk = miaoRes.counts().character > 0
     } catch { /* miao 缺失时不报错 */ }
 
-    // 评分规则表（2026-10-25：每个角色一套规则）：覆盖数 / 未配置数 / 校验告警
-    let gradeRuleText = '—'
-    try {
-      const ruleStats = codexStore.gradeRuleStats()
-      gradeRuleText = `${ruleStats.configured}/${ruleStats.total} 个角色已配规则`
-        + (ruleStats.missing.length ? `，未配置 ${ruleStats.missing.length}` : '')
-        + (ruleStats.warnings ? `，告警 ${ruleStats.warnings}` : '')
-        + (ruleStats.updatedAt ? `（${ruleStats.updatedAt}）` : '')
-    } catch { /* 规则表读不动不影响状态页 */ }
+    // 评分规则（2026-10-27：直接用 miao 面板激活的规则）：全局强制 / 逐角色覆盖
+    const globalGradeRule = getGradeRule()
+    const gradeOverrideCount = Object.keys(getGradeRuleOverrides()).length
+    const gradeRuleText = (globalGradeRule === 'auto'
+      ? '跟随 miao 面板'
+      : `全局强制 ${globalGradeRule}`)
+      + (gradeOverrideCount ? `（逐角色覆盖 ${gradeOverrideCount} 个）` : '')
 
     return {
       siteName: SITE_NAME,

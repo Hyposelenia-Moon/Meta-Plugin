@@ -391,6 +391,8 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
      * 所以从下面已经取到的那份 detail 里顺带拿走，不再单独读 `getArtisDetail()`（那里没有 charWeight）。
      */
     let charWeight: Record<string, number> = {}
+    /** miao 面板「评分规则：xxx」的标题（`classTitle`，如 `胡桃-通用` / `胡桃-护摩|绝缘4`） */
+    let artiRuleTitle = ''
     {
       const hasMain = (c: Record<string, any>): boolean => artisRowsOf(c, titles).some(r => !!r.mainName)
       const candidates = [targetState().avatar, player.getAvatar?.(char.id, true), avatar, profile]
@@ -414,6 +416,7 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
              */
             const weights = (detail.charWeight && typeof detail.charWeight === 'object') ? detail.charWeight as Record<string, unknown> : null
             if (weights) charWeight = weights as Record<string, number>
+            artiRuleTitle = String(detail.classTitle || '')
             let sum = 0
             for (const idx of Object.keys(detail.artis || {})) {
               const attrs = detail.artis?.[idx]?.attrs
@@ -468,6 +471,7 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
        */
       attrText: await attrTextOf(profile),
       charWeight,
+      artiRuleTitle,
       artis: ((): BuildSnapshot['artis'] => {
         const state = targetState()
         const av = (state.avatar || profile) as Record<string, any>

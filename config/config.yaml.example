@@ -53,18 +53,12 @@ gradePanelTiers: "big:0.9,normal:0.6,small:0.3"
 # 总体练度九档阈值（MAX/ACE/SSS/SS/S/A/B/C，低于最后一项记 D）
 gradeRankThresholds: "MAX:95,ACE:88,SSS:80,SS:72,S:64,A:55,B:45,C:30"
 
-# 练度评分规则（每个角色一套，2026-10-25）
-# auto = 按数据表 data/gi/_grade-rules.json 逐角色执行（推荐）；也可强制 dps / subdps / support / custom
+# 练度评分规则（2026-10-27：直接用 miao 面板当前激活的评分规则）
+# auto = 按 miao 属性权重自动分档（推荐）；也可强制 dps / subdps / support
 gradeRule: "auto"
-
-# 仅 custom：分量权重（mark 词条 / set 套装 / main 主词条 / panel 面板），留空 = 四等分
-gradeRuleWeights: ""
 
 # 逐角色覆盖（部署侧临时纠偏，优先级最高）：胡桃:dps,钟离:support
 gradeRuleOverrides: ""
-
-# 仅 custom：加权分达标线（0~1）
-gradeRuleMet: "0.9"
 
 # 队伍伤害的序号轴表（`序号:名称=轴定义`，多个轴逗号分隔；`默认` = 每人最高单次×1／20s）
 # 例：1:保守轴=默认,2:重击轴=重击×8@20s+元素战技×1

@@ -1,20 +1,19 @@
 /**
- * 练度评分 · 每个角色一套规则（2026-10-25）
+ * 练度评分 · 规则直接跟随 miao 面板（2026-10-27）
  *
  * 覆盖：
- *   1. `data/gi/_grade-rules.json` 的形状与覆盖（每个有内容的角色都有条目）
- *   2. 规则归一与选取优先级（逐角色覆盖 → 全局强制 → 数据表 → 定位兜底）
+ *   1. miao 规则（`charWeight`）→ 输出向占比 → 预设分档
+ *   2. 规则选取优先级（逐角色覆盖 → 全局强制 → miao → 定位兜底）
  *   3. 四个分量的独立计分（词条 / 套装 / 主词条 / 面板）
  *   4. 规则对「面板行是否计分」「建议文案」的影响
  *
- * 攻略目标用真实 `data/gi/<角色>.json`；玩家配装是合成快照（离线可重复）。
+ * 攻略目标用真实 `data/gi/<角色>.json`；miao 规则权重用合成输入（离线可重复）。
  */
-import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { createChecks, libDir, pluginRoot, readText } from './_helper.mjs'
+import { createChecks, libDir } from './_helper.mjs'
 
-const { push, ok, report } = createChecks('练度评分 · 每角色一套规则')
+const { push, ok, report } = createChecks('练度评分 · 规则跟随 miao')
 
 const load = async (rel) => await import(pathToFileURL(path.join(libDir, ...rel.split('/'))).href)
 const G = await load('modules/grade.js')
@@ -22,59 +21,55 @@ const SV = await load('modules/subViews.js')
 const { CodexStore } = await load('model/CodexStore.js')
 
 const store = new CodexStore()
-const tableFile = path.join(pluginRoot, 'data', 'gi', '_grade-rules.json')
 
-// ---------- 1. 规则表 ----------
-ok('规则表存在（data/gi/_grade-rules.json）', fs.existsSync(tableFile))
-const raw = JSON.parse(readText(tableFile))
-const chars = (raw && typeof raw.characters === 'object' && raw.characters) || {}
-const filled = store.listCharacters()
-const missing = filled.filter(name => chars[name] === undefined)
-push('每个有攻略内容的角色都有规则条目', missing, [])
-ok('规则表的角色名都在数据里', Object.keys(chars).every(name => store.listAll().includes(name)))
-ok('每个条目都能归一成规则（无非法写法）',
-  Object.values(chars).every(value => G.normalizeGradeRule(value) !== null),
-  Object.entries(chars).filter(([, v]) => G.normalizeGradeRule(v) === null).map(([k]) => k).join('、'))
+// ---------- 1. miao 规则 → 分档 ----------
+// 与 miao `usefulAttr` 同形状：输出向 atk/cpct/cdmg/dmg/phy，功能向 hp/def/mastery/recharge/heal
+const W_HUTAO = { hp: 80, atk: 50, cpct: 100, cdmg: 100, mastery: 75, dmg: 100 }
+const W_ZHONGLI = { hp: 100, recharge: 55 }
+const W_YELAN = { hp: 80, cpct: 100, cdmg: 100, dmg: 100, recharge: 100 }
 
-const counts = { dps: 0, subdps: 0, support: 0, inline: 0 }
-for (const value of Object.values(chars)) {
-  if (typeof value === 'string') counts[value] = (counts[value] || 0) + 1
-  else counts.inline++
-}
-push('初始分配 54 / 13 / 64', [counts.dps, counts.subdps, counts.support], [54, 13, 64])
-ok('规则表统计可读（configured = 有内容角色数）',
-  store.gradeRuleStats().configured === filled.length && store.gradeRuleStats().warnings === 0,
-  JSON.stringify(store.gradeRuleStats()))
+ok('输出向占比高（胡桃 69%）→ dps', (() => {
+  const d = G.deriveRuleFromCharWeight(W_HUTAO)
+  return d && d.name === 'dps' && Math.abs(d.share - 0.6931) < 0.01
+})())
+ok('输出向占比中等（夜兰 62%）→ subdps', (() => {
+  const d = G.deriveRuleFromCharWeight(W_YELAN)
+  return d && d.name === 'subdps'
+})())
+ok('功能性权重为主（钟离 0%）→ support', (() => {
+  const d = G.deriveRuleFromCharWeight(W_ZHONGLI)
+  return d && d.name === 'support' && d.share === 0
+})())
+ok('拿不到权重 → null（调用方回落定位）',
+  G.deriveRuleFromCharWeight(null) === null && G.deriveRuleFromCharWeight({}) === null)
+ok('阈值常量可读（dps 0.65 / subdps 0.5）',
+  G.MIAO_RULE_DPS_SHARE === 0.65 && G.MIAO_RULE_SUBDPS_SHARE === 0.5)
 
 // ---------- 2. 归一与选取 ----------
 ok('预设名可归一（support：套装 40 / 主词条 30 / 面板 30）', (() => {
   const r = G.normalizeGradeRule('support')
   return r && r.weights.set === 40 && r.weights.main === 30 && r.weights.panel === 30 && r.requireMark === false
 })())
-ok('内联对象可归一（可只写要覆盖的字段）', (() => {
-  const r = G.normalizeGradeRule({ weights: { set: 50, panel: 50 }, floors: { panel: 0.8 } })
-  return r && r.weights.set === 50 && r.floors.panel === 0.8 && r.minParts === 2
-})())
-ok('非法规则返回 null（未知预设 / 空权重）',
-  G.normalizeGradeRule('nope') === null && G.normalizeGradeRule({ weights: {} }) === null)
+ok('只接受预设名（内联对象已随数据表移除）',
+  G.normalizeGradeRule({ weights: { set: 50, panel: 50 } }) === null && G.normalizeGradeRule('nope') === null)
 
-ok('逐角色覆盖优先于全局与数据表', (() => {
-  const r = G.resolveGradeRule({ charName: '胡桃', role: 'dps', table: chars, globalRule: 'support', overrides: { 胡桃: 'subdps' } })
+ok('逐角色覆盖优先于全局与 miao', (() => {
+  const r = G.resolveGradeRule({ charName: '胡桃', role: 'dps', charWeight: W_ZHONGLI, globalRule: 'support', overrides: { 胡桃: 'subdps' } })
   return r.source === 'override' && r.name === 'subdps' && r.rule.weights.mark === 45
 })())
-ok('全局强制优先于数据表（回退用）', (() => {
-  const r = G.resolveGradeRule({ charName: '钟离', role: 'support', table: chars, globalRule: 'dps' })
+ok('全局强制优先于 miao 规则（回退用）', (() => {
+  const r = G.resolveGradeRule({ charName: '钟离', role: 'support', charWeight: W_ZHONGLI, globalRule: 'dps' })
   return r.source === 'global' && r.name === 'dps'
 })())
-ok('数据表优先于定位兜底', (() => {
-  const r = G.resolveGradeRule({ charName: '行秋', role: 'support', table: chars })
-  return r.source === 'data' && r.name === 'subdps'
+ok('miao 规则优先于定位兜底', (() => {
+  // 定位是 support，但 miao 规则是输出向 → 按 miao 走 dps
+  const r = G.resolveGradeRule({ charName: '行秋', role: 'support', charWeight: W_HUTAO })
+  return r.source === 'miao' && r.name === 'dps' && Math.abs(Number(r.share) - 0.6931) < 0.01
 })())
-ok('表里没有该角色 → 定位兜底（不报错）', (() => {
-  const r = G.resolveGradeRule({ charName: '不存在的人', role: 'support', table: chars })
+ok('拿不到 miao 规则 → 定位兜底', (() => {
+  const r = G.resolveGradeRule({ charName: '某人', role: 'support', charWeight: null })
   return r.source === 'auto' && r.name === 'auto' && r.rule.weights.set === 40
 })())
-ok('行秋在表里是 subdps（副C 不靠定位推断）', chars['行秋'] === 'subdps')
 
 // ---------- 3. 真实攻略目标 + 合成配装 ----------
 const targetsOf = (name) => {
@@ -111,15 +106,17 @@ const zhongliBuild = {
   artiMark: null,
   attrs: { hp: 60000, recharge: 200 }
 }
-ok('钟离走 support 规则（数据表）', G.resolveGradeRule({ charName: '钟离', role: zhongli.gradeRole, table: chars }).name === 'support')
+// 钟离的 miao 规则是纯功能向（hp/recharge）→ 自动落到 support
+ok('钟离：miao 规则 → support 口径',
+  G.resolveGradeRule({ charName: '钟离', role: zhongli.gradeRole, charWeight: W_ZHONGLI }).name === 'support')
 
-const zr = G.gradeBuild(zhongli, zhongliBuild, { rule: zhongliRule, ruleName: 'support', ruleSource: 'data' })
+const zr = G.gradeBuild(zhongli, zhongliBuild, { rule: zhongliRule, ruleName: 'support', ruleSource: 'miao' })
 const zcomp = zr.dims.find(d => d.key === 'comprehensive')
 ok('辅助缺 miao 评分仍可评（综合不是 null）', zcomp.ratio !== null, JSON.stringify(zcomp))
 ok('辅助按三件事达标（套装 + 主词条 + 面板）', zcomp.state === 'met', `${zcomp.state}/${zcomp.detail}`)
 ok('综合 detail 逐个分量写（套装 / 主词条 / 面板）',
   /套装：/.test(zcomp.detail) && /主词条：/.test(zcomp.detail) && /面板：/.test(zcomp.detail), zcomp.detail)
-ok('结果带规则名与来源', zr.ruleName === 'support' && zr.ruleSource === 'data')
+ok('结果带规则名与来源', zr.ruleName === 'support' && zr.ruleSource === 'miao')
 ok('规则要求词条时缺评分才提示；辅助不出该提示',
   !zr.notes.some(n => n.includes('规则要求词条')), JSON.stringify(zr.notes))
 

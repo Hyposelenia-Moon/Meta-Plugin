@@ -58,13 +58,13 @@ export const MIAO_MARK_SCORE: Record<string, number> = {
 }
 
 /* ------------------------------------------------------------------ *
- * 评分规则（2026-10-25：每个角色一套规则）
+ * 评分规则（2026-10-27：直接使用 miao 面板激活的评分规则）
  * ------------------------------------------------------------------ */
 
 /** 综合维度的四个独立分量（词条 / 套装 / 主词条 / 面板） */
 export type PartKey = 'mark' | 'set' | 'main' | 'panel'
 
-/** 角色分档（只在数据表里没有该角色时兜底用；副C 必须写进数据表） */
+/** 角色分档（只在 miao 规则读不到时，按攻略「定位」兜底） */
 export type GradeRole = 'dps' | 'support'
 
 /** 内置预设名 */
@@ -74,8 +74,10 @@ export type RuleName = 'dps' | 'subdps' | 'support'
  * 一条评分规则
  *
  * 规则是**纯数据**：`weights` 决定参与加权的分量，`floors` 决定达标下限。
- * 每个角色在 `data/gi/_grade-rules.json` 里绑定一条（预设名或内联对象），
- * 代码只负责执行 —— 见 `resolveGradeRule()` 与 `scoreParts()`。
+ *
+ * 2026-10-27：角色用哪套预设**不再由本插件维护** —— 直接读 miao 面板当前激活的评分规则
+ * （`getArtisMark(true).charWeight`，来源 `artis_user.js` > `artis.js` > `usefulAttr` 默认表），
+ * 按「输出向权重占比」自动分档，见 `deriveRuleFromCharWeight()` / `resolveGradeRule()`。
  */
 export interface GradeRule {
   /** 参与加权的分量（相对权重，自动归一）；未列出的分量不计入综合分 */
@@ -86,13 +88,11 @@ export interface GradeRule {
   requireMark?: boolean
   /** 至少需要几个可用分量才计分（默认 2，防止「只有一个分量凑出满分」） */
   minParts?: number
-  /** custom 规则：加权分达标线（可选，与 floors 同时生效） */
-  metRatio?: number
 }
 
 const PART_KEYS: PartKey[] = ['mark', 'set', 'main', 'panel']
 
-/** 内置预设（用户 2026-10-25 定，阿修建议「每个角色一套规则」） */
+/** 内置预设（主C / 副C / 辅助三档；由 miao 规则的输出向权重占比自动选中） */
 export const GRADE_RULE_PRESETS: Record<RuleName, GradeRule> = {
   dps: { weights: { mark: 80, set: 20 }, floors: { mark: 0.95, set: 0.8 }, requireMark: true, minParts: 2 },
   subdps: { weights: { mark: 45, set: 25, panel: 30 }, floors: { mark: 0.8, set: 0.8, panel: 0.9 }, requireMark: true, minParts: 2 },
@@ -105,40 +105,24 @@ export function isRuleName (value: unknown): value is RuleName {
 }
 
 /**
- * 把数据表 / 配置里的规则写法归一成 `GradeRule`
+ * 归一配置里的规则写法（2026-10-27：只接受预设名）
  *
- * 接受：预设名字符串、内联对象（可带 `preset` 打底）、或已经是规则对象。
- * 非法（无有效权重 / 未知分量 / 非正权重）返回 null，调用方回落。
+ * 内联规则对象随 `data/gi/_grade-rules.json` 一起移除 —— 口径唯一来源改为 miao 面板的激活规则，
+ * 本插件只保留「全局强制」与「逐角色覆盖」两个逃生阀。
  */
 export function normalizeGradeRule (raw: unknown): GradeRule | null {
-  if (isRuleName(raw)) return { ...GRADE_RULE_PRESETS[raw], weights: { ...GRADE_RULE_PRESETS[raw].weights }, floors: { ...GRADE_RULE_PRESETS[raw].floors } }
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
-  const obj = raw as Record<string, any>
-  const base = isRuleName(obj.preset) ? GRADE_RULE_PRESETS[obj.preset] : undefined
-  const weights: Partial<Record<PartKey, number>> = { ...(base?.weights || {}) }
-  const floors: Partial<Record<PartKey, number>> = { ...(base?.floors || {}) }
-  for (const [key, value] of Object.entries(obj.weights || {})) {
-    const n = Number(value)
-    if (PART_KEYS.includes(key as PartKey) && Number.isFinite(n) && n > 0) weights[key as PartKey] = n
-  }
-  for (const [key, value] of Object.entries(obj.floors || {})) {
-    const n = Number(value)
-    if (PART_KEYS.includes(key as PartKey) && Number.isFinite(n) && n >= 0 && n <= 1) floors[key as PartKey] = n
-  }
-  if (!Object.keys(weights).length) return null
-  const requireMark = typeof obj.requireMark === 'boolean' ? obj.requireMark : (base?.requireMark ?? (weights.mark !== undefined))
-  const minParts = Number.isFinite(Number(obj.minParts)) ? Math.max(1, Number(obj.minParts)) : (base?.minParts ?? 2)
-  const metRatio = Number.isFinite(Number(obj.metRatio)) ? Math.min(1, Math.max(0, Number(obj.metRatio))) : base?.metRatio
-  return { weights, floors, requireMark, minParts, ...(metRatio === undefined ? {} : { metRatio }) }
+  if (!isRuleName(raw)) return null
+  const preset = GRADE_RULE_PRESETS[raw]
+  return { ...preset, weights: { ...preset.weights }, floors: { ...preset.floors } }
 }
 
 const ROLE_DPS_RE = /主C|主c|主\/|主／|站场|前台输出|输出/
 const ROLE_SUP_RE = /辅|奶|盾|拐|治疗|副C|副c|位|挂|专|减抗|增伤|加攻/
 
 /**
- * 按攻略「定位」判断口径（**只作数据表缺条目时的兜底**）
+ * 按攻略「定位」判断口径（**只作 miao 规则读不到时的兜底**）
  *
- * 定位是自由文本，靠关键词只能近似；真正生效的是 `data/gi/_grade-rules.json` 的逐角色声明。
+ * 定位是自由文本，靠关键词只能近似；真正生效的是 miao 面板当前激活的评分规则。
  * 兜底信号：面板目标含暴击率 / 暴击伤害（输出向）优先按 dps。
  */
 export function classifyGradeRole (input: {
@@ -165,30 +149,66 @@ export function classifyGradeRole (input: {
   return crit ? 'dps' : 'support'
 }
 
+/**
+ * miao 评分规则里的「输出向」与「功能向」属性键
+ *
+ * 与 `ArtisMarkCfg` 的 `attrs` 一致（hp / atk / def / mastery / cpct / cdmg / dmg / phy / recharge / heal）。
+ */
+const OUTPUT_WEIGHT_KEYS = ['atk', 'cpct', 'cdmg', 'dmg', 'phy'] as const
+const UTILITY_WEIGHT_KEYS = ['hp', 'def', 'mastery', 'recharge', 'heal'] as const
+
+/** 分档阈值（输出向权重占比；经验值，可用 `gradeRuleOverrides` 逐角色纠正） */
+export const MIAO_RULE_DPS_SHARE = 0.65
+export const MIAO_RULE_SUBDPS_SHARE = 0.5
+
+/**
+ * 用 miao 面板当前激活的评分规则（`charWeight`）自动定档
+ *
+ * 输出向 = 攻击 / 暴击率 / 暴击伤害 / 伤害加成 / 物理伤害；功能向 = 生命 / 防御 / 精通 / 充能 / 治疗。
+ * 返回 null 表示拿不到规则（miao 缺失 / 面板没有属性权重），调用方回落到「定位」兜底。
+ */
+export function deriveRuleFromCharWeight (
+  weights?: Record<string, number> | null
+): { name: RuleName, share: number } | null {
+  if (!weights || typeof weights !== 'object') return null
+  const sum = (keys: readonly string[]): number => keys.reduce((s, k) => s + (Number(weights[k]) || 0), 0)
+  const out = sum(OUTPUT_WEIGHT_KEYS)
+  const util = sum(UTILITY_WEIGHT_KEYS)
+  if (out + util <= 0) return null
+  const share = out / (out + util)
+  const name: RuleName = share >= MIAO_RULE_DPS_SHARE
+    ? 'dps'
+    : share >= MIAO_RULE_SUBDPS_SHARE ? 'subdps' : 'support'
+  return { name, share: Number(share.toFixed(4)) }
+}
+
 /** 规则来源（状态与 detail 用） */
-export type RuleSource = 'override' | 'global' | 'data' | 'auto'
+export type RuleSource = 'override' | 'global' | 'miao' | 'auto'
 
 export interface RuleResolution {
   rule: GradeRule
-  /** 规则名（预设名 / `inline` / `custom` / `auto`） */
+  /** 规则名（预设名 / `auto`） */
   name: string
   source: RuleSource
+  /** miao 规则的输出向权重占比（拿不到规则时缺省） */
+  share?: number
 }
 
 /**
  * 取某个角色要跑的规则
  *
- * 优先级（高 → 低）：配置逐角色覆盖 → 全局强制（非 auto）→ 数据表 → 定位兜底。
- * 全局强制优先于数据表，用于整站回退（`gradeRule: dps`）；逐角色覆盖用于个别纠偏。
+ * 优先级（高 → 低）：
+ *   ① 配置 `gradeRuleOverrides`（逐角色临时纠偏）
+ *   ② 配置 `gradeRule`（全局强制，整站回退用）
+ *   ③ **miao 面板当前激活的评分规则**（`charWeight` → 输出向权重占比）
+ *   ④ 读不到 miao 规则时，按攻略「定位」兜底
  */
 export function resolveGradeRule (input: {
   charName?: string
   role?: GradeRole
-  table?: Record<string, unknown> | null
+  charWeight?: Record<string, number> | null
   globalRule?: string
   overrides?: Record<string, string> | null
-  customWeights?: Partial<Record<PartKey, number>> | null
-  customMet?: number | null
 }): RuleResolution {
   const name = String(input.charName || '').trim()
   const overrides = input.overrides || {}
@@ -198,24 +218,12 @@ export function resolveGradeRule (input: {
   }
   const global = String(input.globalRule || 'auto').trim()
   if (global && global !== 'auto') {
-    if (global === 'custom') {
-      const weights = { ...(input.customWeights || {}) }
-      if (!Object.keys(weights).length) for (const k of PART_KEYS) weights[k] = 25
-      const rule = normalizeGradeRule({ weights })
-      if (rule) {
-        const met = Number(input.customMet)
-        if (Number.isFinite(met)) rule.metRatio = Math.min(1, Math.max(0, met))
-        return { rule, name: 'custom', source: 'global' }
-      }
-    } else {
-      const rule = normalizeGradeRule(global)
-      if (rule) return { rule, name: global, source: 'global' }
-    }
+    const rule = normalizeGradeRule(global)
+    if (rule) return { rule, name: global, source: 'global' }
   }
-  const fromTable = name ? input.table?.[name] : undefined
-  if (fromTable !== undefined) {
-    const rule = normalizeGradeRule(fromTable)
-    if (rule) return { rule, name: isRuleName(fromTable) ? fromTable : 'inline', source: 'data' }
+  const derived = deriveRuleFromCharWeight(input.charWeight)
+  if (derived) {
+    return { rule: normalizeGradeRule(derived.name)!, name: derived.name, source: 'miao', share: derived.share }
   }
   const preset: RuleName = input.role === 'support' ? 'support' : 'dps'
   return { rule: normalizeGradeRule(preset)!, name: 'auto', source: 'auto' }
@@ -575,9 +583,9 @@ export function extractTargets (view: CodexLikeView, charName = '', guide?: Guid
   }
 
   /*
-   * 兜底分档（2026-10-25）：读 `meta.定位` + 已解析的面板/主词条。
-   * 真正生效的口径来自 `data/gi/_grade-rules.json`（逐角色一套规则），
-   * 这里只在表里没有该角色时被 `resolveGradeRule()` 取用。
+   * 兜底分档（2026-10-27）：读 `meta.定位` + 已解析的面板/主词条。
+   * 真正生效的口径来自 miao 面板当前激活的评分规则（`charWeight`），
+   * 这里只在拿不到 miao 规则时被 `resolveGradeRule()` 取用。
    */
   const roleRow = (view.metaRows || []).find(r => String(r.label || '').includes('定位'))
   targets.roleText = String(roleRow?.value || '').trim()
@@ -612,6 +620,12 @@ export interface BuildSnapshot {
   artis: BuildArtifact[]
   /** miao 圣遗物评分（`ArtisMark.getMarkDetail` 的产物） */
   artiMark: { total: number, markClass: string } | null
+  /**
+   * miao 面板「评分规则：xxx」的标题（`ArtisMarkCfg.classTitle`）
+   *
+   * 2026-10-27：练度口径直接跟 miao 面板当前激活的评分规则走，页面上要能对上规则名。
+   */
+  artiRuleTitle?: string
   /** 词条当量总和（五件副词条 `eff` 之和；与 miao 面板一致，拿不到时为 0） */
   substatRolls?: number
   /** miao 面板行的文本映射（`profile.attr`：`hp` / `hpBase` / `hpPlus` …）；无则回落到本插件自行格式化 */
@@ -706,7 +720,7 @@ export interface GradeResult {
    */
   assessable: boolean
   notes: string[]
-  /** 本次跑的规则名（预设名 / `inline` / `custom` / `auto`） */
+  /** 本次跑的规则名（预设名 / `auto`） */
   ruleName?: string
   /** 规则来源：配置覆盖 / 全局强制 / 数据表 / 定位兜底 */
   ruleSource?: RuleSource
@@ -876,11 +890,13 @@ function scoreMarkPart (build: BuildSnapshot): PartScore {
   if (!build.artiMark || !Number.isFinite(markScore)) {
     return partNull('mark', 'data-missing', '未取到 miao 词条评分')
   }
+  // 规则标题来自 miao 面板的「评分规则：xxx」（`ArtisMarkCfg.classTitle`），让页面能对上用的是哪条规则
+  const ruleTitle = String(build.artiRuleTitle || '').trim()
   return {
     key: 'mark',
     ratio: markScore,
     state: markScore >= 1 ? 'met' : 'below',
-    detail: `miao 词条评分 ${num(Number(build.artiMark.total) || 0)}（${markClass}）`
+    detail: `miao 词条评分 ${num(Number(build.artiMark.total) || 0)}（${markClass}${ruleTitle ? `，规则 ${ruleTitle}` : ''}）`
   }
 }
 
@@ -1012,14 +1028,13 @@ function comprehensiveDimFromParts (parts: PartScores, rule: GradeRule): GradeDi
     const floor = Number(rule.floors[k])
     return Number.isFinite(floor) && (parts[k].ratio as number) + 1e-9 < floor
   })
-  const metByRatio = !Number.isFinite(Number(rule.metRatio)) || ratio >= Number(rule.metRatio)
   return {
     key: 'comprehensive',
     label,
     ratio,
     weight: 0,
     detail: detailOf(),
-    state: failed.length === 0 && metByRatio ? 'met' : 'below'
+    state: failed.length === 0 ? 'met' : 'below'
   }
 }
 

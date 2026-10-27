@@ -60,21 +60,14 @@ gradePanelTiers: "${meta_gradePanelTiers}"
 # 总体练度九档阈值（MAX/ACE/SSS/SS/S/A/B/C，低于最后一项记 D）
 gradeRankThresholds: "${meta_gradeRankThresholds}"
 
-# ---------- 练度评分规则（每个角色一套，2026-10-25） ----------
-# auto = 按数据表 data/gi/_grade-rules.json 逐角色执行（推荐）
-# 也可强制整站按某套规则（回退用）：dps / subdps / support / custom
+# ---------- 练度评分规则（2026-10-27：直接用 miao 面板当前激活的评分规则） ----------
+# auto = 读 miao 面板「评分规则」的属性权重（charWeight），按输出向占比自动分档（推荐）
+# 也可强制整站按某套规则（回退用）：dps / subdps / support
 gradeRule: "${meta_gradeRule}"
 
-# 仅 custom：四个分量的相对权重
-# mark（圣遗物词条评分）/ set（套装）/ main（主词条）/ panel（面板目标）；留空 = 四等分
-gradeRuleWeights: "${meta_gradeRuleWeights}"
-
 # 逐角色覆盖（部署侧临时纠偏，优先级最高）：胡桃:dps,钟离:support
-# ⚠ 长期口径请写进 data/gi/_grade-rules.json（随数据版本入库），本项只用于单机纠偏
+# ⚠ 长期口径请改 miao 里该角色的评分规则（artis_user.js），本项只作逃生阀
 gradeRuleOverrides: "${meta_gradeRuleOverrides}"
-
-# 仅 custom：加权分达标线（0~1）
-gradeRuleMet: "${meta_gradeRuleMet}"
 
 # ---------- 队伍伤害（序号轴） ----------
 # 写法：`序号:名称=轴定义`，多个轴用逗号分隔；轴定义 = 关键词×次数@窗口s（多段用 +，关键词对 miao 伤害行标题包含匹配）
