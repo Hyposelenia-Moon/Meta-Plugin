@@ -84,13 +84,13 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
   const must = {
     rank: /^#(?:dps|DPS)(?!榜|视频|帮助|状态|更新|强制|刷新|练度|危战)\s*([\s\S]*)$/,
     // 2026-10-17 复审修复：档位必须是独立词（`视频6` / `金:16` 的末位不再被当档位）
-    raidTiers: /^#?危战\s+([\s\S]*?)\s*(?:(?<=\s|^)(?:n|N)?([67])(?:档)?)(?!\d)(?:\s*视频\s*(\d+))?\s*$/,
-    raidTiersPrompt: /^#?危战\s+([\s\S]+)$/,
-    grade: /^#?练度查询(?:\s+([\s\S]+))?$/,
-    teamDamage: /^#?队伍伤害\s*(\d{1,2})?(?:\s+([\s\S]+))?$/,
-    status: /^#?meta状态$/,
-    admin: /^#?榜单刷新$/,
-    help: /^#?(?:dps|DPS)帮助$/
+    raidTiers: /^#危战\s+([\s\S]*?)\s*(?:(?<=\s|^)(?:n|N)?([67])(?:档)?)(?!\d)(?:\s*视频\s*(\d+))?\s*$/,
+    raidTiersPrompt: /^#危战\s+([\s\S]+)$/,
+    grade: /^#练度查询(?:\s+([\s\S]+))?$/,
+    teamDamage: /^#队伍伤害\s*(\d{1,2})?(?:\s+([\s\S]+))?$/,
+    status: /^#meta状态$/,
+    admin: /^#榜单刷新$/,
+    help: /^#(?:dps|DPS)帮助$/
   }
   for (const [key, expected] of Object.entries(must)) {
     const rule = C.RULES?.[key]

@@ -25,13 +25,14 @@ if (hasConst) {
   ok('抢占优先级早于 Atlas 快捷入口（-99999）', C.PREEMPT_PRIORITY < -99999)
   ok('抢占优先级早于 genshin「米游社攻略」（50）', C.PREEMPT_PRIORITY < 50)
 
-  const yes = ['#攻略', '#攻略帮助', '#攻略说明', '攻略', '攻略帮助', '攻略说明']
+  const yes = ['#攻略', '#攻略帮助', '#攻略说明']
   const no = [
+    '攻略', '攻略帮助', '攻略说明',
     '#胡桃攻略', '#胡桃攻略2', '#攻略 胡桃', '#攻略列表', '#攻略状态',
     '#设置默认攻略2', '#图鉴', '#dps帮助', ''
   ]
-  push('认领：三个全局词（含省略 #）', yes.filter(m => C.isHelpCommand(m)), yes)
-  push('放行：非帮助入口', no.filter(m => C.isHelpCommand(m)), [])
+  push('认领：三个全局词（2026-10-27 起必须带 #）', yes.filter(m => C.isHelpCommand(m)), yes)
+  push('放行：非帮助入口（含省略 # 的裸词）', no.filter(m => C.isHelpCommand(m)), [])
   ok('COPYRIGHT 非空', typeof C.COPYRIGHT === 'string' && C.COPYRIGHT.length > 0)
 }
 

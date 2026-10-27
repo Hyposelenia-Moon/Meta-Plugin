@@ -17,7 +17,7 @@ const { check, finish } = checker()
  * 合并后正则**只有一处定义**（`components/constants.ts` 的 `RULES`，阶段 4.1 集中），
  * 各 app 通过 `reg: RULES.x` 引用它，所以这里直接取常量表，不再从 app 源码里抠字面量。
  */
-const { RULES } = await import(mod('components/constants.js'))
+const { RULES, isCodexCommand, isHelpCommand, isMetaHelpCommand, matchCommand } = await import(mod('components/constants.js'))
 
 const rankCmd = RULES.rank
 const raidTierCmd = RULES.raidTiers
@@ -69,5 +69,22 @@ check('帮助的小写前缀也认', helpCmd.test('#dps帮助'))
 check('省略 # 的裸 dps 不再认领（2026-10-27 修复误触发）',
   !rankCmd.test('dps') && !rankCmd.test('DPS 3金') && !rankCmd.test('dps是什么'))
 check('但 #dps / #DPS 仍认', rankCmd.test('#dps') && rankCmd.test('#DPS') && rankCmd.test('#dps 总榜'))
+
+// ---- 2026-10-27 用户定：全部命令统一强制 #（不再有"可省 #"的入口） ----
+check('所有命令的裸词形态都不被认领',
+  [
+    '攻略', '攻略帮助', '攻略说明', 'meta', 'Meta帮助',
+    '胡桃攻略', '胡桃指南', '危战 矮灵 n7', '危战 矮灵',
+    '练度查询 胡桃', '队伍伤害 胡桃 行秋 夜兰 钟离',
+    'meta状态', '榜单刷新', 'DPS帮助'
+  ].every(m => matchCommand(m) === null && !isCodexCommand(m) && !isHelpCommand(m) && !isMetaHelpCommand(m)))
+check('同一批命令带 # 后都能认领',
+  matchCommand('#危战 矮灵 n7')?.key === 'raidTiers' &&
+  matchCommand('#练度查询 胡桃')?.key === 'grade' &&
+  matchCommand('#队伍伤害 胡桃 行秋 夜兰 钟离')?.key === 'teamDamage' &&
+  matchCommand('#meta状态')?.key === 'status' &&
+  matchCommand('#榜单刷新')?.key === 'admin' &&
+  matchCommand('#DPS帮助')?.key === 'help' &&
+  isHelpCommand('#攻略') && isMetaHelpCommand('#meta') && isCodexCommand('#胡桃攻略'))
 
 finish()
