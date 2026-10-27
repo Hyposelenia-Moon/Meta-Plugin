@@ -9,8 +9,8 @@
  */
 import { findBoss, findCharacter } from '../model/CharacterIndex.js'
 
-/** 页码：第2页 / 2页 / p2 / -p2 */
-const PAGE_RE = /^(?:第)?(\d+)页$|^[pP](\d+)$|^-p(\d+)$/
+/** 页码：第2页 / 2页 / 页2 / p2 / -p2（`页2` 是帮助与命令文案里的写法，2026-10-27 补齐） */
+const PAGE_RE = /^(?:第)?(\d+)页$|^页(\d+)$|^[pP](\d+)$|^-p(\d+)$/
 /** 金数上限：金≤12 / ≤12 / 金12 / 12金 */
 const COST_MAX_RE = /^(?:金|成本)?\s*[≤<=]\s*(\d+)$|^(?:金|成本)(\d+)$|^(\d+)金$/
 /** 金数下限：金≥8 / ≥8 */
@@ -73,7 +73,7 @@ function pickNum (m: RegExpMatchArray, ...groups: number[]): number {
 export function parseCommon (token: string): CommonArgs | null {
   let m: RegExpMatchArray | null
   if ((m = token.match(PAGE_RE))) {
-    const page = Number(m[1] ?? m[2] ?? m[3])
+    const page = Number(m[1] ?? m[2] ?? m[3] ?? m[4])
     return Number.isFinite(page) ? { page } : null
   }
   if ((m = token.match(COST_RANGE_RE))) {

@@ -286,5 +286,55 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
   ok('评分器不引 miao / 不发网络（纯函数）', !/from '\.\.\/model\/MiaoProfile|http/.test(src))
 }
 
+// ---------- 7. 组合行混排：4 件套与 2+2 同列表（2026-10-27 复审 R1） ----------
+{
+  const targetsOf = (name) => {
+    const guide = store.getGuide(name)
+    const view2 = SV.buildCodexView(guide, { signature: store.getSignature(name), weaponTags: store.getWeaponTags() })
+    return G.extractTargets(view2, name, guide)
+  }
+  const nilou = targetsOf('妮露')
+  ok('妮露：`2生命 + 2生命` 合成一条组合、教官作为备选',
+    nilou.artifact.recommend.length === 2 &&
+    nilou.artifact.recommend.includes('2生命 + 2生命') &&
+    nilou.artifact.recommend.includes('教官'),
+    JSON.stringify(nilou.artifact.recommend))
+  const nilouPair = G.parseSetSpecs(nilou.artifact.recommend).find(s => s.kind === 'pair')
+  ok('妮露：组合被解析成 pair（两条 2 件套）',
+    !!nilouPair && nilouPair.sets.length === 2 && nilouPair.sets.every(s => /生命/.test(s)),
+    JSON.stringify(nilouPair))
+
+  const effectSets = (eff) => (eff === '生命' ? ['千岩牢固', '花海甘露之光', '追忆之注连'] : [])
+  const hpArtis = [
+    { slot: '生之花', set: '千岩牢固', mainName: '生命值' },
+    { slot: '死之羽', set: '千岩牢固', mainName: '攻击力' },
+    { slot: '时之沙', set: '花海甘露之光', mainName: '生命值' },
+    { slot: '空之杯', set: '花海甘露之光', mainName: '生命值' },
+    { slot: '理之冠', set: '战狂', mainName: '生命值' }
+  ]
+  const nilouBuild = {
+    charName: '妮露', level: 90, cons: 0,
+    weapon: { name: '圣显之钥', affix: 1 },
+    talent: { A: 1, E: 1, Q: 1 },
+    artis: hpArtis, artiMark: null,
+    attrs: { hp: 74400 }
+  }
+  const nr = G.gradeBuild(nilou, nilouBuild, { rule: G.normalizeGradeRule('support'), effectSets })
+  const ncomp = nr.dims.find(d => d.key === 'comprehensive')
+  ok('妮露：穿两套不同生命 2 件套 → 命中推荐组合（套装 1.0）',
+    /推荐 2\+2/.test(ncomp.detail), ncomp.detail)
+  ok('妮露：套装行判 ok', nr.rows.some(r => r.id === 'artifact:set' && r.verdict === 'ok'))
+
+  const eula = targetsOf('优菈')
+  ok('优菈：`苍白之火 / 2染血 + 2攻击` 拆成两个备选（4 件套 + 组合）',
+    eula.artifact.recommend.length === 2 &&
+    eula.artifact.recommend.includes('苍白之火') &&
+    eula.artifact.recommend.includes('2染血 + 2攻击'),
+    JSON.stringify(eula.artifact.recommend))
+  ok('优菈：可选行是两条 4 件套备选',
+    eula.artifact.optional.length === 2 && eula.artifact.optional.every(s => !s.includes('+')),
+    JSON.stringify(eula.artifact.optional))
+}
+
 const bad2 = report()
 process.exit(bad2 ? 1 : 0)

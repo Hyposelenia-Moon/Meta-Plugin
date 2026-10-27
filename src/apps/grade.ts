@@ -13,6 +13,7 @@ import { botRoot } from '../dir.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import { buildPresentation, deltaTextOf, setSummary } from '../components/presentation.js'
+import { gradeText } from '../modules/gradeText.js'
 import { extractTargets, gradeBuild, resolveGradeRule } from '../modules/grade.js'
 import { heroImageOf } from '../model/ProfileImgRes.js'
 import type { CompareRow, GradeResult } from '../modules/grade.js'
@@ -45,30 +46,6 @@ function badgeOf (label: string, ratio: number | null): { label: string, value: 
   if (ratio === null) return { label, value: '不计分', kind: 'off' }
   const pct = Math.round(ratio * 100)
   return { label, value: pct >= 100 ? '达标' : `${pct}%`, kind: pct >= 100 ? 'ok' : pct >= 60 ? 'warn' : 'off' }
-}
-
-/** 文本回退（同样三屏式：结论 → 差在哪 → 怎么做）；四态与图片同源 */
-export function gradeText (result: GradeResult, missRows: CompareRow[], okLine: string): string {
-  const dimText = (d: GradeResult['dims'][number]): string => {
-    if (d.state === 'unknown') return `${d.label} 未知`
-    if (d.state === 'unscored') return `${d.label} 不计分`
-    return `${d.label} ${Math.round((d.ratio || 0) * 100)}%`
-  }
-  const lines = [
-    result.assessable
-      ? `【${result.charName}】练度 ${result.rank}（${result.total} 分）`
-      : `【${result.charName}】练度：无法评估（关键数据未取到）`,
-    result.dims.map(dimText).join('｜'),
-    '',
-    '差在哪：'
-  ]
-  if (missRows.length) for (const r of missRows) lines.push(`  ${r.group} ${r.name}　${r.actual} → ${r.target}（${deltaTextOf(r)}）`)
-  else lines.push('  全部达标')
-  if (okLine) lines.push(`  已达标：${okLine}`)
-  lines.push('', '怎么做：')
-  result.suggestions.forEach((s, i) => lines.push(`  ${i + 1}. ${s}`))
-  if (result.notes.length) lines.push('', ...result.notes.map(n => `注：${n}`))
-  return lines.join('\n')
 }
 
 export class MetaGrade extends plugin {

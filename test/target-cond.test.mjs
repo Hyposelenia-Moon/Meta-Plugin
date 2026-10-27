@@ -166,5 +166,35 @@ const { CodexStore } = await load('model/CodexStore.js')
     `判不出 ${marks.判不出}、纯说明 ${marks.说明}、条件型面板目标 ${marks.面板条件}`)
 }
 
+// ---------- 5. 命座条件不满足：计分与证据行必须同时跳过（2026-10-27 复审 新 P2） ----------
+{
+  const { CodexStore } = await load('model/CodexStore.js')
+  const store = new CodexStore()
+  const guide = store.getGuide('行秋')
+  const SV = await load('modules/subViews.js')
+  const view = SV.buildCodexView(guide, { signature: store.getSignature('行秋'), weaponTags: store.getWeaponTags() })
+  const targets = G.extractTargets(view, '行秋', guide)
+  const rule = G.normalizeGradeRule('support')
+  const buildFor = (cons) => ({
+    charName: '行秋', level: 90, cons,
+    weapon: { name: '祭礼剑', affix: 1 },
+    talent: { A: 1, E: 1, Q: 10 },
+    artis: [], artiMark: null,
+    attrs: { cpct: 70, cdmg: 140, atk: 1600, recharge: 100 }
+  })
+  for (const cons of [0, 6]) {
+    const r = G.gradeBuild(targets, buildFor(cons), { rule, ruleName: 'support' })
+    const row = r.rows.find(x => x.id === 'panel:参考:recharge')
+    ok(`C${cons}：条件型面板行保留条件标注`, !!row && String(row.target).includes('满命'), String(row?.target))
+    if (cons === 0) {
+      ok('C0：命座不足的目标降级为参考行（verdict=info）', row?.verdict === 'info', String(row?.verdict))
+      ok('C0：不会出现该目标的未达标证据行',
+        !r.rows.some(x => String(x.id || '').startsWith('panel:') && x.verdict === 'warn'))
+    } else {
+      ok('C6：条件满足后正常参与判定（100% < 185% → warn）', row?.verdict === 'warn', String(row?.verdict))
+    }
+  }
+}
+
 const bad = report()
 process.exit(bad ? 1 : 0)

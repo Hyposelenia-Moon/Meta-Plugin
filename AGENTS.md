@@ -11,7 +11,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **源码**：`src/` → `tsc` → `lib/`（目录结构一致）。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
-- **常用命令**：`pnpm build`、`pnpm test`（57 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（58 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -92,10 +92,10 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 > 空图只有一句"没有查询到…"，看不出是哪个筛选把结果筛没了（当时 `#dps 七七 48金 视频1` 的 `视频1`
 > 被当成"标签"筛选，弹出一张莫名其妙的空图）。
 
-> **引用回复的原文不算参数**（2026-10-15 用户反馈后定）：用户引用机器人上一条回复时，那段文字会跟着进 `e.msg`
-> （现场：`#dps 七七` 引用了上一条视频回复 → 标签变成「满级 视频https://… 数据:…」→ 命中 0、回复与命令无关）。
-> 所以 `apps/rank.ts` / `apps/raidTiers.ts` **在解析参数前**先过 `modules/quoteGuard.ts` 的 `stripQuotedArgs()`
-> （走框架的 `e.reply_id` + `e.getReply()`，凡是与引用原文有包含关系的 token 一律丢掉；取不到就原样返回）。
+> **引用回复的原文不算参数**（2026-10-15 用户反馈后定；2026-10-27 复审收紧）：用户引用机器人上一条回复时，
+> 那段文字会跟着进 `e.msg`。`modules/quoteGuard.ts` 的 `stripQuotedArgs()` **只剔除可证明来自机器人**的引用
+> （以 `#` 开头的命令回显 / 命中输出指纹），普通文本引用一律保留 —— 不再按"≥12 字包含关系"删用户重打的参数。
+> 路由与危战档位另用 `isolatedText()`（切掉末尾的引用副本）后再解析，避免引用里的 `n6` 改掉用户的 `n7`。
 > 另：**隐式标签**（角色名之后的裸词）先与数据集核对（`rankQuery.effectiveTag()`）——真实标签照用、
 > 一个都不存在就整段忽略；**显式** `标签:X` 仍原样参与筛选（匹配不到就如实给 0 命中 + 写明标签）。
 > `parseRankArgs` 因此比合并前多一个 `tagExplicit` 键（偏差 B18，`test/mhydps-parity.test.mjs` 守着）。
@@ -161,6 +161,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
     **综合内部按 miao 规则派生**（读 `getArtisMark(true).charWeight`，按输出向权重占比自动选 `dps` / `subdps` / `support`；
     四分量 `mark` / `set` / `main` / `panel` 各自计分、各自达标下限；绑定优先级 = 配置覆盖 → 全局强制 → miao 规则 → 定位兜底；
     **本插件不再维护逐角色规则表**）。
+    **条件型目标（命座）三处同判**（2026-10-27 复审）：计分 / 证据行 / 建议统一走 `condSatisfied()`；命座不足的目标不参与计分、不生成未达标证据，只在参考区保留条件标注。**套装组合行**按 `sep` 解析：`/` 备选、`+` 组合（两个 `2` 前缀条目合成一条 pair，其余为备选）；**文本回退的「差在哪」**按维度状态写（below / unknown / 全部达标），不得只凭 rows 为空就宣称达标。
     **主C**：**综合 = 圣遗物有效词条为主**（miao 评分档位 ×0.8 + 套装符合度 ×0.2，走 miao 的评分规则）；**面板目标不计分、只作参考**（对比表 `参考` 组、`verdict: info`），毕业档按综合分判定、等级仍作门槛。旧配置写 `panel`+`artifact` 会自动相加折进 `comprehensive`（`getGradeWeights()`）。
    页面宽度与立绘行（2026-10-15 用户定：**照抄 miao，不许自己发挥**）：**立绘行已定稿 —— 保持 miao 同款，任何会话不得再改**（结构 / 尺寸 / 字号 / 层级 / 配色 / 图标 / 文字，一律不动；连"顺手优化"也不行，要改必须先问用户）。它现在的样子就是 miao `resources/character/profile-detail.{html,css}` 的逐条复制（只加 `gd-` 前缀、**数值一字不改**）：练度页整页 **600px**（= miao 面板 `body{width:600px}`），立绘行以下分区随 600px 自适应；`.basic`→`.gd-basic`、`.main-pic`(1400×500/`margin-left:-545px`)→`.gd-main-pic`、`.detail`(right/top 20px)→`.gd-detail`（内含 `.char-name`50px / `.char-lv` / `.char-talents` / `.char-attr`）、`.char-cons`(250px/bottom 5/left 20)→`.gd-char-cons`；面板 = `.char-attr li`（**300×32**、斑马行、五列 `.icon`26/`.title`75/`.weight`36/`.value`100/`.value2`70（白字基础值 + 绿字 `+加成`），图标精灵图 `character/imgs/icon.png` + `.i-*` 偏移；`.value`/`.value2` 的文本**直接调 miao 的 `Format.comma`/`Format.pct`**（照抄 `apps/profile/ProfileDetail.js:216-242`：`hp` 取整 + 千分位、其余 1 位小数，`phy > dmg` 时 `dmg` 行显示物伤），权重取 `getArtisMark(true).charWeight`），**只写属性名与数值**（不加目标、不加达标条）；天赋图标**照抄 `CharImg.getImgs()`**：`talentCons[key]>0` 用命座图标 `icons/cons-N.webp`，否则 `icons/talent-{key}.webp`；`level > original` 加 `talent-plus`（深底金字）、`original >= 10` 叠 `character/imgs/crown.png`（`top:0`）；图标圆环按元素（`<body>` 挂 `gd-elem-{elem}`，照抄 `common.css:208-266` 的 `common/bg/talent-{elem}.webp`），`.gd-talent-icon` **必须带 `z-index: 90`**，否则左下角命座行会被 `z-index:2` 的立绘盖住；命座行条目是 `.cons-item`（不参与 flex 均分）；命座徽章照抄 `.char-lv .cons` + `common/css/common.css` 的 `.cons`/`.cons-N`（0 `#666`/1 `#5cbac2`/2 `#339d61`/3 `#3e95b9`/4 `#3955b7`/5 `#531ba9cf`/6 `#ff5722`，白字）；立绘图**取图逻辑照抄 miao**（`src/model/ProfileImgRes.ts`；只读 miao 的配置与图库目录，**不写它的配置、也不复制图片**）：图库源 = `CharImg.getProfileImgSrc()`（`config/profile.js` → `config/system/profile_system.js` → `['profile']`，**第一个非空生效**，相对路径以 miao `resources` 为基准、绝对路径原样）→ 候选池 = `getProfileImgPool/Files()`（`super-character` 彩蛋层 / `normal-character` 普通层 **+ 平铺 `{源}/{角色}/`**，同层多源合并，只认 webp/png/jpg/jpeg）→ 选图 = `ProfileAvatar.getCostumeSplash()`（`#练度查询 胡桃 面板图N` 按 `{角色}_{序号}_…` 取第 N 张、彩蛋层优先，否则层内随机；彩蛋判据 = C6 / 圣遗物 ACE·MAX / 天赋原始等级 `101010`）→ 兜底 miao 自带 `imgs/splash0.webp`（彩蛋）·`splash.webp`；bot 内用 5 级相对前缀引用、跨盘走 `file://`。**不许**改成"复制到 out/"或另起一套源列表 → 结论（档位 + 三维条）→ **当前配装**（武器 → 套装 + miao 评分与有效词条数，不列单件与伤害；等级/命座与天赋都已在立绘行）→ 未达标项 → 提升建议 → **参考 DPS**（当前金数向下取 4 的倍数、步长 4、最多 3 档，每档取含该角色的最高伤害）→ 脚注**口径一行 + 版权，合计不超过 2 行**。套装只写 4 件套 / 2+2 / 2 件套，凑不出就写「散件」；圣遗物行右侧显示 `评分 246.4 ACE　词条数：42.4` —— 词条数只累加 miao `charWeight[key] > 0` 的有效词条 `eff`（**无效词条不计**；也不是数条目数，那是 20）。
    改这套口径必须同轮更新 `resources/dps/grade.html` 的口径行、`docs/功能与命令.md` 的「练度评分口径」与相关套件（`grade` / `grade-guide-targets` / `dps-template` / `portrait-gallery`）。
@@ -181,7 +182,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 56 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 58 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。

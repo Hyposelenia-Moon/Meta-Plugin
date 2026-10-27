@@ -189,7 +189,14 @@ const subRule = G.normalizeGradeRule('subdps')
   }
   const r = G.gradeBuild(xingqiu, build, { rule: subRule, ruleName: 'subdps' })
   const panelRows = r.rows.filter(x => String(x.id || '').startsWith('panel:'))
-  ok('副C：面板行计分（不再全是 info）', panelRows.length > 0 && panelRows.every(x => x.verdict !== 'info'), JSON.stringify(panelRows.map(x => x.verdict)))
+  // 2026-10-27 复审 新 P2：`元素充能效率：185%（满命）` 在 C0 下不适用 → 参考行（info），其余照常计分
+  const applicable = panelRows.filter(x => !String(x.target).includes('满命'))
+  const conditional = panelRows.filter(x => String(x.target).includes('满命'))
+  ok('副C：适用的面板行计分（不再全是 info）',
+    applicable.length > 0 && applicable.every(x => x.verdict !== 'info'),
+    JSON.stringify(panelRows.map(x => [x.target, x.verdict])))
+  ok('副C：命座不足的条件行降级为参考', conditional.length === 1 && conditional[0].verdict === 'info',
+    JSON.stringify(conditional.map(x => [x.target, x.verdict])))
   ok('副C：综合 detail 含词条与面板', /词条：/.test(r.dims.find(d => d.key === 'comprehensive').detail))
 }
 

@@ -61,22 +61,42 @@ export async function stripQuotedArgs (e: unknown, text: unknown): Promise<strin
     if (!quoted) return raw
     // 候选形态：原文、空白归一后的原文（适配器可能改写换行）
     /*
-     * 2026-10-18 复审 R3：只有**长到像一条消息**（≥12 字）的引用原文才允许整段剔除。
-     * 短文本（`胡桃12金` 这种 6 字参数）与用户重打/追加的筛选词无法区分，
-     * 按包含关系删掉就会把角色与金数一起吃掉（`胡桃 12金 绿玩` → 只剩 `绿玩`）。
+     * 2026-10-18 复审 R3 → 2026-10-27 复审 R3（收紧）：只有**可证明来自机器人**的引用才整段剔除 ——
+     *   ① 以 `#` 开头（用户引用了机器人发出的命令回显/命令文本）；
+     *   ② 命中我们的输出指纹（`looksLikeOurEcho`，见下方 ECHO_MARKERS）。
      *
-     * 2026-10-27：**以 `#` 开头的引用**（`#DPS 胡桃 12金`）本身就是一条命令，属于可证明的边界 ——
-     * 命令改名后这类引用只有 11 个字符，不够 12 字阈值，但绝不能当成"短参数"放过（否则整段进参数）。
+     * 旧实现还允许"≥12 字"的普通文本按包含关系剔除，实测会误删用户自己重打的参数：
+     * 引用 `胡桃 12金 主C 绿玩`（12 字）、自身发 `#DPS 胡桃 12金 主C 绿玩 页1`，
+     * 剔除后只剩 `页1` → 角色/金数全丢、掉成全库分档。普通文本没有来源边界，一律保留。
      */
     const isCommandEcho = (v: string): boolean => v.startsWith('#')
     const variants = [...new Set([quoted, squeeze(quoted)])]
-      .filter(v => v.length >= 12 || isCommandEcho(v) || looksLikeOurEcho(v))
+      .filter(v => isCommandEcho(v) || looksLikeOurEcho(v))
+    /** 只去掉**最后一次**出现（引用副本在末尾；全部替换会把用户自己重打的同段一起删掉） */
+    const removeLast = (text: string, v: string): string | null => {
+      const idx = text.lastIndexOf(v)
+      if (idx < 0) return null
+      return (text.slice(0, idx) + ' ' + text.slice(idx + v.length)).replace(/\s+/g, ' ').trim()
+    }
     let out = raw
     let hit = false
     for (const v of variants) {
-      if (out.includes(v)) {
-        out = out.split(v).join(' ')
-        hit = true
+      const next = removeLast(out, v)
+      if (next !== null) { out = next; hit = true; break }
+    }
+    /*
+     * 2026-10-27 复审 R3（兜底）：普通文本引用不做"包含即删"，但**同一段文本出现两次以上**时，
+     * 末尾那一份必然是引用副本（`e.msg` = 自身文本 + 引用原文）——只去掉这一份，参数原样保留。
+     * 只出现一次时无法证明来源，一律不删。
+     */
+    if (!hit) {
+      for (const v of [...new Set([quoted, squeeze(quoted)])]) {
+        if (!v) continue
+        const first = raw.indexOf(v)
+        const last = raw.lastIndexOf(v)
+        if (first < 0 || last <= first) continue
+        const next = removeLast(raw, v)
+        if (next) { out = next; hit = true; break }
       }
     }
     /*
@@ -87,6 +107,36 @@ export async function stripQuotedArgs (e: unknown, text: unknown): Promise<strin
     return stripped ? stripped : raw
   } catch {
     return raw
+  }
+}
+
+/**
+ * 隔离引用后的**命令全文**（给路由 / 档位这类"必须看用户原话"的解析用）
+ *
+ * 与 `stripQuotedArgs` 的分工：
+ *   - `stripQuotedArgs` 处理**参数**，只有可证明来源的引用才剔除（宁可保留，不误删）；
+ *   - 本函数处理**全文**：`e.msg` 的实测形态是"自身文本 + 引用原文"，把**最后一次出现**的那份引用切掉，
+ *     剩下的就是用户自己打的命令；如果切完为空（整条都是引用）则原样返回。
+ *
+ * 为什么是"最后一次"：用户重打同样的参数时，自身文本里也会出现同一段字；
+ * 引用正文在末尾，只有切最后一份才不会把自身的参数一起切掉。
+ */
+export async function isolatedText (e: unknown): Promise<string> {
+  const msg = String((e as { msg?: unknown } | null)?.msg || '')
+  const ev = e as { reply_id?: unknown, getReply?: () => Promise<unknown> } | null
+  if (!msg || !ev?.reply_id || typeof ev.getReply !== 'function') return msg
+  try {
+    const quoted = quotedText(await ev.getReply())
+    if (!quoted) return msg
+    for (const variant of [quoted, squeeze(quoted)]) {
+      const idx = msg.lastIndexOf(variant)
+      if (idx < 0) continue
+      const out = (msg.slice(0, idx) + ' ' + msg.slice(idx + variant.length)).replace(/\s+/g, ' ').trim()
+      if (out) return out
+    }
+    return msg
+  } catch {
+    return msg
   }
 }
 /**

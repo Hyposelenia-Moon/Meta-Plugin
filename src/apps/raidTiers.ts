@@ -18,7 +18,7 @@ import { parseRaidArgs, takeVideoToken } from '../modules/queryArgs.js'
 import { N7_SECONDS_LIMIT, queryRaidTiers } from '../modules/raidTiersQuery.js'
 import type { RaidTiersResult } from '../modules/raidTiersQuery.js'
 import { respond, suggestLine } from '../modules/respond.js'
-import { ownTextOf, resolveCommandArgs } from '../modules/quoteGuard.js'
+import { isolatedText, ownTextOf, resolveCommandArgs } from '../modules/quoteGuard.js'
 import { replyRaidVideo } from '../modules/videoLookup.js'
 
 // @ts-expect-error 框架文件不在 tsc 解析范围，运行时相对 lib/ 解析（见 components/render.ts 文件头 T1 / T2）
@@ -86,13 +86,16 @@ export class MetaRaidTiers extends plugin {
   async handleRaidTiers (e: YunzaiEvent): Promise<boolean> {
     if (await moduleGateReply('raidTiers', e)) return true
     /*
-     * 2026-10-18 复审 R4：档位与视频名次必须从**已隔离的命令全文**解析。
-     * 旧代码直接读 `e.msg`，而 `e.msg` 含引用正文 —— 用户引用「请用 n6」再发 `#危战 矮灵 n7` 时，
-     * 会被引用里的档位改成 n6。现在优先用用户自己打的文本（own），没有才退回 e.msg。
+     * 2026-10-18 复审 R4 / 2026-10-27 复审 R4：档位与视频名次必须从**已隔离的命令全文**解析。
+     * 旧代码直接读 `e.msg`（含引用正文）：引用「请用 n6」再发 `#危战 矮灵 n7` 会被改成 n6；
+     * 没有 message 段时更无法区分。现在：own 文本优先，其次 `isolatedText()`（切掉末尾的引用副本），
+     * 最后才退回 e.msg（框架已按它匹配到本规则）。
      */
     const ownMsg = ownTextOf(e).trim()
-    const source = ownMsg || String(e.msg)
-    const match = source.match(RULES.raidTiers) || []
+    const isolated = ownMsg || (await isolatedText(e))
+    const isolatedMatch = isolated.match(RULES.raidTiers)
+    // 兜底：隔离后仍匹配不到才退回 e.msg（框架已按它匹配到本规则；这里面可能带引用正文）
+    const match = isolatedMatch || String(e.msg).match(RULES.raidTiers) || []
     const tier = (match[2] || '') === '7' ? 'n7' : 'n6'
 
     /*
@@ -104,7 +107,12 @@ export class MetaRaidTiers extends plugin {
     // 参数来源：优先用用户自己打的文本（2026-10-17 复审修复 #2/#3，见 resolveCommandArgs）
     const resolved = await resolveCommandArgs(e, RULES.raidTiers)
     if (resolved.echo) return false
-    const clean = resolved.text
+    /*
+     * 没有 message 段时，`resolveCommandArgs` 对"带引用的 e.msg"可能把引用正文也当筛选词
+     * （例：`#危战 矮灵 n7` + 引用「请用 n6」→ 第 1 组变成 `矮灵 n7 请用`）。
+     * 只要能对隔离后的全文匹配上，就**以隔离结果为准**。
+     */
+    const clean = isolatedMatch ? String(isolatedMatch[1] || '') : resolved.text
     if (videoNo > 0) {
       // 视频名次走「榜单视频」模块开关（与 `#DPS … 视频N` 同一个开关）
       if (await moduleGateReply('video', e)) return true
@@ -155,13 +163,22 @@ export class MetaRaidTiers extends plugin {
     /*
      * 2026-10-18 复审 R4（prompt 路径）：净化后的命令里若**已经带了档位**，直接按档位出图，
      * 不要反过来提示"重新选档"（引用整条榜单后落到兜底规则时就是这样被吞掉档位的）。
+     *
+     * 2026-10-27 复审 R4：判断要用**隔离后的全文**（own 缺失时靠 `isolatedText()`），
+     * 否则"自身 `#危战 矮灵 n7` + 引用整条榜单"这条路径永远只会提示选档。
      */
     const own = ownTextOf(e).trim()
-    if (own && RULES.raidTiers.test(own)) return await this.handleRaidTiers(e)
+    const full = own || (await isolatedText(e)) || String(e.msg)
+    if (RULES.raidTiers.test(full)) return await this.handleRaidTiers(e)
 
     const resolved = await resolveCommandArgs(e, RULES.raidTiersPrompt)
     if (resolved.echo) return false
-    const clean = resolved.text
+    // 没有 message 段时，筛选词也要从隔离后的全文取（否则会混进引用正文）
+    let clean = resolved.text
+    if (!own) {
+      const hit = full.match(RULES.raidTiersPrompt)
+      if (hit) clean = hit[1]
+    }
     const { videoNo, rest } = takeVideoToken(clean)
     if (videoNo > 0) {
       if (await moduleGateReply('video', e)) return true
