@@ -33,7 +33,7 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
     const src = readText(path.join(pluginRoot, 'src', 'apps', 'grade.ts'))
     return /\^\\d\{9\}\$/.test(src) && src.includes('不写 UID')
   })())
-  const legacy = ['#DPS榜', '#meta状态', '#危战']
+  const legacy = ['#DPS', '#meta状态', '#危战']
   push('旧 `#DPS…` 命令不被新入口吞掉', legacy.filter(t => C.matchCommand(t)?.key === 'grade'), [])
   // 2026-10-17：阿卡莎功能移除，`#练度榜` 不再被任何入口认领
   push('已移除的 `#练度榜` 不再命中任何入口', ['#练度榜 胡桃', '#练度榜'].filter(t => C.matchCommand(t) !== null), [])

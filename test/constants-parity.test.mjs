@@ -71,9 +71,9 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
 /*
  * 偏差 B17（用户 2026-10-15 定，"指令大乱炖，全部重构"）：
  *   冻结面 `DPS_RULES` 的 8 条旧正则**整体废除**，命令面按功能重新命名 →
- *   `#DPS榜`(榜字可省) / `#危战 … n6|n7` / `#练度查询` / `#队伍伤害<N>` /
+ *   `#DPS`(榜字可省) / `#危战 … n6|n7` / `#练度查询` / `#队伍伤害<N>` /
  *   `#meta状态` / `#榜单刷新` / `#DPS帮助`。
- *   视频名次没有独立命令：它是 `#DPS榜 … 视频N` / `#危战 … n6|n7 视频N` 的**后缀**
+ *   视频名次没有独立命令：它是 `#DPS … 视频N` / `#危战 … n6|n7 视频N` 的**后缀**
  *   （用户 2026-10-15 定：原 `#视频` / `#危战视频` 前缀式**废除**）。
  *   2026-10-16 追加：`#配装 胡桃 [名次]` 并入 `#练度榜 <角色> [名次]`（用户选"直接删除、不做别名"）。
  *   2026-10-17 追加：**阿卡莎全部功能移除** → `#练度榜` 整条命令删除，本节由 9 条正则减为 8 条。
@@ -82,7 +82,7 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
 {
   const bad = []
   const must = {
-    rank: /^#(?:dps|DPS)(?:榜(?!视频))?(?!榜|视频|帮助|状态|更新|强制|刷新|练度|危战)\s*([\s\S]*)$/,
+    rank: /^#(?:dps|DPS)(?!榜|视频|帮助|状态|更新|强制|刷新|练度|危战)\s*([\s\S]*)$/,
     // 2026-10-17 复审修复：档位必须是独立词（`视频6` / `金:16` 的末位不再被当档位）
     raidTiers: /^#?危战\s+([\s\S]*?)\s*(?:(?<=\s|^)(?:n|N)?([67])(?:档)?)(?!\d)(?:\s*视频\s*(\d+))?\s*$/,
     raidTiersPrompt: /^#?危战\s+([\s\S]+)$/,
@@ -103,23 +103,23 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
   push('已移除的旧规则不再存在（akashaBuild / build）',
     ['akashaBuild', 'build'].filter(k => C.RULES?.[k] !== undefined), [])
 
-  // 旧名一条都不许复活（用户："旧写法一律废除"）
-  const dead = ['#DPS练度查询', '#DPS状态', '#DPS视频', '#DPS危战视频', '#DPS更新', '#DPS强制更新', '#DPS刷新', '#DPS危战榜', '#胡桃dps', '#DPS榜视频', '#视频 3', '#榜视频 3', '#危战视频 3', '#配装 胡桃 3', '#练度榜 胡桃', '#练度榜 胡桃 3']
+  // 旧名一条都不许复活（用户："旧写法一律废除"；2026-10-27 起 `#DPS榜` 也进废除清单）
+  const dead = ['#DPS练度查询', '#DPS状态', '#DPS视频', '#DPS危战视频', '#DPS更新', '#DPS强制更新', '#DPS刷新', '#DPS危战榜', '#胡桃dps', '#DPS榜', '#DPS榜视频', '#视频 3', '#榜视频 3', '#危战视频 3', '#配装 胡桃 3', '#练度榜 胡桃', '#练度榜 胡桃 3']
   push('旧命令名一个都匹配不到（已废除）', dead.filter(m => C.matchCommand(m) !== null), [])
 
-  // 只保留 `#DPS榜` / `#DPS` / `#DPS帮助` 三个 DPS 字样命令
-  push('保留的 DPS 字样命令：榜/省榜/帮助',
-    [C.matchCommand('#DPS榜')?.key, C.matchCommand('#DPS')?.key, C.matchCommand('#DPS帮助')?.key].join(','),
-    'rank,rank,help')
+  // 2026-10-27 用户定：命令名统一为 `#DPS`，不再接受 `榜` 后缀
+  push('`#DPS` 与 `#DPS帮助` 各归各家，`#DPS榜` 已废除',
+    [C.matchCommand('#DPS')?.key, C.matchCommand('#DPS帮助')?.key, C.matchCommand('#DPS榜')?.key].join(','),
+    'rank,help,')
 }
 
 // ---------- 5. 路由真值表（新命令面 + 与 miao 的边界） ----------
 {
   const rows = [
-    ['#DPS榜', 'rank', ''],
     ['#DPS', 'rank', ''],
+    ['#DPS 总榜', 'rank', '总榜'],
     ['#DPS 胡桃 12金', 'rank', '胡桃 12金'],
-    ['#DPS榜 刻晴 48金视频1', 'rank', '刻晴 48金视频1'],
+    ['#DPS 刻晴 48金视频1', 'rank', '刻晴 48金视频1'],
     ['#危战 矮灵 n7 视频3', 'raidTiers', '矮灵'],
     ['#危战 矮灵 视频3', 'raidTiersPrompt', '矮灵 视频3'],
     ['#危战 矮灵 n7', 'raidTiers', '矮灵'],
@@ -159,7 +159,7 @@ const snap = JSON.parse(fs.readFileSync(fixture, 'utf8'))
 {
   const codexish = ['#攻略', '#攻略帮助', '#攻略说明', '#胡桃攻略', '#胡桃攻略2', '#攻略 胡桃 武器', '#攻略列表', '#攻略状态', '#设置默认攻略2']
   push('攻略类命令不会被 #DPS… 路由吞掉', codexish.filter(m => C.matchCommand(m) !== null), [])
-  const dpsish = ['#DPS榜', '#危战 矮灵 n7', '#meta状态', '#DPS帮助', '#练度查询 胡桃', '#榜单刷新']
+  const dpsish = ['#DPS', '#危战 矮灵 n7', '#meta状态', '#DPS帮助', '#练度查询 胡桃', '#榜单刷新']
   push('攻略判定（isCodexCommand/isHelpCommand）不认领 #DPS… 命令',
     dpsish.filter(m => C.isCodexCommand(m) || C.isHelpCommand(m)), [])
 }

@@ -2,8 +2,8 @@
  * queryArgs — 命令参数解析（合并自 `Mhydps-Plugin/modules/queryArgs.js`，行为逐字等价）
  *
  * 两种写法都支持，方便群友随手打：
- *   显式键值：`#DPS榜 角色:胡桃 金:12 标签:宏 页:2 绿玩 主C`
- *   位置简写：`#DPS榜 胡桃 12金 宏 -p2`
+ *   显式键值：`#DPS 角色:胡桃 金:12 标签:宏 页:2 绿玩 主C`
+ *   位置简写：`#DPS 胡桃 12金 宏 -p2`
  * 解析只做语法层的事（哪个 token 是什么），角色名/首领名的合法性由查询层校验
  * （唯一例外：位置简写里要靠 `findCharacter` / `findBoss` 判断"这个 token 像不像角色/首领"）。
  */
@@ -29,7 +29,7 @@ export interface CommonArgs {
   mainOnly?: boolean
 }
 
-/** DPS 榜参数 */
+/** DPS参数 */
 export interface RankArgs {
   char: string
   /** 总榜模式（`总榜`）：不按金档分组，直接按伤害平铺（2026-10-27） */
@@ -100,7 +100,7 @@ function tokenize (text: unknown): string[] {
 }
 
 /**
- * 解析 DPS 榜参数
+ * 解析 DPS参数
  *
  * @param text 去掉命令前缀后的参数部分
  */
@@ -136,7 +136,7 @@ export function parseRankArgs (text: unknown): RankArgs {
       continue
     }
 
-    // 总榜模式（2026-10-27）：`#DPS榜 总榜` / `#DPS榜 总榜 12金` / `#DPS榜 总榜 胡桃`
+    // 总榜模式（2026-10-27）：`#DPS 总榜` / `#DPS 总榜 12金` / `#DPS 总榜 胡桃`
     if (/^(?:总榜|全部榜单)$/.test(token)) {
       args.all = true
       continue

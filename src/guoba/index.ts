@@ -115,13 +115,13 @@ export function supportGuoba (): Record<string, unknown> {
   return {
     pluginInfo: {
       name: 'Meta-Plugin',
-      title: '原神攻略 · 榜单练度',
+      title: '原神攻略 · 排行练度',
       author: '@Hyposelenia',
       authorLink: 'https://github.com/Hyposelenia-Moon',
       link: 'https://github.com/Hyposelenia-Moon/Meta-Plugin',
       isV3: true,
       isV2: false,
-      description: '原神角色攻略（六模块一图）+ DPS / 危战榜单 + 练度查询（9 个模块可逐项开关）',
+      description: '原神角色攻略（六模块一图）+ DPS / 危战 + 练度查询（9 个模块可逐项开关）',
       icon: 'mdi:book-open-variant',
       iconColor: '#4a9eff'
     },
@@ -177,7 +177,7 @@ export function supportGuoba (): Record<string, unknown> {
         {
           field: 'networkEnabled',
           label: '启用业务查询联网',
-          helpMessage: '关闭后 DPS 榜 / 危战 / 练度等**查询类**远程请求一律不发（攻略查询完全离线可用）',
+          helpMessage: '关闭后 DPS / 危战 / 练度等**查询类**远程请求一律不发（攻略查询完全离线可用）',
           bottomHelpMessage: '默认关闭。⚠ 只管辖查询类远程访问，不是整个插件的全局联网禁令：别名服务、可选插件探测、依赖安装等不受它影响',
           component: 'Switch',
           required: true,
@@ -185,7 +185,7 @@ export function supportGuoba (): Record<string, unknown> {
         },
 
         // ==================== 数据源一 · mhydps.cn ====================
-        { label: '数据源一 · mhydps.cn（DPS榜 / 危战榜）', component: 'SOFT_GROUP_BEGIN' },
+        { label: '数据源一 · mhydps.cn（DPS / 危战）', component: 'SOFT_GROUP_BEGIN' },
         {
           field: 'proxy',
           label: '请求代理',
@@ -216,7 +216,7 @@ export function supportGuoba (): Record<string, unknown> {
         {
           field: 'dpsPageSize',
           label: '每页条数',
-          helpMessage: '榜单成图每页展示的记录数',
+          helpMessage: '排行成图每页展示的记录数',
           bottomHelpMessage: '默认 10，上限 20（条数过多会让图片过长）',
           component: 'InputNumber',
           required: true,
@@ -225,7 +225,7 @@ export function supportGuoba (): Record<string, unknown> {
         {
           field: 'dpsAvatarEnabled',
           label: '缓存角色立绘',
-          helpMessage: '是否下载并缓存榜单角色立绘',
+          helpMessage: '是否下载并缓存排行角色立绘',
           bottomHelpMessage: '默认开启。关闭后成图里以角色名文字占位（不再请求站点图片）',
           component: 'Switch',
           required: true,

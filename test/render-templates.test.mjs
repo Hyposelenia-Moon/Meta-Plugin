@@ -114,7 +114,7 @@ const now = Date.now()
 // ---- rank ----
 const rankData = {
   siteName: SITE_NAME,
-  title: '#DPS榜',
+  title: '#DPS',
   subtitle: '玛薇卡 · 按期望DPS降序',
   fetchedAt: formatTime(now),
   total: teams.length,
@@ -203,7 +203,7 @@ const help = await renderOnce('help', helpData, 'test-help')
 check('help 出图成功', Boolean(help.img), help.err)
 if (help.html) {
   checkRefs(help.html, path.dirname(path.join(appRoot, 'temp', 'html', 'Mhydps-Plugin', 'dps', 'help', 'x.html')), 'help', /(?:href|src)="([^"]+)"/g)
-  check('help：渲染了指令条目', help.html.includes('#DPS榜') && help.html.includes('#危战') && help.html.includes('#练度查询'))
+  check('help：渲染了指令条目', help.html.includes('#DPS') && help.html.includes('#危战') && help.html.includes('#练度查询'))
   check('help：分组标题条数量与配置一致', (help.html.match(/class="help-group"/g) || []).length === helpList.length, `${helpList.length} 组`)
   check('help：使用三列网格', help.html.includes('class="help-grid"') || help.html.includes('help-grid cols-'))
   check('help：条目含命令与说明', help.html.includes('entry-cmd') && help.html.includes('entry-desc'))

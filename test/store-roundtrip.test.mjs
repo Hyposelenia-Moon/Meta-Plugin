@@ -2,7 +2,7 @@
  * 榜单缓存的磁盘往返（2026-10-15 审核 P2 #8）
  *
  * 审核点：刷新写入的是归一化字段 `video`，启动加载再归一化时却只读 `video_url`
- * → 重启后视频链接变空串（DPS 榜与危战榜都受影响）。
+ * → 重启后视频链接变空串（DPS与危战榜都受影响）。
  *
  * 这里用仓库里两份真实 fixture 做**二次归一化往返**：API 形状 → 归一化（写盘形状）
  * → 再归一化（启动加载）→ 逐字段比较完整业务记录（视频、成员、伤害、耗时…）。
@@ -28,20 +28,20 @@ const diffOf = (a, b) => {
   return out
 }
 
-// ---------- DPS 榜 ----------
+// ---------- DPS ----------
 {
   const api = read('dps-cache-teams.json')
   const first = TS.normalizeTeams(api)                 // 刷新：API 形状 → 写盘形状
   const second = TS.normalizeTeams(first)              // 启动加载：写盘形状 → 再归一化
-  ok('DPS 榜：两次归一化记录数一致', first.length === second.length && first.length > 100, `${first.length} / ${second.length}`)
+  ok('DPS：两次归一化记录数一致', first.length === second.length && first.length > 100, `${first.length} / ${second.length}`)
   const d = diffOf(first, second)
-  ok('DPS 榜：完整记录往返一致（含视频与成员）', d.length === 0, d.slice(0, 2).join(' | '))
+  ok('DPS：完整记录往返一致（含视频与成员）', d.length === 0, d.slice(0, 2).join(' | '))
   const withVideo = first.filter(t => t.video)
-  ok('DPS 榜：往返后视频链接不丢', withVideo.length > 0 && withVideo.every(t => second.find(s => s.id === t.id)?.video === t.video), `${withVideo.length} 条带视频`)
+  ok('DPS：往返后视频链接不丢', withVideo.length > 0 && withVideo.every(t => second.find(s => s.id === t.id)?.video === t.video), `${withVideo.length} 条带视频`)
   // 用聚合计数比较（fixture 里 id 可能重复，逐条 find 不可靠）；完整性已由上面的全字段比较覆盖
   const sumMembers = (list) => list.reduce((n, t) => n + (Array.isArray(t.members) ? t.members.length : 0), 0)
   const m1 = sumMembers(first); const m2 = sumMembers(second)
-  ok('DPS 榜：成员字段往返不丢（聚合计数一致且非零）', m1 > 0 && m1 === m2, `${m1} / ${m2}`)}
+  ok('DPS：成员字段往返不丢（聚合计数一致且非零）', m1 > 0 && m1 === m2, `${m1} / ${m2}`)}
 
 // ---------- 危战榜 ----------
 {

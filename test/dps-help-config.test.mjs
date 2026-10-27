@@ -45,7 +45,7 @@ for (const name of pageNames) {
   const items = meta.list.flatMap(g => g.list || [])
   ok('主菜单条数克制（≤12 条）', items.length <= 12, String(items.length))
   ok('主菜单含攻略 / 练度 / 伤害 / 榜单四类常用入口',
-    ['#胡桃攻略', '#练度查询 胡桃', '#DPS榜 胡桃', '#DPS榜'].every(t => items.some(i => i.title === t)),
+    ['#胡桃攻略', '#练度查询 胡桃', '#DPS 胡桃', '#DPS'].every(t => items.some(i => i.title === t)),
     items.map(i => i.title).join(' | '))
   ok('主菜单指向两个分菜单', items.some(i => i.title === '#攻略帮助') && items.some(i => i.title === '#DPS帮助'))
   ok('总菜单含「数据与维护」，分菜单不再重复承载',
@@ -58,8 +58,8 @@ for (const name of pageNames) {
 {
   const all = pageNames.flatMap(n => (pages[n]?.list || []).flatMap(g => g.list || []))
   const combined = all.map(i => `${i.title} ${i.desc}`)
-  const need = ['#胡桃攻略', '#练度查询 胡桃', '#DPS榜 胡桃', '#危战',
-    '#队伍伤害 四人名', '+30暴击', '#DPS榜', '视频1', '视频3',
+  const need = ['#胡桃攻略', '#练度查询 胡桃', '#DPS 胡桃', '#危战',
+    '#队伍伤害 四人名', '+30暴击', '#DPS', '视频1', '视频3',
     '#攻略状态', '#meta状态', '#榜单刷新']
   push('三页并集覆盖全部入口（含默认轴与免前缀词条）', need.filter(k => !combined.some(t => t.includes(k))), [])
   ok('已移除的攻略写法没被写回帮助页',

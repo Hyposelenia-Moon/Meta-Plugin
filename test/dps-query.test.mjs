@@ -56,8 +56,8 @@ const raids = TS.normalizeTeams2(fixture('teams2.sample.json'))
   a = QA.parseRankArgs('角色:胡桃 金:12 标签:宏 页:5 绿玩 主C')
   ok('显式键值全字段', a.char === '胡桃' && a.costMax === 12 && a.tag === '宏' && a.page === 5 && a.cleanOnly && a.mainOnly)
   ok('全角冒号可解析', QA.parseRankArgs('角色：胡桃').char === '胡桃')
-  a = QA.parseRankArgs('DPS榜')
-  ok('未知 token 进 unknown', a.char === '' && a.unknown.includes('DPS榜'))
+  a = QA.parseRankArgs('DPS')
+  ok('未知 token 进 unknown', a.char === '' && a.unknown.includes('DPS'))
 
   let r = QA.parseRaidArgs('7.1')
   ok('版本号识别', r.ver === '7.1' && r.char === '')
@@ -77,7 +77,7 @@ const raids = TS.normalizeTeams2(fixture('teams2.sample.json'))
   ok('takeRankNo 无数字时名次为 0', QA.takeRankNo('胡桃').rankNo === 0)
 }
 
-// ---------- 2. DPS 榜筛选与排序（照抄 rank-filter.test.mjs） ----------
+// ---------- 2. DPS筛选与排序（照抄 rank-filter.test.mjs） ----------
 {
   ok('样例已归一化', teams.length === 6)
   ok('金数恒等式成立', teams.every(t => t.limitcost + t.normalcost === t.cost))
@@ -231,7 +231,7 @@ const raids = TS.normalizeTeams2(fixture('teams2.sample.json'))
     stale: false
   }
   const rk = FT.rankText(rankResult)
-  ok('榜单文本含标题与摘要', rk.includes('#DPS榜') && rk.includes('玛薇卡 · 按期望DPS降序'))
+  ok('榜单文本含标题与摘要', rk.includes('#DPS') && rk.includes('玛薇卡 · 按期望DPS降序'))
   ok('榜单文本含分页与总数', rk.includes('共 1 条') && rk.includes('第 2/3 页'))
   ok('榜单文本含名次', rk.includes('#11'))
   ok('榜单文本含伤害与金数', rk.includes('323.0 万') && rk.includes('48金') && rk.includes('限46/常2'))

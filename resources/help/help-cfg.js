@@ -30,12 +30,12 @@ const metaRole = {
 }
 
 const metaDamage = {
-  group: '伤害与榜单',
+  group: '伤害与排行',
   list: [
-    { title: '#DPS榜 胡桃', desc: '该角色各金档最高伤害队伍' },
+    { title: '#DPS 胡桃', desc: '该角色各金档最高伤害队伍' },
     { title: '#危战 矮灵 n7', desc: '危战成绩：须指定 n7 速通档或 n6 险胜档' },
     { title: '#队伍伤害 四人名', desc: '整队关键伤害 + 参考 DPS（可加词条）' },
-    { title: '#DPS榜', desc: '全库各金档最高伤害队伍' }
+    { title: '#DPS', desc: '全库各金档最高伤害队伍' }
   ]
 }
 
@@ -44,7 +44,7 @@ const metaStatus = {
   list: [
     { title: '#攻略状态', desc: '数据版本、收录数与缓存情况' },
     { title: '#meta状态', desc: '缓存、联网与已关闭模块' },
-    { title: '#榜单刷新', desc: '立即刷新榜单缓存（仅主人）' }
+    { title: '#榜单刷新', desc: '立即重新抓取数据（仅主人）' }
   ]
 }
 
@@ -52,7 +52,7 @@ const metaMore = {
   group: '进阶与帮助',
   list: [
     { title: '#攻略帮助', desc: '攻略与练度的完整写法' },
-    { title: '#DPS帮助', desc: '伤害与榜单的完整写法' },
+    { title: '#DPS帮助', desc: '伤害与排行的完整写法' },
   ]
 }
 
@@ -96,20 +96,20 @@ export const guideList = [guideCore, guideGrade, guideData]
 /* ================= 分菜单②（#DPS帮助） ================= */
 
 /*
- * 2026-10-27 用户定：按**功能**分组（配队榜单 / 危战 / 队伍伤害），每组两列；
+ * 2026-10-27 用户定：按**功能**分组（配队排行 / 危战 / 队伍伤害），每组两列；
  * 每条只讲一种写法，不再把「筛选」「视频」混在伤害组里，也不重复列同一个命令。
  */
 const dpsBoard = {
-  group: '配队榜单',
+  group: '配队排行',
   cols: 2,
   list: [
-    { title: '#DPS榜 胡桃', desc: '该角色各金档最高伤害队伍' },
-    { title: '#DPS榜', desc: '全库各金档最高伤害队伍' },
-    { title: '#DPS榜 总榜', desc: '全库按伤害排序的总榜，可页N' },
-    { title: '#DPS榜 12金', desc: '≤12 金的榜单，最多 10 条' },
-    { title: '#DPS榜 9-12金', desc: '指定金数区间（含两端）' },
-    { title: '#DPS榜 胡桃 12金', desc: '该角色在 ≤12 金内的榜单' },
-    { title: '#DPS榜 … 视频1', desc: '取当前筛选第 1 名的视频' }
+    { title: '#DPS 胡桃', desc: '该角色各金档最高伤害队伍' },
+    { title: '#DPS', desc: '全库各金档最高伤害队伍' },
+    { title: '#DPS 总榜', desc: '全库按伤害排序、可页N' },
+    { title: '#DPS 12金', desc: '≤12 金的前 10 条' },
+    { title: '#DPS 9-12金', desc: '指定金数区间（含两端）' },
+    { title: '#DPS 胡桃 12金', desc: '该角色在 ≤12 金内的前 10 条' },
+    { title: '#DPS … 视频1', desc: '取当前筛选第 1 名的视频' }
   ]
 }
 
@@ -134,7 +134,7 @@ const dpsTeam = {
 
 export const dpsCfg = {
   title: '#DPS帮助',
-  subTitle: '配队榜单 · 危战 · 队伍伤害'
+  subTitle: '配队排行 · 危战 · 队伍伤害'
 }
 export const dpsList = [dpsBoard, dpsRaid, dpsTeam]
 

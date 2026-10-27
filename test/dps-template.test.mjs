@@ -233,7 +233,7 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
       renderScale: 1.5
     }
     const cases = [
-      ['rank', { ...base, title: '#DPS榜', subtitle: '玛薇卡 · 按期望DPS降序', total: rows.length, page: 1, totalPages: 1, pageSize: 10, rows }],
+      ['rank', { ...base, title: '#DPS', subtitle: '玛薇卡 · 按期望DPS降序', total: rows.length, page: 1, totalPages: 1, pageSize: 10, rows }],
       ['raid', { ...base, title: '#危战', subtitle: '版本 7.1 · 按金数升序', total: raidRows.length, page: 1, totalPages: 1, rows: raidRows }],
       ['status', {
         ...base,

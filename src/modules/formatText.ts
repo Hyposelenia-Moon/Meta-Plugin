@@ -33,7 +33,7 @@ export interface ViewRow {
    *    P1 的文本回退也要用 `constellation`，故补全为 `MemberView`。
    */
   chars: MemberView[]
-  /** DPS 榜专有：期望 DPS 原始值（展示用 `damageText`） */
+  /** DPS专有：期望 DPS 原始值（展示用 `damageText`） */
   damage?: number
   damageText?: string
   /** 危战榜专有：耗时秒数（展示用 `speedText`） */
@@ -100,7 +100,7 @@ function badgeLine (row: ViewRow): string {
  */
 export function entryText (result: EntryResult, kind: 'rank' | 'raid' = 'rank'): string {
   const row = result.row
-  const title = kind === 'raid' ? '#危战' : '#DPS榜'
+  const title = kind === 'raid' ? '#危战' : '#DPS'
   const lines = [`${title} 第 ${result.rank} 名（当前条件下共 ${result.total} 条）`]
 
   if (kind === 'raid') {
@@ -119,8 +119,8 @@ export function entryText (result: EntryResult, kind: 'rank' | 'raid' = 'rank'):
   return lines.join('\n')
 }
 
-/** DPS 榜文本版 */
-export function rankText (result: ViewResult, title = '#DPS榜'): string {
+/** DPS文本版 */
+export function rankText (result: ViewResult, title = '#DPS'): string {
   const lines = [
     `${title}${result.subtitle ? `｜${result.subtitle}` : ''}`,
     `共 ${result.total} 条 · 第 ${result.page}/${result.totalPages} 页`,

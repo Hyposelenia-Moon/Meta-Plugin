@@ -44,7 +44,7 @@ const rankResult = {
 }
 
 const rk = rankText(rankResult)
-check('榜单文本含标题与摘要', rk.includes('#DPS榜') && rk.includes('玛薇卡 · 按期望DPS降序'))
+check('榜单文本含标题与摘要', rk.includes('#DPS') && rk.includes('玛薇卡 · 按期望DPS降序'))
 check('榜单文本含分页与总数', rk.includes('共 1 条') && rk.includes('第 2/3 页'))
 check('榜单文本含名次', rk.includes('#11'))
 check('榜单文本含伤害与金数', rk.includes('323.0 万') && rk.includes('48金') && rk.includes('限46/常2'))

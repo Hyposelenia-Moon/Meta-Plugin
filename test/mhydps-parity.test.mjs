@@ -7,7 +7,7 @@
  *   - 比的是「与合并前**逐字一致**」，不是「与我手写的期望一致」；
  *   - 旧仓库删除后本套件依然有效。
  *
- * 覆盖：DPS 榜查询（rows/分页/副标题/成员与命座/徽章/视频）→ 危战榜查询 → 文本回退 →
+ * 覆盖：DPS查询（rows/分页/副标题/成员与命座/徽章/视频）→ 危战榜查询 → 文本回退 →
  * 单条视频文本 → 三个参数解析函数（`parseBuildArgs` 随阿卡莎功能移除于 2026-10-17）。头像路径依赖本地缓存文件，两份都为空 → 不参与比对。
  */
 import fs from 'node:fs'
@@ -85,13 +85,13 @@ const strip = (r) => {
   return blankVideo(rest)
 }
 
-// ---------- 1. DPS 榜查询 ----------
+// ---------- 1. DPS查询 ----------
 {
   const mine = []
   for (const q of snap.cases.rank) {
     mine.push({ q, opt: { downloadAvatars: false }, r: strip(await RQ.queryRank(q, { downloadAvatars: false, sort: q.sort })) })
   }
-  push(`DPS 榜查询（${snap.cases.rank.length} 个查询）与合并前逐字一致`,
+  push(`DPS查询（${snap.cases.rank.length} 个查询）与合并前逐字一致`,
     mine.filter((m, i) => JSON.stringify(m) !== JSON.stringify(snap.rank[i])).map((m, i) => JSON.stringify(m.q)), [])
 }
 
@@ -107,10 +107,15 @@ const strip = (r) => {
 
 // ---------- 3. 文本回退 ----------
 {
-  const texts = snap.rank.filter(c => c.r.ok).map(c => FT.rankText(c.r, '#DPS榜'))
+  /*
+   * 偏差 B20（用户 2026-10-27）：命令名由 `#DPS榜` 统一为 `#DPS` —— 文本标题随之变化，
+   * 属**明确改名**而非行为回归。比对时把快照里的旧标题归一为新标题，其余字符仍逐字一致。
+   */
+  const normalizeLegacy = (text) => String(text).split('#DPS榜').join('#DPS')
+  const texts = snap.rank.filter(c => c.r.ok).map(c => FT.rankText(c.r, '#DPS'))
     .concat(snap.raid.filter(c => c.r.ok).map(c => FT.raidText(c.r, '#危战')))
-  push(`文本回退（${texts.length} 段）与合并前逐字一致`,
-    texts.filter((t, i) => t !== snap.text[i]).map((_, i) => i), [])
+  push(`文本回退（${texts.length} 段）与合并前逐字一致（旧标题按 B20 归一）`,
+    texts.filter((t, i) => t !== normalizeLegacy(snap.text[i])).map((_, i) => i), [])
 }
 
 // ---------- 4. 单条视频文本 ----------
@@ -121,7 +126,7 @@ const strip = (r) => {
     const t = FT.entryText({ row: first.r.rows[2], rank: 3, total: first.r.total, fetchedAt: first.r.fetchedAt }, 'rank')
     const raidEntry = snap.raid.find(c => c.r.ok && c.r.rows?.length > 0)
     const rt = FT.entryText({ row: raidEntry.r.rows[0], rank: 1, total: raidEntry.r.total, fetchedAt: raidEntry.r.fetchedAt }, 'raid')
-    ok('单条视频文本（DPS 榜第 3 名）逐字一致', t.includes('第 3 名') && snap.rank.length > 0)
+    ok('单条视频文本（DPS第 3 名）逐字一致', t.includes('第 3 名') && snap.rank.length > 0)
     ok('单条视频文本在两边都含视频或兜底文案', /视频：/.test(t) && /视频：/.test(rt))
   }
 }

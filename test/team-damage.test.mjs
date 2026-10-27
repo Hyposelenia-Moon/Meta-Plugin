@@ -92,7 +92,7 @@ const fixture = JSON.parse(readText(path.join(pluginRoot, 'test', 'fixtures', 'd
   const pl = TD.parseTeamArgs('胡桃 行秋 夜兰 钟离 轴:重击×8 词条:暴击+20')
   ok('旧写法被识别为 legacy（给改用提示，不当角色名）', pl.legacyTokens.length === 2 && pl.names.length === 4)
 
-  const legacy = ['#DPS榜', '#meta状态', '#危战 7.1', '#练度查询 胡桃', '#危战']
+  const legacy = ['#DPS', '#meta状态', '#危战 7.1', '#练度查询 胡桃', '#危战']
   push('不吞其它入口', legacy.filter(t => C.matchCommand(t)?.key === 'teamDamage'), [])
   ok('COMMANDS 登记了 teamDamage', C.COMMANDS.some(c => c.rules.includes('teamDamage')))
 

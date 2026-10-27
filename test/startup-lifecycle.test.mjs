@@ -23,7 +23,7 @@ const log = {
 // ---- 有缓存 ----
 let ret = initStore({ load: () => ({ teams: 1394, teams2: 594, fetchedAt: Date.now() }), log })
 check('返回载入结果', ret.loaded === true && ret.teams === 1394 && ret.teams2 === 594)
-check('打印条数', messages.some(m => m.includes('DPS榜 1394 条') && m.includes('危战榜 594 条')), messages.join(' | '))
+check('打印条数', messages.some(m => m.includes('DPS 1394 条') && m.includes('危战榜 594 条')), messages.join(' | '))
 
 // ---- 无缓存 ----
 messages.length = 0

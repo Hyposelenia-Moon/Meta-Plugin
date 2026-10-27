@@ -35,11 +35,11 @@ export type ModuleKey = (typeof MODULE_KEYS)[number]
 export const MODULE_LABELS: Record<ModuleKey, string> = {
   codex: '角色攻略',
   help: '帮助页',
-  rank: 'DPS 榜',
+  rank: 'DPS 排行',
   raidTiers: '危战分档',
   grade: '练度提升指南',
   teamDamage: '队伍伤害',
-  video: '榜单视频',
+  video: '视频名次',
   status: '状态页',
   admin: '榜单刷新'
 }
@@ -64,7 +64,7 @@ export interface MetaConfig {
   /**
    * 业务查询联网开关（**不是**整个插件的全局联网禁令）
    *
-   * 只管辖 DPS 榜 / 危战 / 练度等**查询类**远程访问与刷新（mhydps / miao 面板 / 队伍 /
+   * 只管辖 DPS / 危战 / 练度等**查询类**远程访问与刷新（mhydps / miao 面板 / 队伍 /
    * 榜单头像下载）；别名服务、可选插件探测、依赖安装等其他网络操作不受它限制（阿修 2026-10-15 口径）。
    */
   networkEnabled: boolean
@@ -225,7 +225,7 @@ export function moduleOffText (key: ModuleKey): string {
 /**
  * 业务查询是否允许远程访问/刷新（查询联网层，阿修 2026-10-15 定义）
  *
- * ⚠ 只管 DPS 榜 / 危战 / 练度等**查询类**远程请求；**不是**整个插件的全局联网禁令 ——
+ * ⚠ 只管 DPS / 危战 / 练度等**查询类**远程请求；**不是**整个插件的全局联网禁令 ——
  *   别名服务、可选插件探测、依赖安装等其他网络操作不受它限制。
  */
 export function isQueryNetworkEnabled (): boolean {

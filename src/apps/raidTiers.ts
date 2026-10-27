@@ -106,7 +106,7 @@ export class MetaRaidTiers extends plugin {
     if (resolved.echo) return false
     const clean = resolved.text
     if (videoNo > 0) {
-      // 视频名次走「榜单视频」模块开关（与 `#DPS榜 … 视频N` 同一个开关）
+      // 视频名次走「榜单视频」模块开关（与 `#DPS … 视频N` 同一个开关）
       if (await moduleGateReply('video', e)) return true
       return await replyRaidVideo(e, clean, videoNo)
     }

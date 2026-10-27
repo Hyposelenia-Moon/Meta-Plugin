@@ -129,7 +129,7 @@ export class MetaTeamDamage extends plugin {
       return true
     }
 
-    // 同阵容参考：用榜单缓存（与 `#DPS榜` 同一份；联网开关与代理同口径）
+    // 同阵容参考：用榜单缓存（与 `#DPS` 同一份；联网开关与代理同口径）
     let teams: unknown[] = []
     try {
       const { ensureFresh, getSnapshot } = await import('../model/TeamStore.js')

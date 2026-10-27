@@ -60,12 +60,12 @@ const { queryCharDps, PER_TIER_LOW, PER_TIER_MID, PER_TIER_HIGH, COST_STEP, MERG
   push('最坏行数（各档都满）= 41 行，比旧口径 44 行更矮', [0, 1, 2, 3, 4, 5, 6, 7].reduce((s, b) => s + perTierOf(b), 0), 41)
 }
 
-// ---------- 1. 路由（2026-10-15 合并：`#DPS榜 胡桃` 即角色档位视图） ----------
+// ---------- 1. 路由（2026-10-15 合并：`#DPS 胡桃` 即角色档位视图） ----------
 {
-  ok('`#DPS榜 胡桃` 命中榜单入口（app 内分派到角色档位视图）', C.matchCommand('#DPS榜 胡桃')?.key === 'rank')
-  ok('`#DPS榜 胡桃 12金` 参数进捕获组', C.matchCommand('#DPS榜 胡桃 12金')?.match[1] === '胡桃 12金')
+  ok('`#DPS 胡桃` 命中榜单入口（app 内分派到角色档位视图）', C.matchCommand('#DPS 胡桃')?.key === 'rank')
+  ok('`#DPS 胡桃 12金` 参数进捕获组', C.matchCommand('#DPS 胡桃 12金')?.match[1] === '胡桃 12金')
   ok('`#DPS 胡桃`（榜字可省）同样命中', C.matchCommand('#DPS 胡桃')?.match[1] === '胡桃')
-  ok('`#DPS榜 12金`（不带角色名）仍是总榜', C.matchCommand('#DPS榜 12金')?.key === 'rank')
+  ok('`#DPS 12金`（不带角色名）仍是总榜', C.matchCommand('#DPS 12金')?.key === 'rank')
   push('旧 `#胡桃dps` 形态不再命中任何入口', ['#胡桃dps', '#胡桃 dps 12金'].filter(t => C.matchCommand(t) !== null), [])
   push('攻略类命令两边都不命中', ['#胡桃攻略', '#攻略 胡桃'].filter(t => C.matchCommand(t)), [])
 }
@@ -111,7 +111,7 @@ if (hu.ok) {
     rows.filter(r => !r.video).length + ' 行为空')
 }
 
-// ---------- 3c. 后缀式视频名次（`#DPS榜 胡桃 48金视频1`） ----------
+// ---------- 3c. 后缀式视频名次（`#DPS 胡桃 48金视频1`） ----------
 {
   const { takeVideoToken } = await import(pathToFileURL(path.join(libDir, 'modules', 'queryArgs.js')).href)
   const { findRankEntry } = await import(pathToFileURL(path.join(libDir, 'modules', 'rankQuery.js')).href)
@@ -187,7 +187,7 @@ if (hu.ok) {
   ok('角色不存在时返回可用的失败结果', none.ok === false && !!none.error)
 }
 
-// ---------- 4b. 全库金档视图（`#DPS榜` 不带参数，2026-10-27 用户定） ----------
+// ---------- 4b. 全库金档视图（`#DPS` 不带参数，2026-10-27 用户定） ----------
 {
   const { queryCostTiers } = await import(pathToFileURL(path.join(libDir, 'modules', 'charDpsQuery.js')).href)
   const all = await queryCostTiers({}, { downloadAvatars: false })
@@ -210,7 +210,7 @@ if (hu.ok) {
   ok('全库视图支持金数筛选（所有档上界 ≤ 12）', low.ok === true && low.tiers.every(t => t.max <= 12))
 }
 
-// ---------- 5. 接线（2026-10-15 合并：角色档位视图并入 `#DPS榜`） ----------
+// ---------- 5. 接线（2026-10-15 合并：角色档位视图并入 `#DPS`） ----------
 {
   const src = readText(path.join(pluginRoot, 'src', 'apps', 'rank.ts'))
   ok('榜单 app 用 RULES.rank 注册规则', src.includes('reg: RULES.rank'))

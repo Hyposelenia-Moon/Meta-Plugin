@@ -258,7 +258,7 @@ function describe (q: RankQuery, character: CharacterRecord | null): string {
 }
 
 /**
- * 查询 DPS 榜
+ * 查询 DPS
  *
  * @returns 成功 `{ ok: true, total, page, totalPages, rows, … }`；
  *          角色没找到 `{ ok: false, error, suggestions }`
@@ -326,7 +326,7 @@ export async function findRankEntry (
 ): Promise<RankEntry | QueryFailure> {
   const rank = Number(rankNo)
   if (!Number.isFinite(rank) || rank < 1 || !Number.isInteger(rank)) {
-    return { ok: false, error: '名次需要是正整数，例如 #DPS榜 胡桃 48金视频1' }
+    return { ok: false, error: '名次需要是正整数，例如 #DPS 胡桃 48金视频1' }
   }
 
   const character = q.char ? findCharacter(q.char) : null

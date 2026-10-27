@@ -134,7 +134,7 @@ const fixture = (name) => JSON.parse(fs.readFileSync(path.join(pluginRoot, 'test
 
   let ret = await ST.initStore({ load: () => ({ teams: 1394, teams2: 594, fetchedAt: Date.now() }), log })
   ok('有缓存：loaded/teams/teams2 正确', ret.loaded === true && ret.teams === 1394 && ret.teams2 === 594)
-  ok('有缓存：打印条数', messages.some(m => m.includes('DPS榜 1394 条') && m.includes('危战榜 594 条')))
+  ok('有缓存：打印条数', messages.some(m => m.includes('DPS 1394 条') && m.includes('危战榜 594 条')))
 
   messages.length = 0
   ret = await ST.initStore({ load: () => ({ teams: 0, teams2: 0, fetchedAt: 0 }), log })

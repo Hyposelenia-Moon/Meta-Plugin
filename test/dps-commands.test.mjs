@@ -49,8 +49,8 @@ const { COMMANDS, RULES, matchCommand } = C
   ok('不再有 RULES.video / RULES.raidVideo', RULES.video === undefined && RULES.raidVideo === undefined)
   push('原前缀式写法不再被任何规则认领',
     ['#视频 3', '#榜视频 3', '#危战视频 3', '#DPS视频 3', '#DPS危战视频 3'].filter(m => matchCommand(m) !== null), [])
-  ok('后缀式：`#DPS榜 … 视频N` 归榜单命令',
-    matchCommand('#DPS榜 刻晴 48金视频1')?.key === 'rank' && matchCommand('#DPS 胡桃 视频2')?.key === 'rank')
+  ok('后缀式：`#DPS … 视频N` 归榜单命令',
+    matchCommand('#DPS 刻晴 48金视频1')?.key === 'rank' && matchCommand('#DPS 胡桃 视频2')?.key === 'rank')
   ok('后缀式：`#危战 … n6|n7 视频N` 归危战命令',
     matchCommand('#危战 矮灵 n7 视频3')?.key === 'raidTiers' && matchCommand('#危战 矮灵 n7 视频3')?.match?.[3] === '3')
 }
@@ -69,7 +69,7 @@ const { COMMANDS, RULES, matchCommand } = C
    *    模块开关仍保留（后缀式分发时用它拦截）。
    */
   const before = {
-    rank: { name: 'MetaDPS榜', permission: 'all', priorityOffset: 0 },
+    rank: { name: 'MetaDPS', permission: 'all', priorityOffset: 0 },
     raidTiers: { name: 'Meta危战档位', permission: 'all', priorityOffset: -5 },
     status: { name: 'Meta状态', permission: 'all', priorityOffset: -10 },
     help: { name: 'Meta帮助', permission: 'all', priorityOffset: -10 },
