@@ -30,6 +30,8 @@ interface HelpItem {
 
 interface HelpGroup {
   group: string
+  /** 该组的列数（2 = 两列；不传按条数自动：1 条一列、2 条两列、其余三列） */
+  cols?: number
   list: HelpItem[]
 }
 
@@ -63,6 +65,7 @@ async function loadHelpView (page: HelpPage = 'meta'): Promise<HelpView> {
       helpCfg: picked.cfg || fallback.helpCfg,
       helpGroup: (picked.list || []).map(group => ({
         group: group.group,
+        ...(Number(group.cols) === 1 || Number(group.cols) === 2 ? { cols: Number(group.cols) } : {}),
         list: (group.list || []).map(item => ({ title: item.title, desc: item.desc }))
       }))
     }

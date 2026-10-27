@@ -62,6 +62,8 @@ check('已废除的旧名不再命中任何入口',
 // ---- 大小写（`#DPS…` 只剩榜单与帮助两条，其余命令不再带 DPS 前缀） ----
 check('小写 #dps 前缀仍认榜单', rankCmd.test('#dps 3金') && rankCmd.test('#dps榜 3金'))
 check('帮助的小写前缀也认', helpCmd.test('#dps帮助'))
-check('省略 # 但保留前缀仍认榜单', rankCmd.test('dps榜 3金'))
+check('省略 # 的裸 dps 不再认领（2026-10-27 修复误触发）',
+  !rankCmd.test('dps') && !rankCmd.test('dps榜 3金') && !rankCmd.test('dps是什么'))
+check('但 #dps / #DPS榜 仍认', rankCmd.test('#dps') && rankCmd.test('#DPS榜') && rankCmd.test('#dps 总榜'))
 
 finish()

@@ -43,6 +43,16 @@ check('“第3页” → page', a.page === 3)
 a = parseRankArgs('胡桃 页:4')
 check('“页:4” → page', a.page === 4)
 
+// ---- 2026-10-27：总榜模式（`总榜` 走平铺榜单，与金数/角色可组合） ----
+a = parseRankArgs('总榜')
+check('“总榜” → all=true', a.all === true && a.char === '' && a.costMax === null)
+
+a = parseRankArgs('总榜 12金')
+check('总榜 + 金数', a.all === true && a.costMax === 12)
+
+a = parseRankArgs('胡桃 12金')
+check('角色 + 金数不带 total（按平铺榜单处理）', a.all === false && a.char === '胡桃' && a.costMax === 12)
+
 a = parseRankArgs('胡桃 总伤杯S3.N')
 // 2026-10-15 审核意见 2.3：显式条件与裸词**分开存**（可信度不同，解析层不合并）
 check('多词裸词归并到 tagBare（不再混进显式 tag）', a.char === '胡桃' && a.tagBare === '总伤杯S3.N' && a.tag === '', `tag=${a.tag} bare=${a.tagBare}`)

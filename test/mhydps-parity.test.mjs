@@ -138,7 +138,8 @@ const strip = (r) => {
    * 摘掉 `tagExplicit`，其余字段仍要求**逐字一致**。
    */
   const foldTag = (o) => {
-    const { tagExplicit: _e, tagBare, ...rest } = o
+    // 2026-10-27 新增 `all`（总榜模式）：合并前没有该字段，比对时摘掉
+    const { tagExplicit: _e, tagBare, all: _all, ...rest } = o
     return { ...rest, tag: [rest.tag, tagBare].filter(Boolean).join(' ') }
   }
   push('parseRankArgs 与合并前一致（除偏差 B18：tag 拆成 tag/tagBare/tagExplicit）',

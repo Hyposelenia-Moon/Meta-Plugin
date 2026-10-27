@@ -187,6 +187,29 @@ if (hu.ok) {
   ok('角色不存在时返回可用的失败结果', none.ok === false && !!none.error)
 }
 
+// ---------- 4b. 全库金档视图（`#DPS榜` 不带参数，2026-10-27 用户定） ----------
+{
+  const { queryCostTiers } = await import(pathToFileURL(path.join(libDir, 'modules', 'charDpsQuery.js')).href)
+  const all = await queryCostTiers({}, { downloadAvatars: false })
+  ok('全库金档视图可用', all.ok === true)
+  if (all.ok) {
+    const rawCosts = fixture.map(t => Number(t.cost) || 0)
+    ok('命中条数 = 夹具全部记录', all.total === rawCosts.length, `${all.total} vs ${rawCosts.length}`)
+    ok('档数 = 夹具覆盖的金档数',
+      all.tiers.length === new Set(rawCosts.map(costBucketOf)).size,
+      `${all.tiers.length} vs ${new Set(rawCosts.map(costBucketOf)).size}`)
+    ok('全库视图每档条数不超过该档上限',
+      all.tiers.every(t => t.rows.length <= perTierOf(costBucketOf(t.min || t.max))),
+      all.tiers.map(t => `${t.label}:${t.rows.length}`).join(' '))
+    ok('全库视图档内按伤害降序',
+      all.tiers.every(t => t.rows.every((r, i) => i === 0 || (t.rows[i - 1].damage || 0) >= (r.damage || 0))))
+    ok('全库视图副标题写明分档口径与来源（且不写角色名）',
+      /每 4 金一档的最高伤害队伍/.test(all.subtitle) && /mhydps\.cn/.test(all.subtitle) && !/#胡桃/.test(all.subtitle))
+  }
+  const low = await queryCostTiers({ costMax: 12 }, { downloadAvatars: false })
+  ok('全库视图支持金数筛选（所有档上界 ≤ 12）', low.ok === true && low.tiers.every(t => t.max <= 12))
+}
+
 // ---------- 5. 接线（2026-10-15 合并：角色档位视图并入 `#DPS榜`） ----------
 {
   const src = readText(path.join(pluginRoot, 'src', 'apps', 'rank.ts'))
@@ -196,6 +219,10 @@ if (hu.ok) {
   ok('模板 char-dps.html 已就位', fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'char-dps.html')))
   ok('带角色名时走角色档位视图（原 charDps app 已并入）',
     src.includes('replyCharTiers') && src.includes('queryCharDps') && src.includes("respond(e, 'char-dps'"))
+  // 2026-10-27：不带参数 → 全库金档视图；带金数 / 总榜 → 平铺榜单（金数视图硬上限 10 条）
+  ok('不带参数走全库金档视图', src.includes('replyCostTiers') && src.includes('queryCostTiers'))
+  ok('金数 / 总榜走平铺榜单且金数视图最多 10 条',
+    src.includes('FLAT_MAX_ROWS') && src.includes('Math.min(FLAT_MAX_ROWS, getPageSize())') && src.includes('replyRankPage'))
   ok('COMMANDS 里不再有 charDps 条目、规则也随合并移除',
     !C.COMMANDS.some(c => c.rules.includes('charDps')) && C.RULES.charDps === undefined)
   ok('原 app 文件已删除', !fs.existsSync(path.join(pluginRoot, 'src', 'apps', 'charDps.ts')))

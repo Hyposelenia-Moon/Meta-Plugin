@@ -71,7 +71,7 @@
         {{each helpGroup group}}
         <div class="help-group">{{group.group}}</div>
         {{if group.list && group.list.length > 0}}
-        <div class="help-grid{{if group.list.length === 1}} cols-1{{else if group.list.length === 2}} cols-2{{/if}}">
+        <div class="help-grid{{if group.cols === 2}} cols-2{{else if group.cols === 1}} cols-1{{else if group.list.length === 1}} cols-1{{else if group.list.length === 2}} cols-2{{/if}}">
           {{each group.list item}}
           <div class="help-entry">
             <div class="entry-cmd">{{item.title}}</div>

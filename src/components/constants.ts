@@ -334,12 +334,17 @@ export const TALENT_POSITION_CN: Record<string, string> = {
  */
 export const RULES = {
   /**
-   * `#DPS榜 [角色] [金数] [标签] [主C] [绿玩] [页N] [视频N]`（`榜` 字可省 = `#DPS`）
+   * `#DPS榜 [角色] [金数|金数区间|总榜] [标签] [主C] [绿玩] [页N] [视频N]`（`榜` 字可省 = `#DPS`）
+   *
+   * 2026-10-27 用户定：
+   *   - **必须带 `#`**：裸词 `dps`（英文常用词）不再被认领，避免聊天里误触发（原 `^#?` 的 bug）；
+   *   - 不带参数 = 全库各金档最高伤害队伍；`总榜` = 不分组、按伤害排序；`12金` = ≤12 金；
+   *     带角色 = 该角色各金档；角色 + 金数 = 该角色在该金数内的平铺榜单。
    *
    * `视频N` 是**后缀式**视频名次（2026-10-15 用户定：原 `#视频 <名次>` 前缀式**已废除**），
    * 序号 = 在当前筛选（含金数）之内按伤害排名的第 N 名，由 app 用 `takeVideoToken` 摘出。
    */
-  rank: /^#?(?:dps|DPS)(?:榜(?!视频))?(?!榜|视频|帮助|状态|更新|强制|刷新|练度|危战)\s*([\s\S]*)$/,
+  rank: /^#(?:dps|DPS)(?:榜(?!视频))?(?!榜|视频|帮助|状态|更新|强制|刷新|练度|危战)\s*([\s\S]*)$/,
   /**
    * `#危战 <版本/首领/角色> n6|n7 [视频N]` —— 档位**必填**；`视频N` 是后缀式视频名次
    * （第 3 组；名次按全榜排序，与档页每行标的「全榜 #N」同口径）。
@@ -423,7 +428,7 @@ export interface CommandMeta {
  * `test/dps-commands.test.mjs` 有一条门禁：**文案里出现的每个命令都必须被该 app 的正则命中**。
  */
 export const COMMANDS: ReadonlyArray<CommandMeta> = [
-  { key: 'rank', rules: ['rank'], name: 'MetaDPS榜', dsc: '#DPS榜 [角色] [金数] [标签] [主C] [绿玩] [页N]（榜字可省；带角色名看该角色各金档；加 `视频N` 取该名次的视频）', permission: 'all', priorityOffset: 0 },
+  { key: 'rank', rules: ['rank'], name: 'MetaDPS榜', dsc: '#DPS榜 [角色] [金数|总榜] [标签] [主C] [绿玩] [页N]（榜字可省；不带参数=各金档最高伤害；12金/9-12金=该金数的榜单；总榜=全库按伤害；加 `视频N` 取该名次的视频）', permission: 'all', priorityOffset: 0 },
   { key: 'raidTiers', rules: ['raidTiers', 'raidTiersPrompt'], name: 'Meta危战档位', dsc: '#危战 [版本/首领/角色] n6|n7 [视频N] — 幽境危战分档（n7 ≤70s 速通档 / n6 险胜档）', permission: 'all', priorityOffset: -5 },
   { key: 'grade', rules: ['grade'], name: 'Meta练度提升指南', dsc: '#练度查询 胡桃 — 攻略目标 × 当前配装 → 总体练度 + 面板档 + 提升建议', permission: 'all', priorityOffset: -5 },
   { key: 'teamDamage', rules: ['teamDamage'], name: 'Meta队伍伤害', dsc: '#队伍伤害<N> 胡桃 行秋 夜兰 钟离 [暴击+20 爆伤+40] — 整队关键伤害 + 参考 DPS + 同阵容参考（N = 轴序号，省略 = 1）', permission: 'all', priorityOffset: -5 },

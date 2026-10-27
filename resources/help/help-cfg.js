@@ -35,7 +35,7 @@ const metaDamage = {
     { title: '#DPS榜 胡桃', desc: '该角色各金档最高伤害队伍' },
     { title: '#危战 矮灵 n7', desc: '危战成绩：须指定 n7 速通档或 n6 险胜档' },
     { title: '#队伍伤害 四人名', desc: '整队关键伤害 + 参考 DPS（可加词条）' },
-    { title: '#DPS榜', desc: '配队总榜，可按角色 / 金数筛' }
+    { title: '#DPS榜', desc: '全库各金档最高伤害队伍' }
   ]
 }
 
@@ -95,31 +95,48 @@ export const guideList = [guideCore, guideGrade, guideData]
 
 /* ================= 分菜单②（#DPS帮助） ================= */
 
-const dpsDamage = {
-  group: '伤害',
+/*
+ * 2026-10-27 用户定：按**功能**分组（配队榜单 / 危战 / 队伍伤害），每组两列；
+ * 每条只讲一种写法，不再把「筛选」「视频」混在伤害组里，也不重复列同一个命令。
+ */
+const dpsBoard = {
+  group: '配队榜单',
+  cols: 2,
   list: [
     { title: '#DPS榜 胡桃', desc: '该角色各金档最高伤害队伍' },
-    { title: '#危战 矮灵 n7', desc: '须指定档位：n7 速通档（≤70s）/ n6 险胜档' },
-    { title: '#危战 7.1 矮灵 n6', desc: '按版本筛选；首领支持简写' },
-    { title: '#队伍伤害 四人名', desc: '整队关键伤害 + 参考 DPS；可加 +30暴击 改词条' }
+    { title: '#DPS榜', desc: '全库各金档最高伤害队伍' },
+    { title: '#DPS榜 总榜', desc: '全库按伤害排序的总榜，可页N' },
+    { title: '#DPS榜 12金', desc: '≤12 金的榜单，最多 10 条' },
+    { title: '#DPS榜 9-12金', desc: '指定金数区间（含两端）' },
+    { title: '#DPS榜 胡桃 12金', desc: '该角色在 ≤12 金内的榜单' },
+    { title: '#DPS榜 … 视频1', desc: '取当前筛选第 1 名的视频' }
   ]
 }
 
-const dpsBoard = {
-  group: '榜单与配装',
+const dpsRaid = {
+  group: '危战',
+  cols: 2,
   list: [
-    { title: '#DPS榜', desc: '配队总榜，`榜` 可省' },
-    { title: '#DPS榜 胡桃 金≤12', desc: '按角色 / 金数 / 标签 / 主C / 绿玩筛' },
-    { title: '#DPS榜 刻晴 48金视频1', desc: '看第 1 名队伍的 B 站视频' },
-    { title: '#危战 矮灵 n7 视频3', desc: '看危战全榜第 3 名的视频' }
+    { title: '#危战 矮灵 n7', desc: 'n7 速通档（≤70s）；n6 为险胜档' },
+    { title: '#危战 7.1 矮灵 n6', desc: '可按版本 / 首领 / 角色筛选' },
+    { title: '#危战 … n7 视频3', desc: '取全榜第 3 名的视频' }
+  ]
+}
+
+const dpsTeam = {
+  group: '队伍伤害',
+  cols: 2,
+  list: [
+    { title: '#队伍伤害 四人名', desc: '整队关键伤害 + 参考 DPS' },
+    { title: '#队伍伤害 四人名 +30暴击', desc: '词条免前缀，直接写暴击 / 爆伤' }
   ]
 }
 
 export const dpsCfg = {
   title: '#DPS帮助',
-  subTitle: '伤害 · 榜单与配装'
+  subTitle: '配队榜单 · 危战 · 队伍伤害'
 }
-export const dpsList = [dpsDamage, dpsBoard]
+export const dpsList = [dpsBoard, dpsRaid, dpsTeam]
 
 /** 三个页面的统一入口（apps/help.ts 按 `page` 取用） */
 export const helpPages = {

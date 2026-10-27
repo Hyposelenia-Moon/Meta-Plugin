@@ -43,7 +43,7 @@
       <!-- 页头：标题 + 元信息 -->
       <div class="card head-card">
         <div class="header">
-          <div class="game-name">Meta-Plugin · 角色金档</div>
+          <div class="game-name">{{if gameName}}{{gameName}}{{else}}Meta-Plugin · 角色金档{{/if}}</div>
           <div class="title">{{if title}}{{title}}{{else}}各金档 DPS{{/if}}</div>
           <!-- 2026-10-15 用户定：**不渲染副标题行**（口径/来源那句长文本；页头已有命中条数、金档数与数据时间） -->
         </div>

@@ -32,6 +32,8 @@ export interface CommonArgs {
 /** DPS 榜参数 */
 export interface RankArgs {
   char: string
+  /** 总榜模式（`总榜`）：不按金档分组，直接按伤害平铺（2026-10-27） */
+  all: boolean
   costMin: number | null
   costMax: number | null
   /** **显式** `标签:X` 的值（原样筛选，不放宽） */
@@ -105,6 +107,7 @@ function tokenize (text: unknown): string[] {
 export function parseRankArgs (text: unknown): RankArgs {
   const args: RankArgs = {
     char: '',
+    all: false,
     costMin: null,
     costMax: null,
     tag: '',
@@ -130,6 +133,12 @@ export function parseRankArgs (text: unknown): RankArgs {
     const common = parseCommon(token)
     if (common) {
       Object.assign(args, common)
+      continue
+    }
+
+    // 总榜模式（2026-10-27）：`#DPS榜 总榜` / `#DPS榜 总榜 12金` / `#DPS榜 总榜 胡桃`
+    if (/^(?:总榜|全部榜单)$/.test(token)) {
+      args.all = true
       continue
     }
 
