@@ -11,7 +11,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **源码**：`src/` → `tsc` → `lib/`（目录结构一致）。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
-- **常用命令**：`pnpm build`、`pnpm test`（58 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（59 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -92,10 +92,12 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 > 空图只有一句"没有查询到…"，看不出是哪个筛选把结果筛没了（当时 `#dps 七七 48金 视频1` 的 `视频1`
 > 被当成"标签"筛选，弹出一张莫名其妙的空图）。
 
-> **引用回复的原文不算参数**（2026-10-15 用户反馈后定；2026-10-27 复审收紧）：用户引用机器人上一条回复时，
-> 那段文字会跟着进 `e.msg`。`modules/quoteGuard.ts` 的 `stripQuotedArgs()` **只剔除可证明来自机器人**的引用
-> （以 `#` 开头的命令回显 / 命中输出指纹），普通文本引用一律保留 —— 不再按"≥12 字包含关系"删用户重打的参数。
-> 路由与危战档位另用 `isolatedText()`（切掉末尾的引用副本）后再解析，避免引用里的 `n6` 改掉用户的 `n7`。
+> **引用回复的原文不算参数**（2026-10-15 用户反馈后定；2026-10-28 复审改为**边界判定**）：用户引用机器人上一条回复时，
+> 那段文字会跟着进 `e.msg`。`modules/quoteGuard.ts` 的 `stripQuotedBlock()` 只剥离**完整引用块** ——
+> 开头块后必须换行 + `#` 命令；结尾块前必须有换行边界，或"空白 + 命中输出指纹的整块回帖"。
+> 短词、数字、命令前缀、重复本身都不构成证据（引用「矮灵」不再删 `#危战 矮灵 n7`；引用「2」不改 `#DPS 22金 页2`）。
+> 路由与档位用 `isolatedText()`（自身段优先）再解析；`resolveCommandArgs()` 先隔离全文再匹配参数。
+> 无自身段且隔离后仍有多个档位（`n7 … n6`）→ 提示重发，不查询、不出图（`hasMultipleTiers()`，两个 handler 入口都有闸门）。
 > 另：**隐式标签**（角色名之后的裸词）先与数据集核对（`rankQuery.effectiveTag()`）——真实标签照用、
 > 一个都不存在就整段忽略；**显式** `标签:X` 仍原样参与筛选（匹配不到就如实给 0 命中 + 写明标签）。
 > `parseRankArgs` 因此比合并前多一个 `tagExplicit` 键（偏差 B18，`test/mhydps-parity.test.mjs` 守着）。
@@ -182,7 +184,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 58 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 59 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。

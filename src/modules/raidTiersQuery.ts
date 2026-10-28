@@ -32,6 +32,26 @@ export const RAID_SPEED_CAP = 120
 /** 每档默认取前几条（用户 2026-10-15 定：单档最多列 **10** 条） */
 export const DEFAULT_TIER_ROWS = 10
 
+/**
+ * 文本里出现的**独立档位词**（`n7` / `7档`；裸 `6` / `7` 不计，避免把版本号 `7.1` 当档位）
+ *
+ * 2026-10-28 复审：没有自身 message 段时，`e.msg` 可能同时含用户档位与引用里的档位，
+ * 来源无法证明 —— `apps/raidTiers.ts` 用这两个函数识别"多档冲突"并提示重发。
+ */
+export function tierTokensOf (text: unknown): string[] {
+  const out = new Set<string>()
+  for (const m of String(text || '').matchAll(/(?:^|\s)(?:[nN]([67])|([67])档)/g)) {
+    const tier = m[1] || m[2]
+    if (tier) out.add(tier)
+  }
+  return [...out]
+}
+
+/** 全文是否出现多个不同的档位词（`n7` + `n6`） */
+export function hasMultipleTiers (text: unknown): boolean {
+  return tierTokensOf(text).length > 1
+}
+
 export interface RaidTierBlock {
   key: 'n7' | 'n6'
   label: string

@@ -63,7 +63,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 回归套件
 
 ```bash
-pnpm build && pnpm test     # 58 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 59 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 详见 [docs/测试.md](./docs/测试.md)。

@@ -232,23 +232,36 @@ check('不写档位 = null（交给 app 提示选档）', r.tier === null)
   const plainQuote = { reply_id: 'q5', getReply: async () => ({ message: [{ type: 'text', text: '胡桃 12金 主C 绿玩' }] }) }
   check('R3：普通引用（无 # / 无输出指纹）不剔除用户重打的参数',
     (await stripQuotedArgs(plainQuote, '胡桃 12金 主C 绿玩 页1')) === '胡桃 12金 主C 绿玩 页1')
-  // e.msg 的真实形态 = 自身文本 + 引用原文：同一段出现两次时，只去掉末尾那份引用副本
-  check('R3：同一段出现两次（自身 + 引用副本）时只去掉副本',
-    (await stripQuotedArgs(plainQuote, '胡桃 12金 主C 绿玩 页1 胡桃 12金 主C 绿玩')) === '胡桃 12金 主C 绿玩 页1')
+  // e.msg 的真实形态 = 自身文本 + 换行 + 引用块：只去掉末尾引用块（2026-10-28 契约：必须有换行边界）
+  check('R3：换行分隔的引用块被剥掉，参数原样保留',
+    (await stripQuotedArgs(plainQuote, '胡桃 12金 主C 绿玩 页1\n胡桃 12金 主C 绿玩')) === '胡桃 12金 主C 绿玩 页1')
+  check('R3：无换行边界的重复文本不剥（空格拼接无法证明来源）',
+    (await stripQuotedArgs(plainQuote, '胡桃 12金 主C 绿玩 页1 胡桃 12金 主C 绿玩')) === '胡桃 12金 主C 绿玩 页1 胡桃 12金 主C 绿玩')
   check('R3：引用命令回显（args 里不含 #）不会被误删',
     (await stripQuotedArgs({ reply_id: 'q6', getReply: async () => ({ message: [{ type: 'text', text: '#DPS 胡桃 12金' }] }) },
       '胡桃 12金 页2')) === '胡桃 12金 页2')
 
-  // R4（2026-10-27 复审）：无 message 段时，从"自身文本 + 引用"里切掉末尾引用再取档位
-  const quotedShort = { msg: '#危战 矮灵 n7 请用 n6', reply_id: 'q7', getReply: async () => ({ message: [{ type: 'text', text: '请用 n6' }] }) }
+  // R4（2026-10-28 复审）：无 message 段时只剥"换行分隔的完整引用块"
+  const quotedShort = { msg: '#危战 矮灵 n7\n请用 n6', reply_id: 'q7', getReply: async () => ({ message: [{ type: 'text', text: '请用 n6' }] }) }
   const isolatedShort = await isolatedText(quotedShort)
-  check('R4：切掉末尾引用后保留自身命令', isolatedShort === '#危战 矮灵 n7', isolatedShort)
+  check('R4：切掉换行引用块后保留自身命令', isolatedShort === '#危战 矮灵 n7', isolatedShort)
   check('R4：隔离后的文本匹配到自身档位 n7', isolatedShort.match(RULES.raidTiers)?.[2] === '7')
 
-  const longQuote = { msg: '#危战 矮灵 n7 #矮灵 · 每 4 金一档的最高伤害队伍 全榜 #1', reply_id: 'q8', getReply: async () => ({ message: [{ type: 'text', text: '#矮灵 · 每 4 金一档的最高伤害队伍 全榜 #1' }] }) }
+  const longQuote = { msg: '#危战 矮灵 n7\n#矮灵 · 每 4 金一档的最高伤害队伍 全榜 #1', reply_id: 'q8', getReply: async () => ({ message: [{ type: 'text', text: '#矮灵 · 每 4 金一档的最高伤害队伍 全榜 #1' }] }) }
   const isolatedLong = await isolatedText(longQuote)
   check('R4：整条榜单引用被切掉后自身命令完整', isolatedLong === '#危战 矮灵 n7', isolatedLong)
   check('R4：隔离后仍能匹配 n7（不再误要求选档）', isolatedLong.match(RULES.raidTiers)?.[2] === '7')
+
+  /*
+   * 2026-10-28 复审的两个反例：引用原文由 getReply 提供、e.msg 里并没有引用副本时，
+   * 不能按"最后出现"删用户自己的字词/数字。
+   */
+  const quoteWordOnly = { msg: '#危战 矮灵 n7', reply_id: 'q9', getReply: async () => ({ message: [{ type: 'text', text: '矮灵' }] }) }
+  check('R4 反例：引用「矮灵」不删自身命令里的矮灵',
+    (await isolatedText(quoteWordOnly)) === '#危战 矮灵 n7')
+  const quoteDigitOnly = { msg: '#DPS 22金 页2', reply_id: 'q10', getReply: async () => ({ message: [{ type: 'text', text: '2' }] }) }
+  check('R4 反例：引用「2」不改自身 22金/页2',
+    (await stripQuotedArgs(quoteDigitOnly, '22金 页2')) === '22金 页2' && parseRankArgs('22金 页2').page === 2)
 }
 
 finish()

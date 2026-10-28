@@ -47,97 +47,61 @@ export function ownTextOf (e: unknown): string {
 const squeeze = (s: string): string => String(s || '').replace(/\s+/g, ' ').trim()
 
 /**
- * 把引用原文**整段**从参数文本里剔除
+ * 剥离**完整引用块**（2026-10-28 复审重写）
  *
- * 只读 `e.reply_id` / `e.getReply()`；任何异常（取不到引用等）都原样返回。
- * @returns 处理后的参数文本（未发生整段匹配时与入参相同）
+ * 旧实现按"最后出现 / 重复字符"推断引用副本，实测两个反例：
+ *   - 引用「矮灵」时，`#危战 矮灵 n7` 被删成 `#危战 n7`（引用原文恰好也出现在自身命令里）；
+ *   - 引用「2」时，`#DPS 22金 页2` 被删成第 1 页。
+ * 短词、数字、命令前缀、重复本身都不能证明某段文字来自引用。
+ *
+ * 现在只剥离**边界可证明**的完整引用块：
+ *   ① 引用在开头：后面必须是换行 + 新的 `#` 命令（`引用\n#命令 …`）；
+ *   ② 引用在结尾：前面必须是换行边界；或前面是空白且引用本身命中我们的输出指纹（整块回帖）。
+ * 其余情况一律原样返回 —— 宁可留下不会解析成参数的噪声，也不删用户正文。
  */
-export async function stripQuotedArgs (e: unknown, text: unknown): Promise<string> {
+export async function stripQuotedBlock (e: unknown, text: unknown): Promise<string> {
   const raw = String(text || '')
   const ev = e as { reply_id?: unknown, getReply?: () => Promise<unknown> } | null
   if (!raw || !ev?.reply_id || typeof ev.getReply !== 'function') return raw
   try {
     const quoted = quotedText(await ev.getReply())
     if (!quoted) return raw
-    // 候选形态：原文、空白归一后的原文（适配器可能改写换行）
-    /*
-     * 2026-10-18 复审 R3 → 2026-10-27 复审 R3（收紧）：只有**可证明来自机器人**的引用才整段剔除 ——
-     *   ① 以 `#` 开头（用户引用了机器人发出的命令回显/命令文本）；
-     *   ② 命中我们的输出指纹（`looksLikeOurEcho`，见下方 ECHO_MARKERS）。
-     *
-     * 旧实现还允许"≥12 字"的普通文本按包含关系剔除，实测会误删用户自己重打的参数：
-     * 引用 `胡桃 12金 主C 绿玩`（12 字）、自身发 `#DPS 胡桃 12金 主C 绿玩 页1`，
-     * 剔除后只剩 `页1` → 角色/金数全丢、掉成全库分档。普通文本没有来源边界，一律保留。
-     */
-    const isCommandEcho = (v: string): boolean => v.startsWith('#')
-    const variants = [...new Set([quoted, squeeze(quoted)])]
-      .filter(v => isCommandEcho(v) || looksLikeOurEcho(v))
-    /** 只去掉**最后一次**出现（引用副本在末尾；全部替换会把用户自己重打的同段一起删掉） */
-    const removeLast = (text: string, v: string): string | null => {
-      const idx = text.lastIndexOf(v)
-      if (idx < 0) return null
-      return (text.slice(0, idx) + ' ' + text.slice(idx + v.length)).replace(/\s+/g, ' ').trim()
-    }
-    let out = raw
-    let hit = false
-    for (const v of variants) {
-      const next = removeLast(out, v)
-      if (next !== null) { out = next; hit = true; break }
-    }
-    /*
-     * 2026-10-27 复审 R3（兜底）：普通文本引用不做"包含即删"，但**同一段文本出现两次以上**时，
-     * 末尾那一份必然是引用副本（`e.msg` = 自身文本 + 引用原文）——只去掉这一份，参数原样保留。
-     * 只出现一次时无法证明来源，一律不删。
-     */
-    if (!hit) {
-      for (const v of [...new Set([quoted, squeeze(quoted)])]) {
-        if (!v) continue
-        const first = raw.indexOf(v)
-        const last = raw.lastIndexOf(v)
-        if (first < 0 || last <= first) continue
-        const next = removeLast(raw, v)
-        if (next) { out = next; hit = true; break }
+    const variants = [...new Set([quoted, squeeze(quoted)])].filter(Boolean)
+    for (const variant of variants) {
+      // ① 引用块在开头：`引用\n#命令 …`
+      if (raw.startsWith(variant)) {
+        const rest = raw.slice(variant.length)
+        if (/^[\t ]*\r?\n/.test(rest) && /^#\S/.test(rest.trimStart())) return rest.trimStart()
+      }
+      // ② 引用块在结尾：行边界，或"空白 + 我们的整块输出"
+      if (raw.endsWith(variant) && raw.length > variant.length) {
+        const prefix = raw.slice(0, raw.length - variant.length)
+        const lineBoundary = /[\r\n][\t ]*$/.test(prefix)
+        const outputBoundary = /\s$/.test(prefix) && looksLikeOurEcho(variant)
+        if (lineBoundary || outputBoundary) return prefix.trimEnd()
       }
     }
-    /*
-     * 2026-10-18 核对修复（#2 兜底）：整段命中但**剔完什么都不剩**时，说明用户重打的参数与引用原文
-     * 完全相同（引用 `胡桃12金` → 再打 `胡桃12金`）→ 保留原文，否则参数变空、掉成总榜。
-     */
-    const stripped = hit ? squeeze(out) : ''
-    return stripped ? stripped : raw
+    return raw
   } catch {
     return raw
   }
 }
 
+/** 兼容入口：`stripQuotedArgs` 与全文隔离使用同一套"完整引用块"算法 */
+export const stripQuotedArgs = stripQuotedBlock
+
 /**
  * 隔离引用后的**命令全文**（给路由 / 档位这类"必须看用户原话"的解析用）
  *
- * 与 `stripQuotedArgs` 的分工：
- *   - `stripQuotedArgs` 处理**参数**，只有可证明来源的引用才剔除（宁可保留，不误删）；
- *   - 本函数处理**全文**：`e.msg` 的实测形态是"自身文本 + 引用原文"，把**最后一次出现**的那份引用切掉，
- *     剩下的就是用户自己打的命令；如果切完为空（整条都是引用）则原样返回。
- *
- * 为什么是"最后一次"：用户重打同样的参数时，自身文本里也会出现同一段字；
- * 引用正文在末尾，只有切最后一份才不会把自身的参数一起切掉。
+ * 优先用自身 `message` 文本段；拿不到时才走 `stripQuotedBlock()` 的边界逻辑。
+ * 不再按"最后出现"删一段 —— 那会在 e.msg 不含引用正文、只有 getReply 有原文时，
+ * 把用户自己命令里的同名词删掉（2026-10-28 复审）。
  */
 export async function isolatedText (e: unknown): Promise<string> {
+  const own = ownTextOf(e).trim()
+  if (own) return own
   const msg = String((e as { msg?: unknown } | null)?.msg || '')
-  const ev = e as { reply_id?: unknown, getReply?: () => Promise<unknown> } | null
-  if (!msg || !ev?.reply_id || typeof ev.getReply !== 'function') return msg
-  try {
-    const quoted = quotedText(await ev.getReply())
-    if (!quoted) return msg
-    for (const variant of [quoted, squeeze(quoted)]) {
-      const idx = msg.lastIndexOf(variant)
-      if (idx < 0) continue
-      const out = (msg.slice(0, idx) + ' ' + msg.slice(idx + variant.length)).replace(/\s+/g, ' ').trim()
-      if (out) return out
-    }
-    return msg
-  } catch {
-    return msg
-  }
+  return stripQuotedBlock(e, msg)
 }
 /**
  * 判定这段文本**是否我们自己出图/回帖的内容被回灌**（引用、转发、自环）。
@@ -167,7 +131,7 @@ export function looksLikeOurEcho (text: unknown): boolean {
   return ECHO_MARKERS.some(m => s.includes(canon(m)))
 }
 /**
- * 解析命令参数：**优先用「用户自己打的文本」**，拿不到段信息时才退回旧路径。
+ * 解析命令参数：**优先用「用户自己打的文本」**，拿不到段信息时才退回 e.msg。
  *
  * 2026-10-17 复审修复（#2 / #3）：
  *   - #3 `e.msg` 里**带着引用原文**，旧代码直接 `looksLikeOurEcho(e.msg)`：
@@ -175,8 +139,9 @@ export function looksLikeOurEcho (text: unknown): boolean {
  *     合法的新命令一条回复都没有（实测：回复 0 条、getReply 调用 0 次）。
  *   - #2 旧路径把"用户重打的、与引用原文相同的参数"整段剔掉（`引用=胡桃12金` + 重打 `胡桃12金` → 空串），
  *     于是角色丢了、掉成总榜。
- * 现在：own 文本存在且能匹配规则时**只用 own**（既不判回灌、也不剔引用），
- * only 当适配器不提供 message 段时才走旧的 stripQuotedArgs 兜底。
+ *
+ * 2026-10-28 复审：无 own 段时**先隔离全文再匹配规则**（`stripQuotedBlock`），
+ * 不再"先匹配参数、再按包含关系删词"——那样会对全文和参数各删一次，且短词/数字会被误删。
  *
  * @returns `echo` = 这条命令本身就是我们自己的输出（自环/转发）→ 调用方应静默忽略；
  *          `text` = 规则第 1 组（参数原文，未做进一步解析）。
@@ -193,13 +158,10 @@ export async function resolveCommandArgs (
   }
 
   const msg = String((e as { msg?: unknown } | null)?.msg || '')
-  const raw = (msg.match(rule) || [])[1] || ''
-  if (!raw) return { echo: false, text: '' }
-  /*
-   * 2026-10-18 核对修复（#3 兜底）：先剔引用**再**判回灌 ——
-   * 旧写法直接 `looksLikeOurEcho(msg)`，而 msg 含着引用正文，用户引用我们回复后零回复。
-   */
-  const stripped = await stripQuotedArgs(e, raw)
-  if (looksLikeOurEcho(stripped)) return { echo: true, text: '' }
-  return { echo: false, text: stripped }
+  const isolated = await stripQuotedBlock(e, msg)
+  const hit = isolated.match(rule)
+  if (!hit) return { echo: false, text: '' }
+  // 先隔离**再**判回灌：旧写法直接判 msg，引用正文里的指纹会让合法新命令零回复
+  if (looksLikeOurEcho(isolated)) return { echo: true, text: '' }
+  return { echo: false, text: hit[1] || '' }
 }

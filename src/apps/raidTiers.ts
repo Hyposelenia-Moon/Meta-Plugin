@@ -15,7 +15,7 @@
 import { getPluginConfig, getProxy } from '../components/config.js'
 import { DPS_COPYRIGHT, COMMANDS, RULES, SITE_NAME, formatTime } from '../components/constants.js'
 import { parseRaidArgs, takeVideoToken } from '../modules/queryArgs.js'
-import { N7_SECONDS_LIMIT, queryRaidTiers } from '../modules/raidTiersQuery.js'
+import { N7_SECONDS_LIMIT, hasMultipleTiers, queryRaidTiers } from '../modules/raidTiersQuery.js'
 import type { RaidTiersResult } from '../modules/raidTiersQuery.js'
 import { respond, suggestLine } from '../modules/respond.js'
 import { isolatedText, ownTextOf, resolveCommandArgs } from '../modules/quoteGuard.js'
@@ -86,13 +86,23 @@ export class MetaRaidTiers extends plugin {
   async handleRaidTiers (e: YunzaiEvent): Promise<boolean> {
     if (await moduleGateReply('raidTiers', e)) return true
     /*
+     * 2026-10-28 复审：**来源不明 + 隔离后仍有多档冲突**时不出图。
+     * 没有自身 message 段时，`e.msg` 可能同时含用户的档位与引用里的档位
+     * （引用「请用 n6」+ 自己发 `#危战 矮灵 n7`）。有换行/输出指纹边界时 `isolatedText()` 能剥掉引用块；
+     * 只剩 `n7 … n6` 这类无法归因的 inline 文本时，直接提示重发，不猜。
+     */
+    const ownMsg = ownTextOf(e).trim()
+    const isolated = ownMsg || (await isolatedText(e))
+    if (!ownMsg && hasMultipleTiers(isolated)) {
+      await e.reply('[Meta] 引用里出现多个危战档位（n6 / n7），无法判断你要哪一档；请重新发送 #危战 <筛选> n6|n7')
+      return true
+    }
+    /*
      * 2026-10-18 复审 R4 / 2026-10-27 复审 R4：档位与视频名次必须从**已隔离的命令全文**解析。
      * 旧代码直接读 `e.msg`（含引用正文）：引用「请用 n6」再发 `#危战 矮灵 n7` 会被改成 n6；
      * 没有 message 段时更无法区分。现在：own 文本优先，其次 `isolatedText()`（切掉末尾的引用副本），
      * 最后才退回 e.msg（框架已按它匹配到本规则）。
      */
-    const ownMsg = ownTextOf(e).trim()
-    const isolated = ownMsg || (await isolatedText(e))
     const isolatedMatch = isolated.match(RULES.raidTiers)
     // 兜底：隔离后仍匹配不到才退回 e.msg（框架已按它匹配到本规则；这里面可能带引用正文）
     const match = isolatedMatch || String(e.msg).match(RULES.raidTiers) || []
@@ -157,18 +167,20 @@ export class MetaRaidTiers extends plugin {
   async handlePickTier (e: YunzaiEvent): Promise<boolean> {
     if (await moduleGateReply('raidTiers', e)) return true
     /*
-     * 视频名次写在档位前面（`#危战 矮灵 视频3 n7`）或没写档位（`#危战 矮灵 视频3`）时会落到这条兜底规则：
-     * 名次查询与档位无关，直接按视频名次走（`视频N` 之外的部分照常当筛选词）。
-     */
-    /*
      * 2026-10-18 复审 R4（prompt 路径）：净化后的命令里若**已经带了档位**，直接按档位出图，
      * 不要反过来提示"重新选档"（引用整条榜单后落到兜底规则时就是这样被吞掉档位的）。
      *
      * 2026-10-27 复审 R4：判断要用**隔离后的全文**（own 缺失时靠 `isolatedText()`），
      * 否则"自身 `#危战 矮灵 n7` + 引用整条榜单"这条路径永远只会提示选档。
+     *
+     * 2026-10-28 复审：与 `handleRaidTiers` 同一道多档闸门 —— 隔离后仍有 `n7 … n6` 时提示重发，不猜。
      */
     const own = ownTextOf(e).trim()
     const full = own || (await isolatedText(e)) || String(e.msg)
+    if (!own && hasMultipleTiers(full)) {
+      await e.reply('[Meta] 引用里出现多个危战档位（n6 / n7），无法判断你要哪一档；请重新发送 #危战 <筛选> n6|n7')
+      return true
+    }
     if (RULES.raidTiers.test(full)) return await this.handleRaidTiers(e)
 
     const resolved = await resolveCommandArgs(e, RULES.raidTiersPrompt)
