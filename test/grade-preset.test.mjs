@@ -143,4 +143,25 @@ for (const [name, mutate, key] of [
   const customSupport = run(target(), build(), preset('support', { artifact: 10, panel: 40, weapon: 25, talent: 25 }))
   ok('辅助可显式启用圣遗物维度，权重不被模板角色吞掉', customSupport.dims.length === 4 && dim(customSupport, 'artifact').weight === .1 && customSupport.rows.some(r => r.id === 'artifact:mark' && r.scored))
 }
+{
+  // 2026-10-29 用户反馈：4+1 配装只展示成型 4 件套，散件不进参考项当前列。
+  const b = build(); b.artis[4] = { ...b.artis[4], set: '散件' }
+  const r = run(target(), b)
+  ok('套装当前值只显示 4 件套，不带散件', row(r, 'artifact:set').actual === '推荐套×4', row(r, 'artifact:set').actual)
+  const pair = build(); pair.artis = pair.artis.map((a, i) => ({ ...a, set: i < 2 ? '甲套' : i < 4 ? '乙套' : '散件' }))
+  ok('无 4 件套时保留 2+2 展示', row(run(target(), pair), 'artifact:set').actual === '甲套×2 / 乙套×2')
+}
+{
+  // 2026-10-29 用户反馈：预设内的方向词标签（输出/辅助/循环…）也是武器目标，不能整段丢弃。
+  const view = { metaRows: [], sections: [] }
+  const support = { schema: 3, name: '芙宁娜', v2: { weapons: [{ label: '辅助', tier: null, items: [{ name: '西风剑' }] }] } }
+  const t = G.extractTargets(view, '芙宁娜', support)
+  ok('自定义方向标签的武器行进入推荐桶', t.weapon.recommend.join(',') === '西风剑', JSON.stringify(t.weapon))
+  const tiers = { v2: { weapons: [{ label: '', tier: 1, items: [{ name: '甲剑' }] }, { label: '', tier: 2, items: [{ name: '乙剑' }] }, { label: '', tier: 3, items: [{ name: '丙剑' }] }] } }
+  const tt = G.extractTargets(view, 'X', tiers)
+  ok('档位序号仍按 1/2/3 分推荐/可选/过渡', tt.weapon.recommend[0] === '甲剑' && tt.weapon.optional[0] === '乙剑' && tt.weapon.transition[0] === '丙剑')
+  const multi = { v2: { weapons: [{ label: '循环', items: [{ name: 'A' }] }, { label: '满拐', items: [{ name: 'B' }] }] } }
+  const tm = G.extractTargets(view, 'X', multi)
+  ok('多流派自定义标签都进推荐桶（任一搭配均达标）', tm.weapon.recommend.join(',') === 'A,B' && tm.weapon.transition.length === 0, JSON.stringify(tm.weapon))
+}
 process.exit(report() ? 1 : 0)

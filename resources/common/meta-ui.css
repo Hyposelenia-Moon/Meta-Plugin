@@ -637,12 +637,13 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
  * 数据侧以 \n 分隔，这里用 pre-line 渲染换行，避免"裁断 /"这种断在斜杠后的尴尬换行。 */
 .mx-content .mx-compare__target { white-space: pre-line; }
 
-/* 05 当前预设参考：统一三列，方向与条件留在项目短标签，不再挤占独立方向列。 */
+/* 05 当前预设参考：统一三列，方向与条件留在项目短标签，不再挤占独立方向列。
+ * 2026-10-29 用户复审：名称列收窄、当前/目标列加宽，4 件套与属性名不再挤成多行。 */
 .mx-content .mx-reference-table .mx-reference-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px 140px;
+  grid-template-columns: minmax(112px, .85fr) minmax(164px, 1.5fr) minmax(124px, 1.05fr);
   align-items: baseline;
-  gap: 12px;
+  gap: 10px;
   padding: 7px 0;
   line-height: 1.5;
   min-height: 0;
@@ -653,7 +654,9 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content .mx-reference-table .mx-reference-row__name { display: block; min-width: 0; font-size: 17px; }
 .mx-content .mx-reference-table .mx-reference-row__attr { display: block; white-space: normal; overflow-wrap: anywhere; font-size: 17px; }
 .mx-content .mx-reference-table .mx-reference-row__value,
-.mx-content .mx-reference-table .mx-reference-row__extra { min-width: 0; overflow-wrap: anywhere; white-space: pre-line; }
+.mx-content .mx-reference-table .mx-reference-row__extra { min-width: 0; overflow-wrap: normal; word-break: keep-all; white-space: pre-line; }
+/* 当前值左对齐，紧贴项目列，避免中间整列空白；数值仍按列对齐可读。 */
+.mx-content .mx-reference-table .mx-reference-row__value { text-align: left; }
 .mx-content .mx-reference-category { margin-top: 6px; padding: 5px 0; color: var(--mx-accent); font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--mx-rule); }
 .mx-content .mx-reference-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
 .mx-content .mx-reference-table .mx-reference-tag { display: inline-block; padding: 1px 5px; border: 1px solid var(--mx-rule); border-radius: 4px; font-size: 12px; line-height: 1.5; color: var(--mx-muted); }

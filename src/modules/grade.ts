@@ -400,9 +400,12 @@ export function parseTargetRange (raw: string): { min: number, max: number } | n
   return { min, max }
 }
 
-/** 结构化攻略源（只声明用到的字段）：`v2.artifacts` 带 `kind`，比显示标签可靠 */
+/** 结构化攻略源（只声明用到的字段）：`v2` 的 `kind` / `tier` 比显示标签可靠 */
 export interface GuideSourceShape {
-  v2?: { artifacts?: Array<Record<string, any>> }
+  v2?: {
+    artifacts?: Array<Record<string, any>>
+    weapons?: Array<Record<string, any>>
+  }
 }
 
 /**
@@ -500,14 +503,41 @@ export function extractTargets (view: CodexLikeView, charName = '', guide?: Guid
     }
   }
 
-  // 武器（按档位行；`sig` 专武标记只作展示，不加分）
-  for (const row of section('武器')?.rows || []) {
-    const label = String(row.label || '').trim()
-    const bucket = label === '推荐' ? targets.weapon.recommend : label === '可选' ? targets.weapon.optional : label === '过渡' ? targets.weapon.transition : null
-    if (!bucket) continue
-    for (const item of row.items || []) {
-      const name = String(item.text || '').trim()
-      if (name) bucket.push(name)
+  // 武器（优先读结构化 v2：档位序号 / 自定义方向标签都能定位，避免只认「推荐/可选」丢整段目标）
+  const v2Weapons = Array.isArray(guide?.v2?.weapons) ? guide.v2.weapons : null
+  const weaponBucketOf = (label: string, tier: number): string[] | null => {
+    if (tier === 1) return targets.weapon.recommend
+    if (tier === 2) return targets.weapon.optional
+    if (tier === 3) return targets.weapon.transition
+    if (/推荐|首选|专武|建议/.test(label)) return targets.weapon.recommend
+    if (/可选|次选|替代|备选|其他/.test(label)) return targets.weapon.optional
+    if (/过渡|下位/.test(label)) return targets.weapon.transition
+    return null
+  }
+  if (v2Weapons) {
+    /*
+     * 预设拆分后，旧数据会把方向/流派词（输出 / 辅助 / 循环 / 满拐 / 加攻…）写在行标签上；
+     * 这些行同样是该预设的武器目标，不能因为标签不是「推荐/可选」而整段丢弃。
+     * 没有档位序号、也不是档位词时统一进推荐桶：任一攻略流派都算达标，
+     * 不能按行序把「特殊/均衡」误判成过渡档要求换武器。
+     */
+    for (const row of v2Weapons) {
+      const names = (Array.isArray(row?.items) ? row.items : [])
+        .map(item => String((item as { name?: string })?.name ?? item ?? '').trim()).filter(Boolean)
+      if (!names.length) continue
+      const label = String(row?.label ?? '').trim()
+      const tier = Number(row?.tier) || 0
+      const bucket = weaponBucketOf(label, tier) || targets.weapon.recommend
+      for (const name of names) bucket.push(name)
+    }
+  } else {
+    // 视图兜底（无结构化数据）：档位词直接分桶；自定义流派标签同样进推荐桶
+    for (const row of section('武器')?.rows || []) {
+      const label = String(row.label || '').trim()
+      const names = (row.items || []).map(item => String(item.text || '').trim()).filter(Boolean)
+      if (!names.length) continue
+      const bucket = weaponBucketOf(label, 0) || targets.weapon.recommend
+      for (const name of names) bucket.push(name)
     }
   }
 
@@ -1340,12 +1370,22 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot, o
     for (const a of build.artis || []) counts.set(a.set, (counts.get(a.set) || 0) + 1)
     const hit = Boolean(matchSetSpec(targets.artifact.recommend, counts, opts.effectSets) ||
       matchSetSpec(targets.artifact.optional, counts, opts.effectSets))
+    /*
+     * 展示只保留成型搭配（2026-10-29 用户定）：优先当前 4 件套，忽略 4+1 里的散件；
+     * 没有 4 件套时保留 2+2，仍没有才退回逐套件数。计分与证据仍用完整 counts。
+     */
+    const visibleSets = (() => {
+      const four = [...counts.entries()].filter(([, n]) => n >= 4)
+      if (four.length) return four
+      const pairs = [...counts.entries()].filter(([, n]) => n >= 2)
+      return pairs.length ? pairs : [...counts.entries()]
+    })()
     push({
       id: 'artifact:set',
       group: '综合',
       name: '套装',
       target: targets.artifact.recommend.join(' / ') || '—',
-      actual: [...counts.entries()].map(([s, n]) => `${s}×${n}`).join(' / ') || '—',
+      actual: visibleSets.map(([s, n]) => `${s}×${n}`).join(' / ') || '—',
       verdict: hit ? 'ok' : counts.size ? 'warn' : 'off'
     })
   }
