@@ -447,6 +447,18 @@ function emptyV2 () {
  */
 function normalizeData (data) {
   var d = data && typeof data === 'object' ? data : {}
+  if (Array.isArray(d.presets)) {
+    var models = d.presets.map(function (p) {
+      var model = normalizeData(Object.assign({}, p, { name: d.name, game: d.game, source: d.source }))
+      model.presetConfig = clone({ id: p.id, name: p.name, role: p.role || 'dps', match: p.match || {}, weights: Object.assign({}, p.role === 'support' ? { artifact: 0, panel: 50, weapon: 25, talent: 25 } : { artifact: 30, panel: 30, weapon: 20, talent: 20 }, p.weights || {}) })
+      return model
+    })
+    if (!models.length) throw new Error('至少保留一份攻略预设')
+    var active = clone(models[0])
+    active._presets = models
+    active._presetAt = 0
+    return active
+  }
   var v2 = d.v2 && typeof d.v2 === 'object' ? d.v2 : {}
   var meta = d.meta && typeof d.meta === 'object' ? d.meta : {}
   const model = {
@@ -1830,7 +1842,7 @@ function toggleFreeModule (moduleKey) {
   if (!MODULE_LABEL[moduleKey]) return Promise.resolve(false)
   var on = freeModulesOf(state.model).indexOf(moduleKey) < 0
   showStatus((on ? '正在标记「' : '正在取消「') + MODULE_LABEL[moduleKey] + '无需填写」…', '', true)
-  return api('POST', '/api/free-modules', { name: state.current, module: moduleKey, free: on }).then(function (res) {
+  return api('POST', '/api/free-modules', { name: state.current, module: moduleKey, free: on, preset: state.model.presetConfig && state.model.presetConfig.id }).then(function (res) {
     if (res && res.ok === false) {
       // 有内容 → 引导提示（不写盘）：告诉用户怎么才能标记
       toast('「' + MODULE_LABEL[moduleKey] + '」还不能标记', [res.detail || '该模块已有内容：先清空再标记'], 'warn')
@@ -1909,12 +1921,39 @@ function renderIssueBar () {
   }
 }
 
+function renderPresets () {
+  var m = state.model
+  if (!m._presets) return ''
+  var c = m.presetConfig
+  var list = m._presets.map(function (p, i) { return '<option value="' + i + '"' + (i === m._presetAt ? ' selected' : '') + '>' + esc(i === m._presetAt ? c.name : p.presetConfig.name) + '</option>' }).join('')
+  return '<section class="card"><h2>攻略预设</h2><div class="row"><select aria-label="切换攻略预设" data-preset-switch>' + list + '</select> ' +
+    ['add', 'copy', 'rename', 'delete'].map(function (act, i) { return '<button type="button" class="btn mini" data-act="preset-' + act + '"' + (act === 'delete' && m._presets.length === 1 ? ' disabled' : '') + '>' + ['新增', '复制', '重命名', '删除'][i] + '</button>' }).join(' ') + '</div>' +
+    '<p class="muted">切换会保留草稿；保存写入全部预设。最后一份不能删除。权重为相对值，0 表示不计分。</p>' +
+    '<label>评分模板 <select data-preset-role><option value="dps"' + (c.role === 'dps' ? ' selected' : '') + '>输出</option><option value="support"' + (c.role === 'support' ? ' selected' : '') + '>辅助</option></select></label> ' +
+    ['artifact', 'panel', 'weapon', 'talent'].map(function (k, i) { return '<label>' + ['圣遗物', '面板', '武器', '天赋'][i] + ' <input type="number" min="0" step="any" style="width:70px" data-preset-weight="' + k + '" value="' + esc(c.weights[k]) + '"></label> ' }).join('') +
+    '<p><label>匹配规则名称（每行一个）<textarea data-preset-match="names">' + esc(asArray(c.match.names).join('\n')) + '</textarea></label></p><p><label>匹配正则（每行一个）<textarea data-preset-match="patterns">' + esc(asArray(c.match.patterns).join('\n')) + '</textarea></label></p></section>'
+}
+function switchPreset (at) {
+  var m = state.model
+  var list = m._presets
+  if (!list || !list[at]) return false
+  var current = Object.assign({}, m)
+  delete current._presets
+  delete current._presetAt
+  list[m._presetAt] = clone(current)
+  state.model = clone(list[at])
+  state.model._presets = list
+  state.model._presetAt = at
+  renderForm()
+  renderPreviewSoon()
+  return true
+}
 function renderForm () {
   if (!state.model) return
   $('empty').className = 'empty hidden'
   var form = $('form')
   form.className = 'form'
-  form.innerHTML = renderBasic() + renderWeapons() + renderArtifacts() + renderTalents() +
+  form.innerHTML = renderPresets() + renderBasic() + renderWeapons() + renderArtifacts() + renderTalents() +
     renderPanels() + renderConstellations() + renderTeams() + renderUnparsed()
   // 渲染后量一遍宽度：芯片贴合内容 + 武器行「还放得下几把」的提示
   try { refreshFitHints() } catch (e) { /* 量宽度失败不影响编辑 */ }
@@ -2679,6 +2718,26 @@ function syncRefInputs () {
 /** 去掉空行/空项，返回可直接提交的 body */
 function buildBody () {
   var m = state.model
+  if (!m._presets) return buildSingleBody()
+  var models = m._presets.slice()
+  var active = Object.assign({}, m)
+  delete active._presets
+  delete active._presetAt
+  models[m._presetAt] = active
+  var presets = models.map(function (model) {
+    var keep = state.model
+    state.model = model
+    try {
+      var body = buildSingleBody()
+      delete body.name
+      delete body.game
+      return Object.assign({}, model.presetConfig, body, { freeModules: model.freeModules || [] })
+    } finally { state.model = keep }
+  })
+  return { schema: 3, name: state.current, game: m.game, source: m._raw.source, presets: presets }
+}
+function buildSingleBody () {
+  var m = state.model
   var mv2 = m.v2
 
   function cleanRow (row) {
@@ -3239,6 +3298,27 @@ function statKindOfPath (path) {
 }
 
 function handleAction (act, path, i, el) {
+  if (act.indexOf('preset-') === 0) {
+    var m = state.model
+    var list = m._presets
+    if (!list) return false
+    if (act === 'preset-delete') {
+      if (list.length <= 1) return false
+      list.splice(m._presetAt, 1)
+      state.model = clone(list[0]); state.model._presets = list; state.model._presetAt = 0
+    } else if (act === 'preset-rename') {
+      var name = prompt('预设名称', m.presetConfig.name)
+      if (!name || !name.trim()) return false
+      m.presetConfig.name = name.trim()
+    } else {
+      var fresh = act === 'preset-copy' ? clone(Object.assign({}, m, { _presets: undefined })) : normalizeData({ name: m.name, game: m.game, v2: emptyV2() })
+      delete fresh._presets; delete fresh._presetAt
+      fresh.presetConfig = { id: 'preset-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7), name: act === 'preset-copy' ? m.presetConfig.name + ' 副本' : '新预设', role: m.presetConfig.role, match: {}, weights: clone(m.presetConfig.weights) }
+      list.push(fresh)
+      switchPreset(list.length - 1)
+    }
+    markDirty(true); renderForm(); renderPreviewSoon(); return true
+  }
   var model = state.model
   var listPath = path
   var target = getPath(model, path)
@@ -3583,7 +3663,16 @@ function formEvents () {
   form.addEventListener('change', function (e) {
     var el = e.target
     if (!el || !el.getAttribute) return
-    if (el.tagName === 'SELECT' && el.getAttribute('data-path') && !el.getAttribute('data-ref-kind')) {
+    if (el.hasAttribute('data-preset-switch')) { syncRefInputs(); switchPreset(Number(el.value)); return }
+    if (el.hasAttribute('data-preset-role')) {
+      var c = state.model.presetConfig
+      c.role = el.value
+      c.weights = c.role === 'support' ? { artifact: 0, panel: 50, weapon: 25, talent: 25 } : { artifact: 30, panel: 30, weapon: 20, talent: 20 }
+      markDirty(true); renderForm(); return
+    }
+    if (el.hasAttribute('data-preset-weight')) { state.model.presetConfig.weights[el.getAttribute('data-preset-weight')] = Math.max(0, Number(el.value) || 0); markDirty(true); return }
+    if (el.hasAttribute('data-preset-match')) { state.model.presetConfig.match[el.getAttribute('data-preset-match')] = el.value.split(/\r?\n/).map(function (x) { return x.trim() }).filter(Boolean); markDirty(true); return }
+    if (el.tagName === 'SELECT'  && el.getAttribute('data-path') && !el.getAttribute('data-ref-kind')) {
       var path = el.getAttribute('data-path')
       if (/\.tier$/.test(path)) {
         setPath(state.model, path, el.value === '' ? null : Number(el.value))
@@ -4093,6 +4182,7 @@ function renderPreviewNow () {
   }
   syncRefInputs()
   var body = buildBody()
+  if (body.presets) body.preset = state.model.presetConfig.id
   var token = String(Date.now()) + Math.random()
   previewLast = token
   box.innerHTML = '<div class="muted" style="padding:10px">渲染中…</div>'

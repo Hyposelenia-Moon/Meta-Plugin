@@ -1,3 +1,4 @@
+import { listGuidePresets, selectGuidePreset } from './lib/guide-presets.mjs'
 /**
  * 显示级归一的全库体检（129 角色，不需要浏览器）：
  *   1. 所有会进渲染模型的文本字段过一遍简写展开，检查
@@ -24,6 +25,10 @@ const giDir = path.join(root, 'data', 'gi')
 
 const readJson = f => JSON.parse(fs.readFileSync(f, 'utf8').replace(/^\uFEFF/, ''))
 const names = readJson(path.join(giDir, '_order.json'))
+const views = names.flatMap(name => {
+  const guide = readJson(path.join(giDir, `${name}.json`))
+  return listGuidePresets(guide).map(p => ({ name: `${name} · ${p.name}`, data: selectGuidePreset(guide, p) }))
+})
 
 const problems = []
 const seen = { texts: 0, dup: 0, notIdem: 0 }
@@ -35,8 +40,7 @@ const add = (t) => {
   texts.add(t)
 }
 
-for (const n of names) {
-  const d = readJson(path.join(giDir, `${n}.json`))
+for (const { name: n, data: d } of views) {
   const v = d.v2 ?? {}
   for (const r of v.weapons ?? []) { if (r.label) add(r.label); for (const i of r.items ?? []) { add(i.name); add(i.note) } }
   for (const r of v.artifacts ?? []) {
@@ -75,8 +79,7 @@ for (const t of texts) {
 let emptyModules = 0
 let labelBad = 0
 const labelSeen = new Set()
-for (const n of names) {
-  const d = readJson(path.join(giDir, `${n}.json`))
+for (const { name: n, data: d } of views) {
   const sections = normalizeGuideSections(v2ToSections(d.v2 ?? {}))
   if (sections.length !== 6) problems.push(`${n}：模块数 ${sections.length} ≠ 6`)
   for (const sec of sections) {
@@ -115,7 +118,7 @@ for (const l of labelSeen) {
   if (!['推荐', '可选', '过渡'].includes(l)) labelBad++
 }
 
-console.log(`角色 ${names.length} 个；原始文本 ${texts.size} 条（出现 ${seen.texts} 次）`)
+console.log(`角色 ${names.length} 个 / 预设 ${views.length} 份；原始文本 ${texts.size} 条（出现 ${seen.texts} 次）`)
 console.log(`展开不幂等：${seen.notIdem}；展开出重复字：${seen.dup}`)
 console.log(`归一后空模块（暂无）：${emptyModules} 个；非档位标签：${labelBad} 个（自定义队名/描述标签，应为 0 才算全量归一）`)
 console.log(`渲染模型里出现过的行标签：${[...labelSeen].sort().join(' / ')}`)

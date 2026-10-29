@@ -1,282 +1,232 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "法尔伽",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "魔导混伤C",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "狼的武功歌",
-            "ref": "weapon:狼的武功歌"
-          },
-          {
-            "name": "苇海信标",
-            "ref": "weapon:苇海信标"
-          },
-          {
-            "name": "焚曜千阳",
-            "ref": "weapon:焚曜千阳"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "螭骨剑",
-            "ref": "weapon:螭骨剑"
-          },
-          {
-            "name": "狼的末路",
-            "ref": "weapon:狼的末路"
-          },
-          {
-            "name": "无工之剑",
-            "ref": "weapon:无工之剑"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 3,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "浪影阔剑",
-            "ref": "weapon:浪影阔剑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "风起之日",
-            "ref": "artifact:风起之日"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "角斗士的终幕礼",
-            "ref": "artifact:角斗士的终幕礼"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力"
-          ],
-          "空之杯": [
-            "攻击力"
-          ],
-          "理之冠": [
-            "暴击伤害",
-            "暴击率"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "大攻击"
-        ],
-        "sep": " / > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 9,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q9"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "2600-3200"
-      },
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "70-75%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "180-230%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "特殊战技追加攻击"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "额外重击与战技、叠层加爆伤"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "法尔伽",
-            "ref": "character:法尔伽"
-          },
-          {
-            "name": "杜林",
-            "ref": "character:杜林"
-          },
-          {
-            "name": "温迪",
-            "ref": "character:温迪"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "法尔伽",
-            "ref": "character:法尔伽"
-          },
-          {
-            "name": "温迪",
-            "ref": "character:温迪"
-          },
-          {
-            "name": "申鹤",
-            "ref": "character:申鹤"
-          },
-          {
-            "name": "爱可菲",
-            "ref": "character:爱可菲"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：魔导混伤C",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：狼的武功歌 > 苇海信标 > 焚曜千阳",
-        "第二档：螭骨剑 > 狼的末路 > 无工之剑",
-        "第三档：浪影阔剑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：风起之日",
-        "可选：角斗士的终幕礼",
-        "主词条：时之沙：攻击力｜空之杯：攻击力｜理之冠：暴击伤害 / 暴击率",
-        "副词条：暴击率 / 暴击伤害 > 大攻击"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q9",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "攻击力：2600-3200",
-        "暴击率：70-75%",
-        "暴击伤害：180-230%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——特殊战技追加攻击",
-        "六命——额外重击与战技、叠层加爆伤"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：法尔伽 + 杜林 + 温迪 + 班尼特",
-        "可选：法尔伽 + 温迪 + 申鹤 + 爱可菲"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "魔导混伤C",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "狼的武功歌",
+                "ref": "weapon:狼的武功歌"
+              },
+              {
+                "name": "苇海信标",
+                "ref": "weapon:苇海信标"
+              },
+              {
+                "name": "焚曜千阳",
+                "ref": "weapon:焚曜千阳"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "螭骨剑",
+                "ref": "weapon:螭骨剑"
+              },
+              {
+                "name": "狼的末路",
+                "ref": "weapon:狼的末路"
+              },
+              {
+                "name": "无工之剑",
+                "ref": "weapon:无工之剑"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "浪影阔剑",
+                "ref": "weapon:浪影阔剑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "风起之日",
+                "ref": "artifact:风起之日"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "角斗士的终幕礼",
+                "ref": "artifact:角斗士的终幕礼"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力"
+              ],
+              "空之杯": [
+                "攻击力"
+              ],
+              "理之冠": [
+                "暴击伤害",
+                "暴击率"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "大攻击"
+            ],
+            "sep": " / > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 9,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q9"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "2600-3200"
+          },
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "70-75%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "180-230%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "特殊战技追加攻击"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "额外重击与战技、叠层加爆伤"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "法尔伽",
+                "ref": "character:法尔伽"
+              },
+              {
+                "name": "杜林",
+                "ref": "character:杜林"
+              },
+              {
+                "name": "温迪",
+                "ref": "character:温迪"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "法尔伽",
+                "ref": "character:法尔伽"
+              },
+              {
+                "name": "温迪",
+                "ref": "character:温迪"
+              },
+              {
+                "name": "申鹤",
+                "ref": "character:申鹤"
+              },
+              {
+                "name": "爱可菲",
+                "ref": "character:爱可菲"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

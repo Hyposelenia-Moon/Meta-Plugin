@@ -1,250 +1,203 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "魈",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "下落主C",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "护摩之杖",
-            "ref": "weapon:护摩之杖"
-          },
-          {
-            "name": "和璞鸢",
-            "ref": "weapon:和璞鸢"
-          },
-          {
-            "name": "决斗之枪",
-            "ref": "weapon:决斗之枪"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "辰砂往生录",
-            "ref": "artifact:辰砂往生录"
-          },
-          {
-            "name": "逐影猎人",
-            "ref": "artifact:逐影猎人"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "战狂",
-            "ref": "artifact:战狂"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力"
-          ],
-          "空之杯": [
-            "风元素伤害加成",
-            "攻击力"
-          ],
-          "理之冠": [
-            "暴击伤害",
-            "暴击率"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "小攻击",
-          "元素充能效率"
-        ],
-        "sep": " / > > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 1,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 8,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A10 E1 Q8"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "90%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "180-200%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "后台提升充能"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "刷新 E"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "魈",
-            "ref": "character:魈"
-          },
-          {
-            "name": "芙宁娜",
-            "ref": "character:芙宁娜"
-          },
-          {
-            "name": "珐露珊",
-            "ref": "character:珐露珊"
-          },
-          {
-            "name": "闲云",
-            "ref": "character:闲云"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "魈",
-            "ref": "character:魈"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          },
-          {
-            "name": "珐露珊",
-            "ref": "character:珐露珊"
-          },
-          {
-            "name": "钟离",
-            "ref": "character:钟离"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：下落主C",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：护摩之杖 > 和璞鸢 > 决斗之枪"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：辰砂往生录 / 逐影猎人",
-        "可选：战狂",
-        "主词条：时之沙：攻击力｜空之杯：风元素伤害加成 / 攻击力｜理之冠：暴击伤害 / 暴击率",
-        "副词条：暴击率 / 暴击伤害 > 小攻击 > 元素充能效率"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A10 E1 Q8",
-        "皇冠：A（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：90%",
-        "暴击伤害：180-200%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——后台提升充能",
-        "六命——刷新 E"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：魈 + 芙宁娜 + 珐露珊 + 闲云",
-        "可选：魈 + 班尼特 + 珐露珊 + 钟离"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "下落主C",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "护摩之杖",
+                "ref": "weapon:护摩之杖"
+              },
+              {
+                "name": "和璞鸢",
+                "ref": "weapon:和璞鸢"
+              },
+              {
+                "name": "决斗之枪",
+                "ref": "weapon:决斗之枪"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "辰砂往生录",
+                "ref": "artifact:辰砂往生录"
+              },
+              {
+                "name": "逐影猎人",
+                "ref": "artifact:逐影猎人"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "战狂",
+                "ref": "artifact:战狂"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力"
+              ],
+              "空之杯": [
+                "风元素伤害加成",
+                "攻击力"
+              ],
+              "理之冠": [
+                "暴击伤害",
+                "暴击率"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "小攻击",
+              "元素充能效率"
+            ],
+            "sep": " / > > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 1,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A10 E1 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "90%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "180-200%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "后台提升充能"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "刷新 E"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "魈",
+                "ref": "character:魈"
+              },
+              {
+                "name": "芙宁娜",
+                "ref": "character:芙宁娜"
+              },
+              {
+                "name": "珐露珊",
+                "ref": "character:珐露珊"
+              },
+              {
+                "name": "闲云",
+                "ref": "character:闲云"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "魈",
+                "ref": "character:魈"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              },
+              {
+                "name": "珐露珊",
+                "ref": "character:珐露珊"
+              },
+              {
+                "name": "钟离",
+                "ref": "character:钟离"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

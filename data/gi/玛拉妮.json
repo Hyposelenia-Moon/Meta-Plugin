@@ -1,281 +1,228 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "玛拉妮",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "蒸发C",
-    "100级提升": "约 8.4%~8.5%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "冲浪时光",
-            "ref": "weapon:冲浪时光"
-          },
-          {
-            "name": "遗祀玉珑\\千夜浮梦",
-            "ref": "weapon:遗祀玉珑\\千夜浮梦"
-          },
-          {
-            "name": "流浪乐章",
-            "note": "满buff",
-            "ref": "weapon:流浪乐章"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "万世流涌大典",
-            "ref": "weapon:万世流涌大典"
-          },
-          {
-            "name": "碧落之珑\\不灭月华\\木棉之环",
-            "ref": "weapon:碧落之珑\\不灭月华\\木棉之环"
-          },
-          {
-            "name": "图莱杜拉的回忆",
-            "ref": "weapon:图莱杜拉的回忆"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "黑曜秘典",
-            "ref": "artifact:黑曜秘典"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "生命值",
-            "元素精通"
-          ],
-          "空之杯": [
-            "水元素伤害加成"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害",
-            "元素精通",
-            "生命值"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "大生命",
-          "元素精通",
-          "小生命"
-        ],
-        "sep": " > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q10"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "60%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "260%"
-      },
-      {
-        "label": null,
-        "k": "元素精通",
-        "v": "150"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "一命",
-        "index": 1,
-        "text": "首伤强化"
-      },
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "提升出伤效率"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "常驻一命效果"
-      }
-    ],
-    "teams": [
-      {
-        "label": "魔导",
-        "members": [
-          {
-            "name": "玛拉妮",
-            "ref": "character:玛拉妮"
-          },
-          {
-            "name": "旅行者·火",
-            "ref": "character:旅行者·火"
-          },
-          {
-            "name": "莫娜",
-            "ref": "character:莫娜"
-          },
-          {
-            "name": "砂糖",
-            "ref": "character:砂糖"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "玛玛茜希",
-        "members": [
-          {
-            "name": "玛拉妮",
-            "ref": "character:玛拉妮"
-          },
-          {
-            "name": "玛薇卡",
-            "ref": "character:玛薇卡"
-          },
-          {
-            "name": "茜特菈莉",
-            "ref": "character:茜特菈莉"
-          },
-          {
-            "name": "希诺宁",
-            "ref": "character:希诺宁"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：蒸发C",
-      "style": "role"
-    },
-    {
-      "text": "100级提升：约 8.4%~8.5%",
-      "style": "power"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：冲浪时光 > 遗祀玉珑\\千夜浮梦 > 流浪乐章（满buff）",
-        "第二档：万世流涌大典 > 碧落之珑\\不灭月华\\木棉之环 > 图莱杜拉的回忆"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：黑曜秘典",
-        "主词条：时之沙：生命值 / 元素精通｜空之杯：水元素伤害加成｜理之冠：暴击率 / 暴击伤害 / 元素精通 / 生命值",
-        "副词条：暴击率 > 暴击伤害 > 大生命 > 元素精通 > 小生命"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q10",
-        "皇冠：E（10）Q（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：60%",
-        "暴击伤害：260%",
-        "元素精通：150"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "一命——首伤强化",
-        "二命——提升出伤效率",
-        "六命——常驻一命效果"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "魔导：玛拉妮 + 旅行者·火 + 莫娜 + 砂糖",
-        "玛玛茜希：玛拉妮 + 玛薇卡 + 茜特菈莉 + 希诺宁"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "蒸发C",
+        "100级提升": "约 8.4%~8.5%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "冲浪时光",
+                "ref": "weapon:冲浪时光"
+              },
+              {
+                "name": "遗祀玉珑\\千夜浮梦",
+                "ref": "weapon:遗祀玉珑\\千夜浮梦"
+              },
+              {
+                "name": "流浪乐章",
+                "note": "满buff",
+                "ref": "weapon:流浪乐章"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "万世流涌大典",
+                "ref": "weapon:万世流涌大典"
+              },
+              {
+                "name": "碧落之珑\\不灭月华\\木棉之环",
+                "ref": "weapon:碧落之珑\\不灭月华\\木棉之环"
+              },
+              {
+                "name": "图莱杜拉的回忆",
+                "ref": "weapon:图莱杜拉的回忆"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "黑曜秘典",
+                "ref": "artifact:黑曜秘典"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "生命值",
+                "元素精通"
+              ],
+              "空之杯": [
+                "水元素伤害加成"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害",
+                "元素精通",
+                "生命值"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "大生命",
+              "元素精通",
+              "小生命"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "60%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "260%"
+          },
+          {
+            "label": null,
+            "k": "元素精通",
+            "v": "150"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "一命",
+            "index": 1,
+            "text": "首伤强化"
+          },
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "提升出伤效率"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "常驻一命效果"
+          }
+        ],
+        "teams": [
+          {
+            "label": "魔导",
+            "members": [
+              {
+                "name": "玛拉妮",
+                "ref": "character:玛拉妮"
+              },
+              {
+                "name": "旅行者·火",
+                "ref": "character:旅行者·火"
+              },
+              {
+                "name": "莫娜",
+                "ref": "character:莫娜"
+              },
+              {
+                "name": "砂糖",
+                "ref": "character:砂糖"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "玛玛茜希",
+            "members": [
+              {
+                "name": "玛拉妮",
+                "ref": "character:玛拉妮"
+              },
+              {
+                "name": "玛薇卡",
+                "ref": "character:玛薇卡"
+              },
+              {
+                "name": "茜特菈莉",
+                "ref": "character:茜特菈莉"
+              },
+              {
+                "name": "希诺宁",
+                "ref": "character:希诺宁"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

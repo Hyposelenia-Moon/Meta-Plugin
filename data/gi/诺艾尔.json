@@ -1,232 +1,181 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "诺艾尔",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "盾辅",
-    "100级提升": "约 8.5%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "赤角石溃杵",
-            "ref": "weapon:赤角石溃杵"
-          },
-          {
-            "name": "无工之剑",
-            "ref": "weapon:无工之剑"
-          },
-          {
-            "name": "白影剑",
-            "ref": "weapon:白影剑"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "螭骨剑",
-            "ref": "weapon:螭骨剑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "华馆梦醒形骸记",
-            "ref": "artifact:华馆梦醒形骸记"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "防御力"
-          ],
-          "空之杯": [
-            "防御力"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害",
-            "防御力"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "小防御",
-          "暴击率",
-          "暴击伤害"
-        ],
-        "sep": " > / "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 1,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 8,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A10 E1 Q8"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "1300"
-      },
-      {
-        "label": null,
-        "k": "防御力",
-        "v": "1600-1900"
-      },
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "60-70%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "120-140%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "防御转模"
-      }
-    ],
-    "teams": [
-      {
-        "label": "月结晶",
-        "members": [
-          {
-            "name": "诺艾尔",
-            "ref": "character:诺艾尔"
-          },
-          {
-            "name": "哥伦比娅",
-            "ref": "character:哥伦比娅"
-          },
-          {
-            "name": "芙宁娜",
-            "ref": "character:芙宁娜"
-          },
-          {
-            "name": "五郎",
-            "ref": "character:五郎"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：盾辅",
-      "style": "role"
-    },
-    {
-      "text": "100级提升：约 8.5%",
-      "style": "power"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：赤角石溃杵 > 无工之剑 > 白影剑",
-        "第二档：螭骨剑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：华馆梦醒形骸记",
-        "主词条：时之沙：防御力｜空之杯：防御力｜理之冠：暴击率 / 暴击伤害 / 防御力",
-        "副词条：小防御 > 暴击率 / 暴击伤害"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A10 E1 Q8",
-        "皇冠：A（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "攻击力：1300",
-        "防御力：1600-1900",
-        "暴击率：60-70%",
-        "暴击伤害：120-140%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "六命——防御转模"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "月结晶：诺艾尔 + 哥伦比娅 + 芙宁娜 + 五郎"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "盾辅",
+        "100级提升": "约 8.5%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "赤角石溃杵",
+                "ref": "weapon:赤角石溃杵"
+              },
+              {
+                "name": "无工之剑",
+                "ref": "weapon:无工之剑"
+              },
+              {
+                "name": "白影剑",
+                "ref": "weapon:白影剑"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "螭骨剑",
+                "ref": "weapon:螭骨剑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "华馆梦醒形骸记",
+                "ref": "artifact:华馆梦醒形骸记"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "防御力"
+              ],
+              "空之杯": [
+                "防御力"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害",
+                "防御力"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "小防御",
+              "暴击率",
+              "暴击伤害"
+            ],
+            "sep": " > / "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 1,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A10 E1 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "1300"
+          },
+          {
+            "label": null,
+            "k": "防御力",
+            "v": "1600-1900"
+          },
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "60-70%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "120-140%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "防御转模"
+          }
+        ],
+        "teams": [
+          {
+            "label": "月结晶",
+            "members": [
+              {
+                "name": "诺艾尔",
+                "ref": "character:诺艾尔"
+              },
+              {
+                "name": "哥伦比娅",
+                "ref": "character:哥伦比娅"
+              },
+              {
+                "name": "芙宁娜",
+                "ref": "character:芙宁娜"
+              },
+              {
+                "name": "五郎",
+                "ref": "character:五郎"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

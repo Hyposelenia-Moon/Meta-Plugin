@@ -1,335 +1,552 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "哥伦比娅",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "月曜反应通辅",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": "推荐",
-        "tier": null,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "帷间夜曲",
-            "ref": "weapon:帷间夜曲"
-          },
-          {
-            "name": "遗祀玉珑",
-            "ref": "weapon:遗祀玉珑"
-          },
-          {
-            "name": "冲浪时光\\真语秘匣\\万世流涌大典",
-            "ref": "weapon:冲浪时光\\真语秘匣\\万世流涌大典"
-          }
-        ]
-      },
-      {
-        "label": "可选",
-        "tier": null,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "66爆伤武器",
-            "ref": "weapon:66爆伤武器"
-          },
-          {
-            "name": "霜辰",
-            "ref": "weapon:霜辰"
-          },
-          {
-            "name": "试作金珀\\精通武器",
-            "ref": "weapon:试作金珀\\精通武器"
-          }
-        ]
-      },
-      {
-        "label": "循环",
-        "tier": null,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "西风秘典",
-            "ref": "weapon:西风秘典"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "月结晶/月感电",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "晨星与月的晓歌",
-            "ref": "artifact:晨星与月的晓歌"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "充能效率",
-            "生命值"
-          ],
-          "空之杯": [
-            "生命值"
-          ],
-          "理之冠": [
-            "暴击伤害",
-            "暴击率",
-            "生命值（二命）"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "大生命",
-          "充能",
-          "元素精通"
-        ],
-        "sep": " / > > > "
-      },
-      {
-        "kind": "preferred",
-        "label": "月绽放",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "纺月的夜歌",
-            "ref": "artifact:纺月的夜歌"
-          }
-        ]
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "充能",
-          "大生命",
-          "暴击率（西风）"
-        ],
-        "sep": " > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q10"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": "输出向",
-        "text": "暴击率：70%"
-      },
-      {
-        "label": "输出向",
-        "text": "暴击伤害：220%"
-      },
-      {
-        "label": "输出向",
-        "text": "生命值：35000"
-      },
-      {
-        "label": "辅助向",
-        "text": "元素充能效率：240%"
-      },
-      {
-        "label": "辅助向",
-        "text": "生命值：35000"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "提升前台主C数值"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "提升月曜爆伤"
-      }
-    ],
-    "teams": [
-      {
-        "label": "月感电",
-        "members": [
-          {
-            "name": "菲林斯",
-            "ref": "character:菲林斯"
-          },
-          {
-            "name": "伊涅芙",
-            "ref": "character:伊涅芙"
-          },
-          {
-            "name": "哥伦比娅",
-            "ref": "character:哥伦比娅"
-          },
-          {
-            "name": "砂糖 / 希诺宁 / 尼可",
-            "ref": "character:砂糖"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "月绽放",
-        "members": [
-          {
-            "name": "奈芙尔",
-            "ref": "character:奈芙尔"
-          },
-          {
-            "name": "菈乌玛",
-            "ref": "character:菈乌玛"
-          },
-          {
-            "name": "哥伦比娅",
-            "ref": "character:哥伦比娅"
-          },
-          {
-            "name": "砂糖 / 纳西妲 / 妮露",
-            "note": "高金",
-            "ref": "character:砂糖"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "月结晶",
-        "members": [
-          {
-            "name": "兹白",
-            "ref": "character:兹白"
-          },
-          {
-            "name": "莉奈娅",
-            "ref": "character:莉奈娅"
-          },
-          {
-            "name": "哥伦比娅",
-            "ref": "character:哥伦比娅"
-          },
-          {
-            "name": "叶洛亚 / 五郎 / 希诺宁",
-            "note": "二命",
-            "ref": "character:叶洛亚"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：月曜反应通辅",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "推荐：帷间夜曲 > 遗祀玉珑 > 冲浪时光\\真语秘匣\\万世流涌大典",
-        "可选：66爆伤武器 > 霜辰 > 试作金珀\\精通武器",
-        "循环：西风秘典"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "月结晶/月感电：晨星与月的晓歌",
-        "主词条：时之沙：充能效率 / 生命值｜空之杯：生命值｜理之冠：暴击伤害 / 暴击率 / 生命值（二命）",
-        "副词条：暴击率 / 暴击伤害 > 大生命 > 充能 > 元素精通",
-        "月绽放：纺月的夜歌",
-        "副词条：充能 > 大生命 > 暴击率（西风）"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q10",
-        "皇冠：E（10）Q（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "输出向：暴击率：70%",
-        "输出向：暴击伤害：220%",
-        "输出向：生命值：35000",
-        "辅助向：元素充能效率：240%",
-        "辅助向：生命值：35000"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——提升前台主C数值",
-        "六命——提升月曜爆伤"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "月感电：菲林斯 + 伊涅芙 + 哥伦比娅 + 砂糖 / 希诺宁 / 尼可",
-        "月绽放：奈芙尔 + 菈乌玛 + 哥伦比娅 + 砂糖 / 纳西妲 / 妮露（高金）",
-        "月结晶：兹白 + 莉奈娅 + 哥伦比娅 + 叶洛亚 / 五郎 / 希诺宁（二命）"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "dps",
+      "name": "输出",
+      "role": "dps",
+      "match": {
+        "names": [
+          "输出"
+        ]
+      },
+      "weights": {
+        "artifact": 30,
+        "panel": 30,
+        "weapon": 20,
+        "talent": 20
+      },
+      "meta": {
+        "建议等级": "90级",
+        "定位": "月曜反应通辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": "推荐",
+            "tier": null,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "帷间夜曲",
+                "ref": "weapon:帷间夜曲"
+              },
+              {
+                "name": "遗祀玉珑",
+                "ref": "weapon:遗祀玉珑"
+              },
+              {
+                "name": "冲浪时光\\真语秘匣\\万世流涌大典",
+                "ref": "weapon:冲浪时光\\真语秘匣\\万世流涌大典"
+              }
+            ]
+          },
+          {
+            "label": "可选",
+            "tier": null,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "66爆伤武器",
+                "ref": "weapon:66爆伤武器"
+              },
+              {
+                "name": "霜辰",
+                "ref": "weapon:霜辰"
+              },
+              {
+                "name": "试作金珀\\精通武器",
+                "ref": "weapon:试作金珀\\精通武器"
+              }
+            ]
+          },
+          {
+            "label": "循环",
+            "tier": null,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "西风秘典",
+                "ref": "weapon:西风秘典"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "月结晶/月感电",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "晨星与月的晓歌",
+                "ref": "artifact:晨星与月的晓歌"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "充能效率",
+                "生命值"
+              ],
+              "空之杯": [
+                "生命值"
+              ],
+              "理之冠": [
+                "暴击伤害",
+                "暴击率",
+                "生命值（二命）"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "大生命",
+              "充能",
+              "元素精通"
+            ],
+            "sep": " / > > > "
+          },
+          {
+            "kind": "preferred",
+            "label": "月绽放",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "纺月的夜歌",
+                "ref": "artifact:纺月的夜歌"
+              }
+            ]
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "充能",
+              "大生命",
+              "暴击率（西风）"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": "输出向",
+            "text": "暴击率：70%"
+          },
+          {
+            "label": "输出向",
+            "text": "暴击伤害：220%"
+          },
+          {
+            "label": "输出向",
+            "text": "生命值：35000"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "提升前台主C数值"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "提升月曜爆伤"
+          }
+        ],
+        "teams": [
+          {
+            "label": "月感电",
+            "members": [
+              {
+                "name": "菲林斯",
+                "ref": "character:菲林斯"
+              },
+              {
+                "name": "伊涅芙",
+                "ref": "character:伊涅芙"
+              },
+              {
+                "name": "哥伦比娅",
+                "ref": "character:哥伦比娅"
+              },
+              {
+                "name": "砂糖 / 希诺宁 / 尼可",
+                "ref": "character:砂糖"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "月绽放",
+            "members": [
+              {
+                "name": "奈芙尔",
+                "ref": "character:奈芙尔"
+              },
+              {
+                "name": "菈乌玛",
+                "ref": "character:菈乌玛"
+              },
+              {
+                "name": "哥伦比娅",
+                "ref": "character:哥伦比娅"
+              },
+              {
+                "name": "砂糖 / 纳西妲 / 妮露",
+                "note": "高金",
+                "ref": "character:砂糖"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "月结晶",
+            "members": [
+              {
+                "name": "兹白",
+                "ref": "character:兹白"
+              },
+              {
+                "name": "莉奈娅",
+                "ref": "character:莉奈娅"
+              },
+              {
+                "name": "哥伦比娅",
+                "ref": "character:哥伦比娅"
+              },
+              {
+                "name": "叶洛亚 / 五郎 / 希诺宁",
+                "note": "二命",
+                "ref": "character:叶洛亚"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "support",
+      "name": "辅助",
+      "role": "support",
+      "match": {
+        "names": [
+          "辅助"
+        ]
+      },
+      "weights": {
+        "artifact": 0,
+        "panel": 50,
+        "weapon": 25,
+        "talent": 25
+      },
+      "meta": {
+        "建议等级": "90级",
+        "定位": "月曜反应通辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": "推荐",
+            "tier": null,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "帷间夜曲",
+                "ref": "weapon:帷间夜曲"
+              },
+              {
+                "name": "遗祀玉珑",
+                "ref": "weapon:遗祀玉珑"
+              },
+              {
+                "name": "冲浪时光\\真语秘匣\\万世流涌大典",
+                "ref": "weapon:冲浪时光\\真语秘匣\\万世流涌大典"
+              }
+            ]
+          },
+          {
+            "label": "可选",
+            "tier": null,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "66爆伤武器",
+                "ref": "weapon:66爆伤武器"
+              },
+              {
+                "name": "霜辰",
+                "ref": "weapon:霜辰"
+              },
+              {
+                "name": "试作金珀\\精通武器",
+                "ref": "weapon:试作金珀\\精通武器"
+              }
+            ]
+          },
+          {
+            "label": "循环",
+            "tier": null,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "西风秘典",
+                "ref": "weapon:西风秘典"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "月结晶/月感电",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "晨星与月的晓歌",
+                "ref": "artifact:晨星与月的晓歌"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "充能效率",
+                "生命值"
+              ],
+              "空之杯": [
+                "生命值"
+              ],
+              "理之冠": [
+                "暴击伤害",
+                "暴击率",
+                "生命值（二命）"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "大生命",
+              "充能",
+              "元素精通"
+            ],
+            "sep": " / > > > "
+          },
+          {
+            "kind": "preferred",
+            "label": "月绽放",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "纺月的夜歌",
+                "ref": "artifact:纺月的夜歌"
+              }
+            ]
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "充能",
+              "大生命",
+              "暴击率（西风）"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": "辅助向",
+            "text": "元素充能效率：240%"
+          },
+          {
+            "label": "辅助向",
+            "text": "生命值：35000"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "提升前台主C数值"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "提升月曜爆伤"
+          }
+        ],
+        "teams": [
+          {
+            "label": "月感电",
+            "members": [
+              {
+                "name": "菲林斯",
+                "ref": "character:菲林斯"
+              },
+              {
+                "name": "伊涅芙",
+                "ref": "character:伊涅芙"
+              },
+              {
+                "name": "哥伦比娅",
+                "ref": "character:哥伦比娅"
+              },
+              {
+                "name": "砂糖 / 希诺宁 / 尼可",
+                "ref": "character:砂糖"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "月绽放",
+            "members": [
+              {
+                "name": "奈芙尔",
+                "ref": "character:奈芙尔"
+              },
+              {
+                "name": "菈乌玛",
+                "ref": "character:菈乌玛"
+              },
+              {
+                "name": "哥伦比娅",
+                "ref": "character:哥伦比娅"
+              },
+              {
+                "name": "砂糖 / 纳西妲 / 妮露",
+                "note": "高金",
+                "ref": "character:砂糖"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "月结晶",
+            "members": [
+              {
+                "name": "兹白",
+                "ref": "character:兹白"
+              },
+              {
+                "name": "莉奈娅",
+                "ref": "character:莉奈娅"
+              },
+              {
+                "name": "哥伦比娅",
+                "ref": "character:哥伦比娅"
+              },
+              {
+                "name": "叶洛亚 / 五郎 / 希诺宁",
+                "note": "二命",
+                "ref": "character:叶洛亚"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

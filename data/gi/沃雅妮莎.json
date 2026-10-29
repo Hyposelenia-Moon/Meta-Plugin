@@ -1,260 +1,213 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "沃雅妮莎",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "星扩散/冰水专辅",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "漩流颂歌",
-            "ref": "weapon:漩流颂歌"
-          },
-          {
-            "name": "讨龙英杰谭",
-            "ref": "weapon:讨龙英杰谭"
-          },
-          {
-            "name": "遗祀玉珑",
-            "ref": "weapon:遗祀玉珑"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "试作金珀",
-            "ref": "weapon:试作金珀"
-          },
-          {
-            "name": "不灭月华",
-            "ref": "weapon:不灭月华"
-          },
-          {
-            "name": "碧落之珑",
-            "ref": "weapon:碧落之珑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "千岩牢固",
-            "ref": "artifact:千岩牢固"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " + ",
-        "sets": [
-          {
-            "name": "2生命",
-            "ref": "artifact:2生命"
-          },
-          {
-            "name": "2生命",
-            "ref": "artifact:2生命"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "生命值"
-          ],
-          "空之杯": [
-            "生命值"
-          ],
-          "理之冠": [
-            "生命值"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "大生命",
-          "小生命"
-        ],
-        "sep": " > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 1,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q1"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "生命值",
-        "v": "65000"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "星扩散、冰水爆伤"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "星扩散擢升，冰水增伤"
-      }
-    ],
-    "teams": [
-      {
-        "label": "星扩散",
-        "members": [
-          {
-            "name": "薇斯纳",
-            "ref": "character:薇斯纳"
-          },
-          {
-            "name": "奥黛塔",
-            "ref": "character:奥黛塔"
-          },
-          {
-            "name": "沃雅妮莎",
-            "ref": "character:沃雅妮莎"
-          },
-          {
-            "name": "珐露珊 / 旅行者·冰",
-            "ref": "character:珐露珊"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "冰水",
-        "members": [
-          {
-            "name": "丝柯克",
-            "ref": "character:丝柯克"
-          },
-          {
-            "name": "芙宁娜",
-            "ref": "character:芙宁娜"
-          },
-          {
-            "name": "爱可菲",
-            "ref": "character:爱可菲"
-          },
-          {
-            "name": "沃雅妮莎",
-            "ref": "character:沃雅妮莎"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：星扩散/冰水专辅",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：漩流颂歌 > 讨龙英杰谭 > 遗祀玉珑",
-        "第二档：试作金珀 > 不灭月华 > 碧落之珑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：千岩牢固",
-        "可选：2生命 + 2生命",
-        "主词条：时之沙：生命值｜空之杯：生命值｜理之冠：生命值",
-        "副词条：大生命 > 小生命"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q1",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "生命值：65000"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——星扩散、冰水爆伤",
-        "六命——星扩散擢升，冰水增伤"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "星扩散：薇斯纳 + 奥黛塔 + 沃雅妮莎 + 珐露珊 / 旅行者·冰",
-        "冰水：丝柯克 + 芙宁娜 + 爱可菲 + 沃雅妮莎"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "星扩散/冰水专辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "漩流颂歌",
+                "ref": "weapon:漩流颂歌"
+              },
+              {
+                "name": "讨龙英杰谭",
+                "ref": "weapon:讨龙英杰谭"
+              },
+              {
+                "name": "遗祀玉珑",
+                "ref": "weapon:遗祀玉珑"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "试作金珀",
+                "ref": "weapon:试作金珀"
+              },
+              {
+                "name": "不灭月华",
+                "ref": "weapon:不灭月华"
+              },
+              {
+                "name": "碧落之珑",
+                "ref": "weapon:碧落之珑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "千岩牢固",
+                "ref": "artifact:千岩牢固"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " + ",
+            "sets": [
+              {
+                "name": "2生命",
+                "ref": "artifact:2生命"
+              },
+              {
+                "name": "2生命",
+                "ref": "artifact:2生命"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "生命值"
+              ],
+              "空之杯": [
+                "生命值"
+              ],
+              "理之冠": [
+                "生命值"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "大生命",
+              "小生命"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 1,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q1"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "生命值",
+            "v": "65000"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "星扩散、冰水爆伤"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "星扩散擢升，冰水增伤"
+          }
+        ],
+        "teams": [
+          {
+            "label": "星扩散",
+            "members": [
+              {
+                "name": "薇斯纳",
+                "ref": "character:薇斯纳"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "沃雅妮莎",
+                "ref": "character:沃雅妮莎"
+              },
+              {
+                "name": "珐露珊 / 旅行者·冰",
+                "ref": "character:珐露珊"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "冰水",
+            "members": [
+              {
+                "name": "丝柯克",
+                "ref": "character:丝柯克"
+              },
+              {
+                "name": "芙宁娜",
+                "ref": "character:芙宁娜"
+              },
+              {
+                "name": "爱可菲",
+                "ref": "character:爱可菲"
+              },
+              {
+                "name": "沃雅妮莎",
+                "ref": "character:沃雅妮莎"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

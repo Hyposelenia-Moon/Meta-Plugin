@@ -1,3 +1,4 @@
+import { normalizeGuide, listGuidePresets, selectGuidePreset } from './lib/guide-presets.mjs'
 /**
  * 图形化角色 JSON 编辑器 —— 后端 HTTP 服务（零依赖，仅用 node: 内置模块）
  *
@@ -57,7 +58,7 @@ import { renderCodexPage, miaoResourcesDir, resolveBotRoot } from './lib/preview
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(here, '..')
-const dataDir = path.join(root, 'data')
+const dataDir = process.env.DSH_DATA_DIR ? path.resolve(process.env.DSH_DATA_DIR) : path.join(root, 'data')
 const giDir = path.join(dataDir, 'gi')
 const trashDir = path.join(dataDir, '_trash')
 const backupDir = path.join(dataDir, '_backup')
@@ -660,7 +661,20 @@ function constellationIndex (name) {  const s = String(name ?? '')
  * @param {object} prev 原文件（不存在则 {}）
  * @returns {object}
  */
-function buildCharacter (body, name, prev = {}) {
+export function buildCharacter (body, name, prev = {}) {
+  if (Array.isArray(body?.presets)) {
+    const old = listGuidePresets(prev)
+    const doc = normalizeGuide({ ...body, name, source: body.source ?? prev.source })
+    doc.presets = doc.presets.map((p, i) => {
+      const legacy = buildSingleCharacter(body.presets[i], name, old.find(x => x.id === p.id) || {})
+      return { ...p, meta: legacy.meta, v2: legacy.v2, ...(legacy.unparsed ? { unparsed: legacy.unparsed } : {}) }
+    })
+    return doc
+  }
+  if (prev.schema === 3) throw err(400, '多预设攻略必须提交完整 presets，拒绝以旧格式覆盖')
+  return buildSingleCharacter(body, name, prev)
+}
+function buildSingleCharacter (body, name, prev = {}) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) throw err(400, '请求体必须是 JSON 对象')
   const GAMES = ['gi', 'hsr', 'zzz']
   // game：原文件有就沿用，否则接受请求体里的合法值，最后兜底 gi
@@ -677,7 +691,7 @@ function buildCharacter (body, name, prev = {}) {
   if (hasText(prev.highlight)) data.highlight = prev.highlight
 
   // freeModules（该模块无需填写）：编辑器**不认识**它、也不从表单提交，只在原文件与开关接口之间流转
-  const free = normalizeFreeModules(prev.freeModules ?? body.freeModules)
+  const free = normalizeFreeModules(body.freeModules ?? prev.freeModules)
   if (free.length) data.freeModules = free
   // 命座「强烈推荐」（顶层序号数组，docx 表达不了 → 与 freeModules 同一套：显式提交才写、空数组就删）
   if ('topConstellations' in (body ?? {})) {
@@ -775,7 +789,7 @@ export function emptyCharacter (name) {
   }
   data.tags = deriveTags(data)
   data.sections = deriveSections(data)
-  return data
+  return normalizeGuide(data)
 }
 
 /* ------------------------------------------------- 批量替换 / 全局检索引擎 */
@@ -1362,6 +1376,9 @@ function apiCharacters (res) {
       items.push({ name, weapons: 0, artifacts: 0, filled: null, hasUnparsed: false, broken: true })
       continue
     }
+    const presets = listGuidePresets(data)
+    const summary = presets.map(p => ({ id: p.id, name: p.name, filled: applyFreeExemption(filledModules(p.v2), p.freeModules) }))
+    data = selectGuidePreset(data)
     const v2 = data?.v2 ?? {}
     const unparsed = data?.unparsed ?? {}
     const free = normalizeFreeModules(data?.freeModules)
@@ -1372,7 +1389,8 @@ function apiCharacters (res) {
       weapons: asArray(v2.weapons).length,
       artifacts: asArray(v2.artifacts).length,
       // filled：目录用的口径（已扣掉「无需填写」的模块）；filledRaw：真实内容，用来发现失效标记
-      filled: applyFreeExemption(filledRaw, free),
+      presets: summary,
+      filled: Object.fromEntries(MODULE_KEYS.map(k => [k, summary.every(p => p.filled[k])])),
       filledRaw,
       free,
       hasUnparsed: Object.values(unparsed).some(lines => asArray(lines).length > 0)
@@ -1395,7 +1413,7 @@ function apiGetCharacter (res, url) {
   }
   const index = readIndex()
   const issues = validate(data, index)
-  sendJson(res, 200, { ...data, issues })
+  sendJson(res, 200, { ...normalizeGuide(data), issues })
 }
 
 async function apiPutCharacter (req, res, url) {
@@ -1447,7 +1465,9 @@ async function apiFreeModules (req, res) {
   if (!MODULE_KEYS.includes(module)) return sendError(res, 400, `未知模块：${module || '(空)'}`)
   const file = characterFile(name)
   if (!fs.existsSync(file)) return sendError(res, 404, `角色不存在：${name}`)
-  const data = readJson(file)
+  const guide = readJson(file)
+  const data = guide.schema === 3 ? guide.presets.find(p => p.id === body.preset) : guide
+  if (!data) throw err(400, '缺少或无效的预设 id')
   const v2 = data?.v2 ?? {}
 
   if (on && filledModules(v2)[module] === true) {
@@ -1465,7 +1485,7 @@ async function apiFreeModules (req, res) {
   const next = on ? cur.concat([module]) : cur.filter(k => k !== module)
   if (!next.length) delete data.freeModules
   else data.freeModules = next
-  writeJsonFile(file, orderTopLevel(data))
+  writeJsonFile(file, guide.schema === 3 ? guide : orderTopLevel(data))
   sendJson(res, 200, { ok: true, name, module, on, freeModules: next })
 }
 
@@ -1612,7 +1632,7 @@ async function apiRename (req, res) {
     return sendError(res, 500, `原文件不是合法 JSON：${from}.json —— ${e.message}`)
   }
   // 用与保存同一套逻辑重写（字段顺序、tags/sections 与 normalizeV2 的写法都保持一致）
-  writeJsonFile(toFile, buildCharacter({ game: prev.game, meta: prev.meta, v2: prev.v2, unparsed: prev.unparsed }, to, prev))
+  writeJsonFile(toFile, buildCharacter({ ...prev, name: to }, to, prev))
   fs.unlinkSync(fromFile)
 
   const order = readOrder()
@@ -2615,6 +2635,7 @@ function baselineLabel (baseline) {
 /** 单个角色的字段级前后对比（逐段文本行做增/删/改统计，够写提交摘要） */
 function diffCharacterFields (name, prev, cur, rel) {
   const fields = []
+  if (prev?.presets || cur?.presets) fields.push({ key: 'presets', label: '攻略预设', added: 0, removed: 0, changed: JSON.stringify(prev?.presets) === JSON.stringify(cur?.presets) ? 0 : 1 })
   for (const [key, label] of V2_FIELDS) {
     const d = diffLineSets(beforeLines(prev, key), beforeLines(cur, key))
     fields.push({ key, label, ...d })
@@ -2770,7 +2791,8 @@ async function apiPreview (req, res) {
     }
   }
   // 与保存走同一套规范化：mergeV2 按位置合并 + normalizeV2 去空行 + tags/sections 回推
-  const data = buildCharacter(body?.character ?? body, name, prev)
+  const guide = buildCharacter(body?.character ?? body, name, prev)
+  const data = guide.schema === 3 ? selectGuidePreset(guide, body.preset) : guide
   // 预览顶部的 hero 区（建议等级 / 定位 / 100级提升）：**只显示字段名**，空值不填占位（用户 2026-09-30 定稿）
   const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
   const meta = data.meta ?? {}

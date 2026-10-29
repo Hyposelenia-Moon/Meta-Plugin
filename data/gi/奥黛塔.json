@@ -1,283 +1,234 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "奥黛塔",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "星烁反应辅C",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "白湖冬羽",
-            "ref": "weapon:白湖冬羽"
-          },
-          {
-            "name": "磐岩结绿",
-            "ref": "weapon:磐岩结绿"
-          },
-          {
-            "name": "赦罪",
-            "ref": "weapon:赦罪"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "苍耀",
-            "ref": "weapon:苍耀"
-          },
-          {
-            "name": "星锋剑",
-            "ref": "weapon:星锋剑"
-          },
-          {
-            "name": "有乐御簾切",
-            "ref": "weapon:有乐御簾切"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 3,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "雾切之回光",
-            "ref": "weapon:雾切之回光"
-          },
-          {
-            "name": "银釭",
-            "ref": "weapon:银釭"
-          },
-          {
-            "name": "熔猎异端之刃",
-            "ref": "weapon:熔猎异端之刃"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "炉火融炼之心",
-            "ref": "artifact:炉火融炼之心"
-          },
-          {
-            "name": "影中沉凝的幻灭",
-            "ref": "artifact:影中沉凝的幻灭"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力"
-          ],
-          "空之杯": [
-            "攻击力"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害",
-            "攻击力"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "大攻击"
-        ],
-        "sep": " / > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 1,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q1"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "2600"
-      },
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "65%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "190%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "提升全队攻击力和减抗"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "自身伤害强化，全队擢升"
-      }
-    ],
-    "teams": [
-      {
-        "label": "星超导",
-        "members": [
-          {
-            "name": "桑多涅",
-            "ref": "character:桑多涅"
-          },
-          {
-            "name": "八重神子",
-            "ref": "character:八重神子"
-          },
-          {
-            "name": "奥黛塔",
-            "ref": "character:奥黛塔"
-          },
-          {
-            "name": "爱可菲 / 尼可",
-            "ref": "character:爱可菲"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "星扩散",
-        "members": [
-          {
-            "name": "薇斯纳",
-            "ref": "character:薇斯纳"
-          },
-          {
-            "name": "沃雅妮莎",
-            "ref": "character:沃雅妮莎"
-          },
-          {
-            "name": "奥黛塔",
-            "ref": "character:奥黛塔"
-          },
-          {
-            "name": "珐露珊 / 旅行者·冰",
-            "ref": "character:珐露珊"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：星烁反应辅C",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：白湖冬羽 > 磐岩结绿 > 赦罪",
-        "第二档：苍耀 > 星锋剑 > 有乐御簾切",
-        "第三档：雾切之回光 > 银釭 > 熔猎异端之刃"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：炉火融炼之心 / 影中沉凝的幻灭",
-        "主词条：时之沙：攻击力｜空之杯：攻击力｜理之冠：暴击率 / 暴击伤害 / 攻击力",
-        "副词条：暴击率 / 暴击伤害 > 大攻击"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q1",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "攻击力：2600",
-        "暴击率：65%",
-        "暴击伤害：190%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——提升全队攻击力和减抗",
-        "六命——自身伤害强化，全队擢升"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "星超导：桑多涅 + 八重神子 + 奥黛塔 + 爱可菲 / 尼可",
-        "星扩散：薇斯纳 + 沃雅妮莎 + 奥黛塔 + 珐露珊 / 旅行者·冰"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "星烁反应辅C",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "白湖冬羽",
+                "ref": "weapon:白湖冬羽"
+              },
+              {
+                "name": "磐岩结绿",
+                "ref": "weapon:磐岩结绿"
+              },
+              {
+                "name": "赦罪",
+                "ref": "weapon:赦罪"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "苍耀",
+                "ref": "weapon:苍耀"
+              },
+              {
+                "name": "星锋剑",
+                "ref": "weapon:星锋剑"
+              },
+              {
+                "name": "有乐御簾切",
+                "ref": "weapon:有乐御簾切"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "雾切之回光",
+                "ref": "weapon:雾切之回光"
+              },
+              {
+                "name": "银釭",
+                "ref": "weapon:银釭"
+              },
+              {
+                "name": "熔猎异端之刃",
+                "ref": "weapon:熔猎异端之刃"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "炉火融炼之心",
+                "ref": "artifact:炉火融炼之心"
+              },
+              {
+                "name": "影中沉凝的幻灭",
+                "ref": "artifact:影中沉凝的幻灭"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力"
+              ],
+              "空之杯": [
+                "攻击力"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害",
+                "攻击力"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "大攻击"
+            ],
+            "sep": " / > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 1,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q1"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "2600"
+          },
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "65%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "190%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "提升全队攻击力和减抗"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "自身伤害强化，全队擢升"
+          }
+        ],
+        "teams": [
+          {
+            "label": "星超导",
+            "members": [
+              {
+                "name": "桑多涅",
+                "ref": "character:桑多涅"
+              },
+              {
+                "name": "八重神子",
+                "ref": "character:八重神子"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "爱可菲 / 尼可",
+                "ref": "character:爱可菲"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "星扩散",
+            "members": [
+              {
+                "name": "薇斯纳",
+                "ref": "character:薇斯纳"
+              },
+              {
+                "name": "沃雅妮莎",
+                "ref": "character:沃雅妮莎"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "珐露珊 / 旅行者·冰",
+                "ref": "character:珐露珊"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

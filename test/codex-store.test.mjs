@@ -22,6 +22,7 @@ if (!fs.existsSync(storeFile)) {
 }
 
 const { CodexStore } = await import(pathToFileURL(storeFile).href)
+const { listGuidePresets, selectGuidePreset } = await import(pathToFileURL(path.join(libDir, 'modules', 'guidePresets.js')).href)
 
 // ---------- 1. 真实数据 ----------
 const real = new CodexStore()
@@ -39,14 +40,15 @@ const giDir = path.join(dataDir, 'gi')
 const expectEmpty = []
 for (const name of all) {
   const f = path.join(giDir, `${name}.json`)
-  let meta = null
+  let guide = null
   try {
-    meta = JSON.parse(fs.readFileSync(f, 'utf8')).meta
+    guide = JSON.parse(fs.readFileSync(f, 'utf8'))
   } catch {
     expectEmpty.push(name)
     continue
   }
-  const filled = meta && Object.values(meta).some(v => String(v ?? '').trim().length > 0)
+  const filled = listGuidePresets(guide).some(preset =>
+    Object.values(preset.meta).some(v => String(v ?? '').trim().length > 0))
   if (!filled) expectEmpty.push(name)
 }
 push('空档名单与独立重算一致', [...real.stats().empty].sort(), [...expectEmpty].sort())
@@ -56,7 +58,10 @@ ok('stats.generatedAt 可读（数据版本）', typeof real.stats().generatedAt
 
 // 已知角色
 ok('含 胡桃', all.includes('胡桃'))
-const hutao = real.getGuide('胡桃')
+const rawHutao = real.getGuide('胡桃')
+const hutaoPresets = listGuidePresets(rawHutao)
+ok('胡桃 有独立预设', hutaoPresets.length > 0)
+const hutao = selectGuidePreset(rawHutao, hutaoPresets[0])
 ok('胡桃 攻略可读', !!hutao)
 ok('胡桃 v2.weapons 非空', Array.isArray(hutao?.v2?.weapons) && hutao.v2.weapons.length > 0)
 ok('胡桃 武器档位含 items', Array.isArray(hutao?.v2?.weapons?.[0]?.items) && hutao.v2.weapons[0].items.length > 0)

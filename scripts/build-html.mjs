@@ -1,3 +1,4 @@
+import { listGuidePresets, selectGuidePreset, presetMarker } from './lib/guide-presets.mjs'
 /**
  * 由 JSON 数据生成网页版 guide.html
  *
@@ -167,14 +168,18 @@ export function listCharacters () {
     const chars = []
     for (const file of fs.readdirSync(dir)) {
       if (!file.endsWith('.json') || file.startsWith('_')) continue
-      const data = readJson(path.join(dir, file))
+      const raw = readJson(path.join(dir, file))
+      const data = selectGuidePreset(raw)
       const name = data.name || path.basename(file, '.json')
       // 空档角色（新增待补）不进网页版，避免出现整页空卡片
       if (isEmptyCharacter(data)) {
         skippedEmpty.push(name)
         continue
       }
-      chars.push({ game, name, data, dir })
+      for (const preset of listGuidePresets(raw)) {
+        const view = selectGuidePreset(raw, preset)
+        if (!isEmptyCharacter(view)) chars.push({ game, name: raw.schema === 3 ? `${name} · ${preset.name}` : name, data: { ...view, name: raw.schema === 3 ? `${name} · ${preset.name}` : name }, dir })
+      }
     }
     const rank = (char) => {
       const i = order.indexOf(char.name)
@@ -552,6 +557,7 @@ function assertNoLegacySectionBody (data) {
  * @throws {Error} 段落用了 `items` / `fields` / `image` 历史写法时抛错（见 assertNoLegacySectionBody）
  */
 export function characterSections (data) {
+  if (Array.isArray(data?.presets)) data = selectGuidePreset(data)
   assertNoLegacySectionBody(data)
   const byKeyword = new Map()
   for (const section of data?.sections ?? []) {

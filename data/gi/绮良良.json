@@ -1,304 +1,254 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "绮良良",
   "game": "gi",
-  "meta": {
-    "建议等级": "81-90级",
-    "定位": "前台挂草",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "圣显之钥",
-            "ref": "weapon:圣显之钥"
-          },
-          {
-            "name": "苍古自由之誓",
-            "ref": "weapon:苍古自由之誓"
-          },
-          {
-            "name": "磐岩结绿",
-            "ref": "weapon:磐岩结绿"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "祭礼剑",
-            "ref": "weapon:祭礼剑"
-          },
-          {
-            "name": "原木刀",
-            "ref": "weapon:原木刀"
-          },
-          {
-            "name": "西风剑",
-            "ref": "weapon:西风剑"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 3,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "飞天御剑",
-            "ref": "weapon:飞天御剑"
-          },
-          {
-            "name": "黎明神剑",
-            "ref": "weapon:黎明神剑"
-          },
-          {
-            "name": "暗铁剑",
-            "ref": "weapon:暗铁剑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "深林的记忆",
-            "ref": "artifact:深林的记忆"
-          },
-          {
-            "name": "昔日宗室之仪",
-            "ref": "artifact:昔日宗室之仪"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "花海甘露之光",
-            "ref": "artifact:花海甘露之光"
-          },
-          {
-            "name": "千岩牢固",
-            "ref": "artifact:千岩牢固"
-          }
-        ]
-      },
-      {
-        "kind": "transition",
-        "label": "过渡",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "教官",
-            "ref": "artifact:教官"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "生命值"
-          ],
-          "空之杯": [
-            "生命值"
-          ],
-          "理之冠": [
-            "生命值"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "小生命",
-          "元素充能效率",
-          "暴击率",
-          "元素精通"
-        ],
-        "sep": " > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 8,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q8"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "980-1000"
-      },
-      {
-        "label": null,
-        "k": "生命值",
-        "v": "41000-57000"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "冲刺给队友护盾"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "战后全队增伤"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "妮露",
-            "ref": "character:妮露"
-          },
-          {
-            "name": "纳西妲",
-            "ref": "character:纳西妲"
-          },
-          {
-            "name": "行秋",
-            "ref": "character:行秋"
-          },
-          {
-            "name": "绮良良",
-            "ref": "character:绮良良"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "纳西妲",
-            "ref": "character:纳西妲"
-          },
-          {
-            "name": "行秋",
-            "ref": "character:行秋"
-          },
-          {
-            "name": "久岐忍",
-            "ref": "character:久岐忍"
-          },
-          {
-            "name": "绮良良",
-            "ref": "character:绮良良"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81-90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：前台挂草",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：圣显之钥 > 苍古自由之誓 > 磐岩结绿",
-        "第二档：祭礼剑 > 原木刀 > 西风剑",
-        "第三档：飞天御剑 > 黎明神剑 > 暗铁剑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：深林的记忆 / 昔日宗室之仪",
-        "可选：花海甘露之光 / 千岩牢固",
-        "过渡：教官",
-        "主词条：时之沙：生命值｜空之杯：生命值｜理之冠：生命值",
-        "副词条：小生命 > 元素充能效率 > 暴击率 > 元素精通"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q8",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "攻击力：980-1000",
-        "生命值：41000-57000"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——冲刺给队友护盾",
-        "六命——战后全队增伤"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：妮露 + 纳西妲 + 行秋 + 绮良良",
-        "可选：纳西妲 + 行秋 + 久岐忍 + 绮良良"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81-90级",
+        "定位": "前台挂草",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "圣显之钥",
+                "ref": "weapon:圣显之钥"
+              },
+              {
+                "name": "苍古自由之誓",
+                "ref": "weapon:苍古自由之誓"
+              },
+              {
+                "name": "磐岩结绿",
+                "ref": "weapon:磐岩结绿"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "祭礼剑",
+                "ref": "weapon:祭礼剑"
+              },
+              {
+                "name": "原木刀",
+                "ref": "weapon:原木刀"
+              },
+              {
+                "name": "西风剑",
+                "ref": "weapon:西风剑"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "飞天御剑",
+                "ref": "weapon:飞天御剑"
+              },
+              {
+                "name": "黎明神剑",
+                "ref": "weapon:黎明神剑"
+              },
+              {
+                "name": "暗铁剑",
+                "ref": "weapon:暗铁剑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "深林的记忆",
+                "ref": "artifact:深林的记忆"
+              },
+              {
+                "name": "昔日宗室之仪",
+                "ref": "artifact:昔日宗室之仪"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "花海甘露之光",
+                "ref": "artifact:花海甘露之光"
+              },
+              {
+                "name": "千岩牢固",
+                "ref": "artifact:千岩牢固"
+              }
+            ]
+          },
+          {
+            "kind": "transition",
+            "label": "过渡",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "教官",
+                "ref": "artifact:教官"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "生命值"
+              ],
+              "空之杯": [
+                "生命值"
+              ],
+              "理之冠": [
+                "生命值"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "小生命",
+              "元素充能效率",
+              "暴击率",
+              "元素精通"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "980-1000"
+          },
+          {
+            "label": null,
+            "k": "生命值",
+            "v": "41000-57000"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "冲刺给队友护盾"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "战后全队增伤"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "妮露",
+                "ref": "character:妮露"
+              },
+              {
+                "name": "纳西妲",
+                "ref": "character:纳西妲"
+              },
+              {
+                "name": "行秋",
+                "ref": "character:行秋"
+              },
+              {
+                "name": "绮良良",
+                "ref": "character:绮良良"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "纳西妲",
+                "ref": "character:纳西妲"
+              },
+              {
+                "name": "行秋",
+                "ref": "character:行秋"
+              },
+              {
+                "name": "久岐忍",
+                "ref": "character:久岐忍"
+              },
+              {
+                "name": "绮良良",
+                "ref": "character:绮良良"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

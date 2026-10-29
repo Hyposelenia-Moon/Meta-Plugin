@@ -1,256 +1,209 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "希诺宁",
   "game": "gi",
-  "meta": {
-    "建议等级": "81-90级",
-    "定位": "减抗/治疗辅助",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": "满拐",
-        "tier": null,
-        "sep": " / ",
-        "items": [
-          {
-            "name": "岩峰巡歌",
-            "ref": "weapon:岩峰巡歌"
-          },
-          {
-            "name": "圣显之钥",
-            "ref": "weapon:圣显之钥"
-          },
-          {
-            "name": "苍古自由之誓",
-            "ref": "weapon:苍古自由之誓"
-          }
-        ]
-      },
-      {
-        "label": "循环",
-        "tier": null,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "西风剑",
-            "ref": "weapon:西风剑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "教官",
-            "ref": "artifact:教官"
-          },
-          {
-            "name": "烬城勇者绘卷",
-            "ref": "artifact:烬城勇者绘卷"
-          }
-        ]
-      },
-      {
-        "kind": "preferred",
-        "label": "二命茜特菈莉",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "悠古的磐岩",
-            "ref": "artifact:悠古的磐岩"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "防御力",
-            "元素充能效率"
-          ],
-          "空之杯": [
-            "防御力"
-          ],
-          "理之冠": [
-            "治疗加成",
-            "暴击率（西风）"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击（西风）",
-          "大防御",
-          "充能"
-        ],
-        "sep": " > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 8,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q8"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "60%"
-      },
-      {
-        "label": null,
-        "k": "防御力",
-        "v": "2500"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "提升辅助能力，可进多岩队伍"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "玛薇卡",
-            "ref": "character:玛薇卡"
-          },
-          {
-            "name": "茜特菈莉",
-            "ref": "character:茜特菈莉"
-          },
-          {
-            "name": "希诺宁",
-            "ref": "character:希诺宁"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "二命进月结晶",
-        "members": [
-          {
-            "name": "兹白",
-            "ref": "character:兹白"
-          },
-          {
-            "name": "哥伦比娅",
-            "ref": "character:哥伦比娅"
-          },
-          {
-            "name": "莉奈娅",
-            "ref": "character:莉奈娅"
-          },
-          {
-            "name": "希诺宁",
-            "note": "二命",
-            "ref": "character:希诺宁"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81-90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：减抗/治疗辅助",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "满拐：岩峰巡歌 / 圣显之钥 / 苍古自由之誓",
-        "循环：西风剑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：教官 / 烬城勇者绘卷",
-        "二命茜特菈莉：悠古的磐岩",
-        "主词条：时之沙：防御力 / 元素充能效率｜空之杯：防御力｜理之冠：治疗加成 / 暴击率（西风）",
-        "副词条：暴击（西风） > 大防御 > 充能"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q8",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：60%",
-        "防御力：2500"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——提升辅助能力，可进多岩队伍"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：玛薇卡 + 茜特菈莉 + 希诺宁 + 班尼特",
-        "二命进月结晶：兹白 + 哥伦比娅 + 莉奈娅 + 希诺宁（二命）"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "support",
+      "match": {},
+      "meta": {
+        "建议等级": "81-90级",
+        "定位": "减抗/治疗辅助",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": "满拐",
+            "tier": null,
+            "sep": " / ",
+            "items": [
+              {
+                "name": "岩峰巡歌",
+                "ref": "weapon:岩峰巡歌"
+              },
+              {
+                "name": "圣显之钥",
+                "ref": "weapon:圣显之钥"
+              },
+              {
+                "name": "苍古自由之誓",
+                "ref": "weapon:苍古自由之誓"
+              }
+            ]
+          },
+          {
+            "label": "循环",
+            "tier": null,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "西风剑",
+                "ref": "weapon:西风剑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "教官",
+                "ref": "artifact:教官"
+              },
+              {
+                "name": "烬城勇者绘卷",
+                "ref": "artifact:烬城勇者绘卷"
+              }
+            ]
+          },
+          {
+            "kind": "preferred",
+            "label": "二命茜特菈莉",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "悠古的磐岩",
+                "ref": "artifact:悠古的磐岩"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "防御力",
+                "元素充能效率"
+              ],
+              "空之杯": [
+                "防御力"
+              ],
+              "理之冠": [
+                "治疗加成",
+                "暴击率（西风）"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击（西风）",
+              "大防御",
+              "充能"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "60%"
+          },
+          {
+            "label": null,
+            "k": "防御力",
+            "v": "2500"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "提升辅助能力，可进多岩队伍"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "玛薇卡",
+                "ref": "character:玛薇卡"
+              },
+              {
+                "name": "茜特菈莉",
+                "ref": "character:茜特菈莉"
+              },
+              {
+                "name": "希诺宁",
+                "ref": "character:希诺宁"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "二命进月结晶",
+            "members": [
+              {
+                "name": "兹白",
+                "ref": "character:兹白"
+              },
+              {
+                "name": "哥伦比娅",
+                "ref": "character:哥伦比娅"
+              },
+              {
+                "name": "莉奈娅",
+                "ref": "character:莉奈娅"
+              },
+              {
+                "name": "希诺宁",
+                "note": "二命",
+                "ref": "character:希诺宁"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

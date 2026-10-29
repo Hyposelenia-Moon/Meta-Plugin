@@ -1,222 +1,177 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "嘉明",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "下落融化C",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "螭骨剑",
-            "ref": "weapon:螭骨剑"
-          },
-          {
-            "name": "赤角石溃杵",
-            "ref": "weapon:赤角石溃杵"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "炽烈的炎之魔女",
-            "ref": "artifact:炽烈的炎之魔女"
-          },
-          {
-            "name": "逐影猎人",
-            "ref": "artifact:逐影猎人"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "元素精通"
-          ],
-          "空之杯": [
-            "火元素伤害加成"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害"
-          ]
-        }
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 8,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q8"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "65-75%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "160-180%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "治疗溢出加攻"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "下落攻击加双暴"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "嘉明",
-            "ref": "character:嘉明"
-          },
-          {
-            "name": "芙宁娜",
-            "ref": "character:芙宁娜"
-          },
-          {
-            "name": "闲云",
-            "ref": "character:闲云"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "嘉明",
-            "ref": "character:嘉明"
-          },
-          {
-            "name": "芙宁娜",
-            "ref": "character:芙宁娜"
-          },
-          {
-            "name": "伊安珊",
-            "ref": "character:伊安珊"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：下落融化C",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：螭骨剑 > 赤角石溃杵"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：炽烈的炎之魔女 / 逐影猎人",
-        "主词条：时之沙：元素精通｜空之杯：火元素伤害加成｜理之冠：暴击率 / 暴击伤害"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q8",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：65-75%",
-        "暴击伤害：160-180%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——治疗溢出加攻",
-        "六命——下落攻击加双暴"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：嘉明 + 芙宁娜 + 闲云 + 班尼特",
-        "可选：嘉明 + 芙宁娜 + 伊安珊 + 班尼特"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "下落融化C",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "螭骨剑",
+                "ref": "weapon:螭骨剑"
+              },
+              {
+                "name": "赤角石溃杵",
+                "ref": "weapon:赤角石溃杵"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "炽烈的炎之魔女",
+                "ref": "artifact:炽烈的炎之魔女"
+              },
+              {
+                "name": "逐影猎人",
+                "ref": "artifact:逐影猎人"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素精通"
+              ],
+              "空之杯": [
+                "火元素伤害加成"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害"
+              ]
+            }
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "65-75%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "160-180%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "治疗溢出加攻"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "下落攻击加双暴"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "嘉明",
+                "ref": "character:嘉明"
+              },
+              {
+                "name": "芙宁娜",
+                "ref": "character:芙宁娜"
+              },
+              {
+                "name": "闲云",
+                "ref": "character:闲云"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "嘉明",
+                "ref": "character:嘉明"
+              },
+              {
+                "name": "芙宁娜",
+                "ref": "character:芙宁娜"
+              },
+              {
+                "name": "伊安珊",
+                "ref": "character:伊安珊"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

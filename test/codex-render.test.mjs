@@ -32,6 +32,7 @@ if (!fs.existsSync(subViewsFile) || !fs.existsSync(storeFile)) {
 
 const { buildCodexView, pickSection, narrowToSubView, isSubViewTitle, SUB_VIEW_TITLES } = await import(pathToFileURL(subViewsFile).href)
 const { CodexStore } = await import(pathToFileURL(storeFile).href)
+const { listGuidePresets, selectGuidePreset } = await import(pathToFileURL(path.join(libDir, 'modules', 'guidePresets.js')).href)
 
 const store = new CodexStore()
 const signatureOf = (n) => store.getSignature(n)
@@ -77,7 +78,9 @@ let emptySectionChars = []
 const sampled = names.slice(0, 20)
 
 for (const name of names) {
-  const v = buildCodexView(store.getGuide(name), { signature: signatureOf(name), weaponTags })
+  const guide = store.getGuide(name)
+  for (const preset of listGuidePresets(guide)) {
+  const v = buildCodexView(selectGuidePreset(guide, preset), { signature: signatureOf(name), weaponTags })
   if (!v) { shapeBad.push(`${name}: 视图为空`); continue }
   if (v.sections.length !== 6) shapeBad.push(`${name}: 模块数 ${v.sections.length}`)
   if (sampled.includes(name)) {
@@ -103,6 +106,7 @@ for (const name of names) {
       }
     }
   }
+  }
 }
 
 push('武器行同级最多 4 把', maxItems, 4)
@@ -123,6 +127,13 @@ const empty = buildCodexView({ schema: 'codex/v2', name: '空档测试角色', g
 ok('空档 guide 视图存在（点名查询可回「待补充」）', !!empty)
 ok('空档 guide hasContent === false', empty.hasContent === false)
 push('buildCodexView(null) → null', buildCodexView(null), null)
+const multi = { schema: 3, name: '多预设夹具', presets: [
+  { id: 'dps', name: '输出', role: 'dps', meta: { 定位: '输出' }, v2: {} },
+  { id: 'support', name: '辅助', role: 'support', meta: { 定位: '辅助' }, v2: {} }
+] }
+push('多预设原始攻略不猜第一份、不混用', buildCodexView(multi), null)
+push('单预设原始攻略自动投影', buildCodexView({ ...multi, presets: [multi.presets[1]] }).meta.定位, '辅助')
+push('多预设先显式选择再建视图', buildCodexView(selectGuidePreset(multi, 'support')).meta.定位, '辅助')
 
 // ---------- 分支取用 ----------
 push('isSubViewTitle("武器")', isSubViewTitle('武器'), true)

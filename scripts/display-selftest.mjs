@@ -1,3 +1,4 @@
+import { selectGuidePreset } from './lib/guide-presets.mjs'
 /**
  * 显示级归一的自检（不需要浏览器 / 图鉴）
  *
@@ -27,7 +28,10 @@ const PLUGIN = process.env.DSH_PLUGIN_DIR ?? 'D:\\文件\\游戏\\原神\\Atlas-
 /** 要核对的角色（命令行可覆盖） */
 const targets = process.argv.slice(2).length ? process.argv.slice(2) : ['芙宁娜', '梦见月瑞希', '旅行者·火']
 
-const readJson = f => JSON.parse(fs.readFileSync(f, 'utf8').replace(/^\uFEFF/, ''))
+const readJson = f => {
+  const data = JSON.parse(fs.readFileSync(f, 'utf8').replace(/^\uFEFF/, ''))
+  return Array.isArray(data.presets) ? selectGuidePreset(data) : data
+}
 
 /** 面板模型 → 六个模块的纯文本（去掉 HTML 标签，便于肉眼核对与 diff） */
 function sectionTexts (sections) {
@@ -570,7 +574,7 @@ console.log('\n================ 段落正文历史写法已停用（审核 #16�
     }
   }
   push('真实数据：角色 JSON 数', jsonCount, 131)
-  push('真实数据：sections 段数', sectionCount, 763)
+  push('真实数据：默认预设 sections 段数（schema3 投影）', sectionCount, 767)
   push('真实数据：items/fields/image 非空命中', legacyHits, [])
 
   const bad = checks.filter(c => !c.ok)

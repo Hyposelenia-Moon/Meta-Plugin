@@ -1,229 +1,183 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "重云",
   "game": "gi",
-  "meta": {
-    "建议等级": "81-90级",
-    "定位": "速切挂冰"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "狼的末路",
-            "ref": "weapon:狼的末路"
-          },
-          {
-            "name": "螭骨剑",
-            "ref": "weapon:螭骨剑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "昔日宗室之仪",
-            "ref": "artifact:昔日宗室之仪"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力"
-          ],
-          "空之杯": [
-            "冰元素伤害加成"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "小攻击",
-          "元素精通",
-          "元素充能效率"
-        ],
-        "sep": " / > > > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 8,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E8 Q10"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "1800-2200"
-      },
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "60-70%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "120-140%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "额外灵刃"
-      }
-    ],
-    "teams": [
-      {
-        "label": "融化",
-        "members": [
-          {
-            "name": "罗莎莉亚",
-            "ref": "character:罗莎莉亚"
-          },
-          {
-            "name": "香菱",
-            "ref": "character:香菱"
-          },
-          {
-            "name": "重云",
-            "ref": "character:重云"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "冻结",
-        "members": [
-          {
-            "name": "凯亚",
-            "ref": "character:凯亚"
-          },
-          {
-            "name": "行秋",
-            "ref": "character:行秋"
-          },
-          {
-            "name": "重云",
-            "ref": "character:重云"
-          },
-          {
-            "name": "枫原万叶",
-            "ref": "character:枫原万叶"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81-90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：速切挂冰",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：狼的末路 > 螭骨剑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：昔日宗室之仪",
-        "主词条：时之沙：攻击力｜空之杯：冰元素伤害加成｜理之冠：暴击率 / 暴击伤害",
-        "副词条：暴击率 / 暴击伤害 > 小攻击 > 元素精通 > 元素充能效率"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E8 Q10",
-        "皇冠：Q（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "攻击力：1800-2200",
-        "暴击率：60-70%",
-        "暴击伤害：120-140%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "六命——额外灵刃"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "融化：罗莎莉亚 + 香菱 + 重云 + 班尼特",
-        "冻结：凯亚 + 行秋 + 重云 + 枫原万叶"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81-90级",
+        "定位": "速切挂冰"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "狼的末路",
+                "ref": "weapon:狼的末路"
+              },
+              {
+                "name": "螭骨剑",
+                "ref": "weapon:螭骨剑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "昔日宗室之仪",
+                "ref": "artifact:昔日宗室之仪"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力"
+              ],
+              "空之杯": [
+                "冰元素伤害加成"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "小攻击",
+              "元素精通",
+              "元素充能效率"
+            ],
+            "sep": " / > > > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 8,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E8 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "1800-2200"
+          },
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "60-70%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "120-140%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "额外灵刃"
+          }
+        ],
+        "teams": [
+          {
+            "label": "融化",
+            "members": [
+              {
+                "name": "罗莎莉亚",
+                "ref": "character:罗莎莉亚"
+              },
+              {
+                "name": "香菱",
+                "ref": "character:香菱"
+              },
+              {
+                "name": "重云",
+                "ref": "character:重云"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "冻结",
+            "members": [
+              {
+                "name": "凯亚",
+                "ref": "character:凯亚"
+              },
+              {
+                "name": "行秋",
+                "ref": "character:行秋"
+              },
+              {
+                "name": "重云",
+                "ref": "character:重云"
+              },
+              {
+                "name": "枫原万叶",
+                "ref": "character:枫原万叶"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

@@ -1,19 +1,14 @@
 /**
  * Atlas-Plugin 适配层（**可选依赖**：缺失或异常必须降级，绝不报错）
  *
- * 现状（2026-10-13）：阿修承诺的四项稳定导出**尚未落地**（设计文档 §10 第 1 项：
- * 别名解析 / 图标路径 / 实体信息 / codex 旧资产移交，形式由他定）。因此本模块当前只做：
- *   1. **存在性探测**（Atlas 仓库是否在场、codex 相关文件是否还在）；
- *   2. **状态上报**（供状态页显示"Atlas 是否可用"）；
- *   3. 预留窄接口 `icon()` / `entityOf()`，等导出形态明确后在此适配，调用方无需改动。
- *
- * 边界：
- *   - 全链路 try/catch，任何失败只 `logger.warn` 并返回降级值；
- *   - **不 import Atlas 的任何模块**：它在 bot 的另一个插件目录，且作者随时可能剥离 codex；
- *     需要数据时应当走阿修提供的稳定导出（届时用动态 import + 探测）。
+ * 别名走正式公共门面 `modules/aliasApi.js`，动态 import + 探测；
+ * 不 import 内部实现，不写 Atlas 数据；导入或调用异常只返回空候选。
+ * 双向候选由调用方按本仓库标准角色集合裁决，不能直接采用 primary。
+ * 图标 / 实体信息仍预留窄接口，等待对应稳定导出。
  */
 import fs from 'node:fs'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { botRoot } from '../dir.js'
 
 /** Atlas 插件目录：`META_ATLAS_DIR` 优先；默认 `<bot>/plugins/Atlas-Plugin` */
@@ -64,6 +59,22 @@ export class AtlasRes {
     return this.present
   }
 
+  /** 只载入正式公共门面；模块缓存交给 ESM，别名结果不缓存以支持实时变更。 */
+  async resolveAlias (name: string): Promise<string[]> {
+    try {
+      const file = path.join(this.root, 'modules', 'aliasApi.js')
+      if (!fs.existsSync(file)) return []
+      const api = await import(pathToFileURL(file).href)
+      if (typeof api.resolveAlias !== 'function') return []
+      const result = await api.resolveAlias(name, 'gi')
+      return Array.isArray(result?.candidates)
+        ? [...new Set(result.candidates.filter((v: unknown): v is string => typeof v === 'string' && !!v.trim()))] as string[]
+        : []
+    } catch {
+      return []
+    }
+  }
+
   /**
    * 预留：解析图标（`kind` + 名字 → 相对路径）
    *
@@ -89,7 +100,9 @@ export class AtlasRes {
       codex,
       note: !present
         ? '未安装（可选依赖，缺失不影响攻略查询）'
-        : (codex ? '在场（codex 模块尚未剥离；四项稳定导出待作者提供）' : '在场（codex 已剥离，等待稳定导出）')
+        : (this.exists('modules/aliasApi.js')
+            ? '在场（正式别名门面可探测；图标 / 实体导出待提供）'
+            : (codex ? '在场（codex 模块尚未剥离；别名门面未提供）' : '在场（codex 已剥离，别名门面未提供）'))
     }
   }
 }

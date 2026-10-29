@@ -636,3 +636,30 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 /* 做法甲（2026-10-16）：证据行的目标文案按档位分行（推荐一行 / 可选一行），
  * 数据侧以 \n 分隔，这里用 pre-line 渲染换行，避免"裁断 /"这种断在斜杠后的尴尬换行。 */
 .mx-content .mx-compare__target { white-space: pre-line; }
+
+/* 05 当前预设参考：统一三列，方向与条件留在项目短标签，不再挤占独立方向列。 */
+.mx-content .mx-reference-table .mx-reference-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px 140px;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 0;
+  line-height: 1.5;
+  min-height: 0;
+  background: transparent;
+  border-radius: 0;
+}
+.mx-content .mx-reference-table .mx-reference-row--head { padding: 8px 0; color: var(--mx-accent); }
+.mx-content .mx-reference-table .mx-reference-row__name { display: block; min-width: 0; font-size: 17px; }
+.mx-content .mx-reference-table .mx-reference-row__attr { display: block; white-space: normal; overflow-wrap: anywhere; font-size: 17px; }
+.mx-content .mx-reference-table .mx-reference-row__value,
+.mx-content .mx-reference-table .mx-reference-row__extra { min-width: 0; overflow-wrap: anywhere; white-space: pre-line; }
+.mx-content .mx-reference-category { margin-top: 6px; padding: 5px 0; color: var(--mx-accent); font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--mx-rule); }
+.mx-content .mx-reference-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.mx-content .mx-reference-table .mx-reference-tag { display: inline-block; padding: 1px 5px; border: 1px solid var(--mx-rule); border-radius: 4px; font-size: 12px; line-height: 1.5; color: var(--mx-muted); }
+.mx-content .mx-reference-note { margin: 6px 0 0; padding: 6px 0; border-top: 1px solid var(--mx-rule); font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-preset-summary { padding-top: 8px; padding-bottom: 8px; font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-preset-summary strong { color: var(--mx-accent); }
+.mx-content .mx-preset-summary span { display: block; }
+/* 同结构提升优先级，抵消旧版块内归零规则，仅恢复短标签内边距。 */
+.mx-content--glass .mx-section > *:not(.mx-section__head) .mx-reference-tag { padding-left: 5px; padding-right: 5px; }

@@ -28,7 +28,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import vm from 'node:vm'
-import os from 'node:os'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -1039,7 +1038,9 @@ push('配队：候选拆分', fn('memberCandidates')('迪奥娜 / 阿罗夏'), [
 {
   const { renderCodexPage, resolveBotRoot } = await import('./lib/preview-page.mjs')
 
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'meta-preview-'))
+  const tmpRoot = path.join(root, 'test', '.test-tmp')
+  fs.mkdirSync(tmpRoot, { recursive: true })
+  const tmp = fs.mkdtempSync(path.join(tmpRoot, 'meta-preview-'))
   try {
     const bogus = await renderCodexPage({ pluginRoot: tmp, name: '胡桃', character: {}, botRootHint: tmp })
     push('没有 bot：返回 ok:false 而不是抛错', bogus.ok, false)
@@ -1061,7 +1062,8 @@ push('配队：候选拆分', fn('memberCandidates')('迪奥娜 / 阿罗夏'), [
 
     /* 未保存的改动也要能预览：改一个 meta 值，渲染结果里必须出现 */
     const tweaked = JSON.parse(JSON.stringify(real))
-    tweaked.meta = Object.assign({}, tweaked.meta || {}, { 定位: '预览自检标记' })
+    const edited = Array.isArray(tweaked.presets) ? tweaked.presets[0] : tweaked
+    edited.meta = Object.assign({}, edited.meta || {}, { 定位: '预览自检标记' })
     const page2 = await renderCodexPage({ pluginRoot: root, name: '胡桃', character: tweaked, botRootHint: botRoot })
     push('真实页面：反映未保存的改动', page2.ok && page2.html.includes('预览自检标记'), true)
   }

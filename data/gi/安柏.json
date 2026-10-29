@@ -1,258 +1,210 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "安柏",
   "game": "gi",
-  "meta": {
-    "建议等级": "81级",
-    "定位": "挂火位"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "阿莫斯之弓",
-            "ref": "weapon:阿莫斯之弓"
-          },
-          {
-            "name": "绝弦",
-            "ref": "weapon:绝弦"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "昔日宗室之仪",
-            "ref": "artifact:昔日宗室之仪"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力"
-          ],
-          "空之杯": [
-            "火元素伤害加成"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "小攻击",
-          "元素精通",
-          "元素充能效率"
-        ],
-        "sep": " / > > > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 1,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 8,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A10 E1 Q8"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "2000"
-      },
-      {
-        "label": null,
-        "k": "元素精通",
-        "v": "120"
-      },
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "60%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "120%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "提升移速和攻击力"
-      }
-    ],
-    "teams": [
-      {
-        "label": "核爆融化",
-        "members": [
-          {
-            "name": "申鹤",
-            "ref": "character:申鹤"
-          },
-          {
-            "name": "重云",
-            "ref": "character:重云"
-          },
-          {
-            "name": "安柏",
-            "ref": "character:安柏"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "蒸发辅助",
-        "members": [
-          {
-            "name": "胡桃",
-            "ref": "character:胡桃"
-          },
-          {
-            "name": "行秋",
-            "ref": "character:行秋"
-          },
-          {
-            "name": "钟离",
-            "ref": "character:钟离"
-          },
-          {
-            "name": "安柏",
-            "ref": "character:安柏"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "兔兔流",
-        "members": [
-          {
-            "name": "安柏",
-            "ref": "character:安柏"
-          },
-          {
-            "name": "枫原万叶",
-            "ref": "character:枫原万叶"
-          },
-          {
-            "name": "甘雨",
-            "ref": "character:甘雨"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81级",
-      "style": "level"
-    },
-    {
-      "text": "定位：挂火位",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：阿莫斯之弓 > 绝弦"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：昔日宗室之仪",
-        "主词条：时之沙：攻击力｜空之杯：火元素伤害加成｜理之冠：暴击率 / 暴击伤害",
-        "副词条：暴击率 / 暴击伤害 > 小攻击 > 元素精通 > 元素充能效率"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A10 E1 Q8",
-        "皇冠：A（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "攻击力：2000",
-        "元素精通：120",
-        "暴击率：60%",
-        "暴击伤害：120%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "六命——提升移速和攻击力"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "核爆融化：申鹤 + 重云 + 安柏 + 班尼特",
-        "蒸发辅助：胡桃 + 行秋 + 钟离 + 安柏",
-        "兔兔流：安柏 + 枫原万叶 + 甘雨 + 班尼特"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81级",
+        "定位": "挂火位"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "阿莫斯之弓",
+                "ref": "weapon:阿莫斯之弓"
+              },
+              {
+                "name": "绝弦",
+                "ref": "weapon:绝弦"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "昔日宗室之仪",
+                "ref": "artifact:昔日宗室之仪"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力"
+              ],
+              "空之杯": [
+                "火元素伤害加成"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "小攻击",
+              "元素精通",
+              "元素充能效率"
+            ],
+            "sep": " / > > > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 1,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A10 E1 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "2000"
+          },
+          {
+            "label": null,
+            "k": "元素精通",
+            "v": "120"
+          },
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "60%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "120%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "提升移速和攻击力"
+          }
+        ],
+        "teams": [
+          {
+            "label": "核爆融化",
+            "members": [
+              {
+                "name": "申鹤",
+                "ref": "character:申鹤"
+              },
+              {
+                "name": "重云",
+                "ref": "character:重云"
+              },
+              {
+                "name": "安柏",
+                "ref": "character:安柏"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "蒸发辅助",
+            "members": [
+              {
+                "name": "胡桃",
+                "ref": "character:胡桃"
+              },
+              {
+                "name": "行秋",
+                "ref": "character:行秋"
+              },
+              {
+                "name": "钟离",
+                "ref": "character:钟离"
+              },
+              {
+                "name": "安柏",
+                "ref": "character:安柏"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "兔兔流",
+            "members": [
+              {
+                "name": "安柏",
+                "ref": "character:安柏"
+              },
+              {
+                "name": "枫原万叶",
+                "ref": "character:枫原万叶"
+              },
+              {
+                "name": "甘雨",
+                "ref": "character:甘雨"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

@@ -1,308 +1,257 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "坎蒂丝",
   "game": "gi",
-  "meta": {
-    "建议等级": "81-90级",
-    "定位": "盾辅",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "黑缨枪",
-            "ref": "weapon:黑缨枪"
-          },
-          {
-            "name": "西风长枪",
-            "ref": "weapon:西风长枪"
-          },
-          {
-            "name": "「渔获」",
-            "ref": "weapon:「渔获」"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "喜多院十文字",
-            "ref": "weapon:喜多院十文字"
-          },
-          {
-            "name": "试作星镰",
-            "ref": "weapon:试作星镰"
-          },
-          {
-            "name": "护摩之杖",
-            "ref": "weapon:护摩之杖"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 3,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "和璞鸢",
-            "ref": "weapon:和璞鸢"
-          },
-          {
-            "name": "决斗之枪",
-            "ref": "weapon:决斗之枪"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / + ",
-        "sets": [
-          {
-            "name": "昔日宗室之仪",
-            "ref": "artifact:昔日宗室之仪"
-          },
-          {
-            "name": "2生命",
-            "ref": "artifact:2生命"
-          },
-          {
-            "name": "2充能",
-            "ref": "artifact:2充能"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "角斗士的终幕礼",
-            "ref": "artifact:角斗士的终幕礼"
-          }
-        ]
-      },
-      {
-        "kind": "transition",
-        "label": "过渡",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "流放者",
-            "ref": "artifact:流放者"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "元素充能效率",
-            "生命值"
-          ],
-          "空之杯": [
-            "生命值"
-          ],
-          "理之冠": [
-            "生命值",
-            "暴击率"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "小生命",
-          "元素充能"
-        ],
-        "sep": " / > > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 8,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E8 Q10"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "1000"
-      },
-      {
-        "label": null,
-        "k": "生命值",
-        "v": "31000-36000"
-      },
-      {
-        "label": null,
-        "k": "元素充能效率",
-        "v": "170-190%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "E 命中加生命"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "队友普攻追加水伤"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "宵宫",
-            "ref": "character:宵宫"
-          },
-          {
-            "name": "行秋",
-            "ref": "character:行秋"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          },
-          {
-            "name": "坎蒂丝",
-            "ref": "character:坎蒂丝"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "诺艾尔",
-            "ref": "character:诺艾尔"
-          },
-          {
-            "name": "芙宁娜",
-            "ref": "character:芙宁娜"
-          },
-          {
-            "name": "夜兰",
-            "ref": "character:夜兰"
-          },
-          {
-            "name": "坎蒂丝",
-            "ref": "character:坎蒂丝"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81-90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：盾辅",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：黑缨枪 > 西风长枪 > 「渔获」",
-        "第二档：喜多院十文字 > 试作星镰 > 护摩之杖",
-        "第三档：和璞鸢 > 决斗之枪"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：昔日宗室之仪 / 2生命 + 2充能",
-        "可选：角斗士的终幕礼",
-        "过渡：流放者",
-        "主词条：时之沙：元素充能效率 / 生命值｜空之杯：生命值｜理之冠：生命值 / 暴击率",
-        "副词条：暴击率 / 暴击伤害 > 小生命 > 元素充能"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E8 Q10",
-        "皇冠：Q（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "攻击力：1000",
-        "生命值：31000-36000",
-        "元素充能效率：170-190%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——E 命中加生命",
-        "六命——队友普攻追加水伤"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：宵宫 + 行秋 + 班尼特 + 坎蒂丝",
-        "可选：诺艾尔 + 芙宁娜 + 夜兰 + 坎蒂丝"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81-90级",
+        "定位": "盾辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "黑缨枪",
+                "ref": "weapon:黑缨枪"
+              },
+              {
+                "name": "西风长枪",
+                "ref": "weapon:西风长枪"
+              },
+              {
+                "name": "「渔获」",
+                "ref": "weapon:「渔获」"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "喜多院十文字",
+                "ref": "weapon:喜多院十文字"
+              },
+              {
+                "name": "试作星镰",
+                "ref": "weapon:试作星镰"
+              },
+              {
+                "name": "护摩之杖",
+                "ref": "weapon:护摩之杖"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "和璞鸢",
+                "ref": "weapon:和璞鸢"
+              },
+              {
+                "name": "决斗之枪",
+                "ref": "weapon:决斗之枪"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / + ",
+            "sets": [
+              {
+                "name": "昔日宗室之仪",
+                "ref": "artifact:昔日宗室之仪"
+              },
+              {
+                "name": "2生命",
+                "ref": "artifact:2生命"
+              },
+              {
+                "name": "2充能",
+                "ref": "artifact:2充能"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "角斗士的终幕礼",
+                "ref": "artifact:角斗士的终幕礼"
+              }
+            ]
+          },
+          {
+            "kind": "transition",
+            "label": "过渡",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "流放者",
+                "ref": "artifact:流放者"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素充能效率",
+                "生命值"
+              ],
+              "空之杯": [
+                "生命值"
+              ],
+              "理之冠": [
+                "生命值",
+                "暴击率"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "小生命",
+              "元素充能"
+            ],
+            "sep": " / > > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 8,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E8 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "1000"
+          },
+          {
+            "label": null,
+            "k": "生命值",
+            "v": "31000-36000"
+          },
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "170-190%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "E 命中加生命"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "队友普攻追加水伤"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "宵宫",
+                "ref": "character:宵宫"
+              },
+              {
+                "name": "行秋",
+                "ref": "character:行秋"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              },
+              {
+                "name": "坎蒂丝",
+                "ref": "character:坎蒂丝"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "诺艾尔",
+                "ref": "character:诺艾尔"
+              },
+              {
+                "name": "芙宁娜",
+                "ref": "character:芙宁娜"
+              },
+              {
+                "name": "夜兰",
+                "ref": "character:夜兰"
+              },
+              {
+                "name": "坎蒂丝",
+                "ref": "character:坎蒂丝"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

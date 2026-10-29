@@ -127,7 +127,35 @@ export interface ScoreContext {
   isPartial: boolean
 }
 
+export interface ReferenceGroupView {
+  label: string
+  rows: Array<{ id: string, name: string, actual: string, target: string, tags: string[] }>
+}
+
+/** 只整理业务层已投影的参考项，不补入其他预设目标，也不按属性名吞掉不同目标。 */
+export function buildReferenceGroups (references: EvidenceRow[]): ReferenceGroupView[] {
+  const groups = new Map<string, ReferenceGroupView>()
+  for (const row of references) {
+    const label = row.id.startsWith('panel:') ? '面板' : row.group === '命座' ? '命座' : row.group || '其他'
+    let group = groups.get(label)
+    if (!group) { group = { label, rows: [] }; groups.set(label, group) }
+    const tags: string[] = []
+    if (label === '面板' && row.group && row.group !== '参考') tags.push(row.group)
+    // 条件原文只搬到短标签，不改写含义；同目标不同条件仍是不同项。
+    const target = row.target.replace(/[（(〔]([^）)〕]*)[）)〕]/g, (_, text: string) => {
+      tags.push(text.trim())
+      return ''
+    }).trim()
+    const item = { id: row.id, name: row.name, actual: row.actual, target, tags: [...new Set(tags)] }
+    const duplicate = group.rows.some(r => r.name === item.name && r.actual === item.actual && r.target === item.target && r.tags.join('\0') === item.tags.join('\0'))
+    if (!duplicate) group.rows.push(item)
+  }
+  return [...groups.values()]
+}
+
 export interface PresentationMeta {
+  dimensionsTitle: string
+  referenceGroups: ReferenceGroupView[]
   score: ScoreContext
   dims: GradeDimView[]
   /** 计分对比行（含未达标与未知，未被过滤） */
@@ -142,6 +170,9 @@ export interface PresentationMeta {
   /** 达标项覆盖说明（"其余 N 项达标"） */
   metCount: number
   metText: string
+  /** 未达标维度名（无逐项证据时也不能谎称"均已满足"） */
+  belowDims: string[]
+  belowDimsText: string
   sources: SourceInfo[]
 }
 
@@ -293,6 +324,8 @@ export function buildPresentation (input: {
     evidence
   )
   const metCount = evidence.filter(e => e.state === 'met').length
+  // 维度已判 below 但没有逐项证据时（合成/缺明细数据），收尾文案必须如实说明，不能写"均已满足"。
+  const belowDims = input.result.dims.filter(d => d.state === 'below').map(d => d.label)
   /*
    * 参考项区的两条展示口径（2026-10-18 用户定）：
    *   refHasDir  —— 参考项里有没有**方向**（辅助/输出…）。没有就不为方向留列（省横向空间）；
@@ -304,6 +337,8 @@ export function buildPresentation (input: {
   const refOnlyCons = references.length > 0 && refGroups.every(g => g === '命座')
   return {
     score: buildScoreContext(input.result, { targetVersion: input.targetVersion }),
+    dimensionsTitle: dims.length === 4 ? '四维达成' : dims.length === 3 ? '三维达成' : `${dims.length}维达成`,
+    referenceGroups: buildReferenceGroups(references),
     dims,
     evidence,
     references,
@@ -311,6 +346,8 @@ export function buildPresentation (input: {
     refOnlyCons,
     suggestions,
     metCount,
+    belowDims,
+    belowDimsText: belowDims.length ? `未达标维度：${belowDims.join('、')}（无逐项证据）` : '',
     /*
      * 未达标项的收尾文案（2026-10-18 用户定）：没有未达标项时写「已全部达标」，
      * 而不是在"未达标项"标题下只写「其余 N 项达标」。

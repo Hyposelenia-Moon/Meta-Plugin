@@ -1,299 +1,245 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "伊涅芙",
   "game": "gi",
-  "highlight": "100级提升：约 5%",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "月感电后台副C/辅助",
-    "100级提升": "约 5%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "支离轮光",
-            "ref": "weapon:支离轮光"
-          },
-          {
-            "name": "赤沙之杖",
-            "ref": "weapon:赤沙之杖"
-          },
-          {
-            "name": "香韵奏者",
-            "ref": "weapon:香韵奏者"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "峡湾长歌",
-            "ref": "weapon:峡湾长歌"
-          },
-          {
-            "name": "护摩之杖",
-            "ref": "weapon:护摩之杖"
-          },
-          {
-            "name": "风信之锋",
-            "ref": "weapon:风信之锋"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 3,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "匣里灭辰",
-            "ref": "weapon:匣里灭辰"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "晨星与月的晓歌",
-            "ref": "artifact:晨星与月的晓歌"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "饰金之梦",
-            "ref": "artifact:饰金之梦"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力"
-          ],
-          "空之杯": [
-            "攻击力"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "小攻击",
-          "精通"
-        ],
-        "sep": " / > > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q10"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "2200"
-      },
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "70%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "180%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "提升辅助能力"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "大幅增加自身输出"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "伊涅芙",
-            "ref": "character:伊涅芙"
-          },
-          {
-            "name": "菲林斯",
-            "ref": "character:菲林斯"
-          },
-          {
-            "name": "哥伦比娅",
-            "ref": "character:哥伦比娅"
-          },
-          {
-            "name": "希诺宁",
-            "ref": "character:希诺宁"
-          },
-          {
-            "name": "砂糖",
-            "ref": "character:砂糖"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "其他",
-        "members": [
-          {
-            "name": "伊涅芙",
-            "ref": "character:伊涅芙"
-          },
-          {
-            "name": "菲谢尔",
-            "ref": "character:菲谢尔"
-          },
-          {
-            "name": "行秋",
-            "ref": "character:行秋"
-          },
-          {
-            "name": "砂糖",
-            "ref": "character:砂糖"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：月感电后台副C/辅助",
-      "style": "role"
-    },
-    {
-      "text": "100级提升：约 5%",
-      "style": "power"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：支离轮光 > 赤沙之杖 > 香韵奏者",
-        "第二档：峡湾长歌 > 护摩之杖 > 风信之锋",
-        "第三档：匣里灭辰"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：晨星与月的晓歌",
-        "可选：饰金之梦",
-        "主词条：时之沙：攻击力｜空之杯：攻击力｜理之冠：暴击率 / 暴击伤害",
-        "副词条：暴击率 / 暴击伤害 > 小攻击 > 精通"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q10",
-        "皇冠：E（10）Q（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "攻击力：2200",
-        "暴击率：70%",
-        "暴击伤害：180%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——提升辅助能力",
-        "六命——大幅增加自身输出"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：伊涅芙 + 菲林斯 + 哥伦比娅 + 希诺宁 + 砂糖",
-        "其他：伊涅芙 + 菲谢尔 + 行秋 + 砂糖"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "support",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "月感电后台副C/辅助",
+        "100级提升": "约 5%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "支离轮光",
+                "ref": "weapon:支离轮光"
+              },
+              {
+                "name": "赤沙之杖",
+                "ref": "weapon:赤沙之杖"
+              },
+              {
+                "name": "香韵奏者",
+                "ref": "weapon:香韵奏者"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "峡湾长歌",
+                "ref": "weapon:峡湾长歌"
+              },
+              {
+                "name": "护摩之杖",
+                "ref": "weapon:护摩之杖"
+              },
+              {
+                "name": "风信之锋",
+                "ref": "weapon:风信之锋"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "匣里灭辰",
+                "ref": "weapon:匣里灭辰"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "晨星与月的晓歌",
+                "ref": "artifact:晨星与月的晓歌"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "饰金之梦",
+                "ref": "artifact:饰金之梦"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力"
+              ],
+              "空之杯": [
+                "攻击力"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "小攻击",
+              "精通"
+            ],
+            "sep": " / > > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "2200"
+          },
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "70%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "180%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "提升辅助能力"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "大幅增加自身输出"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "伊涅芙",
+                "ref": "character:伊涅芙"
+              },
+              {
+                "name": "菲林斯",
+                "ref": "character:菲林斯"
+              },
+              {
+                "name": "哥伦比娅",
+                "ref": "character:哥伦比娅"
+              },
+              {
+                "name": "希诺宁",
+                "ref": "character:希诺宁"
+              },
+              {
+                "name": "砂糖",
+                "ref": "character:砂糖"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "其他",
+            "members": [
+              {
+                "name": "伊涅芙",
+                "ref": "character:伊涅芙"
+              },
+              {
+                "name": "菲谢尔",
+                "ref": "character:菲谢尔"
+              },
+              {
+                "name": "行秋",
+                "ref": "character:行秋"
+              },
+              {
+                "name": "砂糖",
+                "ref": "character:砂糖"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      },
+      "highlight": "100级提升：约 5%"
+    }
+  ]
 }

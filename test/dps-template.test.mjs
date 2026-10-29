@@ -55,8 +55,9 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
 // 2026-10-18 核对修复 #10：练度页「参考项」必须带方向标（辅助 / 输出 等），否则同名属性读不出区别
 {
   const tplGrade = readText(path.join(tplDir, 'grade.html'))
-  ok('grade 模板：参考项渲染方向标', tplGrade.includes('mx-reference-row__group') && /\{\{if r\.group[^}]*\}\}/.test(tplGrade))
-  ok('grade 模板：方向标有样式', tplGrade.includes('.mx-reference-row__group {'))
+  ok('grade 模板：参考项渲染方向与条件短标签', tplGrade.includes('mx.referenceGroups') && tplGrade.includes('{{each r.tags tag}}'))
+  ok('grade 模板：短标签样式统一进共享 CSS', readText(path.join(commonDir, 'meta-ui.css')).includes('.mx-reference-tag {'))
+  ok('grade 模板：维度标题消费投影，不写死三维', tplGrade.includes('{{mx.dimensionsTitle}}') && !tplGrade.includes('>三维达成<'))
 }
 
 // 2026-10-18：参考项区两条展示口径要有模板接线
@@ -152,7 +153,7 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   'char-dps': ['siteName', 'title', 'gameName', 'subtitle', 'fetchedAt', 'total', 'tierCount', 'tiers', 'notice'],
   tiers: ['siteName', 'title', 'subtitle', 'fetchedAt', 'total', 'tiers'],
   // 2026-10-15：新增「当前配装 / 参考 DPS / 角色立绘」三块（后两块可缺省 → 模板用 {{if}} 兜着）
-  grade: ['title', 'subtitle', 'charName', 'ranks', 'rankClass', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'buildInfo', 'panelRows', 'uidText', 'consIcons', 'talentIcons', 'elemClass', 'heroImg', 'refDps', 'mx', 'assessable', 'notes', '$index'],   // $index 是 art-template 内置循环下标（参考 DPS 徽标档位用）
+  grade: ['title', 'subtitle', 'charName', 'ranks', 'rankClass', 'total', 'panelTier', 'dims', 'missRows', 'consLine', 'suggestions', 'buildInfo', 'panelRows', 'uidText', 'consIcons', 'talentIcons', 'elemClass', 'heroImg', 'refDps', 'mx', 'assessable', 'notes', 'presetName', 'presetMatchReason', 'presetWeightText', '$index'],   // $index 是 art-template 内置循环下标（参考 DPS 徽标档位用）
   'team-damage': ['title', 'subtitle', 'uid', 'members', 'refs', 'refTotal', 'approxCost', 'notes', 'referenceDps', 'referenceTotal', 'window', 'axisLabel', 'axisManual', 'patchLabel', 'contributions'],
   // 2026-10-17：数值口径随榜（`metricLabel`）与榜名（`boardName`）——榜不都是伤害
     status: ['siteName', 'title', 'hasData', 'dataTime', 'ageText', 'ttlText', 'staleText', 'proxy', 'networkEnabled', 'disabledModules', 'codexFilled', 'codexTotal', 'gradeRuleText', 'miaoOk', 'atlasOk', 'sources', 'versions', 'avatar', 'pluginVersion', 'yunzaiVersion', 'versionText']

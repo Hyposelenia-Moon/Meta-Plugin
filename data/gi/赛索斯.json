@@ -1,302 +1,252 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "赛索斯",
   "game": "gi",
-  "meta": {
-    "建议等级": "81-90级",
-    "定位": "重击雷副C",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "猎人之径",
-            "ref": "weapon:猎人之径"
-          },
-          {
-            "name": "最初的大魔术",
-            "ref": "weapon:最初的大魔术"
-          },
-          {
-            "name": "阿莫斯之弓",
-            "ref": "weapon:阿莫斯之弓"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "天空之翼",
-            "ref": "weapon:天空之翼"
-          },
-          {
-            "name": "烈阳之嗣",
-            "ref": "weapon:烈阳之嗣"
-          },
-          {
-            "name": "王下近侍",
-            "ref": "weapon:王下近侍"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 3,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "鹮穿之喙",
-            "ref": "weapon:鹮穿之喙"
-          },
-          {
-            "name": "弹弓",
-            "ref": "weapon:弹弓"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "流浪大地的乐团",
-            "ref": "artifact:流浪大地的乐团"
-          },
-          {
-            "name": "饰金之梦",
-            "ref": "artifact:饰金之梦"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "乐园遗落之花",
-            "ref": "artifact:乐园遗落之花"
-          },
-          {
-            "name": "逆飞的流星",
-            "ref": "artifact:逆飞的流星"
-          }
-        ]
-      },
-      {
-        "kind": "transition",
-        "label": "过渡",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "教官",
-            "ref": "artifact:教官"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "元素精通"
-          ],
-          "空之杯": [
-            "雷元素伤害加成",
-            "元素精通"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "元素精通",
-          "元素充能效率"
-        ],
-        "sep": " / > > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 8,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 1,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A8 E1 Q10"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "60%以上"
-      },
-      {
-        "label": null,
-        "k": "元素精通",
-        "v": "350-450"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "触发加雷伤"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "贯影箭返还能量"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "赛索斯",
-            "ref": "character:赛索斯"
-          },
-          {
-            "name": "菲谢尔",
-            "ref": "character:菲谢尔"
-          },
-          {
-            "name": "绮良良",
-            "ref": "character:绮良良"
-          },
-          {
-            "name": "砂糖",
-            "ref": "character:砂糖"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "赛索斯",
-            "ref": "character:赛索斯"
-          },
-          {
-            "name": "菲谢尔",
-            "ref": "character:菲谢尔"
-          },
-          {
-            "name": "纳西妲",
-            "ref": "character:纳西妲"
-          },
-          {
-            "name": "希诺宁",
-            "ref": "character:希诺宁"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81-90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：重击雷副C",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：猎人之径 > 最初的大魔术 > 阿莫斯之弓",
-        "第二档：天空之翼 > 烈阳之嗣 > 王下近侍",
-        "第三档：鹮穿之喙 > 弹弓"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：流浪大地的乐团 / 饰金之梦",
-        "可选：乐园遗落之花 / 逆飞的流星",
-        "过渡：教官",
-        "主词条：时之沙：元素精通｜空之杯：雷元素伤害加成 / 元素精通｜理之冠：暴击率 / 暴击伤害",
-        "副词条：暴击率 / 暴击伤害 > 元素精通 > 元素充能效率"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A8 E1 Q10",
-        "皇冠：Q（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：60%以上",
-        "元素精通：350-450"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——触发加雷伤",
-        "六命——贯影箭返还能量"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：赛索斯 + 菲谢尔 + 绮良良 + 砂糖",
-        "可选：赛索斯 + 菲谢尔 + 纳西妲 + 希诺宁"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81-90级",
+        "定位": "重击雷副C",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "猎人之径",
+                "ref": "weapon:猎人之径"
+              },
+              {
+                "name": "最初的大魔术",
+                "ref": "weapon:最初的大魔术"
+              },
+              {
+                "name": "阿莫斯之弓",
+                "ref": "weapon:阿莫斯之弓"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "天空之翼",
+                "ref": "weapon:天空之翼"
+              },
+              {
+                "name": "烈阳之嗣",
+                "ref": "weapon:烈阳之嗣"
+              },
+              {
+                "name": "王下近侍",
+                "ref": "weapon:王下近侍"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "鹮穿之喙",
+                "ref": "weapon:鹮穿之喙"
+              },
+              {
+                "name": "弹弓",
+                "ref": "weapon:弹弓"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "流浪大地的乐团",
+                "ref": "artifact:流浪大地的乐团"
+              },
+              {
+                "name": "饰金之梦",
+                "ref": "artifact:饰金之梦"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "乐园遗落之花",
+                "ref": "artifact:乐园遗落之花"
+              },
+              {
+                "name": "逆飞的流星",
+                "ref": "artifact:逆飞的流星"
+              }
+            ]
+          },
+          {
+            "kind": "transition",
+            "label": "过渡",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "教官",
+                "ref": "artifact:教官"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素精通"
+              ],
+              "空之杯": [
+                "雷元素伤害加成",
+                "元素精通"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "元素精通",
+              "元素充能效率"
+            ],
+            "sep": " / > > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 8,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 1,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A8 E1 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "60%以上"
+          },
+          {
+            "label": null,
+            "k": "元素精通",
+            "v": "350-450"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "触发加雷伤"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "贯影箭返还能量"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "赛索斯",
+                "ref": "character:赛索斯"
+              },
+              {
+                "name": "菲谢尔",
+                "ref": "character:菲谢尔"
+              },
+              {
+                "name": "绮良良",
+                "ref": "character:绮良良"
+              },
+              {
+                "name": "砂糖",
+                "ref": "character:砂糖"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "赛索斯",
+                "ref": "character:赛索斯"
+              },
+              {
+                "name": "菲谢尔",
+                "ref": "character:菲谢尔"
+              },
+              {
+                "name": "纳西妲",
+                "ref": "character:纳西妲"
+              },
+              {
+                "name": "希诺宁",
+                "ref": "character:希诺宁"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

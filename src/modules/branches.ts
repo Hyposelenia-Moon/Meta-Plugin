@@ -11,7 +11,6 @@
  */
 import {
   CODEX_ARG_RULE,
-  CODEX_GUIDE_RULE,
   CODEX_SUFFIX_RULE,
   TIER_WORDS,
   type TierWord
@@ -24,8 +23,10 @@ export const REVERSE_HEADS = ['武器', '配队'] as const
 export interface SuffixQuery {
   /** 原始写法（未解析成标准名） */
   character: string
-  /** `#胡桃攻略2` 里的套数；`1`/缺省为 null（我们只有一套，页面会注明「仅一套」） */
+  /** 旧序号写法：按预设顺序选择，缺省为 null。 */
   setIndex: number | null
+  /** `#芙宁娜攻略 辅助` 的预设 id 或显示名。 */
+  preset?: string
   /**
    * `#胡桃攻略 面板图3` 里的图序号（图库 `{角色}_{序号}_…`）；缺省为 null = 随机取合格图
    *
@@ -44,20 +45,13 @@ export function parseSuffixQuery (msg: string): SuffixQuery | null {
   const text = String(msg ?? '').trim()
   if (!text.startsWith('#')) return null
 
-  if (CODEX_GUIDE_RULE.test(text)) {
-    const name = text.slice(1).replace(/^更新/, '').replace(/指南$/, '').trim()
-    return name ? { character: name, setIndex: null, panelIndex: null } : null
-  }
-
-  if (!CODEX_SUFFIX_RULE.test(text)) return null
-  const body = text.slice(1).replace(/^更新/, '')
-  const hit = body.match(/^(.*?)攻略(\d)?(?:\s*面板图(\d+))?$/)
+  const hit = text.match(CODEX_SUFFIX_RULE)
   if (!hit) return null
-  const name = hit[1].trim()
+  const name = hit[2].trim()
   if (!name) return null
-  const setIndex = hit[2] ? Number(hit[2]) : null
-  const panelIndex = hit[3] ? Number(hit[3]) : null
-  return { character: name, setIndex, panelIndex }
+  const setIndex = hit[3] ? Number(hit[3]) : null
+  const panelIndex = hit[5] ? Number(hit[5]) : null
+  return { character: name, setIndex, panelIndex, ...(hit[4] ? { preset: hit[4] } : {}) }
 }
 
 export type ArgKind = 'character' | 'reverseWeapon' | 'reverseTeam' | 'list' | 'status' | 'unknown'

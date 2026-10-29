@@ -1,192 +1,147 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "爱诺",
   "game": "gi",
-  "meta": {
-    "建议等级": "81级",
-    "定位": "月曜反应挂水辅",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "拾慧铸熔",
-            "ref": "weapon:拾慧铸熔"
-          },
-          {
-            "name": "西风大剑",
-            "ref": "weapon:西风大剑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "纺月的夜歌",
-            "ref": "artifact:纺月的夜歌"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "教官",
-            "ref": "artifact:教官"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "元素充能效率"
-          ],
-          "空之杯": [
-            "元素精通"
-          ],
-          "理之冠": [
-            "暴击率"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "元素充能效率",
-          "暴击率"
-        ],
-        "sep": " > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 8,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E8 Q10"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "70%"
-      },
-      {
-        "label": null,
-        "k": "元素充能效率",
-        "v": "220%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "提升月曜伤害"
-      }
-    ],
-    "teams": [
-      {
-        "label": "月曜反应",
-        "members": [],
-        "text": "挂水位"
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81级",
-      "style": "level"
-    },
-    {
-      "text": "定位：月曜反应挂水辅",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：拾慧铸熔 > 西风大剑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：纺月的夜歌",
-        "可选：教官",
-        "主词条：时之沙：元素充能效率｜空之杯：元素精通｜理之冠：暴击率",
-        "副词条：元素充能效率 > 暴击率"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E8 Q10",
-        "皇冠：Q（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：70%",
-        "元素充能效率：220%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "六命——提升月曜伤害"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "月曜反应：挂水位"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81级",
+        "定位": "月曜反应挂水辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "拾慧铸熔",
+                "ref": "weapon:拾慧铸熔"
+              },
+              {
+                "name": "西风大剑",
+                "ref": "weapon:西风大剑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "纺月的夜歌",
+                "ref": "artifact:纺月的夜歌"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "教官",
+                "ref": "artifact:教官"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素充能效率"
+              ],
+              "空之杯": [
+                "元素精通"
+              ],
+              "理之冠": [
+                "暴击率"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "元素充能效率",
+              "暴击率"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 8,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E8 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "70%"
+          },
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "220%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "提升月曜伤害"
+          }
+        ],
+        "teams": [
+          {
+            "label": "月曜反应",
+            "members": [],
+            "text": "挂水位"
+          }
+        ]
+      }
+    }
+  ]
 }

@@ -144,7 +144,7 @@ for (const name of docSeq) {
   const want = expected.get(name)
   if (!got) { content.push({ name, fields: ['文档解析结果里没有这个角色的对象'] }); continue }
   const fields = []
-  for (const k of ['schema', 'name', 'game', 'meta', 'v2', 'unparsed']) {
+  for (const k of ['schema', 'name', 'game', 'meta', 'v2', 'presets', 'unparsed']) {
     if (!eq(got[k] ?? null, want[k] ?? null)) {
       fields.push(`${k}：${firstDiff(want[k] ?? null, got[k] ?? null, k)}`)
     }

@@ -1,311 +1,474 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "玛薇卡",
   "game": "gi",
-  "highlight": "100级提升：约 7.2%~7.8%（随命座）",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "站场主C",
-    "100级提升": "约 7.2%~7.8%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "焚曜千阳",
-            "ref": "weapon:焚曜千阳"
-          },
-          {
-            "name": "苇海信标",
-            "note": "叠满",
-            "ref": "weapon:苇海信标"
-          },
-          {
-            "name": "螭骨剑",
-            "ref": "weapon:螭骨剑"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "裁断",
-            "ref": "weapon:裁断"
-          },
-          {
-            "name": "狼的末路",
-            "ref": "weapon:狼的末路"
-          },
-          {
-            "name": "赤角石溃杵",
-            "ref": "weapon:赤角石溃杵"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 3,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "无工之剑",
-            "ref": "weapon:无工之剑"
-          },
-          {
-            "name": "山王长牙",
-            "ref": "weapon:山王长牙"
-          },
-          {
-            "name": "饰铁之花",
-            "ref": "weapon:饰铁之花"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "输出向",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "黑曜秘典",
-            "ref": "artifact:黑曜秘典"
-          }
-        ]
-      },
-      {
-        "kind": "preferred",
-        "label": "辅助向",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "烬城勇者绘卷",
-            "ref": "artifact:烬城勇者绘卷"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力",
-            "元素精通"
-          ],
-          "空之杯": [
-            "火元素伤害加成"
-          ],
-          "理之冠": [
-            "暴击伤害",
-            "暴击率"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "大攻击",
-          "精通"
-        ],
-        "sep": " / > > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q10"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "60%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "230%"
-      },
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "2200"
-      },
-      {
-        "label": null,
-        "k": "元素精通",
-        "v": "80"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "大幅增加输出上限"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "增加输出上限"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "玛薇卡",
-            "ref": "character:玛薇卡"
-          },
-          {
-            "name": "希诺宁",
-            "ref": "character:希诺宁"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          },
-          {
-            "name": "茜特菈莉",
-            "ref": "character:茜特菈莉"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "超载",
-        "members": [
-          {
-            "name": "玛薇卡",
-            "ref": "character:玛薇卡"
-          },
-          {
-            "name": "夏沃蕾",
-            "ref": "character:夏沃蕾"
-          },
-          {
-            "name": "伊安珊",
-            "ref": "character:伊安珊"
-          },
-          {
-            "name": "欧洛伦",
-            "ref": "character:欧洛伦"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：站场主C",
-      "style": "role"
-    },
-    {
-      "text": "100级提升：约 7.2%~7.8%",
-      "style": "power"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：焚曜千阳 > 苇海信标（叠满） > 螭骨剑",
-        "第二档：裁断 > 狼的末路 > 赤角石溃杵",
-        "第三档：无工之剑 > 山王长牙 > 饰铁之花"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "输出向：黑曜秘典",
-        "辅助向：烬城勇者绘卷",
-        "主词条：时之沙：攻击力 / 元素精通｜空之杯：火元素伤害加成｜理之冠：暴击伤害 / 暴击率",
-        "副词条：暴击率 / 暴击伤害 > 大攻击 > 精通"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q10",
-        "皇冠：E（10）Q（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：60%",
-        "暴击伤害：230%",
-        "攻击力：2200",
-        "元素精通：80"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——大幅增加输出上限",
-        "六命——增加输出上限"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：玛薇卡 + 希诺宁 + 班尼特 + 茜特菈莉",
-        "超载：玛薇卡 + 夏沃蕾 + 伊安珊 + 欧洛伦"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "dps",
+      "name": "输出",
+      "role": "dps",
+      "match": {
+        "names": [
+          "输出"
+        ]
+      },
+      "weights": {
+        "artifact": 30,
+        "panel": 30,
+        "weapon": 20,
+        "talent": 20
+      },
+      "meta": {
+        "建议等级": "90级",
+        "定位": "站场主C",
+        "100级提升": "约 7.2%~7.8%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "焚曜千阳",
+                "ref": "weapon:焚曜千阳"
+              },
+              {
+                "name": "苇海信标",
+                "note": "叠满",
+                "ref": "weapon:苇海信标"
+              },
+              {
+                "name": "螭骨剑",
+                "ref": "weapon:螭骨剑"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "裁断",
+                "ref": "weapon:裁断"
+              },
+              {
+                "name": "狼的末路",
+                "ref": "weapon:狼的末路"
+              },
+              {
+                "name": "赤角石溃杵",
+                "ref": "weapon:赤角石溃杵"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "无工之剑",
+                "ref": "weapon:无工之剑"
+              },
+              {
+                "name": "山王长牙",
+                "ref": "weapon:山王长牙"
+              },
+              {
+                "name": "饰铁之花",
+                "ref": "weapon:饰铁之花"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "输出向",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "黑曜秘典",
+                "ref": "artifact:黑曜秘典"
+              }
+            ]
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "60%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "230%"
+          },
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "2200"
+          },
+          {
+            "label": null,
+            "k": "元素精通",
+            "v": "80"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "大幅增加输出上限"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "增加输出上限"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "玛薇卡",
+                "ref": "character:玛薇卡"
+              },
+              {
+                "name": "希诺宁",
+                "ref": "character:希诺宁"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              },
+              {
+                "name": "茜特菈莉",
+                "ref": "character:茜特菈莉"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "超载",
+            "members": [
+              {
+                "name": "玛薇卡",
+                "ref": "character:玛薇卡"
+              },
+              {
+                "name": "夏沃蕾",
+                "ref": "character:夏沃蕾"
+              },
+              {
+                "name": "伊安珊",
+                "ref": "character:伊安珊"
+              },
+              {
+                "name": "欧洛伦",
+                "ref": "character:欧洛伦"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      },
+      "highlight": "100级提升：约 7.2%~7.8%（随命座）"
+    },
+    {
+      "id": "support",
+      "name": "辅助",
+      "role": "support",
+      "match": {
+        "names": [
+          "辅助"
+        ]
+      },
+      "weights": {
+        "artifact": 0,
+        "panel": 50,
+        "weapon": 25,
+        "talent": 25
+      },
+      "meta": {
+        "建议等级": "90级",
+        "定位": "站场主C",
+        "100级提升": "约 7.2%~7.8%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "焚曜千阳",
+                "ref": "weapon:焚曜千阳"
+              },
+              {
+                "name": "苇海信标",
+                "note": "叠满",
+                "ref": "weapon:苇海信标"
+              },
+              {
+                "name": "螭骨剑",
+                "ref": "weapon:螭骨剑"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "裁断",
+                "ref": "weapon:裁断"
+              },
+              {
+                "name": "狼的末路",
+                "ref": "weapon:狼的末路"
+              },
+              {
+                "name": "赤角石溃杵",
+                "ref": "weapon:赤角石溃杵"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "无工之剑",
+                "ref": "weapon:无工之剑"
+              },
+              {
+                "name": "山王长牙",
+                "ref": "weapon:山王长牙"
+              },
+              {
+                "name": "饰铁之花",
+                "ref": "weapon:饰铁之花"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "辅助向",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "烬城勇者绘卷",
+                "ref": "artifact:烬城勇者绘卷"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力",
+                "元素精通"
+              ],
+              "空之杯": [
+                "火元素伤害加成"
+              ],
+              "理之冠": [
+                "暴击伤害",
+                "暴击率"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "大攻击",
+              "精通"
+            ],
+            "sep": " / > > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "60%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "230%"
+          },
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "2200"
+          },
+          {
+            "label": null,
+            "k": "元素精通",
+            "v": "80"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "大幅增加输出上限"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "增加输出上限"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "玛薇卡",
+                "ref": "character:玛薇卡"
+              },
+              {
+                "name": "希诺宁",
+                "ref": "character:希诺宁"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              },
+              {
+                "name": "茜特菈莉",
+                "ref": "character:茜特菈莉"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "超载",
+            "members": [
+              {
+                "name": "玛薇卡",
+                "ref": "character:玛薇卡"
+              },
+              {
+                "name": "夏沃蕾",
+                "ref": "character:夏沃蕾"
+              },
+              {
+                "name": "伊安珊",
+                "ref": "character:伊安珊"
+              },
+              {
+                "name": "欧洛伦",
+                "ref": "character:欧洛伦"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      },
+      "highlight": "100级提升：约 7.2%~7.8%（随命座）"
+    }
+  ]
 }

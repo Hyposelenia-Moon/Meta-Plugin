@@ -67,7 +67,8 @@ export const helpList = [metaRole, metaDamage, metaStatus, metaMore]
 const guideCore = {
   group: '角色攻略',
   list: [
-    { title: '#胡桃攻略', desc: '角色攻略总页：六模块一图（含配队）' },
+    { title: '#胡桃攻略', desc: '单预设直接查看，多预设列出可选项；支持角色别名' },
+    { title: '#芙宁娜攻略 辅助', desc: '指定预设名称查看；未知预设会提示可用项' },
     { title: '#胡桃攻略 面板图3', desc: '立绘改用图库里的第 3 张' }
   ]
 }

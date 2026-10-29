@@ -13,7 +13,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(here, '..')
-const file = path.join(root, 'guide.html')
+const fileFlag = process.argv.indexOf('--file')
+const file = fileFlag < 0 ? path.join(root, 'guide.html') : path.resolve(process.argv[fileFlag + 1])
 const html = fs.readFileSync(file, 'utf8')
 
 // ① 卡片数**必须**等于 data/gi 里有正文的角色数（以前只打印不判定：丢卡片也能「体检通过」）
@@ -24,7 +25,8 @@ const giFiles = fs.readdirSync(giDir).filter(f => f.endsWith('.json') && !f.star
 const filledFiles = giFiles.filter(f => {
   try { return isFilledCharacter(JSON.parse(fs.readFileSync(path.join(giDir, f), 'utf8'))) } catch { return true }
 })
-const expectCards = filledFiles.length
+const { listCharacters } = await import('./build-html.mjs')
+const expectCards = listCharacters().length
 const skippedFiles = giFiles.length - filledFiles.length
 
 // ② 与**现算**的一份比对：上一次数据改动忘了重建 guide.html 时，这里必须报出来

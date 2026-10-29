@@ -20,6 +20,13 @@ const load = async (rel) => await import(pathToFileURL(path.join(libDir, ...rel.
 const G = await load('modules/grade.js')
 const SV = await load('modules/subViews.js')
 const { CodexStore } = await load('model/CodexStore.js')
+const { listGuidePresets, selectGuidePreset } = await load('modules/guidePresets.js')
+const projectGuide = (guide, id) => {
+  const presets = listGuidePresets(guide)
+  const selected = id ? presets.find(p => p.id === id) : presets.length === 1 ? presets[0] : null
+  if (!selected) throw new Error('测试必须明确选择独立攻略预设：' + guide.name)
+  return selectGuidePreset(guide, selected)
+}
 
 // ---------- 1. 标注解析（全库实测形态逐个过） ----------
 {
@@ -51,7 +58,7 @@ const { CodexStore } = await load('model/CodexStore.js')
 // ---------- 2. 真机现场复现（哥伦比娅 理之冠 生命头） ----------
 {
   const store = new CodexStore()
-  const guide = store.getGuide('哥伦比娅')
+  const guide = projectGuide(store.getGuide('哥伦比娅'), 'dps')
   ok('拿到哥伦比娅攻略', !!guide)
   const view = SV.buildCodexView(guide, { signature: store.getSignature('哥伦比娅'), weaponTags: store.getWeaponTags() })
   const targets = G.extractTargets(view, '哥伦比娅', guide)
@@ -102,8 +109,11 @@ const { CodexStore } = await load('model/CodexStore.js')
    */
   {
     const hp = targets.panel.find(t => t.name === '生命值')
-    ok('跨方向同值目标合并并保留方向列表',
-      !!hp && hp.groups.join('/') === '输出向/辅助向', JSON.stringify(hp?.groups))
+    const supportGuide = projectGuide(store.getGuide('哥伦比娅'), 'support')
+    const supportTargets = G.extractTargets(SV.buildCodexView(supportGuide), '哥伦比娅', supportGuide)
+    const supportHp = supportTargets.panel.find(t => t.name === '生命值')
+    ok('输出/辅助同值目标保留在独立预设，不跨预设合并',
+      !!hp && hp.groups.join('/') === '输出向' && supportHp?.groups.join('/') === '辅助向', JSON.stringify([hp?.groups, supportHp?.groups]))
     const cpct = targets.panel.find(t => t.name === '暴击率')
     ok('单方向目标带自己的方向', !!cpct && cpct.groups.join('/') === '输出向')
     ok('百分比目标带 percent 标记（当前值要补 %）', cpct?.percent === true && hp?.percent === false)
@@ -113,9 +123,9 @@ const { CodexStore } = await load('model/CodexStore.js')
     const hpRow = rows.find(r => r.id?.startsWith('panel:') && r.name === '生命值')
     const cpctRow = rows.find(r => r.id?.startsWith('panel:') && r.name === '暴击率')
     ok('参考行稳定键含方向',
-      hpRow?.id === 'panel:输出向+辅助向:hp' && cpctRow?.id === 'panel:输出向:cpct',
+      hpRow?.id === 'panel:输出向:hp' && cpctRow?.id === 'panel:输出向:cpct',
       `${hpRow?.id} / ${cpctRow?.id}`)
-    ok('参考行按方向分组', hpRow?.group === '输出向/辅助向' && cpctRow?.group === '输出向')
+    ok('参考行按方向分组', hpRow?.group === '输出向' && cpctRow?.group === '输出向')
     ok('百分比参考行两侧都带 %',
       cpctRow?.actual.endsWith('%') === true && cpctRow?.target.endsWith('%') === true,
       `${cpctRow?.actual} → ${cpctRow?.target}`)
@@ -126,7 +136,7 @@ const { CodexStore } = await load('model/CodexStore.js')
 // ---------- 3. 面板目标的条件标注与去重（行秋 185% 满命） ----------
 {
   const store = new CodexStore()
-  const guide = store.getGuide('行秋')
+  const guide = projectGuide(store.getGuide('行秋'))
   const view = SV.buildCodexView(guide, { signature: store.getSignature('行秋'), weaponTags: store.getWeaponTags() })
   const targets = G.extractTargets(view, '行秋', guide)
   const recharge = targets.panel.find(t => t.name === '元素充能效率')
@@ -146,8 +156,10 @@ const { CodexStore } = await load('model/CodexStore.js')
     const name = f.replace(/\.json$/, '')
     const guide = store.getGuide(name)
     if (!guide) continue
-    const view = SV.buildCodexView(guide, { signature: store.getSignature(name), weaponTags: store.getWeaponTags() })
-    const targets = G.extractTargets(view, name, guide)
+    for (const preset of listGuidePresets(guide)) {
+    const projected = selectGuidePreset(guide, preset)
+    const view = SV.buildCodexView(projected, { signature: store.getSignature(name), weaponTags: store.getWeaponTags() })
+    const targets = G.extractTargets(view, name, projected)
     for (const t of targets.mainStats) {
       for (const v of t.optionViews) {
         optionTotal++
@@ -158,6 +170,7 @@ const { CodexStore } = await load('model/CodexStore.js')
       }
     }
     for (const p of targets.panel) if (p.cond?.consMin || p.cond?.vague) marks.面板条件++
+    }
   }
   push('全库巡检：主词条候选名不含条件标注残留', problems, [])
   ok('全库巡检：条件标注确实存在（样本量不为 0）',
@@ -170,7 +183,7 @@ const { CodexStore } = await load('model/CodexStore.js')
 {
   const { CodexStore } = await load('model/CodexStore.js')
   const store = new CodexStore()
-  const guide = store.getGuide('行秋')
+  const guide = projectGuide(store.getGuide('行秋'))
   const SV = await load('modules/subViews.js')
   const view = SV.buildCodexView(guide, { signature: store.getSignature('行秋'), weaponTags: store.getWeaponTags() })
   const targets = G.extractTargets(view, '行秋', guide)

@@ -56,7 +56,7 @@ export async function loadParseBlock () {
   fs.rmSync(dir, { recursive: true, force: true })
   fs.mkdirSync(path.join(dir, 'lib'), { recursive: true })
   const code = fs.readFileSync(path.join(here, 'parse-docx.mjs'), 'utf8')
-  fs.writeFileSync(path.join(dir, 'parse-docx.mjs'), code.replace(/^if \(isDirectRun\) main\(\)$/m, '') + '\nexport { parseBlock }\n', 'utf8')
+  fs.writeFileSync(path.join(dir, 'parse-docx.mjs'), code.replace(/^if \(isDirectRun\) main\(\)$/m, '') + (/export function parseBlock/.test(code) ? '' : '\nexport { parseBlock }\n'), 'utf8')
   // 依赖清单从 parse-docx.mjs 的 import 里扫出来（以前是手抄数组，
   // deep-diff / compare-doc-json 就是因为漏抄 lib/parse-warnings.mjs 而跑不起来）
   for (const rel of parserDeps()) {

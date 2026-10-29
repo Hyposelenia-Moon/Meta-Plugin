@@ -1,3 +1,4 @@
+import { normalizeGuide, splitPresetBlocks, normalizePreset } from './lib/guide-presets.mjs'
 /**
  * 转换器：Word 文档（原神·角色攻略.docx） → data/gi/*.json（模式 v2 结构化字段）
  *
@@ -540,7 +541,24 @@ function parseCrown (text) {
 }
 
 /** 单个角色块 → v2 数据。`parsed.stray` = 文档里没认出来的行（必须为 0） */
-function parseBlock (lines, index) {
+export function parseBlock (lines, index, { fillMainPlaceholder = true } = {}) {
+  lines = lines.filter(line => !isEmptyModulePlaceholder(line))
+  const groups = splitPresetBlocks(lines)
+  if (groups.length) {
+    const parsed = groups.map(g => {
+      const parsed = parseBlock(g.lines, index, { fillMainPlaceholder: false })
+      for (const { at, row } of g.config.emptyArtifactMains || []) {
+        if (!Number.isInteger(at) || at < 0 || row?.kind !== 'main') throw new Error('预设空主词条位置无效')
+        parsed.v2.artifacts.splice(at, 0, row)
+      }
+      for (const { at, row } of g.config.literalArtifactRows || []) {
+        if (!Number.isInteger(at) || at < 0 || !Array.isArray(row?.sets)) throw new Error('预设套装行边界无效')
+        parsed.v2.artifacts[at] = row
+      }
+      return { config: g.config, parsed }
+    })
+    return { schema: 3, name: parsed[0].parsed.name, presets: parsed.map(({ config, parsed }, i) => normalizePreset({ ...config, meta: { ...config.meta, ...parsed.meta }, v2: parsed.v2 }, i)), stray: parsed.flatMap(x => x.parsed.stray) }
+  }
   const data = { meta: {}, v2: { weapons: [], artifacts: [], talents: [], panels: [], constellations: [], teams: [] } }
   /** 段落行号（不含标题行）→ 认出来了没有 */
   const stray = []
@@ -778,7 +796,7 @@ function parseBlock (lines, index) {
   }
   // 圣遗物小节有内容但没有主词条行 → 补一条空的主词条（时之沙/空之杯/理之冠 全空）。
   // 现有 data/gi 里就是这么记的（16 个角色），补上才能与 build-docx 的「空栏位不写行」严格互逆。
-  if (data.v2.artifacts.length && !data.v2.artifacts.some(r => r.kind === 'main')) {
+  if (fillMainPlaceholder && data.v2.artifacts.length && !data.v2.artifacts.some(r => r.kind === 'main')) {
     data.v2.artifacts.push({ kind: 'main', stats: { 时之沙: [], 空之杯: [], 理之冠: [] } })
   }
   return data
@@ -907,7 +925,7 @@ function main () {
     const prevFile = insideDir(giDir, path.join(giDir, `${safeName}.json`))
     let prev = {}
     if (fs.existsSync(prevFile)) { try { prev = readJson(prevFile) } catch { prev = {} } }
-    const data = {
+    let data = {
       schema: 2,
       name: safeName,
       game: 'gi',
@@ -923,13 +941,17 @@ function main () {
       sections: [],
       source: prev.source ?? { guide: '原神·角色攻略.docx' }
     }
-    data.tags = deriveTags(data)
-    data.sections = deriveSections(data)
+    if (parsed.presets) data = normalizeGuide({ ...parsed, source: prev.source ?? { guide: '原神·角色攻略.docx' } })
+    else if (prev.schema === 3) throw new Error(`${safeName}：已有多预设数据，旧单份文档缺少预设标记，拒绝覆盖`)
+    else {
+      data.tags = deriveTags(data)
+      data.sections = deriveSections(data)
+    }
     const issues = validate(data, index)
     report.issues.push(...issues.map(x => ({ name: safeName, ...x })))
-    const noteCount = Object.values(data.v2).reduce((n, rows) => n + (rows ?? []).filter(isNoteRow).length, 0)
+    const noteCount = Object.values(data.v2 || {}).reduce((n, rows) => n + (rows ?? []).filter(isNoteRow).length, 0)
     // 行数统计**不含备注行**（备注单独计），这样「配队行 79」这类数字在加备注前后不变
-    const rows = (k) => (data.v2[k] ?? []).filter(r => !isNoteRow(r)).length
+    const rows = (k) => (data.presets || [data]).reduce((n, p) => n + (p.v2[k] ?? []).filter(r => !isNoteRow(r)).length, 0)
     const cnt = {
       name: safeName,
       weapons: rows('weapons'),
@@ -991,7 +1013,7 @@ const isDirectRun = (() => {
 
 if (isDirectRun) {
   // 校验失败（如角色名越界）以**可读信息 + 非零退出码**结束，且此时尚未写任何文件
-  main().catch((err) => {
+  Promise.resolve().then(() => main()).catch((err) => {
     console.error(`× ${err?.message || err}`)
     process.exitCode = 1
   })

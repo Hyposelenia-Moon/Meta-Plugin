@@ -219,41 +219,6 @@
     .gd-sug { font-size: 19px; padding: 5px 0; }
     .gd-foot { font-size: 15px; color: var(--muted-2, #999); padding: 2px 0; }
       /* 参考 DPS 行（DPS同款）：榜单共享 .rank-* 之外，补本页需要的尺寸与间距 */
-    /*
- * 参考项列对齐（2026-10-18 用户定）：「标签与标签对齐，正文与正文对齐」。
- *
- * 原来整行是 flex，`__name` / `__value` 都是 `flex: 1 1 auto` → 分栏位置随内容漂：
- * 方向标宽窄一变，属性名起点就变；`当前` / `参考目标` 两列也跟着不齐（截图里能直接看出来）。
- * 现在改成 **三列网格**：标签列吃掉剩余宽度（方向标占固定 132px 槽，属性名因此从同一 x 起），
- * `当前` 96px、`参考目标` 112px，两列都右对齐 —— 表头与数据行共用同一套列线。
- */
-/* 默认：**恢复修改前的 flex 排布**（无方向时不占方向列，正文贴左、数值右对齐） */
-.mx-content--glass .mx-reference-row { display: flex; align-items: baseline; column-gap: 10px; }
-.mx--ref-dir .mx-reference-row { display: grid; grid-template-columns: 132px minmax(0, 1fr) 96px 112px; }
-/* 方向列默认不占位；只有参考项里确实有方向（.mx--ref-dir）才显示 */
-.mx-reference-row__group { display: none; }
-.mx--ref-dir .mx-reference-row__group { display: inline-block; }
-.mx-content--glass .mx-reference-row__value,
-.mx-content--glass .mx-reference-row__extra { text-align: right; }
-/* 参考项方向标（辅助 / 输出）：固定槽宽，保证属性名统一从 132px 后起 */
-.mx-reference-row__group:empty { visibility: hidden; }   /* 表头占位：保留列宽但不画空胶囊 */
-.mx-reference-row__group {
-  box-sizing: border-box;
-  justify-self: start;
-  max-width: 100%;
-  margin: 0;
-  padding: 2px 6px;
-  font-size: 18px;
-  line-height: 1;
-  border-radius: 6px;
-  color: var(--mx-sub, #cfe0ee);
-  background: rgba(159, 179, 200, .12);
-  border: 1px solid rgba(159, 179, 200, .28);
-  vertical-align: middle;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 .mx-refdps-row { display: flex; align-items: center; gap: 10px; padding: 6px 20px; }
     .mx-refdps-row .rank-badge { flex: 0 0 auto; min-width: 68px; text-align: center; }
     .mx-refdps-row .rank-main { flex: 0 0 auto; display: flex; align-items: baseline; gap: 4px; margin-left: auto; }
@@ -365,8 +330,11 @@
         <section class="mx-section">
           <header class="mx-section__head">
             <span class="mx-section__index">02</span>
-            <h2 class="mx-section__title">三维达成</h2>
+            <h2 class="mx-section__title">{{mx.dimensionsTitle}}</h2>
           </header>
+          {{if presetName}}
+          <div class="mx-preset-summary"><strong>预设 · {{presetName}}</strong>{{if presetMatchReason}}<span>匹配：{{presetMatchReason}}</span>{{/if}}{{if presetWeightText}}<span>实际权重：{{presetWeightText}}</span>{{/if}}</div>
+          {{/if}}
           <ul class="mx-dimensions">
             {{each mx.dims d}}
             <li class="mx-dimension">
@@ -430,7 +398,7 @@
           {{/each}}
           {{if mx.metText}}<div class="mx-empty">{{mx.metText}}</div>{{/if}}
           {{else}}
-          <div class="mx-empty">{{if assessable}}攻略目标项均已满足{{else}}没有可比对的计分项：{{mx.score.unknownKeys.length ? '关键数据未取到' : '攻略缺该项'}}{{/if}}</div>
+          <div class="mx-empty">{{if mx.belowDimsText}}{{mx.belowDimsText}}{{else if assessable}}攻略目标项均已满足{{else}}没有可比对的计分项：{{mx.score.unknownKeys.length ? '关键数据未取到' : '攻略缺该项'}}{{/if}}</div>
           {{/if}}
         </section>
 
@@ -441,16 +409,20 @@
             <h2 class="mx-section__title">参考项</h2>
             <span class="mx-section__hint">不计分</span>
           </header>
-          <div class="mx-reference-row mx-reference-row--head"><span class="mx-reference-row__group"></span><span class="mx-reference-row__name">　</span><span class="mx-reference-row__value">当前</span><span class="mx-reference-row__extra">参考目标</span></div>
-          {{each mx.references r}}
-          <div class="mx-reference-row">
-            <!-- 2026-10-18 核对修复：#10 残留 —— 参考项同名不同方向（辅助 70% / 输出 90%）必须带方向标 -->
-            <span class="mx-reference-row__group">{{if r.group && r.group !== '参考'}}{{r.group}}{{/if}}</span>
-            <span class="mx-reference-row__name"><span class="mx-reference-row__attr">{{r.name}}</span></span>
-            <span class="mx-reference-row__value">{{r.actual}}</span>
-            <span class="mx-reference-row__extra">{{r.target}}</span>
+          <div class="mx-reference-table">
+            <div class="mx-reference-row mx-reference-row--head"><span>项目</span><span class="mx-reference-row__value">当前</span><span class="mx-reference-row__extra">参考目标</span></div>
+            {{each mx.referenceGroups g}}
+            <div class="mx-reference-category">{{g.label}}</div>
+            {{each g.rows r}}
+            <div class="mx-reference-row">
+              <span class="mx-reference-row__name"><span class="mx-reference-row__attr">{{r.name}}</span>{{if r.tags.length}}<span class="mx-reference-tags">{{each r.tags tag}}<span class="mx-reference-tag">{{tag}}</span>{{/each}}</span>{{/if}}</span>
+              <span class="mx-reference-row__value">{{r.actual}}</span>
+              <span class="mx-reference-row__extra">{{r.target}}</span>
+            </div>
+            {{/each}}
+            {{/each}}
+            <p class="mx-reference-note">仅展示当前预设参考；条件见项目标签，不计入评分。</p>
           </div>
-          {{/each}}
         </section>
         {{/if}}
 
@@ -508,7 +480,7 @@
         {{/if}}
 
         <footer class="mx-footer">
-          <p class="mx-footer__method">口径：综合分按本角色绑定的评分规则计算（词条 / 套装 / 主词条 / 面板）；命座仅作提示。</p>
+          <p class="mx-footer__method">口径：按当前预设目标与实际权重评分；缺目标不计分，关键数据缺失待评，命座仅作提示。</p>
           <p class="mx-copyright">{{copyright}}</p>
         </footer>
       </main>

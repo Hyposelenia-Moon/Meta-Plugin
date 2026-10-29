@@ -15,10 +15,17 @@ const load = async (rel) => await import(pathToFileURL(path.join(libDir, ...rel.
 const G = await load('modules/grade.js')
 const SV = await load('modules/subViews.js')
 const { CodexStore } = await load('model/CodexStore.js')
+const { listGuidePresets, selectGuidePreset } = await load('modules/guidePresets.js')
+const projectGuide = (guide, id) => {
+  const presets = listGuidePresets(guide)
+  const selected = id ? presets.find(p => p.id === id) : presets.length === 1 ? presets[0] : null
+  if (!selected) throw new Error('测试必须明确选择独立攻略预设：' + guide.name)
+  return selectGuidePreset(guide, selected)
+}
 
 // ---------- 1. 攻略目标抽取（真实数据） ----------
 const store = new CodexStore()
-const guide = store.getGuide('胡桃')
+const guide = projectGuide(store.getGuide('胡桃'))
 ok('拿到真实攻略（胡桃）', !!guide)
 const view = SV.buildCodexView(guide, { signature: store.getSignature('胡桃'), weaponTags: store.getWeaponTags() })
 const targets = G.extractTargets(view, '胡桃')
@@ -157,7 +164,7 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
 
 // ---------- 4g. 效果型套装（2精通+2精通 / 2生命+2生命，2026-10-18 复审 R1 后半） ----------
 {
-  const miteGuide = JSON.parse(readText(path.join(pluginRoot, "data", "gi", "米提亚.json")))
+  const miteGuide = projectGuide(JSON.parse(readText(path.join(pluginRoot, "data", "gi", "米提亚.json"))))
   const miteView = SV.buildCodexView(miteGuide, {})
   const miteTargets = G.extractTargets(miteView, "米提亚", miteGuide)
   ok("米提亚推荐里含效果型条目 2精通+2精通", miteTargets.artifact.recommend.some(s => s.includes("2精通")), JSON.stringify(miteTargets.artifact.recommend))
@@ -184,7 +191,7 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
 
 // ---------- 4f. 生产链路（第三参传原始 guide）也要保留 2+2 组合（2026-10-18 复审 R1） ----------
 {
-  const lisaGuide = JSON.parse(readText(path.join(pluginRoot, "data", "gi", "丽莎.json")))
+  const lisaGuide = projectGuide(JSON.parse(readText(path.join(pluginRoot, "data", "gi", "丽莎.json"))))
   const lisaView2 = SV.buildCodexView(lisaGuide, {})
   const withGuide = G.extractTargets(lisaView2, "丽莎", lisaGuide)
   ok("生产链路：丽莎推荐是一条 2+2 组合（不是两个四件套）",
@@ -211,7 +218,7 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
   // 攻略推荐就是 2+2（丽莎：2如雷 + 2宗室），穿对就该按推荐档给分
   const lisa = { metaRows: [], sections: [{ title: "圣遗物推荐", lines: ["推荐：2如雷 + 2宗室", "可选：教官"] }] }
   // 用真实攻略数据（丽莎的推荐本身就是 2如雷 + 2宗室）——extractTargets 吃的是 buildCodexView 的产物
-  const lisaView = SV.buildCodexView(JSON.parse(readText(path.join(pluginRoot, "data", "gi", "丽莎.json"))), {})
+  const lisaView = SV.buildCodexView(projectGuide(JSON.parse(readText(path.join(pluginRoot, "data", "gi", "丽莎.json")))), {})
   const lisaTargets = G.extractTargets(lisaView, "丽莎")
   ok("丽莎的推荐被解析成 2+2 条目", lisaTargets.artifact.recommend.some(s => /2/.test(s) && /\+/.test(s)), JSON.stringify(lisaTargets.artifact.recommend))
   const pairArtis = [
@@ -289,7 +296,7 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
 // ---------- 7. 组合行混排：4 件套与 2+2 同列表（2026-10-27 复审 R1） ----------
 {
   const targetsOf = (name) => {
-    const guide = store.getGuide(name)
+    const guide = projectGuide(store.getGuide(name))
     const view2 = SV.buildCodexView(guide, { signature: store.getSignature(name), weaponTags: store.getWeaponTags() })
     return G.extractTargets(view2, name, guide)
   }

@@ -1,188 +1,153 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "旅行者·岩",
   "game": "gi",
-  "freeModules": [
-    "panels"
-  ],
-  "meta": {
-    "建议等级": "81级"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "西风剑",
-            "ref": "weapon:西风剑"
-          },
-          {
-            "name": "星锋剑",
-            "ref": "weapon:星锋剑"
-          },
-          {
-            "name": "苍古自由之誓",
-            "ref": "weapon:苍古自由之誓"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "昔日宗室之仪",
-            "ref": "artifact:昔日宗室之仪"
-          },
-          {
-            "name": "悠古的磐岩",
-            "ref": "artifact:悠古的磐岩"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " + ",
-        "sets": [
-          {
-            "name": "2充能",
-            "ref": "artifact:2充能"
-          },
-          {
-            "name": "2充能",
-            "ref": "artifact:2充能"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "元素充能效率"
-          ],
-          "空之杯": [
-            "岩元素伤害加成"
-          ],
-          "理之冠": [
-            "暴击率"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "元素充能效率"
-        ],
-        "sep": " > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 8,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q8"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [],
-    "constellations": [
-      {
-        "name": "一命",
-        "index": 1,
-        "text": "提升前台暴击率和抗打断"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "延长技能持续时间"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [],
-        "text": "摔门"
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81级",
-      "style": "level"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：西风剑 > 星锋剑 > 苍古自由之誓"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：昔日宗室之仪 / 悠古的磐岩",
-        "可选：2充能 + 2充能",
-        "主词条：时之沙：元素充能效率｜空之杯：岩元素伤害加成｜理之冠：暴击率",
-        "副词条：元素充能效率"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q8",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "一命——提升前台暴击率和抗打断",
-        "六命——延长技能持续时间"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：摔门"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81级"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "西风剑",
+                "ref": "weapon:西风剑"
+              },
+              {
+                "name": "星锋剑",
+                "ref": "weapon:星锋剑"
+              },
+              {
+                "name": "苍古自由之誓",
+                "ref": "weapon:苍古自由之誓"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "昔日宗室之仪",
+                "ref": "artifact:昔日宗室之仪"
+              },
+              {
+                "name": "悠古的磐岩",
+                "ref": "artifact:悠古的磐岩"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " + ",
+            "sets": [
+              {
+                "name": "2充能",
+                "ref": "artifact:2充能"
+              },
+              {
+                "name": "2充能",
+                "ref": "artifact:2充能"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素充能效率"
+              ],
+              "空之杯": [
+                "岩元素伤害加成"
+              ],
+              "理之冠": [
+                "暴击率"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "元素充能效率"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [],
+        "constellations": [
+          {
+            "name": "一命",
+            "index": 1,
+            "text": "提升前台暴击率和抗打断"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "延长技能持续时间"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [],
+            "text": "摔门"
+          }
+        ]
+      },
+      "freeModules": [
+        "panels"
+      ]
+    }
+  ]
 }

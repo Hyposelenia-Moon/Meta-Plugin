@@ -97,7 +97,10 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
   ok('app 元数据取自 COMMANDS', src.includes('COMMANDS.find(') && src.includes('META.priorityOffset'))
   ok('app 首个导出是插件类', /^export class \w+ extends plugin/m.test(src))
   ok('app 用评分器与 miao 桥（不自己算）', src.includes("from '../modules/grade.js'") && src.includes("from '../model/MiaoProfile.js'"))
-  ok('app 权重/档位/阈值都取自配置', src.includes('getGradeWeights()') && src.includes('getGradePanelTiers()') && src.includes('getGradeRankThresholds()'))
+  ok('app 权重来自选中预设，档位/阈值保留配置读取', src.includes('presetWeights(preset)') && src.includes('getGradePanelTiers()') && src.includes('getGradeRankThresholds()'))
+  ok('app 先解析别名再读取攻略', src.indexOf('await resolveCharacterMatch(') < src.indexOf('codexStore.getGuide(charName)'))
+  ok('app 面板只读取一次', (src.match(/await readProfile\(/g) || []).length === 1)
+  ok('app 先选预设再提取目标', src.indexOf('selectGuidePreset(sourceGuide, preset)') < src.indexOf('extractTargets(view,'))
 
   const tpl = readText(path.join(pluginRoot, 'resources', 'dps', 'grade.html'))
   ok('模板已就位', fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'grade.html')))

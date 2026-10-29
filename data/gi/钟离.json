@@ -1,181 +1,136 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "钟离",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "减抗盾辅",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "黑缨枪",
-            "ref": "weapon:黑缨枪"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "千岩牢固",
-            "ref": "artifact:千岩牢固"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "生命值"
-          ],
-          "空之杯": [
-            "生命值"
-          ],
-          "理之冠": [
-            "生命值"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "小生命"
-        ],
-        "sep": " > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 1,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q1"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "生命值",
-        "v": "55000"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "联机盾"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "前台回血"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [],
-        "text": "生存位"
-      },
-      {
-        "label": "其他",
-        "members": [],
-        "text": "摔门"
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：减抗盾辅",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：黑缨枪"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：千岩牢固",
-        "主词条：时之沙：生命值｜空之杯：生命值｜理之冠：生命值",
-        "副词条：小生命"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q1",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "生命值：55000"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——联机盾",
-        "六命——前台回血"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：生存位",
-        "其他：摔门"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "减抗盾辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "黑缨枪",
+                "ref": "weapon:黑缨枪"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "千岩牢固",
+                "ref": "artifact:千岩牢固"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "生命值"
+              ],
+              "空之杯": [
+                "生命值"
+              ],
+              "理之冠": [
+                "生命值"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "小生命"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 1,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q1"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "生命值",
+            "v": "55000"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "联机盾"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "前台回血"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [],
+            "text": "生存位"
+          },
+          {
+            "label": "其他",
+            "members": [],
+            "text": "摔门"
+          }
+        ]
+      }
+    }
+  ]
 }

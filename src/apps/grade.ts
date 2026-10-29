@@ -7,7 +7,7 @@
  * ⚠ 本文件只导出插件类：`src/index.ts` 的加载器取「模块首个导出」当插件类。
  */
 import { setsWithEffect } from '../model/artiEffect.js'
-import { getGradePanelTiers, getGradeRankThresholds, getGradeRule, getGradeRuleOverrides, getGradeWeights, getPluginConfig, getProxy } from '../components/config.js'
+import { getGradePanelTiers, getGradeRankThresholds, getGradeRule, getGradeRuleOverrides, getPluginConfig, getProxy } from '../components/config.js'
 import { COPYRIGHT, COMMANDS, RULES } from '../components/constants.js'
 import { botRoot } from '../dir.js'
 import fs from 'node:fs'
@@ -15,6 +15,8 @@ import path from 'node:path'
 import { buildPresentation, deltaTextOf, setSummary } from '../components/presentation.js'
 import { gradeText } from '../modules/gradeText.js'
 import { extractTargets, gradeBuild, resolveGradeRule } from '../modules/grade.js'
+import { listGuidePresets, matchGuidePreset, presetWeights, selectGuidePreset } from '../modules/guidePresets.js'
+import { resolveCharacterMatch } from '../modules/characterResolver.js'
 import { heroImageOf } from '../model/ProfileImgRes.js'
 import type { CompareRow, GradeResult } from '../modules/grade.js'
 import { readProfile } from '../model/MiaoProfile.js'
@@ -104,37 +106,46 @@ export class MetaGrade extends plugin {
       )
       return true
     }
-    if (tokens.length > 1) {
-      await e.reply(`[Meta] #练度查询 一次只接一个角色名（收到「${raw}」）\n例：#练度查询 ${tokens[0]}`)
+    if (tokens.length > 2) {
+      await e.reply('[Meta] 用法：#练度查询 <角色> [预设] [面板图N]\n例：#练度查询 芙宁娜 辅助')
       return true
     }
-
-    const charName = tokens[0]
-
+    const character = await resolveCharacterMatch(tokens[0])
+    if (!character.name) {
+      await e.reply(`[Meta] 没有唯一匹配到角色「${tokens[0]}」` + (character.candidates.length ? `\n候选：${character.candidates.join('、')}` : ''))
+      return true
+    }
+    const charName = character.name
     const { codexStore } = await import('../model/CodexStore.js')
     const { buildCodexView } = await import('../modules/subViews.js')
-    const guide = codexStore.getGuide(charName)
-    if (!guide) {
-      const { findCharacter, searchCharacters } = await import('../model/CharacterIndex.js')
-      const hit = findCharacter(charName)
-      const tips = (hit ? searchCharacters(hit.name, 5) : searchCharacters(charName, 5)).map(c => c.name)
-      await e.reply(`[Meta] 没有找到角色「${charName}」` + (tips.length ? `\n你是不是想找：${tips.join('、')}` : ''))
+    const sourceGuide = codexStore.getGuide(charName)
+    if (!sourceGuide) {
+      await e.reply(`[Meta] ${charName} 的攻略待补充`)
       return true
     }
-
+    // 先读当前面板规则，再选择独立预设，禁止混用其它方向的目标。
+    const profile = await readProfile(e, charName)
+    if (!profile.ok) {
+      if (!profile.prompted) await e.reply(`[Meta] ${profile.error}`)
+      return true
+    }
+    const selection = matchGuidePreset(sourceGuide, {
+      requested: tokens[1], ruleTitle: profile.build.artiRuleTitle, charWeight: profile.build.charWeight
+    })
+    if (!selection.preset) {
+      const names = listGuidePresets(sourceGuide).map(p => p.name)
+      await e.reply(`[Meta] ${charName} 的攻略预设未能唯一匹配，请指定预设\n可用预设：${names.join('、')}\n用法：#练度查询 ${charName} ${names[0] || '<预设>'}`)
+      return true
+    }
+    const preset = selection.preset
+    const guide = selectGuidePreset(sourceGuide, preset)
     const view = buildCodexView(guide, {
       signature: codexStore.getSignature(guide?.name || charName),
       weaponTags: codexStore.getWeaponTags()
     }) as unknown as Parameters<typeof extractTargets>[0]
     const targets = extractTargets(view, guide?.name || charName, guide as unknown as Parameters<typeof extractTargets>[2])
 
-    const profile = await readProfile(e, targets.charName || charName)
-    if (!profile.ok) {
-      if (!profile.prompted) await e.reply(`[Meta] ${profile.error}`)
-      return true
-    }
-
-    const weights = getGradeWeights()
+    const weights = presetWeights(preset)
     /*
      * 评分规则（2026-10-27：直接用 miao 面板当前激活的评分规则）
      * 优先级：配置逐角色覆盖 → 全局强制 → miao 规则（`charWeight` 输出向占比）→ 定位兜底。
@@ -145,11 +156,12 @@ export class MetaGrade extends plugin {
       role: targets.gradeRole,
       // miao 面板「评分规则：xxx」的那份属性权重（`getArtisMark(true).charWeight`）
       charWeight: profile.build.charWeight,
+      ruleTitle: profile.build.artiRuleTitle,
       globalRule: getGradeRule(),
       overrides: getGradeRuleOverrides()
     })
     const result = gradeBuild(targets, profile.build, {
-      weights: weights as never,
+      preset,
       panelTiers: getGradePanelTiers(),
       rankThresholds: getGradeRankThresholds(),
       // 效果型套装（`2精通+2精通` 等）要读 miao 的两件套效果表 —— 由 app 注入，评分器保持纯函数
@@ -371,15 +383,18 @@ export class MetaGrade extends plugin {
      * 规则来源说明（文本回退与图片共用 notes；图片上规则标题已写在「词条」detail 里）。
      * 2026-10-27：练度口径直接跟随 miao 面板——把用的是哪条规则、怎么分档说清楚，不让人以为是插件自定。
      */
-    const ruleNote = ruleResolution.source === 'miao'
-      ? `评分规则：${profile.build.artiRuleTitle || 'miao 面板'}（miao 同源；输出向权重 ${Math.round(Number(ruleResolution.share || 0) * 100)}% → ${ruleResolution.name}）`
-      : ruleResolution.source === 'auto'
-        ? `评分规则：未取到 miao 评分规则，按攻略「定位」兜底为 ${ruleResolution.name}`
-        : `评分规则：${ruleResolution.name}（配置${ruleResolution.source === 'override' ? '逐角色覆盖' : '全局强制'}）`
+    const weightNames = { artifact: '圣遗物', panel: '面板', weapon: '武器', talent: '天赋' }
+    const weightSum = Object.values(weights).reduce((sum, value) => sum + value, 0)
+    const weightText = Object.entries(weights).filter(([, value]) => value > 0)
+      .map(([key, value]) => `${weightNames[key as keyof typeof weightNames]} ${weightSum ? Math.round(value / weightSum * 100) : 0}%`).join(' · ')
+    const ruleNote = `攻略预设：${preset.name}（${selection.reason}）\nmiao 规则：${profile.build.artiRuleTitle || '名称未提供'}\n默认分配：${weightText}；攻略缺项按可评维度归一`
 
     const data = {
       title: `#${result.charName} · 提升指南`,
-      subtitle: '攻略目标 × 当前配装（面板数据来自 miao）',
+      subtitle: `${preset.name}预设 · 攻略目标 × 当前配装`,
+      presetName: preset.name,
+      presetMatchReason: selection.reason,
+      presetWeightText: result.dims.filter(d => d.weight > 0).map(d => `${d.label} ${Math.round(d.weight * 100)}%`).join(' · '),
       charName: result.charName,
       ranks: result.rank,
       rankClass: String(result.rank || '').toUpperCase(),

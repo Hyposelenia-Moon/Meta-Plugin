@@ -1,214 +1,167 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "行秋",
   "game": "gi",
-  "meta": {
-    "建议等级": "81-90级",
-    "定位": "挂水副C"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "祭礼剑",
-            "ref": "weapon:祭礼剑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "绝缘之旗印",
-            "ref": "artifact:绝缘之旗印"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "元素充能效率",
-            "攻击力"
-          ],
-          "空之杯": [
-            "水元素伤害加成"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "元素充能效率",
-          "小攻击"
-        ],
-        "sep": " / > > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 1,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E1 Q10"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "65%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "130%"
-      },
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "1500"
-      },
-      {
-        "label": null,
-        "k": "元素充能效率",
-        "v": "185%（满命）"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "延长大招时间，减水抗"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "增加水帘剑"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "雷电将军",
-            "ref": "character:雷电将军"
-          },
-          {
-            "name": "香菱",
-            "ref": "character:香菱"
-          },
-          {
-            "name": "行秋",
-            "ref": "character:行秋"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81-90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：挂水副C",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：祭礼剑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：绝缘之旗印",
-        "主词条：时之沙：元素充能效率 / 攻击力｜空之杯：水元素伤害加成｜理之冠：暴击率 / 暴击伤害",
-        "副词条：暴击率 / 暴击伤害 > 元素充能效率 > 小攻击"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E1 Q10",
-        "皇冠：Q（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：65%",
-        "暴击伤害：130%",
-        "攻击力：1500",
-        "元素充能效率：185%（满命）"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——延长大招时间，减水抗",
-        "六命——增加水帘剑"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：雷电将军 + 香菱 + 行秋 + 班尼特"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81-90级",
+        "定位": "挂水副C"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "祭礼剑",
+                "ref": "weapon:祭礼剑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "绝缘之旗印",
+                "ref": "artifact:绝缘之旗印"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素充能效率",
+                "攻击力"
+              ],
+              "空之杯": [
+                "水元素伤害加成"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "元素充能效率",
+              "小攻击"
+            ],
+            "sep": " / > > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 1,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E1 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "65%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "130%"
+          },
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "1500"
+          },
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "185%（满命）"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "延长大招时间，减水抗"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "增加水帘剑"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "雷电将军",
+                "ref": "character:雷电将军"
+              },
+              {
+                "name": "香菱",
+                "ref": "character:香菱"
+              },
+              {
+                "name": "行秋",
+                "ref": "character:行秋"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

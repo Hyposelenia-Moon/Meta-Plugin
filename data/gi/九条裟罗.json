@@ -1,232 +1,186 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "九条裟罗",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "雷系专辅",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "天空之翼",
-            "ref": "weapon:天空之翼"
-          },
-          {
-            "name": "终末嗟叹之诗",
-            "ref": "weapon:终末嗟叹之诗"
-          },
-          {
-            "name": "曚云之月",
-            "ref": "weapon:曚云之月"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "落霞",
-            "ref": "weapon:落霞"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "绝缘之旗印",
-            "ref": "artifact:绝缘之旗印"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [],
-          "空之杯": [],
-          "理之冠": []
-        }
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 8,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q8"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "80%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "140%"
-      },
-      {
-        "label": null,
-        "k": "元素充能效率",
-        "v": "200-220%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "追加乌羽伤害"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "加攻状态提升雷伤"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "雷电将军",
-            "ref": "character:雷电将军"
-          },
-          {
-            "name": "枫原万叶",
-            "ref": "character:枫原万叶"
-          },
-          {
-            "name": "九条裟罗",
-            "ref": "character:九条裟罗"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "雷电将军",
-            "ref": "character:雷电将军"
-          },
-          {
-            "name": "香菱",
-            "ref": "character:香菱"
-          },
-          {
-            "name": "九条裟罗",
-            "ref": "character:九条裟罗"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：雷系专辅",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：天空之翼 > 终末嗟叹之诗 > 曚云之月",
-        "第二档：落霞"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：绝缘之旗印"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q8",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：80%",
-        "暴击伤害：140%",
-        "元素充能效率：200-220%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——追加乌羽伤害",
-        "六命——加攻状态提升雷伤"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：雷电将军 + 枫原万叶 + 九条裟罗 + 班尼特",
-        "可选：雷电将军 + 香菱 + 九条裟罗 + 班尼特"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "雷系专辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "天空之翼",
+                "ref": "weapon:天空之翼"
+              },
+              {
+                "name": "终末嗟叹之诗",
+                "ref": "weapon:终末嗟叹之诗"
+              },
+              {
+                "name": "曚云之月",
+                "ref": "weapon:曚云之月"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "落霞",
+                "ref": "weapon:落霞"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "绝缘之旗印",
+                "ref": "artifact:绝缘之旗印"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [],
+              "空之杯": [],
+              "理之冠": []
+            }
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "80%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "140%"
+          },
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "200-220%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "追加乌羽伤害"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "加攻状态提升雷伤"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "雷电将军",
+                "ref": "character:雷电将军"
+              },
+              {
+                "name": "枫原万叶",
+                "ref": "character:枫原万叶"
+              },
+              {
+                "name": "九条裟罗",
+                "ref": "character:九条裟罗"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "雷电将军",
+                "ref": "character:雷电将军"
+              },
+              {
+                "name": "香菱",
+                "ref": "character:香菱"
+              },
+              {
+                "name": "九条裟罗",
+                "ref": "character:九条裟罗"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

@@ -1,3 +1,4 @@
+import { listGuidePresets, selectGuidePreset, presetMarker } from './lib/guide-presets.mjs'
 /**
  * 反向转换器：data/gi/*.json → 主文档（Word docx）
  *
@@ -157,6 +158,7 @@ export function sectionNoteText (rows) {
  * @returns {string[]}
  */
 export function characterLines (data) {
+  if (Array.isArray(data?.presets)) return [`${data.name} —— 建议等级：`, ...listGuidePresets(data).flatMap(p => [presetMarker(p), ...characterLines(selectGuidePreset(data, p)).slice(1)])]
   const meta = data.meta ?? {}
   const lines = [`${data.name} —— 建议等级：${meta['建议等级'] ?? ''}`]
   if (meta['定位']) lines.push(`定位：${meta['定位']}`)
@@ -214,6 +216,7 @@ export function documentLines (bundle) {
  * @returns {boolean}
  */
 export function isFilledCharacter (doc) {
+  if (Array.isArray(doc?.presets)) return doc.presets.some(p => isFilledCharacter(p))
   const meta = doc?.meta ?? {}
   return Object.values(meta).some(v => String(v ?? '').trim())
 }
@@ -572,7 +575,7 @@ export function verifyAgainstJson (docx, bundle, tmpDir, before, frozenGiDir) {
     const want = bundle.docs[i]
     const file = `${want.name}.json`
     if (before && before.get(file) !== undefined && after.get(file) !== before.get(file)) changedDuring.push(want.name)
-    for (const k of ['schema', 'name', 'game', 'meta', 'v2']) {
+    for (const k of ['schema', 'name', 'game', 'meta', 'v2', 'presets']) {
       if (!eqJson(got[k] ?? null, want[k] ?? null)) diffs.push(`${want.name}：${k} 不一致`)
     }
     if (Object.keys(got.unparsed ?? {}).length) diffs.push(`${want.name}：有未识别行 ${JSON.stringify(got.unparsed).slice(0, 80)}`)
@@ -603,7 +606,7 @@ export function verifyAgainstJson (docx, bundle, tmpDir, before, frozenGiDir) {
     return `${p}: JSON=${show(a)} ≠ 文档=${show(b)}`
   }
   for (let i = 0; i < Math.min(parsed.names.length, bundle.names.length); i++) {
-    const d = findDiff(bundle.docs[i].v2, parsed.objs[i].v2, 'v2') ?? findDiff(bundle.docs[i].meta, parsed.objs[i].meta, 'meta')
+    const d = findDiff(bundle.docs[i].presets, parsed.objs[i].presets, 'presets') ?? findDiff(bundle.docs[i].v2, parsed.objs[i].v2, 'v2') ?? findDiff(bundle.docs[i].meta, parsed.objs[i].meta, 'meta')
     if (d) { diffs.push(`首处差异（${bundle.names[i]}）：${d}`); break }
   }
   return {

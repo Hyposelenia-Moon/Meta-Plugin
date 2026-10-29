@@ -1,305 +1,254 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "菲米尼",
   "game": "gi",
-  "meta": {
-    "建议等级": "81级",
-    "定位": "挂冰副C",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "苇海信标",
-            "ref": "weapon:苇海信标"
-          },
-          {
-            "name": "松籁响起之时",
-            "ref": "weapon:松籁响起之时"
-          },
-          {
-            "name": "狼的末路",
-            "ref": "weapon:狼的末路"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "无工之剑",
-            "ref": "weapon:无工之剑"
-          },
-          {
-            "name": "天空之傲",
-            "ref": "weapon:天空之傲"
-          },
-          {
-            "name": "螭骨剑",
-            "ref": "weapon:螭骨剑"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 3,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "浪影阔剑",
-            "ref": "weapon:浪影阔剑"
-          },
-          {
-            "name": "雪葬的星银",
-            "ref": "weapon:雪葬的星银"
-          },
-          {
-            "name": "飞天大御剑",
-            "ref": "weapon:飞天大御剑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / + ",
-        "sets": [
-          {
-            "name": "苍白之火",
-            "ref": "artifact:苍白之火"
-          },
-          {
-            "name": "2染血",
-            "ref": "artifact:2染血"
-          },
-          {
-            "name": "2冰套",
-            "ref": "artifact:2冰套"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "武人",
-            "ref": "artifact:武人"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力"
-          ],
-          "空之杯": [
-            "物理伤害加成"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "小攻击",
-          "元素充能效率"
-        ],
-        "sep": " / > > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 8,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 1,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A8 E10 Q1"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "1700-2600"
-      },
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "70-80%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "200-220%"
-      },
-      {
-        "label": null,
-        "k": "元素充能效率",
-        "v": "100-110%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "E 回能"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "冰反应加爆伤"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "菲米尼",
-            "ref": "character:菲米尼"
-          },
-          {
-            "name": "行秋",
-            "ref": "character:行秋"
-          },
-          {
-            "name": "雷电将军",
-            "ref": "character:雷电将军"
-          },
-          {
-            "name": "米卡",
-            "ref": "character:米卡"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "菲米尼",
-            "ref": "character:菲米尼"
-          },
-          {
-            "name": "菲谢尔",
-            "ref": "character:菲谢尔"
-          },
-          {
-            "name": "钟离",
-            "ref": "character:钟离"
-          },
-          {
-            "name": "米卡",
-            "ref": "character:米卡"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81级",
-      "style": "level"
-    },
-    {
-      "text": "定位：挂冰副C",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：苇海信标 > 松籁响起之时 > 狼的末路",
-        "第二档：无工之剑 > 天空之傲 > 螭骨剑",
-        "第三档：浪影阔剑 > 雪葬的星银 > 飞天大御剑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：苍白之火 / 2染血 + 2冰套",
-        "可选：武人",
-        "主词条：时之沙：攻击力｜空之杯：物理伤害加成｜理之冠：暴击率 / 暴击伤害",
-        "副词条：暴击率 / 暴击伤害 > 小攻击 > 元素充能效率"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A8 E10 Q1",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "攻击力：1700-2600",
-        "暴击率：70-80%",
-        "暴击伤害：200-220%",
-        "元素充能效率：100-110%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——E 回能",
-        "六命——冰反应加爆伤"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：菲米尼 + 行秋 + 雷电将军 + 米卡",
-        "可选：菲米尼 + 菲谢尔 + 钟离 + 米卡"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81级",
+        "定位": "挂冰副C",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "苇海信标",
+                "ref": "weapon:苇海信标"
+              },
+              {
+                "name": "松籁响起之时",
+                "ref": "weapon:松籁响起之时"
+              },
+              {
+                "name": "狼的末路",
+                "ref": "weapon:狼的末路"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "无工之剑",
+                "ref": "weapon:无工之剑"
+              },
+              {
+                "name": "天空之傲",
+                "ref": "weapon:天空之傲"
+              },
+              {
+                "name": "螭骨剑",
+                "ref": "weapon:螭骨剑"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "浪影阔剑",
+                "ref": "weapon:浪影阔剑"
+              },
+              {
+                "name": "雪葬的星银",
+                "ref": "weapon:雪葬的星银"
+              },
+              {
+                "name": "飞天大御剑",
+                "ref": "weapon:飞天大御剑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / + ",
+            "sets": [
+              {
+                "name": "苍白之火",
+                "ref": "artifact:苍白之火"
+              },
+              {
+                "name": "2染血",
+                "ref": "artifact:2染血"
+              },
+              {
+                "name": "2冰套",
+                "ref": "artifact:2冰套"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "武人",
+                "ref": "artifact:武人"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力"
+              ],
+              "空之杯": [
+                "物理伤害加成"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "小攻击",
+              "元素充能效率"
+            ],
+            "sep": " / > > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 8,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 1,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A8 E10 Q1"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "1700-2600"
+          },
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "70-80%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "200-220%"
+          },
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "100-110%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "E 回能"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "冰反应加爆伤"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "菲米尼",
+                "ref": "character:菲米尼"
+              },
+              {
+                "name": "行秋",
+                "ref": "character:行秋"
+              },
+              {
+                "name": "雷电将军",
+                "ref": "character:雷电将军"
+              },
+              {
+                "name": "米卡",
+                "ref": "character:米卡"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "菲米尼",
+                "ref": "character:菲米尼"
+              },
+              {
+                "name": "菲谢尔",
+                "ref": "character:菲谢尔"
+              },
+              {
+                "name": "钟离",
+                "ref": "character:钟离"
+              },
+              {
+                "name": "米卡",
+                "ref": "character:米卡"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

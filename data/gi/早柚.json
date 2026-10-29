@@ -1,283 +1,234 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "早柚",
   "game": "gi",
-  "meta": {
-    "建议等级": "81-90级",
-    "定位": "减抗奶辅",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "玛海菈的水色",
-            "ref": "weapon:玛海菈的水色"
-          },
-          {
-            "name": "雨裁",
-            "ref": "weapon:雨裁"
-          },
-          {
-            "name": "试作古华",
-            "ref": "weapon:试作古华"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "狼的末路",
-            "ref": "weapon:狼的末路"
-          },
-          {
-            "name": "祭礼大剑",
-            "ref": "weapon:祭礼大剑"
-          },
-          {
-            "name": "桂木斩长正",
-            "ref": "weapon:桂木斩长正"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / + ",
-        "sets": [
-          {
-            "name": "翠绿之影",
-            "ref": "artifact:翠绿之影"
-          },
-          {
-            "name": "2少女",
-            "ref": "artifact:2少女"
-          },
-          {
-            "name": "2宗室",
-            "ref": "artifact:2宗室"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "教官",
-            "ref": "artifact:教官"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "元素充能效率",
-            "元素精通",
-            "攻击力"
-          ],
-          "空之杯": [
-            "元素精通",
-            "攻击力",
-            "风元素伤害加成"
-          ],
-          "理之冠": [
-            "治疗加成",
-            "元素精通",
-            "攻击力"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "元素充能效率",
-          "元素精通",
-          "大攻击"
-        ],
-        "sep": " > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 8,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E8 Q10"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "Q",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:Q"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "1500"
-      },
-      {
-        "label": null,
-        "k": "元素充能效率",
-        "v": "170%"
-      },
-      {
-        "label": null,
-        "k": "元素精通",
-        "v": "350"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "提升风风轮伤害"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "貉貉吃精通"
-      }
-    ],
-    "teams": [
-      {
-        "label": "减抗辅助",
-        "members": [
-          {
-            "name": "刻晴",
-            "ref": "character:刻晴"
-          },
-          {
-            "name": "纳西妲",
-            "ref": "character:纳西妲"
-          },
-          {
-            "name": "菲谢尔",
-            "ref": "character:菲谢尔"
-          },
-          {
-            "name": "早柚",
-            "ref": "character:早柚"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "蒸发辅助",
-        "members": [
-          {
-            "name": "阿蕾奇诺",
-            "ref": "character:阿蕾奇诺"
-          },
-          {
-            "name": "夜兰",
-            "ref": "character:夜兰"
-          },
-          {
-            "name": "钟离",
-            "ref": "character:钟离"
-          },
-          {
-            "name": "早柚",
-            "ref": "character:早柚"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81-90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：减抗奶辅",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：玛海菈的水色 > 雨裁 > 试作古华",
-        "第二档：狼的末路 > 祭礼大剑 > 桂木斩长正"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：翠绿之影 / 2少女 + 2宗室",
-        "可选：教官",
-        "主词条：时之沙：元素充能效率 / 元素精通 / 攻击力｜空之杯：元素精通 / 攻击力 / 风元素伤害加成｜理之冠：治疗加成 / 元素精通 / 攻击力",
-        "副词条：元素充能效率 > 元素精通 > 大攻击"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E8 Q10",
-        "皇冠：Q（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "攻击力：1500",
-        "元素充能效率：170%",
-        "元素精通：350"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——提升风风轮伤害",
-        "六命——貉貉吃精通"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "减抗辅助：刻晴 + 纳西妲 + 菲谢尔 + 早柚",
-        "蒸发辅助：阿蕾奇诺 + 夜兰 + 钟离 + 早柚"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81-90级",
+        "定位": "减抗奶辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "玛海菈的水色",
+                "ref": "weapon:玛海菈的水色"
+              },
+              {
+                "name": "雨裁",
+                "ref": "weapon:雨裁"
+              },
+              {
+                "name": "试作古华",
+                "ref": "weapon:试作古华"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "狼的末路",
+                "ref": "weapon:狼的末路"
+              },
+              {
+                "name": "祭礼大剑",
+                "ref": "weapon:祭礼大剑"
+              },
+              {
+                "name": "桂木斩长正",
+                "ref": "weapon:桂木斩长正"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / + ",
+            "sets": [
+              {
+                "name": "翠绿之影",
+                "ref": "artifact:翠绿之影"
+              },
+              {
+                "name": "2少女",
+                "ref": "artifact:2少女"
+              },
+              {
+                "name": "2宗室",
+                "ref": "artifact:2宗室"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "教官",
+                "ref": "artifact:教官"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素充能效率",
+                "元素精通",
+                "攻击力"
+              ],
+              "空之杯": [
+                "元素精通",
+                "攻击力",
+                "风元素伤害加成"
+              ],
+              "理之冠": [
+                "治疗加成",
+                "元素精通",
+                "攻击力"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "元素充能效率",
+              "元素精通",
+              "大攻击"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 8,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E8 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "1500"
+          },
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "170%"
+          },
+          {
+            "label": null,
+            "k": "元素精通",
+            "v": "350"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "提升风风轮伤害"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "貉貉吃精通"
+          }
+        ],
+        "teams": [
+          {
+            "label": "减抗辅助",
+            "members": [
+              {
+                "name": "刻晴",
+                "ref": "character:刻晴"
+              },
+              {
+                "name": "纳西妲",
+                "ref": "character:纳西妲"
+              },
+              {
+                "name": "菲谢尔",
+                "ref": "character:菲谢尔"
+              },
+              {
+                "name": "早柚",
+                "ref": "character:早柚"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "蒸发辅助",
+            "members": [
+              {
+                "name": "阿蕾奇诺",
+                "ref": "character:阿蕾奇诺"
+              },
+              {
+                "name": "夜兰",
+                "ref": "character:夜兰"
+              },
+              {
+                "name": "钟离",
+                "ref": "character:钟离"
+              },
+              {
+                "name": "早柚",
+                "ref": "character:早柚"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

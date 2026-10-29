@@ -1,198 +1,170 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "奇偶·男性",
   "game": "gi",
-  "freeModules": [
-    "panels",
-    "constellations",
-    "teams"
-  ],
-  "meta": {
-    "建议等级": "81-90级",
-    "定位": "___",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "波乱月白经津",
-            "ref": "weapon:波乱月白经津"
-          },
-          {
-            "name": "雾切之回光",
-            "ref": "weapon:雾切之回光"
-          },
-          {
-            "name": "磐岩结绿",
-            "ref": "weapon:磐岩结绿"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "黑剑",
-            "ref": "weapon:黑剑"
-          },
-          {
-            "name": "弥坚骨",
-            "ref": "weapon:弥坚骨"
-          },
-          {
-            "name": "厄水之祸",
-            "ref": "weapon:厄水之祸"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 3,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "海渊终曲",
-            "ref": "weapon:海渊终曲"
-          },
-          {
-            "name": "黎明神剑",
-            "ref": "weapon:黎明神剑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "追忆之注连",
-            "ref": "artifact:追忆之注连"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "角斗士的终幕礼",
-            "ref": "artifact:角斗士的终幕礼"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力"
-          ],
-          "空之杯": [
-            "元素伤害加成",
-            "攻击力"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "大攻击"
-        ],
-        "sep": " / > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 8,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 1,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A10 E8 Q1"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          }
-        ]
-      }
-    ],
-    "panels": [],
-    "constellations": [],
-    "teams": []
-  },
-  "tags": [
-    {
-      "text": "建议等级：81-90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：___",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：波乱月白经津 > 雾切之回光 > 磐岩结绿",
-        "第二档：黑剑 > 弥坚骨 > 厄水之祸",
-        "第三档：海渊终曲 > 黎明神剑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：追忆之注连",
-        "可选：角斗士的终幕礼",
-        "主词条：时之沙：攻击力｜空之杯：元素伤害加成 / 攻击力｜理之冠：暴击率 / 暴击伤害",
-        "副词条：暴击率 / 暴击伤害 > 大攻击"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A10 E8 Q1",
-        "皇冠：A（10）"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81-90级",
+        "定位": "___",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "波乱月白经津",
+                "ref": "weapon:波乱月白经津"
+              },
+              {
+                "name": "雾切之回光",
+                "ref": "weapon:雾切之回光"
+              },
+              {
+                "name": "磐岩结绿",
+                "ref": "weapon:磐岩结绿"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "黑剑",
+                "ref": "weapon:黑剑"
+              },
+              {
+                "name": "弥坚骨",
+                "ref": "weapon:弥坚骨"
+              },
+              {
+                "name": "厄水之祸",
+                "ref": "weapon:厄水之祸"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "海渊终曲",
+                "ref": "weapon:海渊终曲"
+              },
+              {
+                "name": "黎明神剑",
+                "ref": "weapon:黎明神剑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "追忆之注连",
+                "ref": "artifact:追忆之注连"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "角斗士的终幕礼",
+                "ref": "artifact:角斗士的终幕礼"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力"
+              ],
+              "空之杯": [
+                "元素伤害加成",
+                "攻击力"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "大攻击"
+            ],
+            "sep": " / > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 8,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 1,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A10 E8 Q1"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              }
+            ]
+          }
+        ],
+        "panels": [],
+        "constellations": [],
+        "teams": []
+      },
+      "freeModules": [
+        "panels",
+        "constellations",
+        "teams"
+      ]
+    }
+  ]
 }

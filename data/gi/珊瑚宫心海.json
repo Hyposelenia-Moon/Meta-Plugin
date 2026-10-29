@@ -1,227 +1,182 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "珊瑚宫心海",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "挂水奶辅",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "讨龙英杰谭",
-            "ref": "weapon:讨龙英杰谭"
-          },
-          {
-            "name": "试作金珀",
-            "ref": "weapon:试作金珀"
-          },
-          {
-            "name": "不灭月华",
-            "ref": "weapon:不灭月华"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "祭礼残章",
-            "ref": "weapon:祭礼残章"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "千岩牢固",
-            "ref": "artifact:千岩牢固"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "元素充能效率"
-          ],
-          "空之杯": [
-            "生命值"
-          ],
-          "理之冠": [
-            "治疗加成"
-          ]
-        }
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 8,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q8"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "元素充能效率",
-        "v": "200%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "残血治疗加成"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "治疗满血队友加伤"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "神里绫华",
-            "ref": "character:神里绫华"
-          },
-          {
-            "name": "申鹤",
-            "ref": "character:申鹤"
-          },
-          {
-            "name": "珊瑚宫心海",
-            "ref": "character:珊瑚宫心海"
-          },
-          {
-            "name": "枫原万叶",
-            "ref": "character:枫原万叶"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "甘雨",
-            "ref": "character:甘雨"
-          },
-          {
-            "name": "申鹤",
-            "ref": "character:申鹤"
-          },
-          {
-            "name": "珊瑚宫心海",
-            "ref": "character:珊瑚宫心海"
-          },
-          {
-            "name": "温迪",
-            "ref": "character:温迪"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：挂水奶辅",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：讨龙英杰谭 > 试作金珀 > 不灭月华",
-        "第二档：祭礼残章"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：千岩牢固",
-        "主词条：时之沙：元素充能效率｜空之杯：生命值｜理之冠：治疗加成"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q8",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "元素充能效率：200%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——残血治疗加成",
-        "六命——治疗满血队友加伤"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：神里绫华 + 申鹤 + 珊瑚宫心海 + 枫原万叶",
-        "可选：甘雨 + 申鹤 + 珊瑚宫心海 + 温迪"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "挂水奶辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "讨龙英杰谭",
+                "ref": "weapon:讨龙英杰谭"
+              },
+              {
+                "name": "试作金珀",
+                "ref": "weapon:试作金珀"
+              },
+              {
+                "name": "不灭月华",
+                "ref": "weapon:不灭月华"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "祭礼残章",
+                "ref": "weapon:祭礼残章"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "千岩牢固",
+                "ref": "artifact:千岩牢固"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素充能效率"
+              ],
+              "空之杯": [
+                "生命值"
+              ],
+              "理之冠": [
+                "治疗加成"
+              ]
+            }
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "200%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "残血治疗加成"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "治疗满血队友加伤"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "神里绫华",
+                "ref": "character:神里绫华"
+              },
+              {
+                "name": "申鹤",
+                "ref": "character:申鹤"
+              },
+              {
+                "name": "珊瑚宫心海",
+                "ref": "character:珊瑚宫心海"
+              },
+              {
+                "name": "枫原万叶",
+                "ref": "character:枫原万叶"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "甘雨",
+                "ref": "character:甘雨"
+              },
+              {
+                "name": "申鹤",
+                "ref": "character:申鹤"
+              },
+              {
+                "name": "珊瑚宫心海",
+                "ref": "character:珊瑚宫心海"
+              },
+              {
+                "name": "温迪",
+                "ref": "character:温迪"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

@@ -764,6 +764,7 @@ export function renderArtifactRow (row) {
  * @returns {Array<{where: string, ref: string, reason: string}>}
  */
 export function validate (data, index = {}) {
+  if (Array.isArray(data?.presets)) return data.presets.flatMap(p => validate(p, index).map(issue => ({ ...issue, presetId: p.id, presetName: p.name, where: `预设「${p.name}」/${issue.where}` })))
   const auth = index.authoritative ?? index
   const w = new Set(auth.weapons ?? [])
   const a = new Set(auth.artifacts ?? [])

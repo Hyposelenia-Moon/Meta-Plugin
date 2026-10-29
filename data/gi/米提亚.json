@@ -1,245 +1,205 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "米提亚",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "星超导主/副c",
-    "100级提升": ""
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "秘典星谕",
-            "ref": "weapon:秘典星谕"
-          },
-          {
-            "name": "凝雪沉心",
-            "ref": "weapon:凝雪沉心"
-          },
-          {
-            "name": "群王局戏",
-            "ref": "weapon:群王局戏"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "寸心余响",
-            "ref": "weapon:寸心余响"
-          },
-          {
-            "name": "霜辰",
-            "ref": "weapon:霜辰"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "影中沉凝的幻灭",
-            "ref": "artifact:影中沉凝的幻灭"
-          },
-          {
-            "name": "饰金之梦",
-            "ref": "artifact:饰金之梦"
-          },
-          {
-            "name": "2精通+2精通",
-            "ref": "artifact:2精通+2精通"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "元素精通"
-          ],
-          "空之杯": [
-            "元素精通"
-          ],
-          "理之冠": [
-            "暴击伤害",
-            "暴击率"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "元素精通"
-        ],
-        "sep": " = > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 1,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A10 E10 Q1"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [],
-    "constellations": [
-      {
-        "name": "一命",
-        "index": 1,
-        "text": "加信标，爆伤与回能"
-      },
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "减抗，提升精通"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "米提亚",
-            "ref": "character:米提亚"
-          },
-          {
-            "name": "奥黛塔",
-            "ref": "character:奥黛塔"
-          },
-          {
-            "name": "瓦列里",
-            "ref": "character:瓦列里"
-          },
-          {
-            "name": "砂糖",
-            "ref": "character:砂糖"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "贷款",
-        "members": [
-          {
-            "name": "女皇 / 桑多涅",
-            "ref": "character:女皇"
-          },
-          {
-            "name": "达妮卡",
-            "ref": "character:达妮卡"
-          },
-          {
-            "name": "米提亚",
-            "ref": "character:米提亚"
-          },
-          {
-            "name": "奥黛塔",
-            "ref": "character:奥黛塔"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：星超导主/副c",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：秘典星谕 > 凝雪沉心 > 群王局戏",
-        "第二档：寸心余响 > 霜辰"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：影中沉凝的幻灭 / 饰金之梦 / 2精通+2精通",
-        "主词条：时之沙：元素精通｜空之杯：元素精通｜理之冠：暴击伤害 / 暴击率",
-        "副词条：暴击率 = 暴击伤害 > 元素精通"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A10 E10 Q1",
-        "皇冠：A（10）E（10）"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "一命——加信标，爆伤与回能",
-        "二命——减抗，提升精通"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：米提亚 + 奥黛塔 + 瓦列里 + 砂糖",
-        "贷款：女皇 / 桑多涅 + 达妮卡 + 米提亚 + 奥黛塔"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "星超导主/副c",
+        "100级提升": ""
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "秘典星谕",
+                "ref": "weapon:秘典星谕"
+              },
+              {
+                "name": "凝雪沉心",
+                "ref": "weapon:凝雪沉心"
+              },
+              {
+                "name": "群王局戏",
+                "ref": "weapon:群王局戏"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "寸心余响",
+                "ref": "weapon:寸心余响"
+              },
+              {
+                "name": "霜辰",
+                "ref": "weapon:霜辰"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "影中沉凝的幻灭",
+                "ref": "artifact:影中沉凝的幻灭"
+              },
+              {
+                "name": "饰金之梦",
+                "ref": "artifact:饰金之梦"
+              },
+              {
+                "name": "2精通+2精通",
+                "ref": "artifact:2精通+2精通"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素精通"
+              ],
+              "空之杯": [
+                "元素精通"
+              ],
+              "理之冠": [
+                "暴击伤害",
+                "暴击率"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "元素精通"
+            ],
+            "sep": " = > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 1,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A10 E10 Q1"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [],
+        "constellations": [
+          {
+            "name": "一命",
+            "index": 1,
+            "text": "加信标，爆伤与回能"
+          },
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "减抗，提升精通"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "米提亚",
+                "ref": "character:米提亚"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "瓦列里",
+                "ref": "character:瓦列里"
+              },
+              {
+                "name": "砂糖",
+                "ref": "character:砂糖"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "贷款",
+            "members": [
+              {
+                "name": "女皇 / 桑多涅",
+                "ref": "character:女皇"
+              },
+              {
+                "name": "达妮卡",
+                "ref": "character:达妮卡"
+              },
+              {
+                "name": "米提亚",
+                "ref": "character:米提亚"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

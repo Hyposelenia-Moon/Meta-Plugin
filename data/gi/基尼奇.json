@@ -1,232 +1,186 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "基尼奇",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "燃烧主C",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "山王长牙",
-            "ref": "weapon:山王长牙"
-          },
-          {
-            "name": "狼的末路",
-            "ref": "weapon:狼的末路"
-          },
-          {
-            "name": "螭骨剑",
-            "ref": "weapon:螭骨剑"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "黑曜秘典",
-            "ref": "artifact:黑曜秘典"
-          }
-        ]
-      },
-      {
-        "kind": "optional",
-        "label": "可选",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "深林的记忆",
-            "ref": "artifact:深林的记忆"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [],
-          "空之杯": [],
-          "理之冠": []
-        }
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 1,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q1"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "52-60%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "200-220%"
-      },
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "2200-2300"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "E 降草抗、炮增伤"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "贯鳞炮弹跳"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "基尼奇",
-            "ref": "character:基尼奇"
-          },
-          {
-            "name": "艾梅莉埃",
-            "ref": "character:艾梅莉埃"
-          },
-          {
-            "name": "香菱",
-            "ref": "character:香菱"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "基尼奇",
-            "ref": "character:基尼奇"
-          },
-          {
-            "name": "芙宁娜",
-            "ref": "character:芙宁娜"
-          },
-          {
-            "name": "香菱",
-            "ref": "character:香菱"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：燃烧主C",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：山王长牙 > 狼的末路 > 螭骨剑"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：黑曜秘典",
-        "可选：深林的记忆"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q1",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：52-60%",
-        "暴击伤害：200-220%",
-        "攻击力：2200-2300"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——E 降草抗、炮增伤",
-        "六命——贯鳞炮弹跳"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：基尼奇 + 艾梅莉埃 + 香菱 + 班尼特",
-        "可选：基尼奇 + 芙宁娜 + 香菱 + 班尼特"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "燃烧主C",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "山王长牙",
+                "ref": "weapon:山王长牙"
+              },
+              {
+                "name": "狼的末路",
+                "ref": "weapon:狼的末路"
+              },
+              {
+                "name": "螭骨剑",
+                "ref": "weapon:螭骨剑"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "黑曜秘典",
+                "ref": "artifact:黑曜秘典"
+              }
+            ]
+          },
+          {
+            "kind": "optional",
+            "label": "可选",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "深林的记忆",
+                "ref": "artifact:深林的记忆"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [],
+              "空之杯": [],
+              "理之冠": []
+            }
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 1,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q1"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "52-60%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "200-220%"
+          },
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "2200-2300"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "E 降草抗、炮增伤"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "贯鳞炮弹跳"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "基尼奇",
+                "ref": "character:基尼奇"
+              },
+              {
+                "name": "艾梅莉埃",
+                "ref": "character:艾梅莉埃"
+              },
+              {
+                "name": "香菱",
+                "ref": "character:香菱"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "基尼奇",
+                "ref": "character:基尼奇"
+              },
+              {
+                "name": "芙宁娜",
+                "ref": "character:芙宁娜"
+              },
+              {
+                "name": "香菱",
+                "ref": "character:香菱"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

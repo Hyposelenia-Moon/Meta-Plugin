@@ -1,7 +1,9 @@
 /**
  * grade — 练度评分器（v3 P2「提升指南」的核心）
  *
- * 设计口径：
+ * 传入 `GradeOptions.preset` 时采用独立预设模型：输出四维（圣遗物 / 面板 / 武器 / 天赋），
+ * 辅助三维（面板 / 武器 / 天赋）；权重来自 presetWeights，0 权重仅作参考。
+ * 以下设计口径仅适用于未传 preset 的历史 API：
  *   - **综合（2026-10-15 用户定）**：面板与圣遗物**合并成一维**，以**圣遗物有效词条**为主 ——
  *     `miao 评分档位 × 0.8 + 套装符合度 × 0.2`。理由：面板本来就是武器与圣遗物词条的产物，
  *     分两维等于把同一件事算两次；用户口径是"以圣遗物词条数为主，毕业面板不设严格限制"。
@@ -18,15 +20,18 @@
  * 因此可以用合成数据完整单测（`test/grade.test.mjs`）。
  */
 
-/** 评分维度 */
-export type GradeDimKey = 'comprehensive' | 'weapon' | 'talent'
+import { normalizeRuleRole, presetWeights } from './guidePresets.js'
+import type { GuidePreset } from './guidePresets.js'
+
+/** 评分维度（comprehensive 仅用于兼容旧调用） */
+export type GradeDimKey = 'comprehensive' | 'artifact' | 'panel' | 'weapon' | 'talent'
 
 /**
  * 默认权重（配置项 `gradeWeights` 可覆盖；权重会按"可评维度"归一）
  *
  * `comprehensive` = 旧「面板 30 + 圣遗物 35」合并而来（读旧配置时自动相加，见 `components/config.ts`）。
  */
-export const DEFAULT_WEIGHTS: Record<GradeDimKey, number> = {
+export const DEFAULT_WEIGHTS: Record<'comprehensive' | 'weapon' | 'talent', number> = {
   comprehensive: 65,
   weapon: 20,
   talent: 15
@@ -183,7 +188,7 @@ export function deriveRuleFromCharWeight (
 }
 
 /** 规则来源（状态与 detail 用） */
-export type RuleSource = 'override' | 'global' | 'miao' | 'auto'
+export type RuleSource = 'override' | 'global' | 'miao' | 'miao-title' | 'auto'
 
 export interface RuleResolution {
   rule: GradeRule
@@ -207,6 +212,7 @@ export function resolveGradeRule (input: {
   charName?: string
   role?: GradeRole
   charWeight?: Record<string, number> | null
+  ruleTitle?: string
   globalRule?: string
   overrides?: Record<string, string> | null
 }): RuleResolution {
@@ -221,6 +227,8 @@ export function resolveGradeRule (input: {
     const rule = normalizeGradeRule(global)
     if (rule) return { rule, name: global, source: 'global' }
   }
+  const titleRole = normalizeRuleRole(input.ruleTitle)
+  if (titleRole) return { rule: normalizeGradeRule(titleRole)!, name: titleRole, source: 'miao-title' }
   const derived = deriveRuleFromCharWeight(input.charWeight)
   if (derived) {
     return { rule: normalizeGradeRule(derived.name)!, name: derived.name, source: 'miao', share: derived.share }
@@ -661,6 +669,8 @@ export interface BuildSnapshot {
 }
 
 export interface GradeOptions {
+  /** 已独立投影的攻略预设；不传时保留历史三维口径。 */
+  preset?: GuidePreset
   weights?: Partial<Record<GradeDimKey, number>>
   /** 效果词 → 提供该两件套效果的套装名（由 app 注入；本模块保持纯函数，不读 miao） */
   effectSets?: (effect: string) => string[]
@@ -1130,7 +1140,8 @@ export function rankOf (total: number, thresholds = DEFAULT_RANK_THRESHOLDS): st
 
 /** 主评分：攻略目标 × 玩家配装 → 总分 / 档位 / 对比表 / 建议 */
 export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: GradeOptions = {}): GradeResult {
-  const weights = { ...DEFAULT_WEIGHTS, ...(opts.weights || {}) }
+  if (opts.preset) return gradePresetBuild(targets, build, opts as GradeOptions & { preset: GuidePreset })
+  const weights: Partial<Record<GradeDimKey, number>> = { ...DEFAULT_WEIGHTS, ...(opts.weights || {}) }
   /*
    * 规则（2026-10-25）：调用方传「角色绑定的规则」；没传时按定位兜底
    * （数据表 → 配置 → 全局的解析在 app 层做，见 `resolveGradeRule()`）。
@@ -1184,6 +1195,102 @@ export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: G
     ruleName: opts.ruleName ?? 'auto',
     ruleSource: opts.ruleSource
   }
+}
+
+/** 预设目标已隔离：所有适用面板目标参与，不跨方向择优。 */
+function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: GradeOptions & { preset: GuidePreset }): GradeResult {
+  const weights = presetWeights(opts.preset)
+  const applicable = targets.panel.filter(t => condSatisfied(t.cond, Number(build.cons) || 0))
+  const applicableMain = targets.mainStats.filter(t => (t.optionViews?.length ? t.optionViews : t.options.map(parseCondMark)).some(v => condSatisfied(v, Number(build.cons) || 0)))
+  const parts = scoreParts({ ...targets, mainStats: applicableMain, panel: applicable.map(t => ({ ...t, groups: [] })) }, build, opts)
+  const missing = (key: PartKey, detail: string): void => { parts[key] = partNull(key, 'data-missing', detail) }
+  if (build.hasMark === false) missing('mark', '未取到 miao 词条评分')
+  if ((targets.artifact.recommend.length || targets.artifact.optional.length) && (!build.artis?.length || build.artis.some(a => !a.set))) missing('set', '套装数据不全')
+  if (applicableMain.some(t => !build.artis?.find(a => a.slot === t.slot)?.mainName)) missing('main', '主词条数据不全')
+  if (applicable.some(t => !Number.isFinite(build.attrs?.[t.attrKey]))) missing('panel', '面板数据不全')
+  const floors = { mark: COMPREHENSIVE_MET_RATIO, set: 0.8, main: 1, panel: 1 }
+  for (const k of PART_KEYS) if (parts[k].ratio !== null) parts[k].state = parts[k].ratio! + 1e-9 >= floors[k] ? 'met' : 'below'
+  const artifactWeights: Partial<Record<PartKey, number>> = { mark: 60, set: 25, main: 15 }
+  const required = (['mark', 'set', 'main'] as PartKey[]).filter(k => parts[k].state !== 'unscored')
+  const unknown = required.some(k => parts[k].state === 'unknown')
+  const sum = required.reduce((s, k) => s + artifactWeights[k]!, 0)
+  const artifact: GradeDim = {
+    key: 'artifact', label: '圣遗物', weight: 0,
+    ratio: unknown || !sum ? null : required.reduce((s, k) => s + parts[k].ratio! * artifactWeights[k]!, 0) / sum,
+    state: unknown ? 'unknown' : !sum ? 'unscored' : required.some(k => parts[k].state === 'below') ? 'below' : 'met',
+    detail: required.map(k => `${PART_LABEL[k]}：${parts[k].detail}`).join('；'),
+    ...(unknown ? { reason: 'data-missing' as const } : !sum ? { reason: 'target-missing' as const } : {})
+  }
+  const panel: GradeDim = { ...parts.panel, key: 'panel', label: '面板', weight: 0 }
+  const weapon = scoreWeapon(targets, build)
+  if (weapon.state !== 'unscored' && build.hasWeapon === false) Object.assign(weapon, { ratio: null, state: 'unknown', reason: 'data-missing', detail: '未读取到武器' })
+  const talent = scoreTalent(targets, build)
+  if (targets.talent.length && (build.hasTalent === false || targets.talent.some(t => !Number.isFinite(build.talent?.[t.key])))) Object.assign(talent, { ratio: null, state: 'unknown', reason: 'data-missing', detail: '天赋数据不全' })
+  const dims = [...(opts.preset.role === 'dps' || weights.artifact > 0 ? [artifact] : []), panel, weapon, talent]
+  const weightOf = (key: GradeDimKey): number => key === 'comprehensive' ? 0 : weights[key]
+  for (const d of dims) if (weightOf(d.key) === 0) Object.assign(d, { ratio: null, state: 'unscored', detail: `${d.detail}（权重为 0，仅供参考）` })
+  const scored = dims.filter(d => d.ratio !== null && weightOf(d.key) > 0)
+  const weightSum = scored.reduce((s, d) => s + weightOf(d.key), 0)
+  for (const d of scored) d.weight = weightOf(d.key) / weightSum
+  const total = scored.reduce((s, d) => s + d.ratio! * d.weight * 100, 0)
+  const rows = buildCompareRows(targets, build, { ...opts, parts, rule: { weights: { ...artifactWeights, panel: 30 }, floors } })
+  if (!rows.some(r => r.id === 'artifact:mark')) rows.push({ id: 'artifact:mark', group: '圣遗物', name: '词条评分', target: 'miao ACE', actual: '—', verdict: 'off' })
+  if (!rows.some(r => r.id === 'weapon:choice') && targets.weapon.transition.length) rows.push({ id: 'weapon:choice', group: '武器', name: '武器', target: targets.weapon.transition.join(' / '), actual: build.weapon?.name || '—', verdict: 'off' })
+  for (const row of rows) {
+    const id = row.id || ''
+    const key: GradeDimKey | null = id.startsWith('artifact:') ? 'artifact' : id.startsWith('panel:') ? 'panel' : id.startsWith('weapon:') ? 'weapon' : id.startsWith('talent:') ? 'talent' : null
+    if (!key || !dims.some(d => d.key === key) || weightOf(key) === 0) row.verdict = 'info'
+    else if (id === 'artifact:mark' || id === 'artifact:set') {
+      const part = id === 'artifact:mark' ? parts.mark : parts.set
+      row.verdict = part.state === 'met' ? 'ok' : part.state === 'below' ? 'warn' : part.state === 'unknown' ? 'off' : 'info'
+    } else if (id.startsWith('artifact:main:')) {
+      if (!applicableMain.some(t => `artifact:main:${t.slot}` === id)) row.verdict = 'info'
+      else if (!build.artis?.find(a => a.slot === row.name)?.mainName) row.verdict = 'off'
+    } else if (id.startsWith('weapon:')) row.verdict = weapon.state === 'met' ? 'ok' : weapon.state === 'below' ? 'warn' : 'off'
+    else if (id.startsWith('talent:')) {
+      const t = targets.talent.find(t => `talent:${t.key}` === id)
+      if (build.hasTalent === false || !t || !Number.isFinite(build.talent?.[t.key])) row.verdict = 'off'
+    } else if (id.startsWith('panel:')) {
+      const t = targets.panel.find(t => `panel:${(t.groups.length ? t.groups : ['参考']).join('+')}:${t.attrKey}` === id)
+      const actual = t ? build.attrs?.[t.attrKey] : undefined
+      row.verdict = !t || !condSatisfied(t.cond, Number(build.cons) || 0) ? 'info' : !Number.isFinite(actual) ? 'off' : Number(actual) + 1e-9 >= t.min ? 'ok' : 'warn'
+    }
+    row.state = row.verdict === 'ok' ? 'met' : row.verdict === 'warn' ? 'below' : row.verdict === 'off' ? 'unknown' : 'unscored'
+    row.scored = row.verdict !== 'info'
+  }
+  // 建议直接绑定实际未达标证据；未知数据只提示补数据，不伪造成低练度。
+  const suggestionRows: SuggestionView[] = []
+  const add = (id: string, text: string, evidence: CompareRow[]): void => {
+    if (evidence.length) suggestionRows.push({ id, text, evidenceIds: evidence.map(r => r.id!), priority: suggestionRows.length + 1, priorityBasis: 'cost-step' })
+  }
+  const below = (prefix: string): CompareRow[] => rows.filter(r => r.id?.startsWith(prefix) && r.state === 'below' && r.scored)
+  add('talent', `天赋：${below('talent:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('talent:'))
+  add('mainstat', `主词条：${below('artifact:main:').map(r => `${r.name}换「${r.target}」`).join('、')}`, below('artifact:main:'))
+  add('artifact:set', `圣遗物：凑攻略推荐套装（${targets.artifact.recommend[0] || targets.artifact.optional[0] || ''}）`, below('artifact:set'))
+  add('artifact:mark', '圣遗物：提升有效词条（按 miao 评分口径，ACE 达标）', below('artifact:mark'))
+  add('panel', `面板：${below('panel:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('panel:'))
+  add('weapon', `武器：换到推荐档（${targets.weapon.recommend.slice(0, 2).join(' / ')}）`, below('weapon:'))
+  const assessable = scored.length > 0 && !dims.some(d => d.state === 'unknown' && weightOf(d.key) > 0)
+  if (!suggestionRows.length) {
+    add('data-gap', '数据不全：先补齐缺失数据再评估，暂不判定达标', rows.filter(r => r.state === 'unknown' && r.scored))
+    if (!suggestionRows.length) {
+      const pending = dims.filter(d => d.state === 'below')
+      const unknownDims = dims.filter(d => d.state === 'unknown')
+      suggestionRows.push({
+        id: pending.length ? 'dimension-gap' : unknownDims.length ? 'data-gap' : assessable ? 'all-met' : 'unscored',
+        text: pending.length ? `${pending.map(d => d.label).join('、')}未达标，请按当前预设目标继续提升`
+          : unknownDims.length ? `${unknownDims.map(d => d.label).join('、')}数据不全，补齐后再评估`
+            : assessable ? '各计分维度均已达标' : '没有可评的攻略目标',
+        evidenceIds: [], priority: 1, priorityBasis: 'cost-step'
+      })
+    }
+  }
+  const panelInfo = panelTierOf(assessable ? total / 100 : null, build, targets, opts.panelTiers)
+  const notes = dims.filter(d => d.ratio === null).map(d => `${d.label}：${d.detail}（${d.state === 'unknown' ? '数据待补齐，暂不显示总分' : '不计入总分'}）`)
+  if (panelInfo.capped) notes.push(`等级 ${build.level} 未达建议等级 ${targets.levelText}（毕业档按门槛最高「小毕业」）`)
+  return { charName: targets.charName || build.charName, total: Number(total.toFixed(1)), rank: rankOf(total, opts.rankThresholds), dims,
+    panelTier: panelInfo.tier, rows, suggestionRows, suggestions: suggestionRows.map(s => s.text), assessable, notes,
+    ruleName: opts.ruleName ?? opts.preset.name, ruleSource: opts.ruleSource }
 }
 
 function cappedNote (targets: GuideTargets, build: BuildSnapshot, capped: boolean): boolean {
@@ -1251,7 +1358,7 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot, o
       name: '词条评分',
       target: '走 miao 规则（MAX…D）',
       actual: `${num(build.artiMark.total)}（${build.artiMark.markClass}）`,
-      verdict: (MIAO_MARK_SCORE[String(build.artiMark.markClass).toUpperCase()] ?? 0) >= 0.8 ? 'ok' : 'warn'
+      verdict: (MIAO_MARK_SCORE[String(build.artiMark.markClass).toUpperCase()] ?? 0) >= (opts.rule?.floors.mark ?? COMPREHENSIVE_MET_RATIO) ? 'ok' : 'warn'
     })
   }
 

@@ -18,11 +18,11 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 
 | 功能 | 入口（priority） | 触发 | 说明 |
 |---|---|---|---|
-| 角色攻略 | `Meta攻略`（**-100000**，写死） | `#胡桃攻略` / `#胡桃攻略2` / `#胡桃指南` | 后缀式；早于 Atlas 快捷入口(-99999) 与 genshin 米游社攻略(50) |
+| 角色攻略 | `Meta攻略`（**-100000**，写死） | `#胡桃攻略` / `#芙宁娜攻略 辅助` | 后缀式；单预设直返、多预设列用法；Atlas 别名可用；早于 Atlas 快捷入口(-99999) |
 | 帮助（两小一大） | `Meta攻略帮助`（-100000） | `#meta`（总）/ `#攻略帮助`（=`#攻略`/`#攻略说明`）/ `#DPS帮助` | 三条规则同一 handler；图失败回落同源文本 |
 | DPS（含角色档位视图） | `MetaDPS`（8000+0） | `#DPS [角色] [金数\|总榜] [标签] [主C] [绿玩] [页N]`（**`#` 必填**，不再接受 `榜` 后缀） | 2026-10-15 合并原 `#胡桃dps`；2026-10-17 重定分档；**2026-10-27**：裸 `#DPS` = 全库各金档（每档 6/5/4 条）；`总榜` = 平铺总榜；`12金` / `9-12金` = 该金数平铺前 10；`#DPS 胡桃` 仍为角色档位，`胡桃 12金` 改平铺前 10；裸词 `dps` 不再认领 |
 | 危战分档 | `Meta危战档位`（8000-5） | `#危战 <版本/首领/角色> n6\|n7` | n6/n7 **剥离**，档位必填；裸 `#危战` 是 miao 的命令，不认领；单档最多列 **10** 条，页头**不渲染副标题行**；排序 **金数升序 → 同金数耗时升序**（2026-10-17，n7/n6 同口径） |
-| 练度提升指南 | `Meta练度提升指南`（8000-5） | `#练度查询 胡桃` | v3；攻略目标 × 当前配装（**不带 UID**）；综合按 **miao 面板激活的评分规则**自动分档（dps / subdps / support） |
+| 练度提升指南 | `Meta练度提升指南`（8000-5） | `#练度查询 胡桃` / `#练度查询 芙宁娜 辅助` | 攻略预设目标 × 当前配装（**不带 UID**）；miao 激活规则匹配预设，各预设独立维度与权重 |
 | 队伍伤害 | `Meta队伍伤害`（8000-5） | `#队伍伤害<N> A B C D [词条…] [UID]` | v3；N = 配置 `teamDamageAxes` 的序号轴（省略 = 1），词条**免前缀**；旧 `轴:`/`词条:` 已废除 |
 | 视频名次（**后缀式**） | 随 `rank` / `raidTiers`（无独立 app） | `#DPS 刻晴 48金视频1` / `#危战 矮灵 n7 视频3` | 原 `#视频` / `#危战视频` 前缀式与 `video` app **已废除**（用户 2026-10-15 定）；「视频名次」模块开关保留，在后缀分发处拦截 |
 | 状态 | `Meta状态`（8000-10） | `#meta状态` | |
@@ -159,12 +159,12 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
    **所有命令必须带 `#`**（2026-10-27 用户定：全部规则从 `^#?` 收紧为 `^#`，裸词不再认领；`#DPS榜` 同批废除、统一为 `#DPS`）。
    历史：合并前的 `DPS_RULES` 冻结面已按用户 2026-10-15 的决定**整体废除**（偏差 **B17**，`test/constants-parity.test.mjs` 守着"旧名一个都不许复活"）；快照仍守着**非命令**常量（标量 / 映射表 / 纯函数）与合并前逐字一致。
    子项：**帮助页只写使用者向内容**（`resources/help/help-cfg.js`）——不得出现配置键、文件名、"改配置"这类要开发者/管理员处理的说明；**不展示需要管理员先配置的非默认序号轴**（只写 `#队伍伤害 四人名`）；标题过长靠 CSS 换行（`resources/{codex,dps}/help.html` 的 `.entry-cmd` 已去掉 `nowrap`+`ellipsis`）。`test/dps-help-config.test.mjs` 三个门禁守着这三点。
-13. **练度评分口径（2026-10-15 用户定；2026-10-27 起「直接用 miao 面板激活的评分规则」）** — `#练度查询` 的三维加权是 `综合 / 武器 / 天赋`；
-    **综合内部按 miao 规则派生**（读 `getArtisMark(true).charWeight`，按输出向权重占比自动选 `dps` / `subdps` / `support`；
-    四分量 `mark` / `set` / `main` / `panel` 各自计分、各自达标下限；绑定优先级 = 配置覆盖 → 全局强制 → miao 规则 → 定位兜底；
-    **本插件不再维护逐角色规则表**）。
+13. **练度评分口径（2026-10-29 用户确认：独立攻略预设）** — 查询先解析角色（标准名 → Atlas 正式别名门面 → miao 别名 → 唯一包含），再读取 miao 面板当前规则选择预设；手动指定优先，其次预设规则精确名/正则、规则标题方向、属性权重；歧义不猜，提示指定预设。
+    `schema:3` 的 `presets` 各自独立保存 `meta/v2/freeModules/topConstellations/match/weights`；选中后投影再提取目标，禁止混用其它预设。
+    输出默认 `artifact:30,panel:30,weapon:20,talent:20`；辅助默认 `artifact:0,panel:50,weapon:25,talent:25`；每份预设可覆盖权重，0 不计分。缺目标不计分、关键玩家数据缺失待评；证据与建议必须采用相同判定。
+    miao 圣遗物评分及规则标题仍取当前激活规则（“西风纯辅”等辅助名称优先于属性比例）；旧三维评分仅保留无 preset 参数的 API 兼容，不用于新练度查询。
     **条件型目标（命座）三处同判**（2026-10-27 复审）：计分 / 证据行 / 建议统一走 `condSatisfied()`；命座不足的目标不参与计分、不生成未达标证据，只在参考区保留条件标注。**套装组合行**按 `sep` 解析：`/` 备选、`+` 组合（两个 `2` 前缀条目合成一条 pair，其余为备选）；**文本回退的「差在哪」**按维度状态写（below / unknown / 全部达标），不得只凭 rows 为空就宣称达标。
-    **主C**：**综合 = 圣遗物有效词条为主**（miao 评分档位 ×0.8 + 套装符合度 ×0.2，走 miao 的评分规则）；**面板目标不计分、只作参考**（对比表 `参考` 组、`verdict: info`），毕业档按综合分判定、等级仍作门槛。旧配置写 `panel`+`artifact` 会自动相加折进 `comprehensive`（`getGradeWeights()`）。
+    **新预设路径**中输出面板参与评分，辅助圣遗物默认不参与总分；被关闭维度只作参考，不能生成未达标建议。旧三维 API 保留原配置读取，不得在新预设路径中将 `panel` 与 `artifact` 再合并。
    页面宽度与立绘行（2026-10-15 用户定：**照抄 miao，不许自己发挥**）：**立绘行已定稿 —— 保持 miao 同款，任何会话不得再改**（结构 / 尺寸 / 字号 / 层级 / 配色 / 图标 / 文字，一律不动；连"顺手优化"也不行，要改必须先问用户）。它现在的样子就是 miao `resources/character/profile-detail.{html,css}` 的逐条复制（只加 `gd-` 前缀、**数值一字不改**）：练度页整页 **600px**（= miao 面板 `body{width:600px}`），立绘行以下分区随 600px 自适应；`.basic`→`.gd-basic`、`.main-pic`(1400×500/`margin-left:-545px`)→`.gd-main-pic`、`.detail`(right/top 20px)→`.gd-detail`（内含 `.char-name`50px / `.char-lv` / `.char-talents` / `.char-attr`）、`.char-cons`(250px/bottom 5/left 20)→`.gd-char-cons`；面板 = `.char-attr li`（**300×32**、斑马行、五列 `.icon`26/`.title`75/`.weight`36/`.value`100/`.value2`70（白字基础值 + 绿字 `+加成`），图标精灵图 `character/imgs/icon.png` + `.i-*` 偏移；`.value`/`.value2` 的文本**直接调 miao 的 `Format.comma`/`Format.pct`**（照抄 `apps/profile/ProfileDetail.js:216-242`：`hp` 取整 + 千分位、其余 1 位小数，`phy > dmg` 时 `dmg` 行显示物伤），权重取 `getArtisMark(true).charWeight`），**只写属性名与数值**（不加目标、不加达标条）；天赋图标**照抄 `CharImg.getImgs()`**：`talentCons[key]>0` 用命座图标 `icons/cons-N.webp`，否则 `icons/talent-{key}.webp`；`level > original` 加 `talent-plus`（深底金字）、`original >= 10` 叠 `character/imgs/crown.png`（`top:0`）；图标圆环按元素（`<body>` 挂 `gd-elem-{elem}`，照抄 `common.css:208-266` 的 `common/bg/talent-{elem}.webp`），`.gd-talent-icon` **必须带 `z-index: 90`**，否则左下角命座行会被 `z-index:2` 的立绘盖住；命座行条目是 `.cons-item`（不参与 flex 均分）；命座徽章照抄 `.char-lv .cons` + `common/css/common.css` 的 `.cons`/`.cons-N`（0 `#666`/1 `#5cbac2`/2 `#339d61`/3 `#3e95b9`/4 `#3955b7`/5 `#531ba9cf`/6 `#ff5722`，白字）；立绘图**取图逻辑照抄 miao**（`src/model/ProfileImgRes.ts`；只读 miao 的配置与图库目录，**不写它的配置、也不复制图片**）：图库源 = `CharImg.getProfileImgSrc()`（`config/profile.js` → `config/system/profile_system.js` → `['profile']`，**第一个非空生效**，相对路径以 miao `resources` 为基准、绝对路径原样）→ 候选池 = `getProfileImgPool/Files()`（`super-character` 彩蛋层 / `normal-character` 普通层 **+ 平铺 `{源}/{角色}/`**，同层多源合并，只认 webp/png/jpg/jpeg）→ 选图 = `ProfileAvatar.getCostumeSplash()`（`#练度查询 胡桃 面板图N` 按 `{角色}_{序号}_…` 取第 N 张、彩蛋层优先，否则层内随机；彩蛋判据 = C6 / 圣遗物 ACE·MAX / 天赋原始等级 `101010`）→ 兜底 miao 自带 `imgs/splash0.webp`（彩蛋）·`splash.webp`；bot 内用 5 级相对前缀引用、跨盘走 `file://`。**不许**改成"复制到 out/"或另起一套源列表 → 结论（档位 + 三维条）→ **当前配装**（武器 → 套装 + miao 评分与有效词条数，不列单件与伤害；等级/命座与天赋都已在立绘行）→ 未达标项 → 提升建议 → **参考 DPS**（当前金数向下取 4 的倍数、步长 4、最多 3 档，每档取含该角色的最高伤害）→ 脚注**口径一行 + 版权，合计不超过 2 行**。套装只写 4 件套 / 2+2 / 2 件套，凑不出就写「散件」；圣遗物行右侧显示 `评分 246.4 ACE　词条数：42.4` —— 词条数只累加 miao `charWeight[key] > 0` 的有效词条 `eff`（**无效词条不计**；也不是数条目数，那是 20）。
    改这套口径必须同轮更新 `resources/dps/grade.html` 的口径行、`docs/功能与命令.md` 的「练度评分口径」与相关套件（`grade` / `grade-guide-targets` / `dps-template` / `portrait-gallery`）。
    配色：**档位颜色与 miao 同款**（MAX/ACE 红 `#e85656`、SSS/SS 金 `#ffe699`、S/A 紫 `#d699ff`、B 以下默认色），综合档位与圣遗物评分同样上色，**未达标项用同一红色**。
@@ -200,7 +200,7 @@ pnpm build && pnpm test     # 59 套；任意 cwd 可跑、不发真实网络、
 ## 待办（摘要）
 
 1. **两轮复核的 C 批（工程债）未做**：`lib-fresh` 改内容门禁、`accept()` 对已移除前缀的认领清理、状态页明示联网/代理口径、迁移等价措辞修正。
-2. **Atlas 四项稳定导出**待作者落地：别名解析 / 图标路径 / 实体信息 / codex 旧资产移交（适配层已预留 `icon()` / `entityOf()`）。
+2. **Atlas 别名正式门面已接入**：`modules/aliasApi.js` 的 `resolveAlias(name,'gi')`，双向候选须结合本仓库角色集合裁决；图标路径 / 实体信息 / codex 旧资产移交仍待接口落地。
 3. **Atlas 侧移除 `syncCodexRepo()`**：旧仓库改名后 bot 日志里仍在 502。
 4. **`Mhydps-Plugin` 远端仓库**是否 Archive / 删除待确认（本地两处副本已清空）。
 5. 真机验证补跑：`#胡桃攻略`（图 / 文本回退）、编辑器四项（重命名 / 同秒连续替换撤销 / 同名删除 / 他人暂存提交）。

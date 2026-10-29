@@ -1,239 +1,193 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "林尼",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "重击主C",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "最初的大魔术",
-            "ref": "weapon:最初的大魔术"
-          },
-          {
-            "name": "若水",
-            "ref": "weapon:若水"
-          },
-          {
-            "name": "飞雷之弦振",
-            "ref": "weapon:飞雷之弦振"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "冬极白星",
-            "ref": "weapon:冬极白星"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "逐影猎人",
-            "ref": "artifact:逐影猎人"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [],
-          "空之杯": [],
-          "理之冠": []
-        }
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 1,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A10 E10 Q1"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "50-64%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "240-260%"
-      },
-      {
-        "label": null,
-        "k": "元素充能效率",
-        "v": "110-120%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "场上叠爆伤"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "额外礼花术弹"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "林尼",
-            "ref": "character:林尼"
-          },
-          {
-            "name": "芙宁娜",
-            "ref": "character:芙宁娜"
-          },
-          {
-            "name": "希诺宁",
-            "ref": "character:希诺宁"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "林尼",
-            "ref": "character:林尼"
-          },
-          {
-            "name": "枫原万叶",
-            "ref": "character:枫原万叶"
-          },
-          {
-            "name": "钟离",
-            "ref": "character:钟离"
-          },
-          {
-            "name": "班尼特",
-            "ref": "character:班尼特"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：重击主C",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：最初的大魔术 > 若水 > 飞雷之弦振",
-        "第二档：冬极白星"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：逐影猎人"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A10 E10 Q1",
-        "皇冠：A（10）E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：50-64%",
-        "暴击伤害：240-260%",
-        "元素充能效率：110-120%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——场上叠爆伤",
-        "六命——额外礼花术弹"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：林尼 + 芙宁娜 + 希诺宁 + 班尼特",
-        "可选：林尼 + 枫原万叶 + 钟离 + 班尼特"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "重击主C",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "最初的大魔术",
+                "ref": "weapon:最初的大魔术"
+              },
+              {
+                "name": "若水",
+                "ref": "weapon:若水"
+              },
+              {
+                "name": "飞雷之弦振",
+                "ref": "weapon:飞雷之弦振"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "冬极白星",
+                "ref": "weapon:冬极白星"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "逐影猎人",
+                "ref": "artifact:逐影猎人"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [],
+              "空之杯": [],
+              "理之冠": []
+            }
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 1,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A10 E10 Q1"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "50-64%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "240-260%"
+          },
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "110-120%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "场上叠爆伤"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "额外礼花术弹"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "林尼",
+                "ref": "character:林尼"
+              },
+              {
+                "name": "芙宁娜",
+                "ref": "character:芙宁娜"
+              },
+              {
+                "name": "希诺宁",
+                "ref": "character:希诺宁"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "林尼",
+                "ref": "character:林尼"
+              },
+              {
+                "name": "枫原万叶",
+                "ref": "character:枫原万叶"
+              },
+              {
+                "name": "钟离",
+                "ref": "character:钟离"
+              },
+              {
+                "name": "班尼特",
+                "ref": "character:班尼特"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

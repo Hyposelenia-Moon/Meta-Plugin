@@ -1,246 +1,200 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "阿罗夏",
   "game": "gi",
-  "meta": {
-    "建议等级": "81级",
-    "定位": "星超导专辅"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "西风长枪",
-            "ref": "weapon:西风长枪"
-          },
-          {
-            "name": "薙草之稻光",
-            "ref": "weapon:薙草之稻光"
-          },
-          {
-            "name": "寒息",
-            "ref": "weapon:寒息"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 2,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "「渔获」",
-            "ref": "weapon:「渔获」"
-          },
-          {
-            "name": "试作星镰",
-            "ref": "weapon:试作星镰"
-          },
-          {
-            "name": "且住亭御咄",
-            "ref": "weapon:且住亭御咄"
-          }
-        ]
-      },
-      {
-        "label": null,
-        "tier": 3,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "喜多院十文字",
-            "ref": "weapon:喜多院十文字"
-          },
-          {
-            "name": "沙中伟贤的对答",
-            "ref": "weapon:沙中伟贤的对答"
-          },
-          {
-            "name": "戍望谣歌",
-            "ref": "weapon:戍望谣歌"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "炉火融炼之心",
-            "ref": "artifact:炉火融炼之心"
-          },
-          {
-            "name": "昔日宗室之仪",
-            "ref": "artifact:昔日宗室之仪"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "充能效率"
-          ],
-          "空之杯": [
-            "攻击力"
-          ],
-          "理之冠": [
-            "攻击力",
-            "暴击率（西风）"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "充能效率",
-          "大攻击",
-          "暴击率（西风）"
-        ],
-        "sep": " > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 1,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q1"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "元素充能效率",
-        "v": "200%以上"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "一命",
-        "index": 1,
-        "text": "提供回能"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "拐力翻倍，精通提升"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "桑多涅",
-            "ref": "character:桑多涅"
-          },
-          {
-            "name": "奥黛塔",
-            "ref": "character:奥黛塔"
-          },
-          {
-            "name": "阿罗夏",
-            "ref": "character:阿罗夏"
-          },
-          {
-            "name": "希诺宁 / 砂糖 / 迪奥娜",
-            "ref": "character:希诺宁"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81级",
-      "style": "level"
-    },
-    {
-      "text": "定位：星超导专辅",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：西风长枪 > 薙草之稻光 > 寒息",
-        "第二档：「渔获」 > 试作星镰 > 且住亭御咄",
-        "第三档：喜多院十文字 > 沙中伟贤的对答 > 戍望谣歌"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：炉火融炼之心 / 昔日宗室之仪",
-        "主词条：时之沙：充能效率｜空之杯：攻击力｜理之冠：攻击力 / 暴击率（西风）",
-        "副词条：充能效率 > 大攻击 > 暴击率（西风）"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q1",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "元素充能效率：200%以上"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "一命——提供回能",
-        "六命——拐力翻倍，精通提升"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：桑多涅 + 奥黛塔 + 阿罗夏 + 希诺宁 / 砂糖 / 迪奥娜"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "81级",
+        "定位": "星超导专辅"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "西风长枪",
+                "ref": "weapon:西风长枪"
+              },
+              {
+                "name": "薙草之稻光",
+                "ref": "weapon:薙草之稻光"
+              },
+              {
+                "name": "寒息",
+                "ref": "weapon:寒息"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "「渔获」",
+                "ref": "weapon:「渔获」"
+              },
+              {
+                "name": "试作星镰",
+                "ref": "weapon:试作星镰"
+              },
+              {
+                "name": "且住亭御咄",
+                "ref": "weapon:且住亭御咄"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 3,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "喜多院十文字",
+                "ref": "weapon:喜多院十文字"
+              },
+              {
+                "name": "沙中伟贤的对答",
+                "ref": "weapon:沙中伟贤的对答"
+              },
+              {
+                "name": "戍望谣歌",
+                "ref": "weapon:戍望谣歌"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "炉火融炼之心",
+                "ref": "artifact:炉火融炼之心"
+              },
+              {
+                "name": "昔日宗室之仪",
+                "ref": "artifact:昔日宗室之仪"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "充能效率"
+              ],
+              "空之杯": [
+                "攻击力"
+              ],
+              "理之冠": [
+                "攻击力",
+                "暴击率（西风）"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "充能效率",
+              "大攻击",
+              "暴击率（西风）"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 1,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q1"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "200%以上"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "一命",
+            "index": 1,
+            "text": "提供回能"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "拐力翻倍，精通提升"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "桑多涅",
+                "ref": "character:桑多涅"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "阿罗夏",
+                "ref": "character:阿罗夏"
+              },
+              {
+                "name": "希诺宁 / 砂糖 / 迪奥娜",
+                "ref": "character:希诺宁"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

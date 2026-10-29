@@ -17,6 +17,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { dataDir } from '../dir.js'
+import { listGuidePresets } from '../modules/guidePresets.js'
 
 /** `v2` 里某一档的行（武器 / 圣遗物 / 天赋 / 面板 / 命座 / 配队复用同一形状，按 `kind` 区分） */
 export interface GuideRow {
@@ -171,9 +172,8 @@ export class CodexStore {
   isFilled (nameOrGuide: string | Guide | null): boolean {
     const guide = typeof nameOrGuide === 'string' ? this.getGuide(nameOrGuide) : nameOrGuide
     if (!guide) return false
-    const meta = guide.meta
-    if (!meta || typeof meta !== 'object') return false
-    return Object.values(meta).some(v => String(v ?? '').trim().length > 0)
+    return listGuidePresets(guide).some(preset =>
+      Object.values(preset.meta).some(v => String(v ?? '').trim().length > 0))
   }
 
   /** 某角色的专武表（`{ 专武, 实际 }`）；无记录返回 null */

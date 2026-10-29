@@ -19,6 +19,13 @@ const load = async (rel) => await import(pathToFileURL(path.join(libDir, ...rel.
 const G = await load('modules/grade.js')
 const SV = await load('modules/subViews.js')
 const { CodexStore } = await load('model/CodexStore.js')
+const { listGuidePresets, selectGuidePreset } = await load('modules/guidePresets.js')
+const projectGuide = (guide, id) => {
+  const presets = listGuidePresets(guide)
+  const selected = id ? presets.find(p => p.id === id) : presets.length === 1 ? presets[0] : null
+  if (!selected) throw new Error('测试必须明确选择独立攻略预设：' + guide.name)
+  return selectGuidePreset(guide, selected)
+}
 
 const store = new CodexStore()
 
@@ -73,7 +80,7 @@ ok('拿不到 miao 规则 → 定位兜底', (() => {
 
 // ---------- 3. 真实攻略目标 + 合成配装 ----------
 const targetsOf = (name) => {
-  const guide = store.getGuide(name)
+  const guide = projectGuide(store.getGuide(name))
   const view = SV.buildCodexView(guide, { signature: store.getSignature(name), weaponTags: store.getWeaponTags() })
   return G.extractTargets(view, name, guide)
 }

@@ -1,3 +1,4 @@
+import { listGuidePresets, selectGuidePreset, presetMarker } from './lib/guide-presets.mjs'
 /**
  * 由 JSON 数据生成文档版攻略文本
  *
@@ -101,6 +102,7 @@ function isEmptyCharacter (data) {
  * 否则读者会看到 `___级` / `___%` 这类从未填过的占位。
  */
 export function renderCharacter (data) {
+  if (Array.isArray(data?.presets)) return [String(data.name), ...listGuidePresets(data).flatMap(p => [presetMarker(p), ...renderCharacter(selectGuidePreset(data, p)).slice(1)])]
   const lines = []
   const tags = visibleTags(data)
   const level = tags.find(t => t.startsWith('建议等级'))
@@ -145,7 +147,7 @@ export function renderCharacter (data) {
 }
 
 /** 生成完整文档文本 */
-function buildText () {
+export function buildText () {
   const characters = listCharacters()
   const empty = characters.filter(isEmptyCharacter)
   const filled = characters.length - empty.length

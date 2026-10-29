@@ -2,10 +2,9 @@
  * 攻略命令（**抢占式接管**，设计文档 §5）
  *
  * 接管范围（与 `isCodexCommand()` 一致）：
- *   1. 后缀式 `#胡桃攻略` / `#胡桃攻略2` / `#胡桃指南`（原属 `plugins/genshin`「米游社攻略」与 Atlas 快捷入口）
- *   2. 前缀式 `#攻略 <角色> [模块|档位]`
- *   3. 反查式 `#攻略 武器 <武器名>` / `#攻略 配队 <角色…>`（v1 只做这两个）
- *   4. `#攻略列表` / `#攻略状态`
+ *   1. 后缀式 `#胡桃攻略` / `#芙宁娜攻略 辅助` / `#胡桃指南`
+ *   2. `#攻略列表` / `#攻略状态`
+ * 前缀式与反查入口已移除，不认领；角色解析与练度共用 characterResolver。
  *
  * 优先级 `PREEMPT_PRIORITY`（-100000，写死不可配置）：早于 Atlas 快捷入口（-99999）与
  * genshin「米游社攻略」（50）。`accept()` 认领同一批消息以 break 框架的 accept 循环
@@ -32,6 +31,8 @@ import { genshinFontFile } from '../model/genshinFont.js'
 import { guideUpdatedDate } from '../model/guideDate.js'
 import { filterView, isViewEmpty, parseSuffixQuery } from '../modules/branches.js'
 import { moduleOff } from '../modules/moduleGate.js'
+import { resolveCharacterMatch } from '../modules/characterResolver.js'
+import { listGuidePresets, selectGuidePreset } from '../modules/guidePresets.js'
 import {
   buildCodexView,
   toPageData,
@@ -44,28 +45,12 @@ import {
 // @ts-expect-error 框架文件不在 tsc 解析范围，运行时相对 lib/ 解析（见 components/render.ts 文件头 T1 / T2）
 import plugin from '../../../../lib/plugins/plugin.js'
 
-/**
- * 角色名解析：数据标准名（含去空白 / 唯一包含匹配）→ miao 别名
- *
- * miao 缺失时只用数据侧（不报错）。
- */
-export function resolveCharacter (keyword: string): string | null {
-  const raw = String(keyword ?? '').trim()
-  if (!raw) return null
-  const byData = codexStore.findCharacter(raw)
-  if (byData) return byData
-  try {
-    return miaoRes.resolveName('character', raw)
-  } catch {
-    return null
-  }
-}
-
 interface CharacterReplyOptions {
   module?: SubViewTitle
   tier?: string
-  /** 后缀里的套数（我们只有一套，>1 时在页头注明） */
+  /** 兼容数字后缀：按预设顺序选择。 */
   setIndex?: number | null
+  preset?: string
   /** #胡桃攻略 面板图N 指定的图库图序号（决定立绘用哪张） */
   panelIndex?: number | null
 }
@@ -74,7 +59,7 @@ export class MetaCodex extends plugin {
   constructor () {
     super({
       name: 'Meta攻略',
-      dsc: '#〈角色〉攻略 · #攻略列表 / #攻略状态',
+      dsc: '#〈角色或别名〉攻略 [预设] · #攻略列表 / #攻略状态',
       event: 'message',
       // 抢占优先级：早于 Atlas 快捷入口(-99999) 与 genshin「米游社攻略」(50)；写死不可配置
       priority: PREEMPT_PRIORITY,
@@ -98,7 +83,7 @@ export class MetaCodex extends plugin {
     if (moduleOff('codex')) return false
     const query = parseSuffixQuery(e.msg)
     if (!query) return false
-    return await this.replyCharacter(e, query.character, { setIndex: query.setIndex, panelIndex: query.panelIndex })
+    return await this.replyCharacter(e, query.character, { setIndex: query.setIndex, panelIndex: query.panelIndex, preset: query.preset })
   }
 
   /** `#攻略列表` / `#攻略状态` */
@@ -115,14 +100,36 @@ export class MetaCodex extends plugin {
 
   /** 角色攻略页（可带模块 / 档位收窄） */
   private async replyCharacter (e: YunzaiEvent, keyword: string, opts: CharacterReplyOptions): Promise<boolean> {
-    const name = resolveCharacter(keyword)
+    const match = await resolveCharacterMatch(keyword)
+    const name = match.name
     if (!name) {
-      await e.reply(`[Meta] 没有「${keyword}」的攻略数据`)
+      await e.reply(match.candidates.length > 1
+        ? `[Meta] 「${keyword}」匹配到多个角色：${match.candidates.join('、')}，请使用完整角色名`
+        : `[Meta] 没有「${keyword}」的攻略数据`)
       return true
     }
 
-    const guide = codexStore.getGuide(name)
-    if (!guide || !codexStore.isFilled(guide)) {
+    const source = codexStore.getGuide(name)
+    if (!source) {
+      await e.reply(`[Meta] ${name} 的攻略待补充`)
+      return true
+    }
+    const presets = listGuidePresets(source)
+    const requested = opts.preset ?? (opts.setIndex ? String(opts.setIndex) : '')
+    const hits = requested
+      ? presets.filter((preset, index) => preset.id === requested || preset.name === requested || String(index + 1) === requested)
+      : presets.length === 1 ? presets : []
+    if (hits.length !== 1) {
+      await e.reply([
+        requested ? `[Meta] ${name} ${hits.length > 1 ? '预设匹配不唯一' : `没有「${requested}」预设`}` : `[Meta] ${name} 有多个攻略预设，请指定预设`,
+        `用法：#${name}攻略 <预设>`,
+        `可选预设：${presets.map(preset => `${preset.name}（${preset.id}）`).join('、') || '暂无'}`,
+        ...presets.map(preset => `#${name}攻略 ${preset.name}`)
+      ].join('\n'))
+      return true
+    }
+    const guide = selectGuidePreset(source, hits[0])
+    if (!codexStore.isFilled(guide)) {
       await e.reply(`[Meta] ${name} 的攻略待补充`)
       return true
     }
@@ -148,7 +155,7 @@ export class MetaCodex extends plugin {
     }
 
     const notes: string[] = []
-    if (opts.setIndex && opts.setIndex > 1) notes.push('仅收录一套攻略')
+    if (presets.length > 1 || requested) notes.push(`预设：${hits[0].name}`)
     if (opts.tier) notes.push(`仅显示「${opts.tier}」档`)
 
     return await this.replyPage(e, view, notes, opts.panelIndex ?? null)

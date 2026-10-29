@@ -1,309 +1,387 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "爱可菲",
   "game": "gi",
-  "meta": {
-    "建议等级": "81-90级",
-    "定位": "冰系专辅",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": "辅助",
-        "tier": null,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "西风长枪",
-            "ref": "weapon:西风长枪"
-          },
-          {
-            "name": "香韵奏者",
-            "ref": "weapon:香韵奏者"
-          }
-        ]
-      },
-      {
-        "label": "输出",
-        "tier": null,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "香韵奏者",
-            "ref": "weapon:香韵奏者"
-          },
-          {
-            "name": "息灾",
-            "ref": "weapon:息灾"
-          },
-          {
-            "name": "决斗之枪",
-            "ref": "weapon:决斗之枪"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "辅助",
-        "sep": " / ",
-        "sets": [
-          {
-            "name": "烬城勇者绘卷",
-            "ref": "artifact:烬城勇者绘卷"
-          },
-          {
-            "name": "千岩牢固",
-            "ref": "artifact:千岩牢固"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "元素充能效率"
-          ],
-          "空之杯": [
-            "攻击力"
-          ],
-          "理之冠": [
-            "暴击率"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "充能",
-          "暴击率",
-          "大攻击"
-        ],
-        "sep": " > "
-      },
-      {
-        "kind": "preferred",
-        "label": "输出",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "黄金剧团",
-            "ref": "artifact:黄金剧团"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力"
-          ],
-          "空之杯": [
-            "冰元素伤害加成",
-            "攻击力"
-          ],
-          "理之冠": [
-            "暴击率",
-            "暴击伤害"
-          ]
-        }
-      },
-      {
-        "kind": "sub",
-        "stats": [
-          "暴击率",
-          "暴击伤害",
-          "大攻击",
-          "充能"
-        ],
-        "sep": " / > > "
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 1,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 8,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A1 E10 Q8"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "E",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:E"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": "辅助",
-        "text": "暴击率：70%"
-      },
-      {
-        "label": "辅助",
-        "text": "元素充能效率：240%"
-      },
-      {
-        "label": "输出",
-        "text": "暴击率：70%"
-      },
-      {
-        "label": "输出",
-        "text": "暴击伤害：180%"
-      },
-      {
-        "label": "输出",
-        "text": "攻击力：2000"
-      },
-      {
-        "label": "输出",
-        "text": "元素充能效率：180%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "一命",
-        "index": 1,
-        "text": "提升冰元素爆伤"
-      },
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "提升前台角色爆发伤害"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "丝柯克",
-            "ref": "character:丝柯克"
-          },
-          {
-            "name": "爱可菲",
-            "ref": "character:爱可菲"
-          },
-          {
-            "name": "芙宁娜",
-            "ref": "character:芙宁娜"
-          },
-          {
-            "name": "莫娜 / 沃雅妮莎",
-            "ref": "character:莫娜"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "星超导",
-        "members": [
-          {
-            "name": "桑多涅",
-            "ref": "character:桑多涅"
-          },
-          {
-            "name": "奥黛塔",
-            "ref": "character:奥黛塔"
-          },
-          {
-            "name": "八重神子",
-            "ref": "character:八重神子"
-          },
-          {
-            "name": "爱可菲",
-            "ref": "character:爱可菲"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：81-90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：冰系专辅",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "辅助：西风长枪 > 香韵奏者",
-        "输出：香韵奏者 > 息灾 > 决斗之枪"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "辅助：烬城勇者绘卷 / 千岩牢固",
-        "主词条：时之沙：元素充能效率｜空之杯：攻击力｜理之冠：暴击率",
-        "副词条：充能 > 暴击率 > 大攻击",
-        "输出：黄金剧团",
-        "主词条：时之沙：攻击力｜空之杯：冰元素伤害加成 / 攻击力｜理之冠：暴击率 / 暴击伤害",
-        "副词条：暴击率 / 暴击伤害 > 大攻击 > 充能"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A1 E10 Q8",
-        "皇冠：E（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "辅助：暴击率：70%",
-        "辅助：元素充能效率：240%",
-        "输出：暴击率：70%",
-        "输出：暴击伤害：180%",
-        "输出：攻击力：2000",
-        "输出：元素充能效率：180%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "一命——提升冰元素爆伤",
-        "二命——提升前台角色爆发伤害"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：丝柯克 + 爱可菲 + 芙宁娜 + 莫娜 / 沃雅妮莎",
-        "星超导：桑多涅 + 奥黛塔 + 八重神子 + 爱可菲"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "dps",
+      "name": "输出",
+      "role": "dps",
+      "match": {
+        "names": [
+          "输出"
+        ]
+      },
+      "weights": {
+        "artifact": 30,
+        "panel": 30,
+        "weapon": 20,
+        "talent": 20
+      },
+      "meta": {
+        "建议等级": "81-90级",
+        "定位": "冰系专辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": "输出",
+            "tier": null,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "香韵奏者",
+                "ref": "weapon:香韵奏者"
+              },
+              {
+                "name": "息灾",
+                "ref": "weapon:息灾"
+              },
+              {
+                "name": "决斗之枪",
+                "ref": "weapon:决斗之枪"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "输出",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "黄金剧团",
+                "ref": "artifact:黄金剧团"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力"
+              ],
+              "空之杯": [
+                "冰元素伤害加成",
+                "攻击力"
+              ],
+              "理之冠": [
+                "暴击率",
+                "暴击伤害"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击率",
+              "暴击伤害",
+              "大攻击",
+              "充能"
+            ],
+            "sep": " / > > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": "输出",
+            "text": "暴击率：70%"
+          },
+          {
+            "label": "输出",
+            "text": "暴击伤害：180%"
+          },
+          {
+            "label": "输出",
+            "text": "攻击力：2000"
+          },
+          {
+            "label": "输出",
+            "text": "元素充能效率：180%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "一命",
+            "index": 1,
+            "text": "提升冰元素爆伤"
+          },
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "提升前台角色爆发伤害"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "丝柯克",
+                "ref": "character:丝柯克"
+              },
+              {
+                "name": "爱可菲",
+                "ref": "character:爱可菲"
+              },
+              {
+                "name": "芙宁娜",
+                "ref": "character:芙宁娜"
+              },
+              {
+                "name": "莫娜 / 沃雅妮莎",
+                "ref": "character:莫娜"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "星超导",
+            "members": [
+              {
+                "name": "桑多涅",
+                "ref": "character:桑多涅"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "八重神子",
+                "ref": "character:八重神子"
+              },
+              {
+                "name": "爱可菲",
+                "ref": "character:爱可菲"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "support",
+      "name": "辅助",
+      "role": "support",
+      "match": {
+        "names": [
+          "辅助"
+        ]
+      },
+      "weights": {
+        "artifact": 0,
+        "panel": 50,
+        "weapon": 25,
+        "talent": 25
+      },
+      "meta": {
+        "建议等级": "81-90级",
+        "定位": "冰系专辅",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": "辅助",
+            "tier": null,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "西风长枪",
+                "ref": "weapon:西风长枪"
+              },
+              {
+                "name": "香韵奏者",
+                "ref": "weapon:香韵奏者"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "辅助",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "烬城勇者绘卷",
+                "ref": "artifact:烬城勇者绘卷"
+              },
+              {
+                "name": "千岩牢固",
+                "ref": "artifact:千岩牢固"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素充能效率"
+              ],
+              "空之杯": [
+                "攻击力"
+              ],
+              "理之冠": [
+                "暴击率"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "充能",
+              "暴击率",
+              "大攻击"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 8,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q8"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": "辅助",
+            "text": "暴击率：70%"
+          },
+          {
+            "label": "辅助",
+            "text": "元素充能效率：240%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "一命",
+            "index": 1,
+            "text": "提升冰元素爆伤"
+          },
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "提升前台角色爆发伤害"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "丝柯克",
+                "ref": "character:丝柯克"
+              },
+              {
+                "name": "爱可菲",
+                "ref": "character:爱可菲"
+              },
+              {
+                "name": "芙宁娜",
+                "ref": "character:芙宁娜"
+              },
+              {
+                "name": "莫娜 / 沃雅妮莎",
+                "ref": "character:莫娜"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "星超导",
+            "members": [
+              {
+                "name": "桑多涅",
+                "ref": "character:桑多涅"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "八重神子",
+                "ref": "character:八重神子"
+              },
+              {
+                "name": "爱可菲",
+                "ref": "character:爱可菲"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

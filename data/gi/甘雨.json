@@ -1,226 +1,179 @@
 {
-  "schema": 2,
+  "schema": 3,
   "name": "甘雨",
   "game": "gi",
-  "meta": {
-    "建议等级": "90级",
-    "定位": "融化重击C",
-    "100级提升": "___%"
-  },
-  "v2": {
-    "weapons": [
-      {
-        "label": null,
-        "tier": 1,
-        "sep": " > ",
-        "items": [
-          {
-            "name": "阿莫斯之弓",
-            "ref": "weapon:阿莫斯之弓"
-          },
-          {
-            "name": "最初的大魔术",
-            "ref": "weapon:最初的大魔术"
-          }
-        ]
-      }
-    ],
-    "artifacts": [
-      {
-        "kind": "preferred",
-        "label": "推荐",
-        "sep": " > ",
-        "sets": [
-          {
-            "name": "流浪大地的乐团",
-            "ref": "artifact:流浪大地的乐团"
-          }
-        ]
-      },
-      {
-        "kind": "main",
-        "stats": {
-          "时之沙": [
-            "攻击力",
-            "元素精通"
-          ],
-          "空之杯": [],
-          "理之冠": []
-        }
-      }
-    ],
-    "talents": [
-      {
-        "kind": "priority",
-        "order": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          },
-          {
-            "name": "E",
-            "level": 8,
-            "ref": "talent:E"
-          },
-          {
-            "name": "Q",
-            "level": 1,
-            "ref": "talent:Q"
-          }
-        ],
-        "raw": "A10 E8 Q1"
-      },
-      {
-        "kind": "crown",
-        "items": [
-          {
-            "name": "A",
-            "level": 10,
-            "crown": true,
-            "ref": "talent:A"
-          }
-        ]
-      }
-    ],
-    "panels": [
-      {
-        "label": null,
-        "k": "暴击率",
-        "v": "50-60%"
-      },
-      {
-        "label": null,
-        "k": "暴击伤害",
-        "v": "180-200%"
-      },
-      {
-        "label": null,
-        "k": "攻击力",
-        "v": "2500-2600"
-      },
-      {
-        "label": null,
-        "k": "元素充能效率",
-        "v": "120%"
-      }
-    ],
-    "constellations": [
-      {
-        "name": "二命",
-        "index": 2,
-        "text": "E 可用次数提升"
-      },
-      {
-        "name": "六命",
-        "index": 6,
-        "text": "E 后霜华矢免蓄力"
-      }
-    ],
-    "teams": [
-      {
-        "label": "推荐",
-        "members": [
-          {
-            "name": "甘雨",
-            "ref": "character:甘雨"
-          },
-          {
-            "name": "莫娜",
-            "ref": "character:莫娜"
-          },
-          {
-            "name": "迪奥娜",
-            "ref": "character:迪奥娜"
-          },
-          {
-            "name": "温迪",
-            "ref": "character:温迪"
-          }
-        ],
-        "text": ""
-      },
-      {
-        "label": "可选",
-        "members": [
-          {
-            "name": "甘雨",
-            "ref": "character:甘雨"
-          },
-          {
-            "name": "珊瑚宫心海",
-            "ref": "character:珊瑚宫心海"
-          },
-          {
-            "name": "申鹤",
-            "ref": "character:申鹤"
-          },
-          {
-            "name": "温迪",
-            "ref": "character:温迪"
-          }
-        ],
-        "text": ""
-      }
-    ]
-  },
-  "tags": [
-    {
-      "text": "建议等级：90级",
-      "style": "level"
-    },
-    {
-      "text": "定位：融化重击C",
-      "style": "role"
-    }
-  ],
-  "sections": [
-    {
-      "title": "1. 武器推荐",
-      "lines": [
-        "第一档：阿莫斯之弓 > 最初的大魔术"
-      ]
-    },
-    {
-      "title": "2. 圣遗物推荐",
-      "lines": [
-        "推荐：流浪大地的乐团",
-        "主词条：时之沙：攻击力 / 元素精通"
-      ]
-    },
-    {
-      "title": "3. 天赋加点",
-      "lines": [
-        "天赋：A10 E8 Q1",
-        "皇冠：A（10）"
-      ]
-    },
-    {
-      "title": "4. 毕业面板参考",
-      "lines": [
-        "暴击率：50-60%",
-        "暴击伤害：180-200%",
-        "攻击力：2500-2600",
-        "元素充能效率：120%"
-      ]
-    },
-    {
-      "title": "5. 命座推荐",
-      "lines": [
-        "二命——E 可用次数提升",
-        "六命——E 后霜华矢免蓄力"
-      ]
-    },
-    {
-      "title": "6. 配队推荐",
-      "lines": [
-        "推荐：甘雨 + 莫娜 + 迪奥娜 + 温迪",
-        "可选：甘雨 + 珊瑚宫心海 + 申鹤 + 温迪"
-      ]
-    }
-  ],
   "source": {
     "guide": "原神·角色攻略"
-  }
+  },
+  "presets": [
+    {
+      "id": "default",
+      "name": "默认",
+      "role": "dps",
+      "match": {},
+      "meta": {
+        "建议等级": "90级",
+        "定位": "融化重击C",
+        "100级提升": "___%"
+      },
+      "v2": {
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "阿莫斯之弓",
+                "ref": "weapon:阿莫斯之弓"
+              },
+              {
+                "name": "最初的大魔术",
+                "ref": "weapon:最初的大魔术"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " > ",
+            "sets": [
+              {
+                "name": "流浪大地的乐团",
+                "ref": "artifact:流浪大地的乐团"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力",
+                "元素精通"
+              ],
+              "空之杯": [],
+              "理之冠": []
+            }
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 8,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 1,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A10 E8 Q1"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "A",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:A"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "50-60%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "180-200%"
+          },
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "2500-2600"
+          },
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "120%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "E 可用次数提升"
+          },
+          {
+            "name": "六命",
+            "index": 6,
+            "text": "E 后霜华矢免蓄力"
+          }
+        ],
+        "teams": [
+          {
+            "label": "推荐",
+            "members": [
+              {
+                "name": "甘雨",
+                "ref": "character:甘雨"
+              },
+              {
+                "name": "莫娜",
+                "ref": "character:莫娜"
+              },
+              {
+                "name": "迪奥娜",
+                "ref": "character:迪奥娜"
+              },
+              {
+                "name": "温迪",
+                "ref": "character:温迪"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "甘雨",
+                "ref": "character:甘雨"
+              },
+              {
+                "name": "珊瑚宫心海",
+                "ref": "character:珊瑚宫心海"
+              },
+              {
+                "name": "申鹤",
+                "ref": "character:申鹤"
+              },
+              {
+                "name": "温迪",
+                "ref": "character:温迪"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
 }

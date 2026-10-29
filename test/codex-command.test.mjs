@@ -26,12 +26,12 @@ const B = await import(pathToFileURL(path.join(libDir, 'modules', 'branches.js')
 const SV = await import(pathToFileURL(path.join(libDir, 'modules', 'subViews.js')).href)
 const RV = await import(pathToFileURL(path.join(libDir, 'modules', 'reverse.js')).href)
 const { CodexStore } = await import(pathToFileURL(path.join(libDir, 'model', 'CodexStore.js')).href)
+const { listGuidePresets, selectGuidePreset } = await import(pathToFileURL(path.join(libDir, 'modules', 'guidePresets.js')).href)
 
 // ---------- 1. 抢占对照表 ----------
 const claim = [
   '#胡桃攻略', '#胡桃攻略2', '#胡桃攻略7', '#更新胡桃攻略', '#胡桃攻略',
-  '#攻略 胡桃', '#攻略 胡桃 武器', '#攻略 胡桃 过渡',
-  '#攻略 武器 护摩之杖', '#攻略 配队 胡桃 夜兰', '#攻略列表', '#攻略状态'
+  '#胡桃指南', '#芙宁娜攻略 辅助', '#芙芙攻略 辅助 面板图3', '#攻略列表', '#攻略状态'
 ]
 push('认领：攻略类形态全部命中', claim.filter(m => !C.isCodexCommand(m)), [])
 
@@ -64,7 +64,8 @@ const release = [
   '#设置默认攻略2', '#设置默认攻略', '#设置默认攻略7',
   '#攻略', '#攻略帮助', '#攻略说明',
   '#成就', '#深渊', '#图鉴状态', '#图鉴别名设置 胡桃', '#DPS',
-  '#胡桃', '', '#'
+  '#胡桃', '', '#', '#攻略 胡桃', '#攻略 胡桃 武器', '#攻略 胡桃 过渡',
+  '#攻略 武器 护摩之杖', '#攻略 配队 胡桃 夜兰'
 ]
 push('放行：非攻略命令', release.filter(m => C.isCodexCommand(m)), [])
 push('帮助三词仍归帮助 app', ['#攻略', '#攻略帮助', '#攻略说明'].filter(m => !C.isHelpCommand(m)), [])
@@ -123,7 +124,17 @@ push('前缀：未知头词', B.parseArgQuery('#攻略 不存在的词', fakeRes
 
 // ---------- 4. 视图收窄 ----------
 const store = new CodexStore()
-const view = SV.buildCodexView(store.getGuide('胡桃'), { signature: store.getSignature('胡桃'), weaponTags: store.getWeaponTags() })
+// 旧反查纯API只接收已投影数据；多预设不隐式选第一份。
+const projectedStore = {
+  listCharacters: () => store.listCharacters().filter(name => listGuidePresets(store.getGuide(name)).length === 1),
+  getGuide: name => {
+    const guide = store.getGuide(name)
+    if (!guide) return null
+    const presets = listGuidePresets(guide)
+    return presets.length === 1 ? selectGuidePreset(guide, presets[0]) : null
+  }
+}
+const view = SV.buildCodexView(projectedStore.getGuide('胡桃'), { signature: store.getSignature('胡桃'), weaponTags: store.getWeaponTags() })
 ok('胡桃视图可用', !!view)
 push('模块过滤：只剩武器', B.filterView(view, { module: '武器' }).sections.map(s => s.title), ['武器'])
 {
@@ -136,20 +147,20 @@ ok('原视图不为空', !B.isViewEmpty(view))
 
 // ---------- 5. 反查与图标 ----------
 {
-  const hits = RV.findWeaponRecommenders(store, '护摩之杖')
+  const hits = RV.findWeaponRecommenders(projectedStore, '护摩之杖')
   ok('反查护摩之杖：命中 ≥ 1', hits.length >= 1)
   ok('反查护摩之杖：含胡桃', hits.some(h => h.character === '胡桃'))
   ok('反查护摩之杖：档位词非空', hits.every(h => typeof h.tier === 'string'))
-  push('反查不存在的武器 → 空', RV.findWeaponRecommenders(store, '这把武器不存在'), [])
+  push('反查不存在的武器 → 空', RV.findWeaponRecommenders(projectedStore, '这把武器不存在'), [])
 }
 {
   // 用真实数据造一个必然命中的配队查询：取胡桃第一支配队的成员
-  const team = (store.getGuide('胡桃')?.v2?.teams ?? [])[0]
+  const team = (projectedStore.getGuide('胡桃')?.v2?.teams ?? [])[0]
   const members = (team?.members ?? []).map(m => String(m?.name ?? '')).filter(Boolean).slice(0, 2)
-  const hits = RV.findTeamContainers(store, members)
+  const hits = RV.findTeamContainers(projectedStore, members)
   ok(`反查配队（${members.join('+')}）：命中 ≥ 1`, hits.length >= 1)
   ok('反查配队：命中含胡桃', hits.some(h => h.character === '胡桃'))
-  push('反查配队：空成员 → 空', RV.findTeamContainers(store, []), [])
+  push('反查配队：空成员 → 空', RV.findTeamContainers(projectedStore, []), [])
 }
 
 {
