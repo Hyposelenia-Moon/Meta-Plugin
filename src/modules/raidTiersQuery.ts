@@ -33,15 +33,20 @@ export const RAID_SPEED_CAP = 120
 export const DEFAULT_TIER_ROWS = 10
 
 /**
- * 文本里出现的**独立档位词**（`n7` / `7档`；裸 `6` / `7` 不计，避免把版本号 `7.1` 当档位）
+ * 文本里出现的**独立档位词**（`n7` / `7档` / 裸 `7`；视频后缀 `n7视频3` 也算）
  *
  * 2026-10-28 复审：没有自身 message 段时，`e.msg` 可能同时含用户档位与引用里的档位，
  * 来源无法证明 —— `apps/raidTiers.ts` 用这两个函数识别"多档冲突"并提示重发。
+ *
+ * 2026-10-29 复审补漏：命令正则本来就接受裸 `6`/`7`，档位扫描也必须接受，
+ * 否则 `n7 … 请用 6` 会绕过闸门并按引用里的裸档查询。边界要求见下：
+ * 只认词首（行首/空白后）、可选的 n/N 前缀、可选「档」后缀，且后面必须是空白/结尾/视频名次；
+ * 因此 `7.1`、`17`、`n70`、`n7foo`、`16`、`67` 都不会被当成档位。
  */
 export function tierTokensOf (text: unknown): string[] {
   const out = new Set<string>()
-  for (const m of String(text || '').matchAll(/(?:^|\s)(?:[nN]([67])|([67])档)/g)) {
-    const tier = m[1] || m[2]
+  for (const m of String(text || '').matchAll(/(?:^|\s)(?:[nN])?([67])(?:档)?(?=\s|$|视频\s*\d)/g)) {
+    const tier = m[1]
     if (tier) out.add(tier)
   }
   return [...out]

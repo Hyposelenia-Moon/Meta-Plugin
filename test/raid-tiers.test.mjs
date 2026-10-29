@@ -136,6 +136,29 @@ const { resolveBossName, resetBossAlias, bossAliasFile } = await import(pathToFi
   ok('resolveCommandArgs 解析到筛选词 矮灵', (await QG.resolveCommandArgs(own, C.RULES.raidTiers)).text === '矮灵')
 }
 
+// ---------- 3e. 裸档冲突必须由真实 handler 提示重发（2026-10-29 复审） ----------
+{
+  const appFile = path.join(libDir, 'apps', 'raidTiers.js')
+  let src = readText(appFile)
+  src = src.replace(/import plugin from ['"][^'"]+['"];?/, 'const plugin = class { constructor () {} };')
+  src = src.replace(/(from\s+['"])(\.[^'"]+)(['"])/g,
+    (_all, before, rel, after) => before + pathToFileURL(path.resolve(path.dirname(appFile), rel)).href + after)
+  const { MetaRaidTiers } = await import('data:text/javascript;base64,' + Buffer.from(src).toString('base64'))
+  const app = new MetaRaidTiers()
+  for (const [msg, quoted] of [
+    ['#危战 矮灵 n7 请用 6', '请用 6'],
+    ['#危战 矮灵 7 请用 n6', '请用 n6'],
+    ['#危战 矮灵 7 请用 6', '请用 6']
+  ]) {
+    const replies = []
+    const handled = await app.handleRaidTiers({
+      msg, reply_id: 'q-bare-tier', getReply: async () => ({ message: [{ type: 'text', text: quoted }] }),
+      reply: async text => { replies.push(String(text)); return true }
+    })
+    ok(`裸档冲突 handler 提示重发：${msg}`, handled === true && /请重新发送 #危战/.test(replies.join('\n')), replies.join('|'))
+  }
+}
+
 // ---------- 3b. 首领简写表（手动维护） ----------
 {
   const fsMod = await import('node:fs')

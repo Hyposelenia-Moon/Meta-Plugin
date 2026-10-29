@@ -80,6 +80,20 @@ const replyOf = (text) => ({ reply_id: 'q', getReply: async () => ({ message: [{
   const echoMsg = { msg: '#DPS 每 4 金一档的最高伤害队伍\n数据来自 mhydps.cn', ...replyOf('x') }
   const re = await QG.resolveCommandArgs(echoMsg, RULES.rank)
   ok('隔离后仍命中输出指纹 → echo（自环/转发）', re.echo === true)
+
+  /*
+   * 2026-10-29 复审：引用块后可能带传输空白（空格/换行）；完整块仍必须被剥离，
+   * 否则整条命令被当成回灌，handler 静默返回 false、零回复。
+   */
+  const quoted = '#胡桃 · 各金档最高伤害队伍\n数据来自 mhydps.cn'
+  for (const tail of [' ', '\n', '\n ', '  ']) {
+    const msg = `#DPS 胡桃 12金\n${quoted}${tail}`
+    const e = { msg, ...replyOf(quoted) }
+    const isolated = await QG.stripQuotedBlock(e, msg)
+    ok(`尾空白 ${JSON.stringify(tail)}：完整引用块仍被剥离`, isolated === '#DPS 胡桃 12金', isolated)
+    const r = await QG.resolveCommandArgs(e, RULES.rank)
+    ok(`尾空白 ${JSON.stringify(tail)}：不再误判回灌`, r.echo === false && r.text === '胡桃 12金', JSON.stringify(r))
+  }
 }
 
 // ---------- 6. 多档冲突识别（handler 闸门的数据层） ----------
@@ -90,6 +104,16 @@ const replyOf = (text) => ({ reply_id: 'q', getReply: async () => ({ message: [{
   ok('版本号 7.1 + n6 不把 7.1 当档位', RQ.hasMultipleTiers('7.1 n6') === false)
   ok('同一档位重复不算多档', RQ.hasMultipleTiers('n7 / n7') === false)
   ok('档位词提取去重', JSON.stringify(RQ.tierTokensOf('n7 6档 N6')) === JSON.stringify(['7', '6']))
+  // 2026-10-29 复审：命令正则支持裸 6/7，档位扫描必须同语法，否则会绕过闸门按引用改档。
+  ok('裸 7 是档位词', RQ.tierTokensOf('#危战 矮灵 7').join(',') === '7')
+  ok('裸 7 单独不误报多档', RQ.hasMultipleTiers('#危战 矮灵 7') === false && RQ.hasMultipleTiers('#危战 矮灵 n7 视频3') === false)
+  ok('n7 + 裸 6 → 多档冲突', RQ.hasMultipleTiers('#危战 矮灵 n7 请用 6') === true)
+  ok('裸 7 + n6 → 多档冲突', RQ.hasMultipleTiers('#危战 矮灵 7 请用 n6') === true)
+  ok('裸 7 + 裸 6 → 多档冲突', RQ.hasMultipleTiers('#危战 矮灵 7 请用 6') === true)
+  ok('视频后缀 n7视频3 / 7视频2 都识别为档位', RQ.tierTokensOf('n7视频3 7视频2').join(',') === '7')
+  ok('版本号/长数字/英文词不误判',
+    ['7.1', '17', 'n70', 'n7foo', '16', '67'].every(t => RQ.tierTokensOf(t).length === 0),
+    JSON.stringify(['7.1', '17', 'n70', 'n7foo', '16', '67'].map(t => RQ.tierTokensOf(t))))
 
   // 边界：隔离后只剩一个档位 → 不触发多档闸门；inline 的 n7 … n6 无法归因 → 触发
   const ambiguous = { msg: '#危战 矮灵 n7 请用 n6', ...replyOf('请用 n6') }
