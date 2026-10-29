@@ -402,10 +402,10 @@
           {{/if}}
         </section>
 
-        {{if mx.references.length > 0 && !mx.refOnlyCons}}
+        {{if mx.references.length > 0}}
         <section class="mx-section{{if mx.refHasDir}} mx--ref-dir{{/if}}">
           <header class="mx-section__head">
-            <span class="mx-section__index">05</span>
+            <span class="mx-section__index">{{mx.sectionIndex.references}}</span>
             <h2 class="mx-section__title">参考项</h2>
             <span class="mx-section__hint">不计分</span>
           </header>
@@ -414,21 +414,21 @@
             {{each mx.referenceGroups g}}
             <div class="mx-reference-category">{{g.label}}</div>
             {{each g.rows r}}
-            <div class="mx-reference-row">
+            <div class="mx-reference-row{{if r.tone === 'warn'}} mx-reference-row--warn{{/if}}">
               <span class="mx-reference-row__name"><span class="mx-reference-row__attr">{{r.name}}</span>{{if r.tags.length}}<span class="mx-reference-tags">{{each r.tags tag}}<span class="mx-reference-tag">{{tag}}</span>{{/each}}</span>{{/if}}</span>
               <span class="mx-reference-row__value">{{r.actual}}</span>
               <span class="mx-reference-row__extra">{{r.target}}</span>
             </div>
             {{/each}}
             {{/each}}
-            <p class="mx-reference-note">仅展示当前预设参考；条件见项目标签，不计入评分。</p>
+            <p class="mx-reference-note">只列尚未达标的参考项；条件见项目标签，不计入评分。</p>
           </div>
         </section>
         {{/if}}
 
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">06</span>
+            <span class="mx-section__index">{{mx.sectionIndex.suggestions}}</span>
             <h2 class="mx-section__title">提升建议</h2>
             <span class="mx-section__hint">按处理顺序</span>
           </header>
@@ -446,7 +446,7 @@
         {{if refDps && refDps.length > 0}}
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">07</span>
+            <span class="mx-section__index">{{mx.sectionIndex.refDps}}</span>
             <h2 class="mx-section__title">参考 DPS</h2>
             <span class="mx-section__hint">同角色投入参考</span>
           </header>

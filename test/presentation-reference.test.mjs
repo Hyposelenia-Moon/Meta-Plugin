@@ -34,4 +34,29 @@ assert.equal(P.buildPresentation({ result: { assessable: true, dims: [{ key: 'we
 assert.ok(/mx\.belowDimsText[^}]*\}\}[\s\S]*均已满足/.test(tpl), '04 空态先判 belowDimsText')
 for (const key of ['presetName', 'presetMatchReason', 'presetWeightText', 'mx.referenceGroups']) assert.ok(tpl.includes(key))
 assert.ok(!tpl.includes('grid-template-columns: 132px'))
-console.log('presentation-reference: 全部契约通过（分类/三列/方向/条件/去重/四维与辅助三维）')
+// 05 只展示未达标参考：综合（圣遗物）参考全部隐藏，命座达标隐藏，未达命座保留并标红。
+const hidden = P.buildPresentation({ result: { assessable: true, dims: [{ key: 'artifact', label: '圣遗物', state: 'unscored', ratio: null, weight: 0, detail: '' }], rows: [
+  { id: 'artifact:set', group: '综合', name: '套装', actual: '烬城勇者绘卷×4', target: '千岩牢固', verdict: 'info' },
+  { id: 'artifact:main:时之沙', group: '综合', name: '时之沙', actual: '元素充能效率', target: '元素充能效率', verdict: 'info' },
+  { id: 'cons:key', group: '命座', name: '关键命座', actual: 'C6', target: '2 / 6', verdict: 'info' }
+], suggestionRows: [] } })
+assert.deepEqual(hidden.references, [], '辅助/综合参考与已达成命座都不占版面')
+assert.deepEqual(hidden.referenceGroups, [])
+assert.equal(hidden.sectionIndex.suggestions, '05', '参考项隐藏后建议顺延为 05，避免跳号')
+assert.equal(hidden.sectionIndex.refDps, '06')
+const consBelow = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
+  { id: 'cons:key', group: '命座', name: '关键命座', actual: 'C1', target: '2 / 6', verdict: 'info' }
+], suggestionRows: [] } })
+assert.equal(consBelow.references.length, 1)
+assert.equal(consBelow.referenceGroups[0].rows[0].tone, 'warn')
+assert.equal(consBelow.sectionIndex.references, '05')
+assert.equal(consBelow.sectionIndex.suggestions, '06')
+const panelRef = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
+  { id: 'panel:辅助:cpct', group: '辅助', name: '暴击率', actual: '70%', target: '70%', verdict: 'info' }
+], suggestionRows: [] } })
+assert.equal(panelRef.references.length, 0, '已达标的参考项不占版面')
+const panelBelow = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
+  { id: 'panel:辅助:cpct', group: '辅助', name: '暴击率', actual: '68%', target: '70%', verdict: 'info' }
+], suggestionRows: [] } })
+assert.equal(panelBelow.referenceGroups[0].rows[0].tone, 'warn')
+console.log('presentation-reference: 全部契约通过（分类/三列/方向/条件/去重/四维与辅助三维/未达标过滤）')

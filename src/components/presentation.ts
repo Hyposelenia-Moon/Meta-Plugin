@@ -129,7 +129,21 @@ export interface ScoreContext {
 
 export interface ReferenceGroupView {
   label: string
-  rows: Array<{ id: string, name: string, actual: string, target: string, tags: string[] }>
+  rows: Array<{ id: string, name: string, actual: string, target: string, tags: string[], tone: 'warn' | 'info' }>
+}
+
+/** 从参考文本里取第一个数字（`C6` → 6、`2 / 6` → 2、`180%` → 180） */
+function firstNumber (text: string): number | null {
+  const m = String(text || '').match(/-?\d+(?:\.\d+)?/)
+  return m ? Number(m[0]) : null
+}
+
+/** 参考行是否仍未满足（数字可比且当前值低于目标最小值）；无法比较时按"需展示"处理 */
+export function referenceUnmet (row: { actual: string, target: string }): boolean {
+  const actual = firstNumber(row.actual)
+  const target = firstNumber(row.target)
+  if (actual === null || target === null) return true
+  return actual + 1e-9 < target
 }
 
 /** 只整理业务层已投影的参考项，不补入其他预设目标，也不按属性名吞掉不同目标。 */
@@ -146,7 +160,7 @@ export function buildReferenceGroups (references: EvidenceRow[]): ReferenceGroup
       tags.push(text.trim())
       return ''
     }).trim()
-    const item = { id: row.id, name: row.name, actual: row.actual, target, tags: [...new Set(tags)] }
+    const item = { id: row.id, name: row.name, actual: row.actual, target, tags: [...new Set(tags)], tone: referenceUnmet({ actual: row.actual, target }) ? 'warn' as const : 'info' as const }
     const duplicate = group.rows.some(r => r.name === item.name && r.actual === item.actual && r.target === item.target && r.tags.join('\0') === item.tags.join('\0'))
     if (!duplicate) group.rows.push(item)
   }
@@ -162,9 +176,11 @@ export interface PresentationMeta {
   evidence: EvidenceRow[]
   /** `info` 参考行（面板 / 命座）—— 即使有差距也不计分 */
   references: EvidenceRow[]
+  /** 参考项为空时后续章节顺延编号，避免页面出现 04 → 06 的跳号 */
+  sectionIndex: { references: string, suggestions: string, refDps: string }
   /** 参考项里是否有方向（辅助/输出…）；无方向时不渲染方向列 */
   refHasDir: boolean
-  /** 参考项是否只有「命座」一条（是则整块不显示） */
+  /** 兼容字段：参考项是否只有「命座」（2026-10-29 起不再据此隐藏整块） */
   refOnlyCons: boolean
   suggestions: SuggestionRowView[]
   /** 达标项覆盖说明（"其余 N 项达标"） */
@@ -318,7 +334,18 @@ export function buildPresentation (input: {
 }): PresentationMeta {
   const observedAt = Number(input.observedAt) || 0
   const dims = buildDims(input.result.dims)
-  const { evidence, references } = buildEvidence(input.result.rows)
+  const { evidence, references: allReferences } = buildEvidence(input.result.rows)
+  /*
+   * 05 只保留"还没做到、值得看"的参考（2026-10-29 用户定）：
+   *   - 圣遗物/主词条这类「综合」参考不再展示（辅助预设本就不计分，达标时更是纯占版面）；
+   *   - 关键命座在玩家已达到目标时隐藏；未达到才作为参考提示。
+   * 面板参考仍保留（可能带命座条件），由 tone 标出是否还有差距。
+   */
+  const references = allReferences.filter(row => {
+    if (row.id.startsWith('artifact:')) return false
+    // 已达标的参考不再占版面；数字不可比（如“走 miao 规则”）时保留
+    return referenceUnmet(row)
+  })
   const suggestions = buildSuggestionRows(
     (input.result.suggestionRows || []).map(s => ({ id: s.id, text: s.text, evidenceIds: s.evidenceIds, priority: s.priority, priorityBasis: s.priorityBasis })),
     evidence
@@ -338,6 +365,9 @@ export function buildPresentation (input: {
   return {
     score: buildScoreContext(input.result, { targetVersion: input.targetVersion }),
     dimensionsTitle: dims.length === 4 ? '四维达成' : dims.length === 3 ? '三维达成' : `${dims.length}维达成`,
+    sectionIndex: references.length
+      ? { references: '05', suggestions: '06', refDps: '07' }
+      : { references: '', suggestions: '05', refDps: '06' },
     referenceGroups: buildReferenceGroups(references),
     dims,
     evidence,

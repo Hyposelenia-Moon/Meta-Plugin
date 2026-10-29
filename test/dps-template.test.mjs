@@ -60,10 +60,12 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   ok('grade 模板：维度标题消费投影，不写死三维', tplGrade.includes('{{mx.dimensionsTitle}}') && !tplGrade.includes('>三维达成<'))
 }
 
-// 2026-10-18：参考项区两条展示口径要有模板接线
+// 2026-10-29 用户复审：参考项只展示未达标内容；只有命座时不再整块隐藏
 {
   const tplGrade = readText(path.join(tplDir, 'grade.html'))
-  ok('grade 模板：参考项只有命座时整块不渲染', tplGrade.includes('!mx.refOnlyCons'))
+  ok('grade 模板：参考项不再因只有命座而隐藏', tplGrade.includes('{{if mx.references.length > 0}}') && !tplGrade.includes('!mx.refOnlyCons'))
+  ok('grade 模板：参考项隐藏后后续章节编号顺延', tplGrade.includes('mx.sectionIndex.references') && tplGrade.includes('mx.sectionIndex.suggestions') && tplGrade.includes('mx.sectionIndex.refDps'))
+  ok('grade 模板：未达标参考行带 warn 类上色', tplGrade.includes("r.tone === 'warn'") && tplGrade.includes('mx-reference-row--warn'))
   ok('grade 模板：有方向时才挂 .mx--ref-dir', tplGrade.includes('mx.refHasDir') && tplGrade.includes('mx--ref-dir'))
 }
 

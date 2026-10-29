@@ -657,6 +657,9 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content .mx-reference-table .mx-reference-row__extra { min-width: 0; overflow-wrap: normal; word-break: keep-all; white-space: pre-line; }
 /* 当前值左对齐，紧贴项目列，避免中间整列空白；数值仍按列对齐可读。 */
 .mx-content .mx-reference-table .mx-reference-row__value { text-align: left; }
+/* 参考项颜色语义：未达标当前值用警示红（与 04 未达标同一色），目标值保持金色。 */
+.mx-content .mx-reference-table .mx-reference-row--warn .mx-reference-row__value { color: #e85656; }
+.mx-content .mx-reference-table .mx-reference-row--warn .mx-reference-tag { color: #e85656; border-color: rgba(232, 86, 86, .45); }
 .mx-content .mx-reference-category { margin-top: 6px; padding: 5px 0; color: var(--mx-accent); font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--mx-rule); }
 .mx-content .mx-reference-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
 .mx-content .mx-reference-table .mx-reference-tag { display: inline-block; padding: 1px 5px; border: 1px solid var(--mx-rule); border-radius: 4px; font-size: 12px; line-height: 1.5; color: var(--mx-muted); }
