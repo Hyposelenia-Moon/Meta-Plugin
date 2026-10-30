@@ -104,28 +104,29 @@ const projectGuide = (guide, id) => {
     JSON.stringify(targets.panel.map(t => `${t.name}:${t.min}~${t.max}`)))
 
   /*
-   * 审核 4.3：方向是目标的一部分，不能丢 —— 原来"输出向 生命值 35000"与"辅助向 生命值 35000"
-   * 被压成两条同名目标（参考区重复）。现在跨方向同值合并成一条并保留方向列表。
+   * 2026-10-30 用户定：独立预设自身已区分输出/辅助，面板/武器/圣遗物不再重复方向标签。
+   * 两个预设的目标仍各自独立（不跨预设合并），但 groups 应为空、参考行落到「参考」组。
    */
   {
     const hp = targets.panel.find(t => t.name === '生命值')
     const supportGuide = projectGuide(store.getGuide('哥伦比娅'), 'support')
     const supportTargets = G.extractTargets(SV.buildCodexView(supportGuide), '哥伦比娅', supportGuide)
     const supportHp = supportTargets.panel.find(t => t.name === '生命值')
-    ok('输出/辅助同值目标保留在独立预设，不跨预设合并',
-      !!hp && hp.groups.join('/') === '输出向' && supportHp?.groups.join('/') === '辅助向', JSON.stringify([hp?.groups, supportHp?.groups]))
+    ok('输出/辅助预设各自保留生命值目标，但不再带方向标签',
+      !!hp && !!supportHp && hp.groups.length === 0 && supportHp.groups.length === 0 && hp.min === supportHp.min,
+      JSON.stringify([hp, supportHp].map(x => x && { min: x.min, groups: x.groups })))
     const cpct = targets.panel.find(t => t.name === '暴击率')
-    ok('单方向目标带自己的方向', !!cpct && cpct.groups.join('/') === '输出向')
+    ok('独立预设的面板目标不再重复输出/辅助方向', !!cpct && cpct.groups.length === 0)
     ok('百分比目标带 percent 标记（当前值要补 %）', cpct?.percent === true && hp?.percent === false)
 
     // 参考行的稳定键与单位（审核 4.3：列语义"当前 / 参考目标"，百分比带 %）
     const rows = G.gradeBuild(targets, buildOf(6)).rows
     const hpRow = rows.find(r => r.id?.startsWith('panel:') && r.name === '生命值')
     const cpctRow = rows.find(r => r.id?.startsWith('panel:') && r.name === '暴击率')
-    ok('参考行稳定键含方向',
-      hpRow?.id === 'panel:输出向:hp' && cpctRow?.id === 'panel:输出向:cpct',
+    ok('无方向参考行使用「参考」稳定键',
+      hpRow?.id === 'panel:参考:hp' && cpctRow?.id === 'panel:参考:cpct',
       `${hpRow?.id} / ${cpctRow?.id}`)
-    ok('参考行按方向分组', hpRow?.group === '输出向' && cpctRow?.group === '输出向')
+    ok('无方向参考行统一落在「参考」组', hpRow?.group === '参考' && cpctRow?.group === '参考')
     ok('百分比参考行两侧都带 %',
       cpctRow?.actual.endsWith('%') === true && cpctRow?.target.endsWith('%') === true,
       `${cpctRow?.actual} → ${cpctRow?.target}`)

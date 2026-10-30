@@ -90,7 +90,7 @@
         "artifacts": [
           {
             "kind": "preferred",
-            "label": "输出向",
+            "label": "推荐",
             "sep": " > ",
             "sets": [
               {
@@ -309,7 +309,7 @@
         "artifacts": [
           {
             "kind": "preferred",
-            "label": "辅助向",
+            "label": "推荐",
             "sep": " > ",
             "sets": [
               {

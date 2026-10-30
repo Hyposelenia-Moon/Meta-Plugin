@@ -1928,7 +1928,7 @@ function renderPresets () {
   var list = m._presets.map(function (p, i) { return '<option value="' + i + '"' + (i === m._presetAt ? ' selected' : '') + '>' + esc(i === m._presetAt ? c.name : p.presetConfig.name) + '</option>' }).join('')
   return '<section class="card"><h2>攻略预设</h2><div class="row"><select aria-label="切换攻略预设" data-preset-switch>' + list + '</select> ' +
     ['add', 'copy', 'rename', 'delete'].map(function (act, i) { return '<button type="button" class="btn mini" data-act="preset-' + act + '"' + (act === 'delete' && m._presets.length === 1 ? ' disabled' : '') + '>' + ['新增', '复制', '重命名', '删除'][i] + '</button>' }).join(' ') + '</div>' +
-    '<p class="muted">切换会保留草稿；保存写入全部预设。最后一份不能删除。权重为相对值，0 表示不计分。</p>' +
+    '<p class="muted">切换会保留草稿；保存写入全部预设。最后一份不能删除。权重为相对值，0 表示不计分。单预设也可设为辅助；辅助默认不计圣遗物，把圣遗物权重改为大于 0 即可纳入评分。</p>' +
     '<label>评分模板 <select data-preset-role><option value="dps"' + (c.role === 'dps' ? ' selected' : '') + '>输出</option><option value="support"' + (c.role === 'support' ? ' selected' : '') + '>辅助</option></select></label> ' +
     ['artifact', 'panel', 'weapon', 'talent'].map(function (k, i) { return '<label>' + ['圣遗物', '面板', '武器', '天赋'][i] + ' <input type="number" min="0" step="any" style="width:70px" data-preset-weight="' + k + '" value="' + esc(c.weights[k]) + '"></label> ' }).join('') +
     '<p><label>匹配规则名称（每行一个）<textarea data-preset-match="names">' + esc(asArray(c.match.names).join('\n')) + '</textarea></label></p><p><label>匹配正则（每行一个）<textarea data-preset-match="patterns">' + esc(asArray(c.match.patterns).join('\n')) + '</textarea></label></p></section>'

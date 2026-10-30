@@ -1,5 +1,8 @@
 /** 独立攻略预设与 miao 规则匹配契约。 */
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mod } from './_helper.mjs'
 const { listGuidePresets, selectGuidePreset, matchGuidePreset, normalizeRuleRole, presetWeights } = await import(mod('modules/guidePresets.js'))
 const guide = { schema: 3, name: '芙宁娜', presets: [
@@ -32,4 +35,42 @@ const legacy = { name: '钟离', meta: { 定位: '护盾辅助' }, v2: { weapons
 assert.equal(listGuidePresets(legacy).length, 1)
 assert.equal(listGuidePresets(legacy)[0].role, 'support')
 assert.equal(matchGuidePreset(legacy).preset.id, 'default')
-console.log('攻略预设：21 条匹配、隔离及兼容断言通过')
+// 2026-10-30 用户定：单预设也能设为辅助，并可自选是否把圣遗物纳入评分。
+const singleSupport = {
+  schema: 3, name: '单预设辅助',
+  presets: [{
+    id: 'only', name: '默认', role: 'support',
+    weights: { artifact: 20, panel: 40, weapon: 20, talent: 20 },
+    match: { names: ['辅助'] }, meta: {}, v2: {}
+  }]
+}
+assert.equal(listGuidePresets(singleSupport)[0].role, 'support')
+assert.deepEqual(presetWeights(listGuidePresets(singleSupport)[0]), { artifact: 20, panel: 40, weapon: 20, talent: 20 })
+assert.equal(selectGuidePreset(singleSupport, 'only').presetRole, 'support')
+assert.equal(matchGuidePreset(singleSupport, { requested: '默认' }).preset.id, 'only')
+// 全库审计：独立预设内不得再出现与 preset.role 同义的武器/圣遗物/面板方向标签。
+{
+  const roleRe = {
+    dps: /^(?:输出|输出向|主[cC]|主[cC]向|站场|站场输出|速切)$/,
+    support: /^(?:辅助|辅助向|纯辅|治疗|奶妈|盾辅|护盾|增伤|充能辅)$/
+  }
+  const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'data', 'gi')
+  const bad = []
+  let rows = 0
+  for (const file of fs.readdirSync(dir).filter(f => f.endsWith('.json'))) {
+    const doc = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'))
+    for (const preset of doc.presets || []) {
+      const re = roleRe[preset.role === 'support' ? 'support' : 'dps']
+      for (const key of ['weapons', 'artifacts', 'panels']) {
+        for (const row of preset.v2?.[key] || []) {
+          rows++
+          const label = String(row.label ?? '').trim()
+          if (label && re.test(label)) bad.push(`${doc.name}/${preset.name}/${key}: ${label}`)
+        }
+      }
+    }
+  }
+  assert.deepEqual(bad, [], `独立预设仍在重复方向标签：\n${bad.join('\n')}`)
+  assert.ok(rows > 500, `扫描行数异常：${rows}`)
+}
+console.log('攻略预设：单预设辅助/自选圣遗物及全库方向标签等断言通过')

@@ -29,8 +29,8 @@
       "v2": {
         "weapons": [
           {
-            "label": "主c",
-            "tier": null,
+            "label": null,
+            "tier": 1,
             "sep": " > ",
             "items": [
               {
@@ -51,7 +51,7 @@
         "artifacts": [
           {
             "kind": "preferred",
-            "label": "主c",
+            "label": "推荐",
             "sep": " > ",
             "sets": [
               {
@@ -130,8 +130,9 @@
         ],
         "panels": [
           {
-            "label": "主c",
-            "text": "攻击力：2200"
+            "label": null,
+            "k": "攻击力",
+            "v": "2200"
           },
           {
             "label": null,
@@ -205,8 +206,8 @@
       "v2": {
         "weapons": [
           {
-            "label": "辅助",
-            "tier": null,
+            "label": null,
+            "tier": 1,
             "sep": " > ",
             "items": [
               {
@@ -223,7 +224,7 @@
         "artifacts": [
           {
             "kind": "preferred",
-            "label": "辅助",
+            "label": "推荐",
             "sep": " > ",
             "sets": [
               {
@@ -309,8 +310,9 @@
             "v": "200%"
           },
           {
-            "label": "辅助",
-            "text": "元素充能效率：240%"
+            "label": null,
+            "k": "元素充能效率",
+            "v": "240%"
           }
         ],
         "constellations": [

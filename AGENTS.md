@@ -11,7 +11,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **源码**：`src/` → `tsc` → `lib/`（目录结构一致）。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
-- **常用命令**：`pnpm build`、`pnpm test`（59 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（64 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -79,8 +79,10 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 > ⑤ 要上半透明亚克力主题前，先按审核 §4.2 补 alpha 合成 + 实际渲染背景门禁与含立绘整页的图积/耗时实测。
 
 > **审核意见落地的三条展示规则**（2026-10-15，见 `D:\Downloads\QQ\Meta-污染消息与UI美化-审核意见.md` §4.3/4.4）：
-> ① 参考项必须保留**方向**（`输出向`/`辅助向`，跨方向同值合并成 `输出向/辅助向` 一条），稳定键 `panel:<方向>:<attr>`，
->    参考区两列叫「当前 / 参考目标」，百分比属性两侧都带 `%`；**不要按属性名一刀切去重**。
+> ① 参考项方向（2026-10-30 修订）：**独立预设（输出/辅助各一份）不再在武器/圣遗物/面板行重复方向标签**，
+>    预设自身 `name/role` 已表达方向；`循环/满拐/月绽放/宗室` 等构筑标签保留。单预设内若同一属性确有不同构筑目标，
+>    仍可用方向/构筑标签区分。参考区三列叫「项目 / 当前 / 参考目标」，稳定键 `panel:<方向或参考>:<attr>`，百分比属性两侧都带 `%`；
+>    **不要按属性名一刀切去重**。
 > ② 整值占位符（`___%`、`——`、空）在展示层 `presentation.ts` 归一（`normalizeMetaValue()` 进 `metaRows`、
 >    `normalizeItemText()` 处理 `名称：值`），**图片与文本回退同源**；只认"整值都是占位符"，不误判 `0`/`0%`/区间，
 >    且占位值不算攻略内容（`hasContent` 仍按"meta 有非空值"）。
@@ -167,6 +169,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
     miao 圣遗物评分及规则标题仍取当前激活规则（“西风纯辅”等辅助名称优先于属性比例）；旧三维评分仅保留无 preset 参数的 API 兼容，不用于新练度查询。
     武器目标优先读预设的 `v2.weapons`：`tier` 1/2/3 或“推荐/可选/过渡”等档位词直接分桶，方向/流派词（输出/辅助/循环…）统一进推荐桶；不得整段丢弃。参考项套装当前值只显示成型 4 件套（无 4 件套才显示 2+2）。
     05 参考项只展示未达标的面板/命座：综合（圣遗物）参考不再展示，已达标的隐藏；整块为空时不渲染并顺延后续章节编号。未达标当前值与条件标签用警示红。
+    独立预设不再在武器/圣遗物/面板行重复写“输出/辅助”方向标签（2026-10-30 用户定）：预设自身 `name/role` 已表达方向，`循环/满拐/月绽放/宗室` 等构筑标签保留。单预设也可设 `role: support`；辅助默认不计圣遗物，`weights.artifact > 0` 即纳入评分。
     **条件型目标（命座）三处同判**（2026-10-27 复审）：计分 / 证据行 / 建议统一走 `condSatisfied()`；命座不足的目标不参与计分、不生成未达标证据，只在参考区保留条件标注。**套装组合行**按 `sep` 解析：`/` 备选、`+` 组合（两个 `2` 前缀条目合成一条 pair，其余为备选）；**文本回退的「差在哪」**按维度状态写（below / unknown / 全部达标），不得只凭 rows 为空就宣称达标。
     **新预设路径**中输出面板参与评分，辅助圣遗物默认不参与总分；被关闭维度只作参考，不能生成未达标建议。旧三维 API 保留原配置读取，不得在新预设路径中将 `panel` 与 `artifact` 再合并。
    页面宽度与立绘行（2026-10-15 用户定：**照抄 miao，不许自己发挥**）：**立绘行已定稿 —— 保持 miao 同款，任何会话不得再改**（结构 / 尺寸 / 字号 / 层级 / 配色 / 图标 / 文字，一律不动；连"顺手优化"也不行，要改必须先问用户）。它现在的样子就是 miao `resources/character/profile-detail.{html,css}` 的逐条复制（只加 `gd-` 前缀、**数值一字不改**）：练度页整页 **600px**（= miao 面板 `body{width:600px}`），立绘行以下分区随 600px 自适应；`.basic`→`.gd-basic`、`.main-pic`(1400×500/`margin-left:-545px`)→`.gd-main-pic`、`.detail`(right/top 20px)→`.gd-detail`（内含 `.char-name`50px / `.char-lv` / `.char-talents` / `.char-attr`）、`.char-cons`(250px/bottom 5/left 20)→`.gd-char-cons`；面板 = `.char-attr li`（**300×32**、斑马行、五列 `.icon`26/`.title`75/`.weight`36/`.value`100/`.value2`70（白字基础值 + 绿字 `+加成`），图标精灵图 `character/imgs/icon.png` + `.i-*` 偏移；`.value`/`.value2` 的文本**直接调 miao 的 `Format.comma`/`Format.pct`**（照抄 `apps/profile/ProfileDetail.js:216-242`：`hp` 取整 + 千分位、其余 1 位小数，`phy > dmg` 时 `dmg` 行显示物伤），权重取 `getArtisMark(true).charWeight`），**只写属性名与数值**（不加目标、不加达标条）；天赋图标**照抄 `CharImg.getImgs()`**：`talentCons[key]>0` 用命座图标 `icons/cons-N.webp`，否则 `icons/talent-{key}.webp`；`level > original` 加 `talent-plus`（深底金字）、`original >= 10` 叠 `character/imgs/crown.png`（`top:0`）；图标圆环按元素（`<body>` 挂 `gd-elem-{elem}`，照抄 `common.css:208-266` 的 `common/bg/talent-{elem}.webp`），`.gd-talent-icon` **必须带 `z-index: 90`**，否则左下角命座行会被 `z-index:2` 的立绘盖住；命座行条目是 `.cons-item`（不参与 flex 均分）；命座徽章照抄 `.char-lv .cons` + `common/css/common.css` 的 `.cons`/`.cons-N`（0 `#666`/1 `#5cbac2`/2 `#339d61`/3 `#3e95b9`/4 `#3955b7`/5 `#531ba9cf`/6 `#ff5722`，白字）；立绘图**取图逻辑照抄 miao**（`src/model/ProfileImgRes.ts`；只读 miao 的配置与图库目录，**不写它的配置、也不复制图片**）：图库源 = `CharImg.getProfileImgSrc()`（`config/profile.js` → `config/system/profile_system.js` → `['profile']`，**第一个非空生效**，相对路径以 miao `resources` 为基准、绝对路径原样）→ 候选池 = `getProfileImgPool/Files()`（`super-character` 彩蛋层 / `normal-character` 普通层 **+ 平铺 `{源}/{角色}/`**，同层多源合并，只认 webp/png/jpg/jpeg）→ 选图 = `ProfileAvatar.getCostumeSplash()`（`#练度查询 胡桃 面板图N` 按 `{角色}_{序号}_…` 取第 N 张、彩蛋层优先，否则层内随机；彩蛋判据 = C6 / 圣遗物 ACE·MAX / 天赋原始等级 `101010`）→ 兜底 miao 自带 `imgs/splash0.webp`（彩蛋）·`splash.webp`；bot 内用 5 级相对前缀引用、跨盘走 `file://`。**不许**改成"复制到 out/"或另起一套源列表 → 结论（档位 + 三维条）→ **当前配装**（武器 → 套装 + miao 评分与有效词条数，不列单件与伤害；等级/命座与天赋都已在立绘行）→ 未达标项 → 提升建议 → **参考 DPS**（当前金数向下取 4 的倍数、步长 4、最多 3 档，每档取含该角色的最高伤害）→ 脚注**口径一行 + 版权，合计不超过 2 行**。套装只写 4 件套 / 2+2 / 2 件套，凑不出就写「散件」；圣遗物行右侧显示 `评分 246.4 ACE　词条数：42.4` —— 词条数只累加 miao `charWeight[key] > 0` 的有效词条 `eff`（**无效词条不计**；也不是数条目数，那是 20）。

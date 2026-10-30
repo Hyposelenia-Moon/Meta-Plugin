@@ -50,7 +50,7 @@ export function selectGuidePreset (guide, requested) {
   const out = { schema: 2, name: guide.name, game: guide.game || 'gi', source: copy(guide.source || {}),
     meta: copy(p.meta), v2: copy(p.v2), freeModules: copy(p.freeModules || []),
     topConstellations: copy(p.topConstellations || []), unparsed: copy(p.unparsed || {}),
-    presetId: p.id, presetName: p.name }
+    presetId: p.id, presetName: p.name, presetRole: p.role }
   if (p.highlight !== undefined) out.highlight = copy(p.highlight)
   out.tags = deriveTags(out)
   out.sections = deriveSections(out)

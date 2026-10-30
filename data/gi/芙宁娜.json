@@ -29,8 +29,8 @@
       "v2": {
         "weapons": [
           {
-            "label": "输出",
-            "tier": null,
+            "label": null,
+            "tier": 1,
             "sep": " > ",
             "items": [
               {
@@ -51,7 +51,7 @@
         "artifacts": [
           {
             "kind": "preferred",
-            "label": "输出",
+            "label": "推荐",
             "sep": " / ",
             "sets": [
               {
@@ -139,16 +139,19 @@
         ],
         "panels": [
           {
-            "label": "输出",
-            "text": "生命值：40000"
+            "label": null,
+            "k": "生命值",
+            "v": "40000"
           },
           {
-            "label": "输出",
-            "text": "暴击率：90%"
+            "label": null,
+            "k": "暴击率",
+            "v": "90%"
           },
           {
-            "label": "输出",
-            "text": "暴击伤害：220%"
+            "label": null,
+            "k": "暴击伤害",
+            "v": "220%"
           }
         ],
         "constellations": [
@@ -217,8 +220,8 @@
       "v2": {
         "weapons": [
           {
-            "label": "辅助",
-            "tier": null,
+            "label": null,
+            "tier": 1,
             "sep": " > ",
             "items": [
               {
@@ -231,7 +234,7 @@
         "artifacts": [
           {
             "kind": "preferred",
-            "label": "辅助",
+            "label": "推荐",
             "sep": " > ",
             "sets": [
               {
@@ -309,12 +312,14 @@
         ],
         "panels": [
           {
-            "label": "辅助",
-            "text": "暴击率：70%"
+            "label": null,
+            "k": "暴击率",
+            "v": "70%"
           },
           {
-            "label": "辅助",
-            "text": "元素充能效率：240%"
+            "label": null,
+            "k": "元素充能效率",
+            "v": "240%"
           }
         ],
         "constellations": [

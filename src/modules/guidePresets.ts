@@ -68,7 +68,7 @@ export function selectGuidePreset (guide: Guide, selected: GuidePreset | string)
   const { presets: _presets, meta: _meta, v2: _v2, freeModules: _free, topConstellations: _top, unparsed: _unparsed, ...common } = guide
   return { ...common, schema: 2, meta: structuredClone(preset.meta), v2: structuredClone(preset.v2),
     freeModules: structuredClone(preset.freeModules || []), topConstellations: structuredClone(preset.topConstellations || []),
-    unparsed: structuredClone(preset.unparsed || {}), presetId: preset.id, presetName: preset.name }
+    unparsed: structuredClone(preset.unparsed || {}), presetId: preset.id, presetName: preset.name, presetRole: preset.role }
 }
 
 export interface PresetMatch {
