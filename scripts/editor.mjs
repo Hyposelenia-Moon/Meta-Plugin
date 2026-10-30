@@ -667,7 +667,7 @@ export function buildCharacter (body, name, prev = {}) {
     const doc = normalizeGuide({ ...body, name, source: body.source ?? prev.source })
     doc.presets = doc.presets.map((p, i) => {
       const legacy = buildSingleCharacter(body.presets[i], name, old.find(x => x.id === p.id) || {})
-      return { ...p, meta: legacy.meta, v2: legacy.v2, ...(legacy.unparsed ? { unparsed: legacy.unparsed } : {}) }
+      return { ...p, ...(legacy.highlight !== undefined ? { highlight: legacy.highlight } : {}), meta: legacy.meta, v2: legacy.v2, ...(legacy.unparsed ? { unparsed: legacy.unparsed } : {}) }
     })
     return doc
   }

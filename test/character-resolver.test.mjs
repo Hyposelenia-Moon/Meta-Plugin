@@ -45,6 +45,10 @@ for (const text of ['#芙宁娜攻略 辅助', '#芙芙攻略 辅助', '#芙宁�
   assert.ok(parseSuffixQuery(text), text)
 }
 assert.deepEqual(parseSuffixQuery('#芙宁娜攻略 辅助 面板图3'), { character: '芙宁娜', setIndex: null, preset: '辅助', panelIndex: 3 })
+// 2026-10-30：复制预设的默认名称含空格，后缀规则必须允许名称内部空格
+assert.deepEqual(parseSuffixQuery('#芙宁娜攻略 辅助 副本'), { character: '芙宁娜', setIndex: null, preset: '辅助 副本', panelIndex: null })
+assert.deepEqual(parseSuffixQuery('#芙宁娜攻略 辅助 副本 面板图3'), { character: '芙宁娜', setIndex: null, preset: '辅助 副本', panelIndex: 3 })
+assert.ok(isCodexCommand('#芙宁娜攻略 辅助 副本'))
 assert.deepEqual(parseSuffixQuery('#胡桃攻略2 面板图13'), { character: '胡桃', setIndex: 2, panelIndex: 13 })
 for (const text of ['芙宁娜攻略 辅助', '#攻略 芙宁娜', '#攻略 武器 护摩之杖', '#设置默认攻略3', '#胡桃攻略 面板图0']) {
   assert.equal(isCodexCommand(text), false, text)
@@ -103,6 +107,14 @@ try {
   currentGuide = { ...guide, presets: [guide.presets[1]] }
   reply = await query('#芙宁娜攻略')
   assert.ok(reply.page, 'schema3单预设直接查看')
+  // 2026-10-30：编辑器复制出的「辅助 副本」必须能按显示名选中（不能用 id 才生效）
+  currentGuide = { ...guide, presets: [...guide.presets, { id: 'support-copy', name: '辅助 副本', role: 'support', meta: { 定位: '辅助副本' }, v2: {} }] }
+  reply = await query('#芙宁娜攻略 辅助 副本')
+  assert.ok(reply.page, '带空格的预设名应可直接指定')
+  assert.ok(reply.page.view.sections.length > 0)
+  assert.ok(reply.page.notes.includes('预设：辅助 副本'), reply.page.notes.join('|'))
+  reply = await query('#芙宁娜攻略 support-copy')
+  assert.ok(reply.page, 'id 指定仍可用')
 } finally {
   codexStore.listAll = original.listAll
   codexStore.getGuide = original.getGuide

@@ -106,10 +106,6 @@ export class MetaGrade extends plugin {
       )
       return true
     }
-    if (tokens.length > 2) {
-      await e.reply('[Meta] 用法：#练度查询 <角色> [预设] [面板图N]\n例：#练度查询 芙宁娜 辅助')
-      return true
-    }
     const character = await resolveCharacterMatch(tokens[0])
     if (!character.name) {
       await e.reply(`[Meta] 没有唯一匹配到角色「${tokens[0]}」` + (character.candidates.length ? `\n候选：${character.candidates.join('、')}` : ''))
@@ -123,6 +119,16 @@ export class MetaGrade extends plugin {
       await e.reply(`[Meta] ${charName} 的攻略待补充`)
       return true
     }
+    /*
+     * 预设名允许带空格（编辑器“复制”会生成「辅助 副本」）。
+     * 角色之后的剩余文本整体作为 requested；多词输入必须精确命中真实名称/id，
+     * 否则仍在读取面板前给用法，不能把「辅助 多余参数」当成合法预设。
+     */
+    const requested = tokens.slice(1).join(' ')
+    if (tokens.length > 2 && !listGuidePresets(sourceGuide).some(p => p.name === requested || p.id === requested)) {
+      await e.reply('[Meta] 用法：#练度查询 <角色> [预设] [面板图N]\n例：#练度查询 芙宁娜 辅助')
+      return true
+    }
     // 先读当前面板规则，再选择独立预设，禁止混用其它方向的目标。
     const profile = await readProfile(e, charName)
     if (!profile.ok) {
@@ -130,7 +136,7 @@ export class MetaGrade extends plugin {
       return true
     }
     const selection = matchGuidePreset(sourceGuide, {
-      requested: tokens[1], ruleTitle: profile.build.artiRuleTitle, charWeight: profile.build.charWeight
+      requested: requested || undefined, ruleTitle: profile.build.artiRuleTitle, charWeight: profile.build.charWeight
     })
     if (!selection.preset) {
       const names = listGuidePresets(sourceGuide).map(p => p.name)
@@ -388,7 +394,7 @@ export class MetaGrade extends plugin {
     const weightText = Object.entries(weights).filter(([, value]) => value > 0)
       .map(([key, value]) => `${weightNames[key as keyof typeof weightNames]} ${weightSum ? Math.round(value / weightSum * 100) : 0}%`).join(' · ')
     // 02「匹配」优先显示实际评分规则名（如“西风纯辅”），手动指定才写“手动指定”。
-    const matchReason = tokens[1] ? '手动指定' : (profile.build.artiRuleTitle || '未识别规则')
+    const matchReason = requested ? '手动指定' : (profile.build.artiRuleTitle || '未识别规则')
     const ruleNote = `攻略预设：${preset.name}（${matchReason}）\n评分规则：${profile.build.artiRuleTitle || '未提供'}\n默认分配：${weightText}；攻略缺项按可评维度归一`
 
     const data = {

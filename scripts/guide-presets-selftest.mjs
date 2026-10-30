@@ -59,12 +59,25 @@ const migrated = migrateGuide(fixture).guide
 check(() => assert.equal(migrated.presets.length, 2))
 check(() => assert.equal(migrated.presets.find(p => p.role === 'support').v2.weapons[0].items[0].name, '西风剑'))
 check(() => assert.equal(migrated.presets.find(p => p.role === 'dps').v2.artifacts.filter(r => r.kind === 'main')[0].stats.时之沙[0], '生命值'))
+// 2026-10-30 复审：正常保存与复制新 id 都必须保留预设 highlight（前端序列化 + 服务端合并）
+const highlighted = normalizeGuide({ ...old, highlight: '测试高亮：约 8%' })
+const highlightedSaved = buildCharacter(highlighted, old.name, highlighted)
+check(() => assert.equal(highlightedSaved.presets[0].highlight, '测试高亮：约 8%'))
+const copiedSaved = buildCharacter({ ...highlightedSaved, presets: [{ ...highlightedSaved.presets[0], id: 'copy', name: '副本' }] }, old.name, highlightedSaved)
+check(() => assert.equal(copiedSaved.presets[0].highlight, '测试高亮：约 8%'))
 // Browser state tests use a no-op DOM; exercise actual draft switches and serialization.
 const noop = () => {}
 const stub = () => new Proxy(noop, { get: (_, k) => k === 'length' ? 0 : ['value','textContent','innerHTML'].includes(k) ? '' : k === 'querySelectorAll' ? () => [] : k === 'classList' ? { add: noop, remove: noop, toggle: noop, contains: () => false } : stub(), set: () => true, apply: () => stub() })
 const ctx = { console, document: stub(), navigator: stub(), location: { search: '', hash: '' }, localStorage: stub(), fetch: async () => ({ ok: true, json: async () => ({}) }), setTimeout: noop, clearTimeout: noop, setInterval: noop, clearInterval: noop, requestAnimationFrame: noop, addEventListener: noop, prompt: () => '改名', alert: noop, confirm: () => false, URL, Blob, Event, JSON, Math, Date, String, Number, Array, Object, Boolean, RegExp, Error, Promise, encodeURIComponent, decodeURIComponent, parseInt, parseFloat, isNaN }
 ctx.window = ctx; vm.createContext(ctx)
 vm.runInContext(fs.readFileSync('resources/editor/app.js', 'utf8'), ctx)
+ctx.state.current = highlightedSaved.name
+ctx.state.model = ctx.normalizeData(highlightedSaved)
+const highlightedPayload = JSON.parse(JSON.stringify(ctx.buildBody()))
+check(() => assert.equal(highlightedPayload.presets[0].highlight, '测试高亮：约 8%'))
+ctx.handleAction('preset-copy', '', -1, null)
+const highlightedCopyPayload = JSON.parse(JSON.stringify(ctx.buildBody()))
+check(() => assert.equal(highlightedCopyPayload.presets[1].highlight, '测试高亮：约 8%'))
 ctx.state.current = saved.name
 ctx.state.model = ctx.normalizeData(saved)
 ctx.state.model.meta.定位 = '草稿输出'

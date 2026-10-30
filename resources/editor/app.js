@@ -2731,7 +2731,7 @@ function buildBody () {
       var body = buildSingleBody()
       delete body.name
       delete body.game
-      return Object.assign({}, model.presetConfig, body, { freeModules: model.freeModules || [] })
+      return Object.assign({}, model.presetConfig, body, { freeModules: model.freeModules || [] }, hasText(model._raw.highlight) ? { highlight: model._raw.highlight } : {})
     } finally { state.model = keep }
   })
   return { schema: 3, name: state.current, game: m.game, source: m._raw.source, presets: presets }

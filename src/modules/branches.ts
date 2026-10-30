@@ -51,7 +51,8 @@ export function parseSuffixQuery (msg: string): SuffixQuery | null {
   if (!name) return null
   const setIndex = hit[3] ? Number(hit[3]) : null
   const panelIndex = hit[5] ? Number(hit[5]) : null
-  return { character: name, setIndex, panelIndex, ...(hit[4] ? { preset: hit[4] } : {}) }
+  const preset = hit[4] ? hit[4].trim() : ''
+  return { character: name, setIndex, panelIndex, ...(preset ? { preset } : {}) }
 }
 
 export type ArgKind = 'character' | 'reverseWeapon' | 'reverseTeam' | 'list' | 'status' | 'unknown'

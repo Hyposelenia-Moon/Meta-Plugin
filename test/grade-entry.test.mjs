@@ -62,6 +62,14 @@ try {
   const unknown = await query('#练度查询 芙芙 不存在')
   assert.equal(rendered, null)
   assert.match(unknown, /可用预设/)
+  // 2026-10-30：编辑器复制出的「辅助 副本」带空格，练度入口也要按完整名称选择
+  data = { ...guide, presets: [...guide.presets, { ...guide.presets[1], id: 'support-copy', name: '辅助 副本' }] }
+  await query('#练度查询 芙芙 辅助 副本')
+  assert.equal(readCount, 1)
+  assert.equal(rendered.presetName, '辅助 副本')
+  assert.equal(rendered.presetMatchReason, '手动指定')
+  await query('#练度查询 芙芙 辅助 副本 面板图3')
+  assert.equal(rendered.presetName, '辅助 副本')
   ruleTitle = '通用'; data = { ...guide, presets: [guide.presets[0], { ...guide.presets[0], id: 'alt', name: '另一输出' }] }
   const ambiguous = await query('#练度查询 芙芙')
   assert.equal(rendered, null)
