@@ -249,19 +249,14 @@
       content: ''; position: absolute; top: 0; left: 0; width: 1400px; height: 500px; margin-left: -545px; z-index: 1;
       background-image: var(--gd-art); background-size: contain; background-repeat: no-repeat; background-position: center;
       filter: blur(12px); opacity: .5; pointer-events: none;
-    }</style>
+    }
+    /* 页脚标题模块（2026-10-30 用户定：原顶栏标题并入页脚，单行/两行内说完） */
+    .mx-footer__title { font-size: 18px; font-weight: 700; line-height: 1.5; color: var(--mx-accent); }
+    .mx-footer__preset { margin-left: 6px; padding: 0 6px; border: 1px solid var(--mx-rule); border-radius: 4px; font-size: 13px; font-weight: 400; color: var(--mx-secondary); }</style>
 </head>
 <body class="gd-elem-{{elemClass}}" style="zoom:{{renderScale}}">
   <div class="page page--elem">
     <div class="page-inner">
-      <!-- ① 结论 -->
-      <div class="card head-card">
-        <div class="header">
-          <div class="game-name">Meta-Plugin · 提升指南</div>
-          <div class="title">{{title}}</div>
-          {{if subtitle}}<div class="subtitle">{{subtitle}}</div>{{/if}}
-        </div>
-      </div>
       <!-- ① 立绘行：结构逐条照抄 miao（`.basic` / `.main-pic` / `.detail` / `.char-cons`） -->
       <div class="gd-basic" style="--gd-art:url({{heroImg}})">
         <!-- 面板图：图库（`面板图N` / 层内随机）→ miao 自带立绘；顺序与 miao `getCostumeSplash()` 一致 -->
@@ -480,7 +475,8 @@
         {{/if}}
 
         <footer class="mx-footer">
-          <p class="mx-footer__method">口径：按当前预设目标与实际权重评分；缺目标不计分，关键数据缺失待评，命座仅作提示。</p>
+          <p class="mx-footer__title">练度提升指南 · {{charName}}{{if presetName}}<span class="mx-footer__preset">{{presetName}}预设</span>{{/if}}</p>
+          <p class="mx-footer__method">按当前预设目标与实际权重评分；缺项不计分，关键数据缺失待评。</p>
           <p class="mx-copyright">{{copyright}}</p>
         </footer>
       </main>

@@ -69,6 +69,14 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   ok('grade 模板：有方向时才挂 .mx--ref-dir', tplGrade.includes('mx.refHasDir') && tplGrade.includes('mx--ref-dir'))
 }
 
+// 2026-10-30 用户定：练度页顶栏标题并入页脚，页脚标题/口径/版权各自不超过两行
+{
+  const tplGrade = readText(path.join(tplDir, 'grade.html'))
+  ok('grade 模板：顶栏标题卡已移除', !tplGrade.includes('head-card') && !tplGrade.includes('class="game-name"'))
+  ok('grade 模板：页脚包含标题模块与预设标签', tplGrade.includes('mx-footer__title') && tplGrade.includes('mx-footer__preset') && tplGrade.includes('{{presetName}}'))
+  ok('grade 模板：页脚口径精简为单句', tplGrade.includes('按当前预设目标与实际权重评分；缺项不计分，关键数据缺失待评。'))
+}
+
 // ---------- 2. CSS 引用的资源都能解析 ----------
 {
   const refs = new Set()
