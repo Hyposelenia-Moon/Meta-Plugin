@@ -25,6 +25,8 @@ const browser = await puppeteer.launch({ executablePath: edge, headless: true, p
 try {
   const page = await browser.newPage()
   page.on('pageerror', e => errors.push(String(e)))
+  // 复制预设现在会先弹命名框；接受默认建议名（如「辅助 2」）
+  page.on('dialog', async dialog => { await dialog.accept(dialog.defaultValue() || '浏览器副本') })
   await page.setViewport({ width: 1600, height: 1000 })
   await page.setRequestInterception(true)
   page.on('request', async request => {
@@ -67,6 +69,7 @@ try {
   assert.equal(disk.presets.find(p => p.id === firstId).meta.定位, '浏览器输出草稿')
   assert.equal(disk.presets[1].meta.定位, '浏览器辅助草稿')
   await page.click('[data-act="preset-copy"]')
+  assert.equal(await page.evaluate(() => state.model.presetConfig.name), '输出 2')
   await page.evaluate(() => { state.model.meta.定位 = '副本独立'; markDirty(true) })
   await page.select('[data-preset-switch]', '0')
   assert.equal(await page.evaluate(() => state.model.meta.定位), '浏览器输出草稿')

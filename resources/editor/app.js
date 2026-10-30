@@ -1928,7 +1928,7 @@ function renderPresets () {
   var list = m._presets.map(function (p, i) { return '<option value="' + i + '"' + (i === m._presetAt ? ' selected' : '') + '>' + esc(i === m._presetAt ? c.name : p.presetConfig.name) + '</option>' }).join('')
   return '<section class="card"><h2>攻略预设</h2><div class="row"><select aria-label="切换攻略预设" data-preset-switch>' + list + '</select> ' +
     ['add', 'copy', 'rename', 'delete'].map(function (act, i) { return '<button type="button" class="btn mini" data-act="preset-' + act + '"' + (act === 'delete' && m._presets.length === 1 ? ' disabled' : '') + '>' + ['新增', '复制', '重命名', '删除'][i] + '</button>' }).join(' ') + '</div>' +
-    '<p class="muted">切换会保留草稿；保存写入全部预设。最后一份不能删除。权重为相对值，0 表示不计分。单预设也可设为辅助；辅助默认不计圣遗物，把圣遗物权重改为大于 0 即可纳入评分。</p>' +
+    '<p class="muted">切换会保留草稿；保存写入全部预设。最后一份不能删除。权重为相对值，0 表示不计分。复制会先让你命名，建议用“辅助-西风”这类能区分用途的名称。单预设也可设为辅助；辅助默认不计圣遗物，把圣遗物权重改为大于 0 即可纳入评分。</p>' +
     '<label>评分模板 <select data-preset-role><option value="dps"' + (c.role === 'dps' ? ' selected' : '') + '>输出</option><option value="support"' + (c.role === 'support' ? ' selected' : '') + '>辅助</option></select></label> ' +
     ['artifact', 'panel', 'weapon', 'talent'].map(function (k, i) { return '<label>' + ['圣遗物', '面板', '武器', '天赋'][i] + ' <input type="number" min="0" step="any" style="width:70px" data-preset-weight="' + k + '" value="' + esc(c.weights[k]) + '"></label> ' }).join('') +
     '<p><label>匹配规则名称（每行一个）<textarea data-preset-match="names">' + esc(asArray(c.match.names).join('\n')) + '</textarea></label></p><p><label>匹配正则（每行一个）<textarea data-preset-match="patterns">' + esc(asArray(c.match.patterns).join('\n')) + '</textarea></label></p></section>'
@@ -3297,6 +3297,15 @@ function statKindOfPath (path) {
   return /\.stats$/.test(String(path)) ? '副词条' : ''
 }
 
+function suggestedPresetName (base, list) {
+  var used = {}
+  ;(list || []).forEach(function (p) { used[p.presetConfig.name] = true })
+  var stem = String(base || '预设').trim() || '预设'
+  var i = 2
+  while (used[stem + ' ' + i]) i++
+  return stem + ' ' + i
+}
+
 function handleAction (act, path, i, el) {
   if (act.indexOf('preset-') === 0) {
     var m = state.model
@@ -3307,13 +3316,29 @@ function handleAction (act, path, i, el) {
       list.splice(m._presetAt, 1)
       state.model = clone(list[0]); state.model._presets = list; state.model._presetAt = 0
     } else if (act === 'preset-rename') {
-      var name = prompt('预设名称', m.presetConfig.name)
-      if (!name || !name.trim()) return false
-      m.presetConfig.name = name.trim()
+      var renamed = prompt('预设名称', m.presetConfig.name)
+      if (!renamed || !renamed.trim()) return false
+      var nextName = renamed.trim()
+      if (list.some(function (p) { return p !== m && p.presetConfig.name === nextName })) {
+        alert('预设名称已存在：' + nextName)
+        return false
+      }
+      m.presetConfig.name = nextName
     } else {
+      var copyName = ''
+      if (act === 'preset-copy') {
+        var input = prompt('复制为新预设名称', suggestedPresetName(m.presetConfig.name, list))
+        if (input == null) return false
+        copyName = String(input).trim()
+        if (!copyName) return false
+        if (list.some(function (p) { return p.presetConfig.name === copyName })) {
+          alert('预设名称已存在：' + copyName)
+          return false
+        }
+      }
       var fresh = act === 'preset-copy' ? clone(Object.assign({}, m, { _presets: undefined })) : normalizeData({ name: m.name, game: m.game, v2: emptyV2() })
       delete fresh._presets; delete fresh._presetAt
-      fresh.presetConfig = { id: 'preset-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7), name: act === 'preset-copy' ? m.presetConfig.name + ' 副本' : '新预设', role: m.presetConfig.role, match: {}, weights: clone(m.presetConfig.weights) }
+      fresh.presetConfig = { id: 'preset-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7), name: act === 'preset-copy' ? copyName : '新预设', role: m.presetConfig.role, match: {}, weights: clone(m.presetConfig.weights) }
       list.push(fresh)
       switchPreset(list.length - 1)
     }
