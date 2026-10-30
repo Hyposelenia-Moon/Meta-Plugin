@@ -69,6 +69,31 @@ function pickNum (m: RegExpMatchArray, ...groups: number[]): number {
   return NaN
 }
 
+/**
+ * 位置简写里“角色名 + 金数”贴在一起：`薇斯纳4金` / `胡桃8-12金` / `胡桃金12`
+ *
+ * 只在前缀确实能解析成正式角色名时才拆；否则原样留给后面的裸词/标签逻辑，
+ * 避免把 `总榜4金` 之类的普通词误当角色。
+ */
+function splitAttachedCost (token: string): { char: string, costMin?: number, costMax?: number } | null {
+  const range = token.match(/^(.+?)(\d+)\s*[-~到]\s*(\d+)\s*金$/)
+  if (range) {
+    const char = range[1].trim()
+    if (char && findCharacter(char)) return { char, costMin: Number(range[2]), costMax: Number(range[3]) }
+  }
+  const max = token.match(/^(.+?)(\d+)\s*金$/)
+  if (max) {
+    const char = max[1].trim()
+    if (char && findCharacter(char)) return { char, costMax: Number(max[2]) }
+  }
+  const maxWithPrefix = token.match(/^(.+?)(?:金|成本)(\d+)$/)
+  if (maxWithPrefix) {
+    const char = maxWithPrefix[1].trim()
+    if (char && findCharacter(char)) return { char, costMax: Number(maxWithPrefix[2]) }
+  }
+  return null
+}
+
 /** 解析通用 token（页码 / 金数 / 绿玩 / 主C），命中返回结果对象，未命中返回 null */
 export function parseCommon (token: string): CommonArgs | null {
   let m: RegExpMatchArray | null
@@ -133,6 +158,15 @@ export function parseRankArgs (text: unknown): RankArgs {
     const common = parseCommon(token)
     if (common) {
       Object.assign(args, common)
+      continue
+    }
+
+    // `薇斯纳4金`：角色名和金数贴在一起时也要拆开（2026-10-30 现场）
+    const attached = splitAttachedCost(token)
+    if (attached && !args.char) {
+      args.char = attached.char
+      if (attached.costMin !== undefined) args.costMin = attached.costMin
+      if (attached.costMax !== undefined) args.costMax = attached.costMax
       continue
     }
 

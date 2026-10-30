@@ -34,6 +34,14 @@ check('“金≥8” → costMin', a.char === '胡桃' && a.costMin === 8)
 a = parseRankArgs('胡桃 8-12金')
 check('“8-12金” → 区间', a.char === '胡桃' && a.costMin === 8 && a.costMax === 12)
 
+// 2026-10-30 现场：`#dps 薇斯纳4金 视频1` 角色与金数贴连，不能退化成无筛选总榜
+a = parseRankArgs('薇斯纳4金')
+check('角色名+金数贴连（薇斯纳4金）→ 角色与上限', a.char === '薇斯纳' && a.costMax === 4, JSON.stringify(a))
+a = parseRankArgs('胡桃8-12金')
+check('角色名+金数区间贴连（胡桃8-12金）', a.char === '胡桃' && a.costMin === 8 && a.costMax === 12, JSON.stringify(a))
+a = parseRankArgs('胡桃金12')
+check('角色名+金前缀贴连（胡桃金12）', a.char === '胡桃' && a.costMax === 12, JSON.stringify(a))
+
 a = parseRankArgs('胡桃 主C 绿玩 -p2')
 check('主C / 绿玩 / 翻页 组合', a.char === '胡桃' && a.mainOnly && a.cleanOnly && a.page === 2)
 

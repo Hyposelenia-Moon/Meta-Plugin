@@ -10,6 +10,7 @@ requireDeps('yaml')
 
 const { normalizeTeams } = await import(mod('model/TeamStore.js'))
 const { filterTeams, sortTeams, buildRows } = await import(mod('modules/rankQuery.js'))
+const { parseRankArgs } = await import(mod('modules/queryArgs.js'))
 const { findCharacter } = await import(mod('model/CharacterIndex.js'))
 
 const { check, finish } = checker()
@@ -89,5 +90,12 @@ check('绿玩/满级走独立字段', (() => {
   return row.clean === true && row.lvl === true
 })())
 check('视频链接透传', rows[0].video.includes('bilibili.com'))
+
+// 2026-10-30 现场：`#dps 薇斯纳4金 视频1` 的角色与金数贴连，筛选不能退化成总榜
+{
+  const q = parseRankArgs('玛薇卡8金')
+  const hit = filterTeams(teams, { character: findCharacter(q.char), costMax: q.costMax })
+  check('贴连参数仍按角色+金数筛选', q.char === '玛薇卡' && q.costMax === 8 && hit.length === 1 && hit[0].id === 't-006', JSON.stringify({ q, ids: hit.map(t => t.id) }))
+}
 
 finish()
