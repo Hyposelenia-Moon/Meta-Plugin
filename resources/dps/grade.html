@@ -300,7 +300,7 @@
         数据区（2026-10-15 UI 重构「档案批注」）：`main.mx-content` 内的章节序号 + 证据号 + 四态章 + 来源条。
         ⚠ 上面 `.gd-basic` 整棵子树（立绘行）**一字未动**，共享样式也只作用于 `.mx-content` 内。
       -->
-      <main class="mx-content mx-content--glass">
+      <main class="mx-content mx-content--glass gd-grade">
         <!--
           数据区（2026-10-15 定）：卡片模板**照抄 miao 图鉴页**（元素底 cover + `.cont` 卡 + 金标题条），
           内部排版/文字颜色/字体用我们自己的。拆成多张**短卡**是必须的：miao 那张 `card-bg.png` 是
@@ -310,8 +310,9 @@
         <section class="mx-section mx-section--first">
           <header class="mx-section__head">
             <span class="mx-section__index">01</span>
-            <h2 class="mx-section__title">结论</h2>
+            <h2 class="mx-section__title">{{mx.dimensionsTitle}}</h2>
           </header>
+          <div class="mx-section__body">
           <div class="mx-verdict{{if !assessable}} mx-verdict--unavailable{{/if}}">
             {{if assessable}}
             <div class="mx-verdict__score">{{total}}<small>/ 100</small></div>
@@ -320,13 +321,6 @@
             <div class="mx-verdict__rank">待评</div>
             {{/if}}
           </div>
-        </section>
-
-        <section class="mx-section">
-          <header class="mx-section__head">
-            <span class="mx-section__index">02</span>
-            <h2 class="mx-section__title">{{mx.dimensionsTitle}}</h2>
-          </header>
           {{if presetName}}
           <div class="mx-preset-summary"><strong>预设 · {{presetName}}</strong>{{if presetMatchReason}}<span>匹配：{{presetMatchReason}}</span>{{/if}}{{if presetWeightText}}<span>实际权重：{{presetWeightText}}</span>{{/if}}</div>
           {{/if}}
@@ -347,11 +341,12 @@
             </li>
             {{/each}}
           </ul>
+          </div>
         </section>
 
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">03</span>
+            <span class="mx-section__index">02</span>
             <h2 class="mx-section__title">当前配装</h2>
           </header>
           <div class="mx-equipment">
@@ -367,75 +362,38 @@
 
         <section class="mx-section">
           <header class="mx-section__head">
-            <span class="mx-section__index">04</span>
-            <h2 class="mx-section__title">未达标项</h2>
-          </header>
-          {{if mx.evidence.length > 0}}
-          {{each mx.evidence r}}
-          {{if r.state !== 'met'}}
-          <div class="mx-compare">
-            <span class="mx-evidence-id">{{r.eid}}</span>
-            <div class="mx-compare__body">
-              <div class="mx-compare__head">
-                <span class="mx-compare__group">{{r.group}}</span>
-                <span class="mx-compare__name">{{r.name}}</span>
-                <span class="mx-compare__state mx-state mx-state--{{r.state}}"><span class="mx-state__symbol">{{r.symbol}}</span>{{r.stateLabel}}</span>
-              </div>
-              <div class="mx-compare__line">
-                <span class="mx-compare__actual">{{r.actual}}</span>
-                <span class="mx-compare__arrow">→</span>
-                <span class="mx-compare__target">{{r.target}}</span>
-                <span class="mx-compare__delta">{{r.deltaText}}</span>
-              </div>
-            </div>
-          </div>
-          {{/if}}
-          {{/each}}
-          {{if mx.metText}}<div class="mx-empty">{{mx.metText}}</div>{{/if}}
-          {{else}}
-          <div class="mx-empty">{{if mx.belowDimsText}}{{mx.belowDimsText}}{{else if assessable}}攻略目标项均已满足{{else}}没有可比对的计分项：{{mx.score.unknownKeys.length ? '关键数据未取到' : '攻略缺该项'}}{{/if}}</div>
-          {{/if}}
-        </section>
-
-        {{if mx.references.length > 0}}
-        <section class="mx-section{{if mx.refHasDir}} mx--ref-dir{{/if}}">
-          <header class="mx-section__head">
-            <span class="mx-section__index">{{mx.sectionIndex.references}}</span>
-            <h2 class="mx-section__title">参考项</h2>
-            <span class="mx-section__hint">不计分</span>
-          </header>
-          <div class="mx-reference-table">
-            <div class="mx-reference-row mx-reference-row--head"><span>项目</span><span class="mx-reference-row__value">当前</span><span class="mx-reference-row__extra">参考目标</span></div>
-            {{each mx.referenceGroups g}}
-            {{if g.label}}<div class="mx-reference-category">{{g.label}}</div>{{/if}}
-            {{each g.rows r}}
-            <div class="mx-reference-row{{if !g.label}} mx-reference-row--bare{{/if}}{{if r.tone === 'warn'}} mx-reference-row--warn{{/if}}">
-              <span class="mx-reference-row__name"><span class="mx-reference-row__attr">{{r.name}}</span>{{if r.tags.length}}<span class="mx-reference-tags">{{each r.tags tag}}<span class="mx-reference-tag">{{tag}}</span>{{/each}}</span>{{/if}}</span>
-              <span class="mx-reference-row__value">{{r.actual}}</span>
-              <span class="mx-reference-row__extra">{{r.target}}</span>
-            </div>
-            {{/each}}
-            {{/each}}
-            <p class="mx-reference-note">只列尚未达标的参考项；条件见项目标签，不计入评分。</p>
-          </div>
-        </section>
-        {{/if}}
-
-        <section class="mx-section">
-          <header class="mx-section__head">
             <span class="mx-section__index">{{mx.sectionIndex.suggestions}}</span>
-            <h2 class="mx-section__title">提升建议</h2>
+            <h2 class="mx-section__title">未达标与提升建议</h2>
             <span class="mx-section__hint">按处理顺序</span>
           </header>
-          <ol class="mx-recommendations">
-            {{each mx.suggestions s}}
-            <li class="mx-recommendation">
-              <span class="mx-priority">{{s.priority}}</span>
-              <p>{{s.text}}</p>
-              {{if s.evidenceEids.length > 0}}<small class="mx-evidence-ref">依据 {{s.evidenceEids.join('、')}}</small>{{else}}<small class="mx-evidence-ref">通用建议</small>{{/if}}
+          <div class="mx-section__body">
+          {{if mx.improvements.length > 0}}
+          <ol class="mx-improvements">
+            {{each mx.improvements it}}
+            <li class="mx-improvement">
+              <span class="mx-priority">{{it.priority}}</span>
+              <div class="mx-improvement__main">
+                <p class="mx-improvement__text">{{it.text}}</p>
+                {{if it.evidence.length > 0}}
+                <div class="mx-improvement__evidence">
+                  {{each it.evidence e}}<span>{{e.group}} {{e.name}}：{{e.actual}} → {{e.target}}{{if e.deltaText}}（{{e.deltaText}}）{{/if}}</span>{{/each}}
+                </div>
+                {{/if}}
+              </div>
             </li>
             {{/each}}
           </ol>
+          {{else}}
+          <div class="mx-empty">{{if mx.metText}}{{mx.metText}}{{else if mx.belowDimsText}}{{mx.belowDimsText}}{{else if assessable}}攻略目标项均已满足{{else}}没有可比对的计分项：{{mx.score.unknownKeys.length ? '关键数据未取到' : '攻略缺该项'}}{{/if}}</div>
+          {{/if}}
+          {{if mx.pending.length > 0}}
+          <div class="mx-pending"><strong>待补数据：</strong>{{each mx.pending p}}<span>{{p.group}} {{p.name}}{{if p.reasonText}}（{{p.reasonText}}）{{/if}}</span>{{/each}}</div>
+          {{/if}}
+          {{if mx.consNote}}
+          <div class="mx-cons-note">关键命座：{{mx.consNote.actual}} → {{mx.consNote.target}}（仅提示，不计分）</div>
+          {{/if}}
+          {{if mx.improvements.length > 0 && mx.metText}}<div class="mx-empty">{{mx.metText}}</div>{{/if}}
+          </div>
         </section>
 
         {{if refDps && refDps.length > 0}}

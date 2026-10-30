@@ -164,8 +164,8 @@ const fullBuild = {
     if (isComponent && !selector.includes('.mx-content')) unscoped.push(selector.replace(/\s+/g, ' ').slice(0, 60))
   }
   push('组件规则全部限定在 .mx-content 内（令牌块除外）', unscoped, [])
-  ok('数据区章节消费 mx 投影（dims/evidence/suggestions/references）',
-    ['mx.dims', 'mx.evidence', 'mx.suggestions', 'mx.references'].every(k => tpl.includes(`{{each ${k}`) || tpl.includes(k)))
+  ok('数据区章节消费 mx 投影（dims/improvements/pending/consNote）',
+    ['mx.dims', 'mx.improvements', 'mx.pending', 'mx.consNote'].every(k => tpl.includes(k)))
   ok('meta-ui.css 已随模板引用', tpl.includes('{{_res_path}}/common/meta-ui.css') && fs.existsSync(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css')))
 }
 
@@ -220,8 +220,9 @@ const fullBuild = {
   // 应与具体数据**同行**显示 —— 不再独占一行、也不再用斜体块「.codex-tier-line{display:block}」。
   ok('攻略页长标签与数据同行（2026-10-16 新口径）',
     /\.codex-tier-line \{ display: inline;/.test(tpl) && tpl.includes('codex-row--long') && tpl.includes('{{each row.labelLines l}}'))
-  ok('参考区有"当前 / 参考目标"列语义',
-    readText(path.join(pluginRoot, 'resources', 'dps', 'grade.html')).includes('参考目标'))
+  const gradeTpl = readText(path.join(pluginRoot, 'resources', 'dps', 'grade.html'))
+  ok('04/06 合并后用「建议 + 当前→目标证据」语义',
+    gradeTpl.includes('mx-improvements') && gradeTpl.includes('mx-improvement__evidence') && !gradeTpl.includes('参考目标'))
 }
 
 // ---------- 8. 浅色底对比度门禁（普通文字 ≥ 4.5:1，图形 ≥ 3:1） ----------
@@ -449,8 +450,8 @@ const fullBuild = {
 
   ok('纹理层序与页面实现一致（无同色实底、无自加遮罩）', !/background-color: #2b343d/.test(css) && /cont\/card-bg\.png/.test(css))
   const tplNow = readText(path.join(pluginRoot, 'resources', 'dps', 'grade.html'))
-  ok('数据区拆成多张卡（页面 ≥6 个章节，结构完整性；不声称可解决纹理对比度）',
-    (tplNow.match(/<section class="mx-section/g) || []).length >= 6,
+  ok('数据区拆成多张短卡（首页 ≥3 个章节，结构完整性；不声称可解决纹理对比度）',
+    (tplNow.match(/<section class="mx-section/g) || []).length >= 3,
     String((tplNow.match(/<section class="mx-section/g) || []).length))
   // 硬约束（2026-10-16 用户定）：正文左右边界必须与卡头 `10px 20px` 同一条竖线——
   // 内容块用"负外边距外扩 + 自身 20px padding"实现（黑底仍铺满卡片、文字仍内缩 20px），

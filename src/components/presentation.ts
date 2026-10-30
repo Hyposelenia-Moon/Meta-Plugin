@@ -132,6 +132,27 @@ export interface ReferenceGroupView {
   rows: Array<{ id: string, name: string, actual: string, target: string, tags: string[], tone: 'warn' | 'info' }>
 }
 
+/** 合并后的「未达标与提升建议」：一条建议 + 它绑定的证据（当前→目标） */
+export interface ImprovementView {
+  priority: number
+  text: string
+  evidence: Array<{ group: string, name: string, actual: string, target: string, deltaText: string }>
+}
+
+/** 没有绑到建议、但需要补数据的证据行 */
+export interface PendingEvidenceView {
+  group: string
+  name: string
+  reasonText: string
+}
+
+/** 未达标关键命座：05 移除后并入新的 03，只提示、不计分 */
+export interface ConsNoteView {
+  name: string
+  actual: string
+  target: string
+}
+
 /** 从参考文本里取第一个数字（`C6` → 6、`2 / 6` → 2、`180%` → 180） */
 function firstNumber (text: string): number | null {
   const m = String(text || '').match(/-?\d+(?:\.\d+)?/)
@@ -178,7 +199,13 @@ export interface PresentationMeta {
   /** `info` 参考行（面板 / 命座）—— 即使有差距也不计分 */
   references: EvidenceRow[]
   /** 参考项为空时后续章节顺延编号，避免页面出现 04 → 06 的跳号 */
-  sectionIndex: { references: string, suggestions: string, refDps: string }
+  sectionIndex: { suggestions: string, refDps: string }
+  /** 合并后的 03：建议在前，当前→目标证据作小字；默认不展示 E 编号 */
+  improvements: ImprovementView[]
+  /** 未绑定建议、仍缺数据的证据 */
+  pending: PendingEvidenceView[]
+  /** 未达标关键命座（原 05 唯一保留信息） */
+  consNote: ConsNoteView | null
   /** 参考项里是否有方向（辅助/输出…）；无方向时不渲染方向列 */
   refHasDir: boolean
   /** 兼容字段：参考项是否只有「命座」（2026-10-29 起不再据此隐藏整块） */
@@ -351,6 +378,40 @@ export function buildPresentation (input: {
     (input.result.suggestionRows || []).map(s => ({ id: s.id, text: s.text, evidenceIds: s.evidenceIds, priority: s.priority, priorityBasis: s.priorityBasis })),
     evidence
   )
+  /*
+   * 2026-10-30 页面精简：04 未达标项与 06 提升建议合并为「建议 + 当前→目标证据」。
+   * 以建议为主序（优先级不变），证据只作小字，不再展示 E01 这类页内编号。
+   */
+  const rowById = new Map((input.result.rows || []).map(row => [String(row.id || ''), row]))
+  const rawSuggestions = (input.result.suggestionRows || []).length
+    ? input.result.suggestionRows
+    : (input.result.suggestions || []).map((text, i) => ({ id: `suggestion-${i + 1}`, text, evidenceIds: [] as string[], priority: i + 1, priorityBasis: 'cost-step' }))
+  const referenced = new Set<string>()
+  const improvements: ImprovementView[] = rawSuggestions
+    .filter(s => !(['all-met', 'unscored'].includes(String(s.id)) && !(s.evidenceIds || []).length))
+    .map(s => {
+    const evidenceItems = (s.evidenceIds || []).map(id => {
+      referenced.add(String(id))
+      const row = rowById.get(String(id))
+      if (!row) return null
+      const delta = deltaTextOf(row)
+      return {
+        group: String(row.group || ''),
+        name: String(row.name || ''),
+        actual: String(row.actual ?? ''),
+        target: String(row.target ?? ''),
+        deltaText: /^差 /.test(delta) ? delta : ''
+      }
+    }).filter((x): x is NonNullable<typeof x> => !!x)
+    return { priority: Number(s.priority) || 0, text: String(s.text || ''), evidence: evidenceItems }
+  })
+  const pending: PendingEvidenceView[] = evidence
+    .filter(e => e.state === 'unknown' && !referenced.has(e.id))
+    .map(e => ({ group: String(e.group || ''), name: String(e.name || ''), reasonText: String(e.reasonText || '未取到数据') }))
+  const consRow = references.find(r => r.id === 'cons:key')
+  const consNote: ConsNoteView | null = consRow
+    ? { name: consRow.name, actual: consRow.actual, target: consRow.target }
+    : null
   const metCount = evidence.filter(e => e.state === 'met').length
   // 维度已判 below 但没有逐项证据时（合成/缺明细数据），收尾文案必须如实说明，不能写"均已满足"。
   const belowDims = input.result.dims.filter(d => d.state === 'below').map(d => d.label)
@@ -366,10 +427,11 @@ export function buildPresentation (input: {
   return {
     score: buildScoreContext(input.result, { targetVersion: input.targetVersion }),
     dimensionsTitle: dims.length === 4 ? '四维达成' : dims.length === 3 ? '三维达成' : `${dims.length}维达成`,
-    sectionIndex: references.length
-      ? { references: '05', suggestions: '06', refDps: '07' }
-      : { references: '', suggestions: '05', refDps: '06' },
+    sectionIndex: { suggestions: '03', refDps: '04' },
     referenceGroups: buildReferenceGroups(references),
+    improvements,
+    pending,
+    consNote,
     dims,
     evidence,
     references,

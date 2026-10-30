@@ -667,5 +667,34 @@ body.elem-sr, body.gd-elem-sr, body.elem-phy, body.gd-elem-phy { --page-acc: #59
 .mx-content .mx-preset-summary { padding-top: 8px; padding-bottom: 8px; font-size: var(--mx-note-size); color: var(--mx-muted); }
 .mx-content .mx-preset-summary strong { color: var(--mx-accent); }
 .mx-content .mx-preset-summary span { display: block; }
+
+/* 03 未达标与提升建议：建议为主行，当前→目标证据作小字，不再列 E 编号。 */
+.mx-content .mx-improvements { margin: 0; padding: 0; list-style: none; }
+.mx-content .mx-improvement { display: flex; align-items: baseline; gap: var(--mx-space-3); padding: var(--mx-space-2) 0; }
+.mx-content .mx-improvement + .mx-improvement { border-top: 1px solid var(--mx-rule); }
+.mx-content .mx-improvement__main { flex: 1 1 auto; min-width: 0; }
+.mx-content .mx-improvement__text { margin: 0; }
+.mx-content .mx-improvement__evidence { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 3px; font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-improvement__evidence span { word-break: break-word; }
+.mx-content .mx-pending { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--mx-rule); font-size: var(--mx-note-size); color: var(--mx-muted); }
+.mx-content .mx-cons-note { margin-top: 6px; font-size: var(--mx-note-size); color: var(--mx-secondary); }
+.mx-content--glass .mx-improvement { padding: var(--mx-space-2) 20px; }
+.mx-content--glass .mx-improvement + .mx-improvement { border-top: 1px solid var(--mx-rule); }
+
+/* 合并卡（01 维度达成 / 03 未达标与建议）：整张卡只保留一层黑底，
+   避免每个直接子块各自带黑底与下圆角，视觉上像多块拼贴。 */
+.mx-content--glass .mx-section__body { padding: 0; background: rgba(0, 0, 0, .5); border-radius: 0 0 10px 10px; }
+.mx-content--glass .mx-section__body > * { background: transparent; border-radius: 0; padding-left: 0; padding-right: 0; }
+.mx-content--glass .mx-section__body > .mx-verdict,
+.mx-content--glass .mx-section__body > .mx-preset-summary,
+.mx-content--glass .mx-section__body > .mx-pending,
+.mx-content--glass .mx-section__body > .mx-cons-note,
+.mx-content--glass .mx-section__body > .mx-empty { padding-left: 20px; padding-right: 20px; }
+.mx-content--glass .mx-section__body > .mx-dimensions { background: transparent; }
+
+/* 练度页统一卡片底色：不再使用上深下浅的 card-bg 渐变，避免长短卡拼在一起时出现色带/接缝。 */
+.mx-content--glass.gd-grade .mx-section { background-image: none; background-color: rgba(30, 33, 42, .92); }
+.mx-content--glass.gd-grade .mx-section > *:not(.mx-section__head) { background: transparent; border-radius: 0; }
+.mx-content--glass.gd-grade .mx-section__body { background: transparent; }
 /* 同结构提升优先级，抵消旧版块内归零规则，仅恢复短标签内边距。 */
 .mx-content--glass .mx-section > *:not(.mx-section__head) .mx-reference-tag { padding-left: 5px; padding-right: 5px; }

@@ -34,31 +34,34 @@ assert.deepEqual(below.belowDims, ['圣遗物'])
 assert.match(below.belowDimsText, /未达标.*圣遗物/)
 assert.equal(P.buildPresentation({ result: { assessable: true, dims: [{ key: 'weapon', label: '武器', state: 'met', ratio: 1, weight: 1, detail: '' }], rows: [], suggestionRows: [] } }).belowDimsText, '')
 assert.ok(/mx\.belowDimsText[^}]*\}\}[\s\S]*均已满足/.test(tpl), '04 空态先判 belowDimsText')
-for (const key of ['presetName', 'presetMatchReason', 'presetWeightText', 'mx.referenceGroups']) assert.ok(tpl.includes(key))
+for (const key of ['presetName', 'presetMatchReason', 'presetWeightText', 'mx.improvements', 'mx.consNote']) assert.ok(tpl.includes(key))
+assert.ok(!tpl.includes('mx.references') && !tpl.includes('参考项'), '05 参考项整块移除')
 assert.ok(!tpl.includes('grid-template-columns: 132px'))
-// 05 只展示未达标参考：综合（圣遗物）参考全部隐藏，命座达标隐藏，未达命座保留并标红。
-const hidden = P.buildPresentation({ result: { assessable: true, dims: [{ key: 'artifact', label: '圣遗物', state: 'unscored', ratio: null, weight: 0, detail: '' }], rows: [
-  { id: 'artifact:set', group: '综合', name: '套装', actual: '烬城勇者绘卷×4', target: '千岩牢固', verdict: 'info' },
-  { id: 'artifact:main:时之沙', group: '综合', name: '时之沙', actual: '元素充能效率', target: '元素充能效率', verdict: 'info' },
-  { id: 'cons:key', group: '命座', name: '关键命座', actual: 'C6', target: '2 / 6', verdict: 'info' }
-], suggestionRows: [] } })
-assert.deepEqual(hidden.references, [], '辅助/综合参考与已达成命座都不占版面')
-assert.deepEqual(hidden.referenceGroups, [])
-assert.equal(hidden.sectionIndex.suggestions, '05', '参考项隐藏后建议顺延为 05，避免跳号')
-assert.equal(hidden.sectionIndex.refDps, '06')
+
+// 04+06 合并：建议优先，证据当前→目标作为小字；未知数据进入待补区。
+const merged = P.buildPresentation({ result: { assessable: false, dims: [{ key: 'weapon', label: '武器', state: 'unknown', ratio: null, weight: 1, detail: '未取到武器' }], rows: [
+  { id: 'talent:Q', group: '天赋', name: 'Q', actual: '2', target: '10', verdict: 'warn', state: 'below', scored: true },
+  { id: 'weapon:choice', group: '武器', name: '裁叶萃光', actual: '裁叶萃光', target: '雾切之回光', verdict: 'off', state: 'unknown', scored: true },
+  { id: 'cons:key', group: '命座', name: '关键命座', actual: 'C2', target: '6', verdict: 'info' }
+], suggestionRows: [{ id: 'talent', text: '天赋：Q 2→10', evidenceIds: ['talent:Q'], priority: 1, priorityBasis: 'cost-step' }] } })
+assert.equal(merged.improvements.length, 1)
+assert.deepEqual(merged.improvements[0].evidence[0], { group: '天赋', name: 'Q', actual: '2', target: '10', deltaText: '差 8' })
+assert.equal(merged.improvements[0].evidence[0].eid, undefined, '合并版不再展示 E 编号')
+assert.equal(merged.pending.length, 1, '未绑定建议的数据缺失进入待补区')
+assert.equal(merged.pending[0].name, '裁叶萃光')
+assert.deepEqual(merged.consNote, { name: '关键命座', actual: 'C2', target: '6' })
+assert.equal(merged.sectionIndex.suggestions, '03')
+assert.equal(merged.sectionIndex.refDps, '04')
+
+// 未达标命座并入新 03；达标命座不再提示。
 const consBelow = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
   { id: 'cons:key', group: '命座', name: '关键命座', actual: 'C1', target: '2 / 6', verdict: 'info' }
 ], suggestionRows: [] } })
 assert.equal(consBelow.references.length, 1)
-assert.equal(consBelow.referenceGroups[0].rows[0].tone, 'warn')
-assert.equal(consBelow.sectionIndex.references, '05')
-assert.equal(consBelow.sectionIndex.suggestions, '06')
-const panelRef = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
-  { id: 'panel:辅助:cpct', group: '辅助', name: '暴击率', actual: '70%', target: '70%', verdict: 'info' }
+assert.deepEqual(consBelow.consNote, { name: '关键命座', actual: 'C1', target: '2 / 6' })
+assert.equal(consBelow.sectionIndex.suggestions, '03')
+const consMet = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
+  { id: 'cons:key', group: '命座', name: '关键命座', actual: 'C6', target: '2 / 6', verdict: 'info' }
 ], suggestionRows: [] } })
-assert.equal(panelRef.references.length, 0, '已达标的参考项不占版面')
-const panelBelow = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
-  { id: 'panel:辅助:cpct', group: '辅助', name: '暴击率', actual: '68%', target: '70%', verdict: 'info' }
-], suggestionRows: [] } })
-assert.equal(panelBelow.referenceGroups[0].rows[0].tone, 'warn')
-console.log('presentation-reference: 全部契约通过（分类/三列/方向/条件/去重/四维与辅助三维/未达标过滤）')
+assert.equal(consMet.consNote, null, '命座已达标时不再提示')
+console.log('presentation-reference: 全部契约通过（四维标题/01+02/04+06合并/05移除/命座并入）')

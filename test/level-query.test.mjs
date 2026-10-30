@@ -110,12 +110,12 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
     tpl.includes('{{renderScale}}') && tpl.includes('{{copyright}}'))
   /*
    * 2026-10-15 UI 重构（档案批注）：数据区换成 `.mx-*` 组件 —— 三维达成度走 `mx.dims`（未知/不计分不画条），
-   * 差距证据与建议走 `mx.evidence` / `mx.suggestions`（带证据号）；**立绘行 `.gd-basic` 必须一字不动**。
+   * 差距证据与建议走合并后的 `mx.improvements`（建议 + 当前→目标）；**立绘行 `.gd-basic` 必须一字不动**。
    */
   ok('模板用 mx.dims 呈现三维达成度（四态 + 不画零长度条）',
     tpl.includes('{{each mx.dims d}}') && tpl.includes('mx-meter__fill') && tpl.includes('mx-meter--'))
-  ok('模板渲染差距证据与建议（带证据号）',
-    tpl.includes('{{each mx.evidence r}}') && tpl.includes('{{each mx.suggestions s}}') && tpl.includes('mx-evidence-ref'))
+  ok('模板渲染合并后的建议与当前→目标证据',
+    tpl.includes('{{each mx.improvements it}}') && tpl.includes('mx-improvement__evidence') && !tpl.includes('mx-evidence-ref'))
   const css = readText(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css')).replace(/\/\*[\s\S]*?\*\//g, '')
   /* 冻结区守卫：共享样式不得给立绘行内部的类写规则（`.gd-elem-*` 是 body 元素标记，放行） */
   ok('冻结立绘行仍在且共享样式不碰它',
@@ -136,7 +136,7 @@ ok('立绘圆角 10px + 外圈低透明度模糊层（同一张图、同一取�
   /\.gd-basic::after \{[^}]*filter:\s*blur\(/.test(tpl) &&
   /\.gd-basic::after \{[^}]*opacity:\s*0?\.\d+/.test(tpl) &&
   tpl.includes('--gd-art:url({{heroImg}})'))
-  ok('参考项与计分项分开（参考不计分）', tpl.includes('mx.references') && tpl.includes('参考项') && tpl.includes('不计分'))
+  ok('未达标与建议合并为 03，05 参考项移除', tpl.includes('未达标与提升建议') && tpl.includes('mx.improvements') && !tpl.includes('mx.references'))
   /* 用户 2026-10-15 定：圣遗物行「套装名独占一行、评分与词条次行右对齐」——换组件后仍要守住 */
   ok('圣遗物行：套装名与评分/词条分行、次行右对齐',
     tpl.includes('mx-equipment') && tpl.includes('mx-meta-line') &&

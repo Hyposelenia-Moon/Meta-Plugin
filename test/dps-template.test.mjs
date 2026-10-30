@@ -52,21 +52,15 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   ok(`${tpl}: 引用 out/ 下的头像缓存路径`, readText(path.join(tplDir, `${tpl}.html`)).includes('{{_data_path}}/avatar/'))
 }
 
-// 2026-10-18 核对修复 #10：练度页「参考项」必须带方向标（辅助 / 输出 等），否则同名属性读不出区别
+// 2026-10-30 页面精简：01+02 合并、04+06 合并、05 移除、章节按 01–04 重编号
 {
   const tplGrade = readText(path.join(tplDir, 'grade.html'))
-  ok('grade 模板：参考项渲染方向与条件短标签', tplGrade.includes('mx.referenceGroups') && tplGrade.includes('{{each r.tags tag}}'))
-  ok('grade 模板：短标签样式统一进共享 CSS', readText(path.join(commonDir, 'meta-ui.css')).includes('.mx-reference-tag {'))
-  ok('grade 模板：维度标题消费投影，不写死三维', tplGrade.includes('{{mx.dimensionsTitle}}') && !tplGrade.includes('>三维达成<'))
-}
-
-// 2026-10-29 用户复审：参考项只展示未达标内容；只有命座时不再整块隐藏
-{
-  const tplGrade = readText(path.join(tplDir, 'grade.html'))
-  ok('grade 模板：参考项不再因只有命座而隐藏', tplGrade.includes('{{if mx.references.length > 0}}') && !tplGrade.includes('!mx.refOnlyCons'))
-  ok('grade 模板：参考项隐藏后后续章节编号顺延', tplGrade.includes('mx.sectionIndex.references') && tplGrade.includes('mx.sectionIndex.suggestions') && tplGrade.includes('mx.sectionIndex.refDps'))
-  ok('grade 模板：未达标参考行带 warn 类上色', tplGrade.includes("r.tone === 'warn'") && tplGrade.includes('mx-reference-row--warn'))
-  ok('grade 模板：有方向时才挂 .mx--ref-dir', tplGrade.includes('mx.refHasDir') && tplGrade.includes('mx--ref-dir'))
+  ok('grade 模板：01 直接用维度标题，不再有独立“结论”卡', tplGrade.includes('{{mx.dimensionsTitle}}') && !tplGrade.includes('>结论<'))
+  ok('grade 模板：04/06 合并为一条建议带证据', tplGrade.includes('未达标与提升建议') && tplGrade.includes('mx.improvements') && tplGrade.includes('mx-improvement__evidence'))
+  ok('grade 模板：05 参考项已移除', !tplGrade.includes('mx.references') && !tplGrade.includes('mx.referenceGroups') && !tplGrade.includes('参考项'))
+  ok('grade 模板：章节重编号为 01–04', tplGrade.includes('mx.sectionIndex.suggestions') && tplGrade.includes('mx.sectionIndex.refDps') && !tplGrade.includes('sectionIndex.references'))
+  ok('grade 模板：合并卡使用统一 body 容器', tplGrade.includes('mx-section__body') && tplGrade.includes('gd-grade'))
+  ok('grade 模板：未达标关键命座并入 03', tplGrade.includes('mx.consNote') && tplGrade.includes('关键命座'))
 }
 
 // 2026-10-30 用户定：练度页顶栏标题并入页脚，页脚标题/口径/版权各自不超过两行
@@ -75,7 +69,6 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   ok('grade 模板：顶栏标题卡已移除', !tplGrade.includes('head-card') && !tplGrade.includes('class="game-name"'))
   ok('grade 模板：页脚包含标题模块与预设标签', tplGrade.includes('mx-footer__title') && tplGrade.includes('mx-footer__preset') && tplGrade.includes('{{presetName}}'))
   ok('grade 模板：页脚口径精简为单句', tplGrade.includes('按当前预设目标与实际权重评分；缺项不计分，关键数据缺失待评。'))
-  ok('grade 模板：命座不再单列分类标题，行名保留关键命座', tplGrade.includes('{{if g.label}}<div class="mx-reference-category">') && tplGrade.includes('mx-reference-row--bare'))
 }
 
 // ---------- 2. CSS 引用的资源都能解析 ----------
