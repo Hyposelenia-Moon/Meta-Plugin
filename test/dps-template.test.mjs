@@ -75,6 +75,7 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   ok('grade 模板：顶栏标题卡已移除', !tplGrade.includes('head-card') && !tplGrade.includes('class="game-name"'))
   ok('grade 模板：页脚包含标题模块与预设标签', tplGrade.includes('mx-footer__title') && tplGrade.includes('mx-footer__preset') && tplGrade.includes('{{presetName}}'))
   ok('grade 模板：页脚口径精简为单句', tplGrade.includes('按当前预设目标与实际权重评分；缺项不计分，关键数据缺失待评。'))
+  ok('grade 模板：命座不再单列分类标题，行名保留关键命座', tplGrade.includes('{{if g.label}}<div class="mx-reference-category">') && tplGrade.includes('mx-reference-row--bare'))
 }
 
 // ---------- 2. CSS 引用的资源都能解析 ----------

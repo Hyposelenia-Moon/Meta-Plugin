@@ -11,7 +11,9 @@ const row = (group, target, id = `panel:${group}:recharge`) => ({ id, group, nam
 const source = [row('输出向', '180%（二命）'), row('辅助向', '200%（二命）'), row('输出向', '180%（二命）'), row('输出向', '180%（满命）'), { id: 'cons:key', group: '命座', name: '关键命座', target: 'C2', actual: 'C0', verdict: 'info' }]
 const references = P.buildEvidence(source).references
 const groups = P.buildReferenceGroups(references)
-assert.deepEqual(groups.map(g => g.label), ['面板', '命座'])
+assert.deepEqual(groups.map(g => g.label), ['面板', ''])
+assert.equal(groups[1].rows[0].name, '关键命座', '命座不再单列分类，只保留「关键命座」行')
+assert.equal(groups[1].rows[0].tone, 'warn')
 assert.equal(groups[0].rows.length, 3, '只去除同方向同条件同目标的重复行')
 assert.deepEqual(groups[0].rows[0].tags, ['输出向', '二命'])
 assert.equal(groups[0].rows[0].target, '180%')

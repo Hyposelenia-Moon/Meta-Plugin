@@ -22,7 +22,7 @@ const makeResult = (dims, extra = {}) => ({
   dims,
   panelTier: '大毕业',
   rows: [],
-  suggestions: ['圣遗物：提升有效词条（暴击 / 爆伤 / 攻击等，按 miao 评分口径）'],
+  suggestions: ['圣遗物：提升有效词条至 ACE（暴击 / 爆伤 / 攻击等）'],
   suggestionRows: [],
   assessable: true,
   notes: [],

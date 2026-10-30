@@ -387,13 +387,15 @@ export class MetaGrade extends plugin {
     const weightSum = Object.values(weights).reduce((sum, value) => sum + value, 0)
     const weightText = Object.entries(weights).filter(([, value]) => value > 0)
       .map(([key, value]) => `${weightNames[key as keyof typeof weightNames]} ${weightSum ? Math.round(value / weightSum * 100) : 0}%`).join(' · ')
-    const ruleNote = `攻略预设：${preset.name}（${selection.reason}）\nmiao 规则：${profile.build.artiRuleTitle || '名称未提供'}\n默认分配：${weightText}；攻略缺项按可评维度归一`
+    // 02「匹配」优先显示实际评分规则名（如“西风纯辅”），手动指定才写“手动指定”。
+    const matchReason = tokens[1] ? '手动指定' : (profile.build.artiRuleTitle || '未识别规则')
+    const ruleNote = `攻略预设：${preset.name}（${matchReason}）\n评分规则：${profile.build.artiRuleTitle || '未提供'}\n默认分配：${weightText}；攻略缺项按可评维度归一`
 
     const data = {
       title: `#${result.charName} · 提升指南`,
       subtitle: `${preset.name}预设 · 攻略目标 × 当前配装`,
       presetName: preset.name,
-      presetMatchReason: selection.reason,
+      presetMatchReason: matchReason,
       presetWeightText: result.dims.filter(d => d.weight > 0).map(d => `${d.label} ${Math.round(d.weight * 100)}%`).join(' · '),
       charName: result.charName,
       ranks: result.rank,

@@ -943,15 +943,13 @@ function scoreMarkPart (build: BuildSnapshot): PartScore {
   const markClass = String(build.artiMark?.markClass || '').toUpperCase()
   const markScore = MIAO_MARK_SCORE[markClass]
   if (!build.artiMark || !Number.isFinite(markScore)) {
-    return partNull('mark', 'data-missing', '未取到 miao 词条评分')
+    return partNull('mark', 'data-missing', '未取到圣遗物词条评分')
   }
-  // 规则标题来自 miao 面板的「评分规则：xxx」（`ArtisMarkCfg.classTitle`），让页面能对上用的是哪条规则
-  const ruleTitle = String(build.artiRuleTitle || '').trim()
   return {
     key: 'mark',
     ratio: markScore,
     state: markScore >= 1 ? 'met' : 'below',
-    detail: `miao 词条评分 ${num(Number(build.artiMark.total) || 0)}（${markClass}${ruleTitle ? `，规则 ${ruleTitle}` : ''}）`
+    detail: `词条评分 ${num(Number(build.artiMark.total) || 0)}（${markClass}）`
   }
 }
 
@@ -1196,7 +1194,7 @@ export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: G
   for (const d of dims) if (d.ratio === null) notes.push(`${d.label}：${d.detail}（不计入总分）`)
   // 只有规则要求词条评分时才提示（辅助口径不看词条，缺评分不是问题）
   if (!build.artiMark && (Number(rule.weights.mark) || 0) > 0) {
-    notes.push('圣遗物评分：未取到 miao 词条评分（该角色规则要求词条，综合判待评）')
+    notes.push('圣遗物评分：未取到词条评分（该角色规则要求词条，综合判待评）')
   }
 
   const rows = buildCompareRows(targets, build, { ...opts, rule, parts })
@@ -1234,7 +1232,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   const applicableMain = targets.mainStats.filter(t => (t.optionViews?.length ? t.optionViews : t.options.map(parseCondMark)).some(v => condSatisfied(v, Number(build.cons) || 0)))
   const parts = scoreParts({ ...targets, mainStats: applicableMain, panel: applicable.map(t => ({ ...t, groups: [] })) }, build, opts)
   const missing = (key: PartKey, detail: string): void => { parts[key] = partNull(key, 'data-missing', detail) }
-  if (build.hasMark === false) missing('mark', '未取到 miao 词条评分')
+  if (build.hasMark === false) missing('mark', '未取到圣遗物词条评分')
   if ((targets.artifact.recommend.length || targets.artifact.optional.length) && (!build.artis?.length || build.artis.some(a => !a.set))) missing('set', '套装数据不全')
   if (applicableMain.some(t => !build.artis?.find(a => a.slot === t.slot)?.mainName)) missing('main', '主词条数据不全')
   if (applicable.some(t => !Number.isFinite(build.attrs?.[t.attrKey]))) missing('panel', '面板数据不全')
@@ -1264,7 +1262,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   for (const d of scored) d.weight = weightOf(d.key) / weightSum
   const total = scored.reduce((s, d) => s + d.ratio! * d.weight * 100, 0)
   const rows = buildCompareRows(targets, build, { ...opts, parts, rule: { weights: { ...artifactWeights, panel: 30 }, floors } })
-  if (!rows.some(r => r.id === 'artifact:mark')) rows.push({ id: 'artifact:mark', group: '圣遗物', name: '词条评分', target: 'miao ACE', actual: '—', verdict: 'off' })
+  if (!rows.some(r => r.id === 'artifact:mark')) rows.push({ id: 'artifact:mark', group: '圣遗物', name: '词条评分', target: 'ACE', actual: '—', verdict: 'off' })
   if (!rows.some(r => r.id === 'weapon:choice') && targets.weapon.transition.length) rows.push({ id: 'weapon:choice', group: '武器', name: '武器', target: targets.weapon.transition.join(' / '), actual: build.weapon?.name || '—', verdict: 'off' })
   for (const row of rows) {
     const id = row.id || ''
@@ -1297,7 +1295,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   add('talent', `天赋：${below('talent:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('talent:'))
   add('mainstat', `主词条：${below('artifact:main:').map(r => `${r.name}换「${r.target}」`).join('、')}`, below('artifact:main:'))
   add('artifact:set', `圣遗物：凑攻略推荐套装（${targets.artifact.recommend[0] || targets.artifact.optional[0] || ''}）`, below('artifact:set'))
-  add('artifact:mark', '圣遗物：提升有效词条（按 miao 评分口径，ACE 达标）', below('artifact:mark'))
+  add('artifact:mark', '圣遗物：提升有效词条至 ACE', below('artifact:mark'))
   add('panel', `面板：${below('panel:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('panel:'))
   add('weapon', `武器：换到推荐档（${targets.weapon.recommend.slice(0, 2).join(' / ')}）`, below('weapon:'))
   const assessable = scored.length > 0 && !dims.some(d => d.state === 'unknown' && weightOf(d.key) > 0)
@@ -1396,7 +1394,7 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot, o
       id: 'artifact:mark',
       group: '综合',
       name: '词条评分',
-      target: '走 miao 规则（MAX…D）',
+      target: 'ACE',
       actual: `${num(build.artiMark.total)}（${build.artiMark.markClass}）`,
       verdict: (MIAO_MARK_SCORE[String(build.artiMark.markClass).toUpperCase()] ?? 0) >= (opts.rule?.floors.mark ?? COMPREHENSIVE_MET_RATIO) ? 'ok' : 'warn'
     })
@@ -1554,7 +1552,7 @@ export function buildSuggestionRows (targets: GuideTargets, build: BuildSnapshot
         items.push({
           id: 'artifact:mark',
           weight: weightOf('mark'),
-          text: '圣遗物：提升有效词条（暴击 / 爆伤 / 攻击等，按 miao 评分口径）',
+          text: '圣遗物：提升有效词条至 ACE（暴击 / 爆伤 / 攻击等）',
           evidence: ['artifact:mark']
         })
       }

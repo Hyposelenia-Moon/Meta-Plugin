@@ -407,9 +407,9 @@
           <div class="mx-reference-table">
             <div class="mx-reference-row mx-reference-row--head"><span>项目</span><span class="mx-reference-row__value">当前</span><span class="mx-reference-row__extra">参考目标</span></div>
             {{each mx.referenceGroups g}}
-            <div class="mx-reference-category">{{g.label}}</div>
+            {{if g.label}}<div class="mx-reference-category">{{g.label}}</div>{{/if}}
             {{each g.rows r}}
-            <div class="mx-reference-row{{if r.tone === 'warn'}} mx-reference-row--warn{{/if}}">
+            <div class="mx-reference-row{{if !g.label}} mx-reference-row--bare{{/if}}{{if r.tone === 'warn'}} mx-reference-row--warn{{/if}}">
               <span class="mx-reference-row__name"><span class="mx-reference-row__attr">{{r.name}}</span>{{if r.tags.length}}<span class="mx-reference-tags">{{each r.tags tag}}<span class="mx-reference-tag">{{tag}}</span>{{/each}}</span>{{/if}}</span>
               <span class="mx-reference-row__value">{{r.actual}}</span>
               <span class="mx-reference-row__extra">{{r.target}}</span>

@@ -87,15 +87,15 @@ export function matchGuidePreset (guide: Guide, input: {
   const title = String(input.ruleTitle || '').trim()
   if (title) {
     const names = presets.filter(p => p.match?.names?.some(n => n === title))
-    if (names.length) return choose(names, 'miao 规则名称')
+    if (names.length) return choose(names, '规则名称')
     const patterns = presets.filter(p => p.match?.patterns?.some(pattern => {
       // 编辑器保存时也校验；运行时忽略无效或过长模式，异常不得中断查询。
       if (!pattern || pattern.length > 256) return false
       try { return new RegExp(pattern, 'iu').test(title.slice(0, 512)) } catch { return false }
     }))
-    if (patterns.length) return choose(patterns, 'miao 规则正则')
+    if (patterns.length) return choose(patterns, '规则正则')
     const role = normalizeRuleRole(title)
-    if (role && presets.length > 1) return choose(presets.filter(p => p.role === role), 'miao 规则方向')
+    if (role && presets.length > 1) return choose(presets.filter(p => p.role === role), '规则方向')
   }
   if (presets.length === 1) return choose(presets, '单预设')
   const weights = input.charWeight
@@ -103,7 +103,7 @@ export function matchGuidePreset (guide: Guide, input: {
     const sum = (keys: string[]) => keys.reduce((n, k) => n + Math.max(0, Number(weights[k]) || 0), 0)
     const out = sum(['atk', 'cpct', 'cdmg', 'dmg', 'phy'])
     const utility = sum(['hp', 'def', 'mastery', 'recharge', 'heal'])
-    if (out + utility > 0) return choose(presets.filter(p => p.role === (out / (out + utility) >= 0.5 ? 'dps' : 'support')), 'miao 属性权重')
+    if (out + utility > 0) return choose(presets.filter(p => p.role === (out / (out + utility) >= 0.5 ? 'dps' : 'support')), '属性权重')
   }
   return choose([], '无法唯一匹配')
 }
