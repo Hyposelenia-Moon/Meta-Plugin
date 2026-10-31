@@ -12,7 +12,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
 - **队伍模拟内核边界**：`src/modules/teamSimulation/` 对外只经 `index.ts`；目录内文件只用相对 import 指向本目录，`src/model/TeamBuildAdapter.ts` 是适配层（它依赖内核，内核不反向依赖它）。
-- **常用命令**：`pnpm build`、`pnpm test`（83 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（84 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -196,7 +196,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 83 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 84 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。
@@ -220,6 +220,7 @@ pnpm build && pnpm test     # 83 套；任意 cwd 可跑、不发真实网络、
   `team-sim-dps-standard`（队伍 DPS 固定标准：110 级小宝/10% 抗性/120 秒/0 能量四项常量与违规路径、窗口帧数随档位换算）、
   `team-sim-mechanisms`（纯岩四角色机制层：Q 窗口、五郎岩人数分档、钟离减抗、阿贝多召唤物、乱神之怪力层数与违规）、
   `team-sim-p4`（披露字段、数据包与轴的差异报告、逐事件机制日志）、
+`team-sim-p5`（录制导入换算与发布闸门）、
   `team-sim-attribution`（效果贡献：逐项去掉后重跑的差额、未触发项恒为 0、去掉后跑不起来记 skipped、基线失败只说不可用）、
   `team-sim-report`（一轮结果的投影：每角色/每动作合计、触发次数、在场覆盖、近似项、失败问题与摘要行）、
   `team-sim-metrics`（黄金集与误差指标脚手架：用例来源与重复 id 校验、相对误差与分角色贡献偏差、闸门结论；synthetic 不计入闸门）。
