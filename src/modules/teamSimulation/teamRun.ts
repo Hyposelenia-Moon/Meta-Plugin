@@ -4,11 +4,19 @@ import { simulateTimeline, type TimelineResult } from './timeline.js'
 import { calculateTimelineDamage, type CritPolicy, type DamageContext, type DamageDebuffs, type TimelineDamageResult } from './hitDamage.js'
 import { validateDataPack, type DataPack } from './dataPack.js'
 import { validateRotation, type RotationSpec } from './rotation.js'
+import { checkDpsStandard, type DpsStandardViolation } from './dpsStandard.js'
+import { planMechanisms, type MechanismPlan } from './mechanisms.js'
 
 export interface TeamMemberInput {
   build: CharacterBuild
   permanentData: PermanentData
 }
+
+/**
+ * `dps-standard`：默认口径，必须满足 110 级小宝、10% 抗性、120 秒、0 初始能量，才能报 DPS。
+ * `diagnostic`：内部诊断用，跑非标准窗口不报 DPS，报告里会写明口径——不是给对外结论用的。
+ */
+export type TeamRunMode = 'dps-standard' | 'diagnostic'
 
 export interface TeamRunInput {
   pack: DataPack
@@ -19,10 +27,12 @@ export interface TeamRunInput {
   targetPresetId: string
   crit: CritPolicy
   debuffs: DamageDebuffs
+  /** 缺省按 DPS 标准口径强制校验；诊断模式必须显式声明。 */
+  mode?: TeamRunMode
 }
 
 export interface TeamRunCheck {
-  stage: 'data-pack' | 'versions' | 'rotation' | 'members' | 'timeline' | 'damage'
+  stage: 'data-pack' | 'versions' | 'rotation' | 'dps-standard' | 'members' | 'mechanisms' | 'timeline' | 'damage'
   status: string
   issues: Issue[]
 }
@@ -31,11 +41,15 @@ export type TeamRunResult = {
   status: 'calculated'
   scope: 'team-run-no-reaction'
   simulationReady: false
+  mode: TeamRunMode
   checks: TeamRunCheck[]
   /** 两侧版本必须一致才跑；结果里再透出一次，方便核对用到的是哪份数据。 */
   versions: { pack: string; panels: string }
   timeline: TimelineResult
   damage: TimelineDamageResult
+  plan: MechanismPlan
+  /** 只有标准口径才给 DPS；诊断模式为 null。 */
+  dps: { total: number; windowSeconds: number; value: number } | null
   issues: []
 } | (Failure & { checks: TeamRunCheck[] })
 
@@ -51,13 +65,19 @@ const statusOf = (issues: Issue[]): 'ok' | 'invalid' | 'unsupported' | 'incomple
       : issues.some(issue => issue.code === 'invalid') ? 'invalid'
         : 'incomplete'
 
+const dpsViolationToIssue = (violation: DpsStandardViolation): Issue => ({ code: 'invalid', path: violation.path, message: violation.message })
+
 /**
- * 编排：数据包 → 轴 → 每个成员的面板 → 时间线 → 每段命中结算。
+ * 编排：数据包 → 轴 → DPS 口径 → 每个成员的面板 → 机制规划 → 时间线 → 每段命中结算。
  * 任何一关不过就整轮拒绝，不拿默认值降级；结果里保留每关的 issues 便于定位。
  */
 export function simulateTeam(input: TeamRunInput): TeamRunResult {
   const checks: TeamRunCheck[] = []
   if (!input || typeof input !== 'object') return fail('invalid', checks, [{ code: 'invalid', path: 'input', message: '输入必须是对象' }])
+  const mode: TeamRunMode = input.mode ?? 'dps-standard'
+  if (mode !== 'dps-standard' && mode !== 'diagnostic') {
+    return fail('unsupported', checks, [{ code: 'unsupported', path: 'mode', message: `未知运行模式 ${String(mode)}` }])
+  }
 
   const packResult = validateDataPack(input.pack)
   checks.push({ stage: 'data-pack', status: packResult.status, issues: packResult.issues })
@@ -77,6 +97,20 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   checks.push({ stage: 'rotation', status: rotationStatus, issues: rotationIssues })
   if (rotationStatus !== 'ok') return fail(rotationStatus, checks, rotationIssues)
 
+  // DPS 标准口径：对外只认 110 级小宝、10% 抗性、120 秒、0 初始能量。诊断模式显式跳过，并在结果里标出来。
+  if (mode === 'dps-standard') {
+    const violations = checkDpsStandard({
+      frameTier: input.rotation.frameTier,
+      targetPresetId: input.targetPresetId,
+      measurementEndFrame: input.rotation.measurementEndFrame,
+      actors: input.rotation.actors
+    })
+    const dpsIssues = violations.map(dpsViolationToIssue)
+    const dpsStatus = statusOf(dpsIssues)
+    checks.push({ stage: 'dps-standard', status: dpsStatus, issues: dpsIssues })
+    if (dpsStatus !== 'ok') return fail(dpsStatus, checks, dpsIssues)
+  }
+
   const members = input.members
   if (!Array.isArray(members) || !members.length) {
     const issues: Issue[] = [{ code: 'missing', path: 'members', message: '至少要有一个成员的配装与永久数据' }]
@@ -85,6 +119,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   }
   const memberIssues: Issue[] = []
   const contexts: Record<string, DamageContext> = {}
+  const builds: Record<string, CharacterBuild> = {}
   const actorIds = new Set<string>()
   members.forEach((member, index) => {
     const p = `members.${index}`
@@ -101,6 +136,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
       memberIssues.push(...permanent.issues.map(issue => ({ ...issue, path: `${p}.permanentData.${issue.path}` })))
       return
     }
+    builds[build.actorId] = build
     contexts[build.actorId] = {
       level: build.level,
       stats: permanent.stats,
@@ -121,6 +157,21 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   checks.push({ stage: 'members', status: memberStatus, issues: memberIssues })
   if (memberStatus !== 'ok') return fail(memberStatus, checks, memberIssues)
 
+  const { plan, issues: mechanismIssues } = planMechanisms({
+    pack: packResult.pack,
+    rotation: input.rotation,
+    builds,
+    contexts,
+    tier: input.rotation.frameTier
+  })
+  const violationIssues: Issue[] = plan.checks
+    .filter(check => check.status === 'violation')
+    .map(check => ({ code: 'invalid', path: `mechanisms.${check.id}`, message: check.message }))
+  const allMechanismIssues = [...mechanismIssues, ...violationIssues]
+  const mechanismStatus = statusOf(allMechanismIssues)
+  checks.push({ stage: 'mechanisms', status: mechanismStatus, issues: allMechanismIssues })
+  if (mechanismStatus !== 'ok') return fail(mechanismStatus, checks, allMechanismIssues)
+
   const timeline = simulateTimeline({
     scheduler: input.rotation.scheduler,
     steps: input.rotation.steps,
@@ -137,9 +188,22 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   checks.push({ stage: 'timeline', status: timeline.status === 'simulated' ? 'ok' : timeline.status, issues: timeline.issues })
   if (timeline.status !== 'simulated') return fail('invalid', checks, timeline.issues)
 
-  const damage = calculateTimelineDamage({ timeline, contexts })
+  const damage = calculateTimelineDamage({ timeline, contexts, plan })
   checks.push({ stage: 'damage', status: damage.status === 'calculated' ? 'ok' : damage.status, issues: damage.issues })
   if (damage.status !== 'calculated') return fail(damage.status, checks, damage.issues)
 
-  return { status: 'calculated', scope: 'team-run-no-reaction', simulationReady: false, checks, versions: { pack: packResult.pack.gameVersion, panels: panelsVersion }, timeline, damage, issues: [] }
+  const windowSeconds = input.rotation.measurementEndFrame / input.rotation.frameTier.fps
+  return {
+    status: 'calculated',
+    scope: 'team-run-no-reaction',
+    simulationReady: false,
+    mode,
+    checks,
+    versions: { pack: packResult.pack.gameVersion, panels: panelsVersion },
+    timeline,
+    damage,
+    plan,
+    dps: mode === 'dps-standard' ? { total: damage.total, windowSeconds, value: damage.total / windowSeconds } : null,
+    issues: []
+  }
 }

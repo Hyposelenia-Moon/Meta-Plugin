@@ -1,13 +1,14 @@
 import type { Failure, Issue, OrdinaryDamageResult, OrdinaryHit, PermanentStats } from './types.js'
 import { calculateOrdinaryHit, TARGET_PRESETS } from './formula.js'
-import { applyPanelModifiers } from './effects.js'
+import { applyPanelModifiers, type EnemyModifiers, type PanelModifiers } from './effects.js'
 import type { TimelineHit, TimelineResult } from './timeline.js'
+import type { MechanismPlan, StatWindow, EnemyWindow } from './mechanisms.js'
 
 export type CritPolicy = 'expected' | 'critical' | 'non-critical'
 
 /**
- * 队伍减益：P1 没有建模任何减防、减抗或无视防御来源（钟离护盾减抗也不在 P1 范围）。
- * 接口保留是为了以后接入时不用改调用方，但数值必须显式传 0，非 0 一律拒绝。
+ * 队伍减益：调用方传入的常驻减益。P1 的减防/减抗来源必须走机制窗口（钟离护盾），
+ * 这里仍要求显式传 0，非 0 一律拒绝——避免有人把未建模的数值直接塞进这一层。
  */
 export interface DamageDebuffs {
   defenseReduction: number
@@ -36,6 +37,8 @@ export interface DamageRow {
   scaling: TimelineHit['scaling']
   motionValue: number
   damage: number
+  /** `action`：动作自带的命中；`summon`：召唤物在结算层展开的命中。 */
+  origin: 'action' | 'summon'
 }
 
 export type TimelineDamageResult = {
@@ -45,6 +48,7 @@ export type TimelineDamageResult = {
   total: number
   rows: DamageRow[]
   perActor: Record<string, number>
+  perAction: Record<string, number>
   target: { id: string; level: number; resistance: number }
   gameVersion: string
   source: string
@@ -60,6 +64,38 @@ function damageBonusFor(element: TimelineHit['element'], stats: PermanentStats):
 
 function statFor(scaling: TimelineHit['scaling'], stats: PermanentStats): number {
   return scaling === 'atk' ? stats.atk : scaling === 'hp' ? stats.hp : stats.def
+}
+
+function windowStats(plan: MechanismPlan | undefined, actorId: string, frame: number): StatWindow[] {
+  if (!plan) return []
+  return plan.statWindows.filter(window => window.actorId === actorId && frame >= window.fromFrame && frame < window.toFrame)
+}
+
+function windowEnemies(plan: MechanismPlan | undefined, frame: number): EnemyWindow[] {
+  if (!plan) return []
+  return plan.enemyWindows.filter(window => frame >= window.fromFrame && frame < window.toFrame)
+}
+
+/** 把当帧的面板增量与机制窗口叠加成一份新对象，不改动调用方的面板。 */
+function mergedStats(base: PanelModifiers, extra: PanelModifiers[]): PanelModifiers {
+  const out: PanelModifiers = { ...base }
+  for (const delta of extra) {
+    for (const [key, value] of Object.entries(delta) as [keyof PanelModifiers, number][]) {
+      if (typeof value !== 'number') continue
+      out[key] = (out[key] ?? 0) + value
+    }
+  }
+  return out
+}
+
+function mergedEnemy(base: EnemyModifiers, extra: EnemyModifiers[]): EnemyModifiers {
+  const out: EnemyModifiers = { ...base }
+  for (const delta of extra) {
+    out.resistanceReduction += delta.resistanceReduction
+    out.defenseReduction += delta.defenseReduction
+    out.defenseIgnore += delta.defenseIgnore
+  }
+  return out
 }
 
 function validateContext(context: DamageContext | undefined, prefix: string): Issue[] {
@@ -85,7 +121,7 @@ function validateContext(context: DamageContext | undefined, prefix: string): Is
   else {
     for (const key of ['defenseReduction', 'defenseIgnore', 'resistanceReduction'] as const) {
       if (!isFiniteNumber(debuffs[key])) add('missing', `${prefix}.debuffs.${key}`, '必须显式给出数值，P1 传 0')
-      else if (debuffs[key] !== 0) add('unsupported', `${prefix}.debuffs.${key}`, 'P1 没有建模队伍减防/减抗，不能把未建模的数值传进来')
+      else if (debuffs[key] !== 0) add('unsupported', `${prefix}.debuffs.${key}`, 'P1 没有建模常驻队伍减防/减抗，减益必须走机制窗口')
     }
   }
   return issues
@@ -94,9 +130,9 @@ function validateContext(context: DamageContext | undefined, prefix: string): Is
 /**
  * 把时间内核排出的每段命中接到普通直伤公式上。
  * 只做映射与汇总：倍率乘哪一项面板、元素加成读哪个键、目标口径与减益全部来自显式输入。
- * 面板按 actorId 分开取，四人队每人的面板不能混用。
+ * 面板按 actorId 分开取，四人队每人的面板不能混用；机制窗口按帧叠加，召唤物命中在同一层展开。
  */
-export function calculateTimelineDamage(input: { timeline: TimelineResult; contexts: Record<string, DamageContext> }): TimelineDamageResult {
+export function calculateTimelineDamage(input: { timeline: TimelineResult; contexts: Record<string, DamageContext>; plan?: MechanismPlan }): TimelineDamageResult {
   if (!input || typeof input !== 'object') return { status: 'invalid', issues: [{ code: 'invalid', path: 'input', message: '输入必须是对象' }] }
   const timeline = input.timeline
   if (!timeline || typeof timeline !== 'object' || !Array.isArray(timeline.hits)) {
@@ -123,33 +159,42 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
   if (issues.length) return { status: issues.some(i => i.code === 'unsupported') ? 'unsupported' : issues.some(i => i.code === 'invalid') ? 'invalid' : 'incomplete', issues }
   const anchor = Object.values(contexts)[0]
   const preset = TARGET_PRESETS[anchor.targetPresetId]
+  const plan = input.plan
   const rows: DamageRow[] = []
   const perActor: Record<string, number> = {}
+  const perAction: Record<string, number> = {}
   let total = 0
-  for (const [index, hit] of timeline.hits.entries()) {
-    const context = contexts[hit.actorId]
-    if (!context) {
-      return { status: 'invalid', issues: [{ code: 'missing', path: `contexts.${hit.actorId}`, message: `命中来自 ${hit.actorId}，但没有提供该角色的面板` }] }
-    }
-    // 命中自带当帧生效的面板增量与敌人减益：内核已经按帧算好，这里只做加法，不回查效果表。
-    const modifiers = hit.modifiers
-    if (!modifiers || typeof modifiers !== 'object' || !modifiers.enemy || typeof modifiers.stats !== 'object' || modifiers.stats === null) {
-      return { status: 'invalid', issues: [{ code: 'missing', path: `hits.${index}.modifiers`, message: '命中缺少生效修饰快照，无法确定这一发吃到了哪些效果' }] }
-    }
-    const stats = applyPanelModifiers(context.stats, modifiers.stats)
-    const defenseReduction = context.debuffs.defenseReduction + modifiers.enemy.defenseReduction
-    const defenseIgnore = context.debuffs.defenseIgnore + modifiers.enemy.defenseIgnore
-    const resistanceReduction = context.debuffs.resistanceReduction + modifiers.enemy.resistanceReduction
+
+  const settle = (options: {
+    frame: number
+    actorId: string
+    actionId: string
+    hitIndex: number
+    motionValue: number
+    scaling: TimelineHit['scaling']
+    element: TimelineHit['element']
+    canCrit: boolean
+    origin: DamageRow['origin']
+    stats: PanelModifiers
+    enemy: EnemyModifiers
+    path: string
+  }): Issue[] => {
+    const context = contexts[options.actorId]
+    if (!context) return [{ code: 'missing', path: `contexts.${options.actorId}`, message: `命中来自 ${options.actorId}，但没有提供该角色的面板` }]
+    const stats = applyPanelModifiers(context.stats, options.stats)
+    const defenseReduction = context.debuffs.defenseReduction + options.enemy.defenseReduction
+    const defenseIgnore = context.debuffs.defenseIgnore + options.enemy.defenseIgnore
+    const resistanceReduction = context.debuffs.resistanceReduction + options.enemy.resistanceReduction
     const spec: OrdinaryHit = {
       kind: 'ordinary',
       reaction: 'none',
       gameVersion: context.gameVersion,
       source: context.source,
       targetId: preset.id,
-      scaling: [{ stat: statFor(hit.scaling, stats), multiplier: hit.motionValue }],
+      scaling: [{ stat: statFor(options.scaling, stats), multiplier: options.motionValue }],
       additiveBase: 0,
-      damageBonus: damageBonusFor(hit.element, stats),
-      canCrit: hit.canCrit,
+      damageBonus: damageBonusFor(options.element, stats),
+      canCrit: options.canCrit,
       crit: context.crit,
       critRate: stats.cpct,
       critDamage: stats.cdmg,
@@ -162,12 +207,74 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     }
     const result: OrdinaryDamageResult = calculateOrdinaryHit(spec)
     if (result.status !== 'calculated') {
-      return { status: result.status === 'unsupported' ? 'unsupported' : 'invalid', issues: result.issues.map(issue => ({ ...issue, path: `hits.${index}.${issue.path}` })) }
+      return result.issues.map(issue => ({ ...issue, path: `${options.path}.${issue.path}` }))
     }
     total += result.damage
-    perActor[hit.actorId] = (perActor[hit.actorId] ?? 0) + result.damage
-    rows.push({ frame: hit.frame, actorId: hit.actorId, actionId: hit.actionId, hitIndex: hit.hitIndex, element: hit.element, scaling: hit.scaling, motionValue: hit.motionValue, damage: result.damage })
+    perActor[options.actorId] = (perActor[options.actorId] ?? 0) + result.damage
+    const actionKey = `${options.actorId}/${options.actionId}`
+    perAction[actionKey] = (perAction[actionKey] ?? 0) + result.damage
+    rows.push({
+      frame: options.frame,
+      actorId: options.actorId,
+      actionId: options.actionId,
+      hitIndex: options.hitIndex,
+      element: options.element,
+      scaling: options.scaling,
+      motionValue: options.motionValue,
+      damage: result.damage,
+      origin: options.origin
+    })
+    return []
   }
+
+  for (const [index, hit] of timeline.hits.entries()) {
+    // 命中自带当帧生效的面板增量与敌人减益：内核已经按帧算好，这里只做加法，不回查效果表。
+    const modifiers = hit.modifiers
+    if (!modifiers || typeof modifiers !== 'object' || !modifiers.enemy || typeof modifiers.stats !== 'object' || modifiers.stats === null) {
+      return { status: 'invalid', issues: [{ code: 'missing', path: `hits.${index}.modifiers`, message: '命中缺少生效修饰快照，无法确定这一发吃到了哪些效果' }] }
+    }
+    const stats = mergedStats(modifiers.stats, windowStats(plan, hit.actorId, hit.frame).map(window => window.stats))
+    const enemy = mergedEnemy(modifiers.enemy, windowEnemies(plan, hit.frame).map(window => window.enemy))
+    const hitIssues = settle({
+      frame: hit.frame,
+      actorId: hit.actorId,
+      actionId: hit.actionId,
+      hitIndex: hit.hitIndex,
+      motionValue: hit.motionValue,
+      scaling: hit.scaling,
+      element: hit.element,
+      canCrit: hit.canCrit,
+      origin: 'action',
+      stats,
+      enemy,
+      path: `hits.${index}`
+    })
+    if (hitIssues.length) return { status: hitIssues.some(i => i.code === 'unsupported') ? 'unsupported' : 'invalid', issues: hitIssues }
+  }
+
+  // 召唤物命中：主线没有把它排进事件队列（见文档已知限制），这里按帧展开再结算。
+  // 窗口边界由 plan 负责裁剪（施放点 + 持续，且不超过测量窗口），结算层不再拿动作结束帧拦。
+  for (const [index, summon] of (plan?.summonHits ?? []).entries()) {
+    const stats = mergedStats({}, windowStats(plan, summon.ownerId, summon.atFrame).map(window => window.stats))
+    const enemy = mergedEnemy({ resistanceReduction: 0, defenseReduction: 0, defenseIgnore: 0 }, windowEnemies(plan, summon.atFrame).map(window => window.enemy))
+    const summonIssues = settle({
+      frame: summon.atFrame,
+      actorId: summon.ownerId,
+      actionId: 'summon',
+      hitIndex: -1 - index,
+      motionValue: summon.motionValue,
+      scaling: summon.scaling,
+      element: summon.element,
+      canCrit: summon.canCrit,
+      origin: 'summon',
+      stats,
+      enemy,
+      path: `summons.${index}`
+    })
+    if (summonIssues.length) return { status: summonIssues.some(i => i.code === 'unsupported') ? 'unsupported' : 'invalid', issues: summonIssues }
+  }
+
+  rows.sort((a, b) => a.frame - b.frame || (a.origin === b.origin ? 0 : a.origin === 'action' ? -1 : 1))
   return {
     status: 'calculated',
     scope: 'timeline-damage-no-reaction',
@@ -175,6 +282,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     total,
     rows,
     perActor,
+    perAction,
     target: { id: preset.id, level: preset.level, resistance: preset.resistance },
     gameVersion: anchor.gameVersion,
     source: anchor.source,

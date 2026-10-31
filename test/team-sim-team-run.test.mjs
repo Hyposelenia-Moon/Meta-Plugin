@@ -73,11 +73,11 @@ const rotation = {
 
 const crit = 'expected'
 const debuffs = { defenseReduction: 0, defenseIgnore: 0, resistanceReduction: 0 }
-const run = simulateTeam({ pack, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs })
+const run = simulateTeam({ pack, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs, mode: 'diagnostic' })
 assert.equal(run.status, 'calculated', JSON.stringify(run.issues))
 assert.equal(run.scope, 'team-run-no-reaction')
 assert.equal(run.simulationReady, false)
-assert.deepEqual(run.checks.map(c => c.stage), ['data-pack', 'versions', 'rotation', 'members', 'timeline', 'damage'])
+assert.deepEqual(run.checks.map(c => c.stage), ['data-pack', 'versions', 'rotation', 'members', 'mechanisms', 'timeline', 'damage'])
 assert.ok(run.checks.every(c => c.status === 'ok' && c.issues.length === 0))
 assert.deepEqual(run.versions, { pack: '6.0-synthetic', panels: '6.0-synthetic' })
 assert.equal(run.timeline.status, 'simulated')
@@ -106,46 +106,46 @@ assert.ok(Math.abs(run.damage.total - direct.reduce((a, b) => a + b, 0)) < 1e-9)
 assert.deepEqual(Object.keys(run.damage.perActor).sort(), ['actor:0', 'actor:1'])
 
 // 数据包坏了就在 data-pack 关拒绝，不再往下跑（版本不符按 invalid 收口，issues 里保留 version-mismatch）。
-const badPack = simulateTeam({ pack: { ...pack, schemaVersion: 2 }, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs })
+const badPack = simulateTeam({ pack: { ...pack, schemaVersion: 2 }, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs, mode: 'diagnostic' })
 assert.equal(badPack.status, 'invalid')
 assert.equal(badPack.checks[0].status, 'version-mismatch')
 assert.deepEqual(badPack.checks.map(c => c.stage), ['data-pack'])
 
 // 数据包与面板版本不一致：在 versions 关拒绝，不能拿两份不同版本的数据混着跑。
-const badVersion = simulateTeam({ pack: { ...pack, gameVersion: '7.1' }, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs })
+const badVersion = simulateTeam({ pack: { ...pack, gameVersion: '7.1' }, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs, mode: 'diagnostic' })
 assert.equal(badVersion.status, 'invalid')
 assert.deepEqual(badVersion.checks.map(c => c.stage), ['data-pack', 'versions'])
 assert.equal(badVersion.checks[1].issues[0].path, 'pack.gameVersion')
 
 // 面板版本没给：缺输入是 incomplete，关状态也要跟着，而不是一律 invalid。
-const noVersion = simulateTeam({ pack, rotation, members, expected: { ...expected, gameVersion: undefined }, targetPresetId: 'dummy-lv100', crit, debuffs })
+const noVersion = simulateTeam({ pack, rotation, members, expected: { ...expected, gameVersion: undefined }, targetPresetId: 'dummy-lv100', crit, debuffs, mode: 'diagnostic' })
 assert.equal(noVersion.status, 'incomplete')
 assert.equal(noVersion.checks[1].stage, 'versions')
 assert.equal(noVersion.checks[1].status, 'incomplete')
 
 // 轴引用了包里没有的动作，在 rotation 关拒绝。
-const badRotation = simulateTeam({ pack, rotation: { ...rotation, steps: [{ id: 's1', kind: 'action', actorId: 'actor:0', actionId: 'itto.burst', atFrame: 0 }] }, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs })
+const badRotation = simulateTeam({ pack, rotation: { ...rotation, steps: [{ id: 's1', kind: 'action', actorId: 'actor:0', actionId: 'itto.burst', atFrame: 0 }] }, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs, mode: 'diagnostic' })
 assert.equal(badRotation.status, 'unsupported')
 assert.ok(badRotation.checks.find(c => c.stage === 'rotation').issues.some(i => i.path === 'rotation.steps.0.actionId'))
 assert.ok(!badRotation.timeline)
 
 // 成员面板算不出来（三元组不符）在 members 关拒绝，且点名是哪个成员。
-const wrongExpected = simulateTeam({ pack, rotation, members, expected: { ...expected, bundleId: 'other-bundle' }, targetPresetId: 'dummy-lv100', crit, debuffs })
+const wrongExpected = simulateTeam({ pack, rotation, members, expected: { ...expected, bundleId: 'other-bundle' }, targetPresetId: 'dummy-lv100', crit, debuffs, mode: 'diagnostic' })
 assert.equal(wrongExpected.status, 'unsupported')
 assert.ok(wrongExpected.checks.find(c => c.stage === 'members').issues.some(i => i.path.startsWith('members.0.permanentData')))
 assert.ok(!wrongExpected.timeline)
 
 // 轴上出手的角色没有配装：拒绝，而不是按 0 伤害算。
-const onlyOne = simulateTeam({ pack, rotation, members: [members[0]], expected, targetPresetId: 'dummy-lv100', crit, debuffs })
+const onlyOne = simulateTeam({ pack, rotation, members: [members[0]], expected, targetPresetId: 'dummy-lv100', crit, debuffs, mode: 'diagnostic' })
 assert.equal(onlyOne.status, 'unsupported')
 assert.ok(onlyOne.checks.find(c => c.stage === 'members').issues.some(i => i.message.includes('actor:1')))
 
 // 空的成员表是 incomplete，不是 invalid：缺的是输入，不是输入写错了。
-const noMembers = simulateTeam({ pack, rotation, members: [], expected, targetPresetId: 'dummy-lv100', crit, debuffs })
+const noMembers = simulateTeam({ pack, rotation, members: [], expected, targetPresetId: 'dummy-lv100', crit, debuffs, mode: 'diagnostic' })
 assert.equal(noMembers.status, 'incomplete')
 
 // 目标口径与减益沿用同一套拒绝规则。
-const badTarget = simulateTeam({ pack, rotation, members, expected, targetPresetId: 'dummy-lv200', crit, debuffs })
+const badTarget = simulateTeam({ pack, rotation, members, expected, targetPresetId: 'dummy-lv200', crit, debuffs, mode: 'diagnostic' })
 assert.equal(badTarget.status, 'unsupported')
 assert.ok(badTarget.checks.find(c => c.stage === 'damage').issues.some(i => i.path.includes('targetPresetId')))
 
@@ -161,7 +161,7 @@ const effectPack = {
     }
   }
 }
-const buffed = simulateTeam({ pack: effectPack, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs })
+const buffed = simulateTeam({ pack: effectPack, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs, mode: 'diagnostic' })
 assert.equal(buffed.status, 'calculated', JSON.stringify(buffed.issues))
 assert.equal(buffed.timeline.triggers.length, 1)
 assert.equal(buffed.timeline.triggers[0].effectId, 'party-atk')
@@ -183,4 +183,43 @@ const lines = formatTeamRunReport(summary)
 assert.equal(lines[0], '队伍模拟：calculated（不可用于正式结论）')
 assert.ok(lines.some(line => line.startsWith(`命中：${run.damage.rows.length} 段`)), lines.join('\n'))
 
+// DPS 标准口径：默认模式（不带 mode）必须强制 110 级小宝 / 10% 抗性 / 120s / 0 能量，任何一项不符都拒。
+const { dpsWindowFrames, DPS_STANDARD } = await import(mod('modules/teamSimulation/dpsStandard.js'))
+const defaultMode = simulateTeam({ pack, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs })
+assert.equal(defaultMode.status, 'invalid', '缺省模式不接受非标准目标')
+assert.equal(defaultMode.checks.find(c => c.stage === 'dps-standard').status, 'invalid')
+assert.ok(defaultMode.checks.find(c => c.stage === 'dps-standard').issues.some(i => i.path === 'targetPresetId'))
+assert.ok(defaultMode.checks.find(c => c.stage === 'dps-standard').issues.some(i => i.path === 'measurementEndFrame'))
+
+const standardFrames = dpsWindowFrames(rotation.frameTier)
+const standardRotation = { ...rotation, measurementEndFrame: standardFrames }
+const standardRun = simulateTeam({ pack, rotation: standardRotation, members, expected, targetPresetId: DPS_STANDARD.targetId, crit, debuffs })
+assert.equal(standardRun.status, 'calculated', JSON.stringify(standardRun.issues))
+assert.equal(standardRun.mode, 'dps-standard')
+assert.equal(standardRun.checks.find(c => c.stage === 'dps-standard').status, 'ok')
+assert.ok(Math.abs(standardRun.dps.windowSeconds - DPS_STANDARD.windowSeconds) < 0.01, String(standardRun.dps.windowSeconds))
+assert.ok(Math.abs(standardRun.dps.value - standardRun.damage.total / standardRun.dps.windowSeconds) < 1e-9)
+
+// 能量必须显式写 0：缺省不等于 0。轴校验先一步拦下（dps-standard 的同一规则是第二道）。
+const noEnergy = { ...standardRotation, actors: standardRotation.actors.map(({ actorId, energyMax }) => ({ actorId, energyMax })) }
+const noEnergyRun = simulateTeam({ pack, rotation: noEnergy, members, expected, targetPresetId: DPS_STANDARD.targetId, crit, debuffs })
+assert.equal(noEnergyRun.status, 'invalid')
+assert.equal(noEnergyRun.checks.at(-1).stage, 'rotation')
+assert.ok(noEnergyRun.checks.at(-1).issues.some(i => i.path === 'rotation.actors.0.energy'))
+// 机制层端到端：动作挂上机制标记后，编排必须把它折算成窗口并影响结算。
+const mechanismPack = {
+  ...pack,
+  actions: {
+    ...pack.actions,
+    'albedo.skill': { ...pack.actions['albedo.skill'], mechanism: 'gorou-e' }
+  }
+}
+const mechanismRun = simulateTeam({ pack: mechanismPack, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs, mode: 'diagnostic' })
+assert.equal(mechanismRun.status, 'calculated', JSON.stringify(mechanismRun.issues))
+assert.equal(mechanismRun.checks.find(c => c.stage === 'mechanisms').status, 'ok')
+const gorouWindows = mechanismRun.plan.statWindows.filter(w => w.source === 'gorou-e')
+assert.ok(gorouWindows.length > 0, '机制层必须产出五郎窗口')
+assert.equal(gorouWindows[0].stats.def, 371.09, '五郎 E 给固定防御而非百分比')
+assert.equal(gorouWindows[0].stats.geo, undefined, '只有两名岩元素角色，不给岩伤加成')
+assert.notEqual(mechanismRun.damage.rows[2].damage, run.damage.rows[2].damage, '固定防御会抬高按防御结算的那一段')
 console.log('team-sim-team-run ok')

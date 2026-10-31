@@ -104,6 +104,7 @@ export interface ActionSpec {
   cooldownFrames?: number
   cooldownId?: string
   requires?: string[]
+  mechanism?: string
 }
 
 export type TimelineStep =
@@ -330,6 +331,7 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
   if (spec.energyCost !== undefined && (!isFiniteNumber(spec.energyCost) || spec.energyCost < 0)) add('invalid', `${p}.energyCost`, '能量消耗必须是非负有限数值')
   if (spec.cooldownFrames !== undefined && (!isInteger(spec.cooldownFrames) || spec.cooldownFrames < 0)) add('invalid', `${p}.cooldownFrames`, '冷却帧数必须是非负整数')
   if (spec.requires !== undefined && !Array.isArray(spec.requires)) add('invalid', `${p}.requires`, '门槛标记必须是数组')
+  if (spec.mechanism !== undefined && (typeof spec.mechanism !== 'string' || !spec.mechanism.trim())) add('invalid', `${p}.mechanism`, '机制标记必须是非空字符串')
   return issues
 }
 
