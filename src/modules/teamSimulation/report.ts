@@ -27,6 +27,10 @@ export interface TeamRunReport {
   effectUsage: { id: string; hits: number; total: number }[]
   /** 反应汇总：`hits` 是吃到该反应的伤害段数，`total` 是这些段里反应贡献的部分。 */
   reactions: { kind: string; hits: number; total: number }[]
+  /** 每个角色的起手能量、窗口结束能量与上限。 */
+  energy: { actorId: string; start: number; end: number; max: number }[]
+  /** 逐关耗时（毫秒）；未开 instrument 时为 null。 */
+  timings: Record<string, number> | null
   problems: { path: string; code: string; message: string }[]
 }
 
@@ -51,6 +55,8 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
     triggers: [],
     effectUsage: [],
     reactions: [],
+    energy: [],
+    timings: null,
     problems
   }
   if (result.status !== 'calculated') return empty
@@ -106,7 +112,9 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
     perAction: [...perAction.values()],
     triggers: [...triggers.entries()].map(([effectId, count]) => ({ effectId, count })),
     effectUsage: [...effectUsage.values()].sort((a, b) => b.total - a.total || a.id.localeCompare(b.id)),
-    reactions: [...reactions.values()].sort((a, b) => b.total - a.total || a.kind.localeCompare(b.kind))
+    reactions: [...reactions.values()].sort((a, b) => b.total - a.total || a.kind.localeCompare(b.kind)),
+    energy: result.energy,
+    timings: result.timings
   }
 }
 
@@ -127,8 +135,10 @@ export function formatTeamRunReport(report: TeamRunReport): string[] {
     for (const action of report.perAction) lines.push(`  动作 ${action.actorId} / ${action.actionId}：${action.hits} 段 ${round1(action.total)}`)
     if (report.triggers.length) lines.push(`触发：${report.triggers.map(trigger => `${trigger.effectId}×${trigger.count}`).join('、')}`)
     if (report.reactions.length) lines.push(`反应：${report.reactions.map(item => `${item.kind} ${item.hits} 段 ${round1(item.total)}`).join('、')}`)
+    for (const item of report.energy ?? []) lines.push(`  能量 ${item.actorId}：${round1(item.start)} → ${round1(item.end)} / ${round1(item.max)}`)
     if (report.effectUsage.length) lines.push(`在场覆盖：${report.effectUsage.map(usage => `${usage.id} ${usage.hits} 段 ${round1(usage.total)}`).join('、')}`)
   }
+  if (report.timings) lines.push(`耗时：${Object.entries(report.timings).map(([stage, ms]) => `${stage}=${ms}ms`).join(' · ')}`)
   if (report.approximateItems.length) lines.push(`近似项：${report.approximateItems.join('、')}`)
   for (const resource of report.resources) lines.push(`资源：${resource.id} [${resource.status}` + ') ' + `] ${resource.message}`)
   for (const problem of report.problems) lines.push(`问题：${problem.path} [${problem.code}] ${problem.message}`)

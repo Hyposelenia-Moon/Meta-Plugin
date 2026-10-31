@@ -77,7 +77,11 @@ export { simulateTeam } from './teamRun.js'
 export type { TeamMemberInput, TeamRunMode, TeamRunInput, TeamRunCheck, TeamRunResult } from './teamRun.js'
 
 export { buildTeamRunReport, formatTeamRunReport } from './report.js'
+export { diffPacks, diffRotations, diffValues, formatDiff } from './diff.js'
+export { buildRunLog } from './log.js'
 export type { TeamRunReport } from './report.js'
+export type { DiffEntry, PackDiff, PackDiffSummary, RotationDiffSummary } from './diff.js'
+export type { RunLog, RunLogEntry } from './log.js'
 
 export {
   REACTION_COEFFICIENT,
