@@ -97,5 +97,8 @@ export {
 } from './reactions.js'
 export type { ReactionElement, ReactionClass, ReactiveKind, StatefulKind, ReactionSpec } from './reactions.js'
 
+export { REACTION_FAMILIES, BLOCKED_FAMILIES, gateReactionFamily, familyCoverage } from './reactionFamilies.js'
+export type { ReactionFamily, ReactionFamilySpec, FamilyGateResult } from './reactionFamilies.js'
+
 export { GOLDEN_THRESHOLDS, validateGoldenCases, evaluateGolden } from './metrics.js'
 export type { GoldenCase, GoldenExpectation, GoldenActual, GoldenRow, GoldenReport } from './metrics.js'
