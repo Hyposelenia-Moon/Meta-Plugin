@@ -16,6 +16,8 @@ const ROSTER = "data/team-sim/roster.json"
 const FRAMES_DIR = "out/frames"
 const OUT_DIR = "data/team-sim/packs"
 const OUT_REPORT = "out/roster-packs-report.json"
+/** 人工核对过的动作覆盖（战技/爆发/重击），与自动生成的普攻合并成同一份包。 */
+const CURATED_DIR = "data/team-sim/curated"
 
 const GAME_VERSION = "7.1"
 const GCSIM_COMMIT = "fcc117b31ce45010ded40e48e6adcc2676306015"
@@ -83,7 +85,7 @@ const pickByName = (table, candidates) => {
 
 const roster = readJson(ROSTER)
 const characters = Array.isArray(roster.characters) ? roster.characters : []
-const report = { characters: characters.length, packs: 0, actions: 0, hits: 0, multiHitSegments: 0, splitFromTalent: 0, skipped: [], partial: [] }
+const report = { characters: characters.length, packs: 0, actions: 0, hits: 0, multiHitSegments: 0, splitFromTalent: 0, curated: 0, skipped: [], partial: [] }
 
 const targets = characters.filter((c) => c.status === "mapped")
 for (const character of targets) {
@@ -180,16 +182,38 @@ for (const character of targets) {
   else if (elements.length !== 1) approximate.push(elements.length === 0 ? "命中元素未在 gcsim 声明，按物理处理" : `命中元素声明不唯一（${elements.join("/")}），按物理处理`)
   approximate.push("卡肉未填：hitlag 一律留空")
   approximate.push("附着与 ICD 未接：命中只结算直伤与倍率")
-  approximate.push("战技/爆发/重击未落包：scaling 待人工确认")
+
+  // 人工核对过的动作（战技/爆发/重击）不在自动生成范围内，放在 curated/<key>.json 里覆盖：
+  // 键冲突即报错退出，不做「后写覆盖」——那会让两份数据谁生效取决于读取顺序。
+  const curatedPath = path.join(CURATED_DIR, `${key}.json`)
+  let curatedCount = 0
+  if (fs.existsSync(curatedPath)) {
+    const curated = readJson(curatedPath)
+    const curatedActions = curated && typeof curated.actions === 'object' ? curated.actions : {}
+    for (const [id, action] of Object.entries(curatedActions)) {
+      if (actions[id]) {
+        console.error(`[gen-roster-packs] ${key} 的人工动作 ${id} 与自动生成的普攻键冲突`)
+        process.exit(1)
+      }
+      if (!action || action.actorId !== key) {
+        console.error(`[gen-roster-packs] ${key} 的人工动作 ${id} 的 actorId 必须等于 ${key}`)
+        process.exit(1)
+      }
+      actions[id] = action
+      curatedCount++
+    }
+    if (Array.isArray(curated?.notes)) approximate.push(...curated.notes)
+  }
 
   const pack = { schemaVersion: 1, gameVersion: GAME_VERSION, source: SOURCE, actions }
   fs.mkdirSync(OUT_DIR, { recursive: true })
   fs.writeFileSync(path.join(OUT_DIR, `${key}.json`), JSON.stringify(pack, null, 2) + "\n", "utf8")
   report.packs++
   report.actions += Object.keys(actions).length
+  if (curatedCount) report.curated += curatedCount
   report.partial.push({ key, notes: approximate })
 }
 
 fs.mkdirSync(path.dirname(OUT_REPORT), { recursive: true })
 fs.writeFileSync(OUT_REPORT, JSON.stringify(report, null, 2) + "\n", "utf8")
-console.log(JSON.stringify({ characters: report.characters, packs: report.packs, actions: report.actions, skipped: report.skipped.length }))
+console.log(JSON.stringify({ characters: report.characters, packs: report.packs, actions: report.actions, curated: report.curated, skipped: report.skipped.length }))

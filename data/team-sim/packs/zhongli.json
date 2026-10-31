@@ -137,6 +137,47 @@
         "type": "frames",
         "frames": 54
       }
+    },
+    "zhongli.skill": {
+      "id": "zhongli.skill",
+      "actorId": "zhongli",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 96
+      },
+      "hits": [
+        {
+          "atFrame": 48,
+          "motionValue": 1.44,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 720,
+      "cooldownId": "skill"
+    },
+    "zhongli.burst": {
+      "id": "zhongli.burst",
+      "actorId": "zhongli",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 139
+      },
+      "hits": [
+        {
+          "atFrame": 101,
+          "motionValue": 8.9972,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 40,
+      "cooldownFrames": 720,
+      "cooldownId": "burst"
     }
   }
 }

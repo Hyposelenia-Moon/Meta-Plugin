@@ -1,0 +1,37 @@
+{
+  "key": "zhongli",
+  "gameVersion": "7.1",
+  "source": "倍率=miao 天赋 10 级；帧与冷却=gcsim fcc117b（internal/characters/zhongli/skill.go:32 长按动画 96 帧、命中 48；burst.go:17 动画 139、命中 101、冷却 720）",
+  "notes": [
+    "战技按长按结算（命中 48 帧、动画 96 帧）：点按不造成伤害，不在包内",
+    "岩脊与共鸣伤害、护盾未建模：只有长按那一段直接命中",
+    "产球未建模：岩脊命中才产球（stele.go:139 particleCB，1.5 秒 ICD），本动作自身不产球",
+    "岩脊生成（同帧 0.288 倍率）、共鸣（0.576 倍率 / 120 帧周期）均未建模",
+    "爆发命中 101 帧后石化控制未建模；二命玉璋护盾未建模"
+  ],
+  "actions": {
+    "zhongli.skill": {
+      "id": "zhongli.skill",
+      "actorId": "zhongli",
+      "kind": "skill",
+      "timing": { "type": "frames", "frames": 96 },
+      "hits": [
+        { "atFrame": 48, "motionValue": 1.44, "scaling": "atk", "element": "geo", "canCrit": true }
+      ],
+      "cooldownFrames": 720,
+      "cooldownId": "skill"
+    },
+    "zhongli.burst": {
+      "id": "zhongli.burst",
+      "actorId": "zhongli",
+      "kind": "burst",
+      "timing": { "type": "frames", "frames": 139 },
+      "hits": [
+        { "atFrame": 101, "motionValue": 8.9972, "scaling": "atk", "element": "geo", "canCrit": true }
+      ],
+      "energyCost": 40,
+      "cooldownFrames": 720,
+      "cooldownId": "burst"
+    }
+  }
+}

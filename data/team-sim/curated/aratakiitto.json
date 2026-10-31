@@ -1,0 +1,26 @@
+{
+  "key": "aratakiitto",
+  "gameVersion": "7.1",
+  "source": "倍率=miao 天赋 10 级；帧与冷却=gcsim fcc117b（internal/characters/itto/skill.go:15 命中 = 施放 14 + 飞行 4、:20 动画 42、:122 冷却 600；burst.go:23 动画 91、:112 冷却 1080）",
+  "notes": [
+    "赤牛（鬼王金碎棒）只结算施放那一段岩元素伤害；赤牛驻场、嘲讽、受击叠层未建模",
+    "产球按 gcsim 3 颗岩元素微粒（skill.go:141-145，50% 概率变 4，这里按基础值 3）；到达延迟未建模（travelFrames=0）：内核在下一个动作开始时取消上一个动作尚未到达的产球，gcsim 默认粒子延迟 100 帧，先按 0 帧记",
+    "爆发不进包：一斗 Q 自身不造成伤害（gcsim burst.go:38-121 无 QueueAttack，miao 表也只有「攻击力提高」），只改状态与属性；鬼王金碎棒伤害由爆发状态下的普攻/重击承担，本包里仍是常态普攻倍率"
+  ],
+  "actions": {
+    "aratakiitto.skill": {
+      "id": "aratakiitto.skill",
+      "actorId": "aratakiitto",
+      "kind": "skill",
+      "timing": { "type": "frames", "frames": 42 },
+      "hits": [
+        { "atFrame": 18, "motionValue": 5.5296, "scaling": "atk", "element": "geo", "canCrit": true }
+      ],
+      "particles": [
+        { "atFrame": 18, "count": 3, "element": "geo", "travelFrames": 0 }
+      ],
+      "cooldownFrames": 600,
+      "cooldownId": "skill"
+    }
+  }
+}

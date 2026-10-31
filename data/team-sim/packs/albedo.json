@@ -97,6 +97,55 @@
         "type": "frames",
         "frames": 62
       }
+    },
+    "albedo.skill": {
+      "id": "albedo.skill",
+      "actorId": "albedo",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 33
+      },
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 2.3472,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 25,
+          "count": 1,
+          "element": "geo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 240,
+      "cooldownId": "skill"
+    },
+    "albedo.burst": {
+      "id": "albedo.burst",
+      "actorId": "albedo",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 96
+      },
+      "hits": [
+        {
+          "atFrame": 75,
+          "motionValue": 6.6096,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 40,
+      "cooldownFrames": 720,
+      "cooldownId": "burst"
     }
   }
 }

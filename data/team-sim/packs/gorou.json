@@ -78,6 +78,55 @@
         "type": "frames",
         "frames": 55
       }
+    },
+    "gorou.skill": {
+      "id": "gorou.skill",
+      "actorId": "gorou",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 47
+      },
+      "hits": [
+        {
+          "atFrame": 34,
+          "motionValue": 1.9296,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 34,
+          "count": 2,
+          "element": "geo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 600,
+      "cooldownId": "skill"
+    },
+    "gorou.burst": {
+      "id": "gorou.burst",
+      "actorId": "gorou",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 56
+      },
+      "hits": [
+        {
+          "atFrame": 31,
+          "motionValue": 1.767888,
+          "scaling": "def",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
     }
   }
 }

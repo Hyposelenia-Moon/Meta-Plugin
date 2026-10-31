@@ -49,7 +49,10 @@ for (const name of packFiles) {
   assert.equal(pack.gameVersion, roster.gameVersion)
   const key = name.replace(/\.json$/, '')
   for (const action of Object.values(pack.actions)) {
-    assert.ok(action.id.startsWith(`${key}.normal-`), `${name} 的动作 ${action.id} 与角色不对应`)
+    assert.ok(action.id.startsWith(`${key}.`), `${name} 的动作 ${action.id} 与角色不对应`)
+    // 自动生成的普攻必须落在 normal- 序号上；人工核对动作（战技/爆发）按种类命名。
+    if (action.kind === 'normal') assert.ok(action.id.startsWith(`${key}.normal-`), `${name} 的普攻 ${action.id} 命名不对`)
+    else assert.ok(['skill', 'burst', 'charged'].includes(action.kind), `${name} 的动作 ${action.id} 种类未知：${action.kind}`)
     assert.equal(allActions.has(action.id), false, `动作 id 重复：${action.id}`)
     allActions.set(action.id, action)
     assert.ok(action.hits.length >= 1)
@@ -85,3 +88,40 @@ assert.deepEqual(n4.map((h) => h.atFrame), [5, 15, 24, 29])
 const hutao = JSON.parse(fs.readFileSync(new URL('hutao.json', packsDir), 'utf8'))
 const hutaoN5 = hutao.actions['hutao.normal-5'].hits
 assert.deepEqual(hutaoN5.map((h) => h.motionValue), [0.5936, 0.628])
+
+// 人工核对动作目前只有纯岩四人的战技/爆发，逐项钉住数值与口径，避免以后静默扩张或改数。
+const geoPack = key => JSON.parse(fs.readFileSync(new URL(`${key}.json`, packsDir), 'utf8'))
+const zhongli = geoPack('zhongli')
+assert.deepEqual(
+  { frames: zhongli.actions['zhongli.skill'].timing.frames, atFrame: zhongli.actions['zhongli.skill'].hits[0].atFrame, mv: zhongli.actions['zhongli.skill'].hits[0].motionValue, cd: zhongli.actions['zhongli.skill'].cooldownFrames },
+  { frames: 96, atFrame: 48, mv: 1.44, cd: 720 })
+assert.deepEqual(
+  { frames: zhongli.actions['zhongli.burst'].timing.frames, atFrame: zhongli.actions['zhongli.burst'].hits[0].atFrame, mv: zhongli.actions['zhongli.burst'].hits[0].motionValue, cost: zhongli.actions['zhongli.burst'].energyCost },
+  { frames: 139, atFrame: 101, mv: 8.9972, cost: 40 })
+const albedo = geoPack('albedo')
+assert.deepEqual(
+  { frames: albedo.actions['albedo.skill'].timing.frames, atFrame: albedo.actions['albedo.skill'].hits[0].atFrame, mv: albedo.actions['albedo.skill'].hits[0].motionValue, particles: albedo.actions['albedo.skill'].particles },
+  { frames: 33, atFrame: 25, mv: 2.3472, particles: [{ atFrame: 25, count: 1, element: 'geo', travelFrames: 0 }] })
+assert.equal(albedo.actions['albedo.burst'].hits[0].motionValue, 6.6096)
+const gorou = geoPack('gorou')
+assert.deepEqual(
+  { atFrame: gorou.actions['gorou.skill'].hits[0].atFrame, mv: gorou.actions['gorou.skill'].hits[0].motionValue, count: gorou.actions['gorou.skill'].particles[0].count },
+  { atFrame: 34, mv: 1.9296, count: 2 })
+assert.deepEqual(
+  { scaling: gorou.actions['gorou.burst'].hits[0].scaling, mv: gorou.actions['gorou.burst'].hits[0].motionValue, cost: gorou.actions['gorou.burst'].energyCost },
+  { scaling: 'def', mv: 1.767888, cost: 80 })
+const ittoCurated = geoPack('aratakiitto')
+assert.deepEqual(
+  { frames: ittoCurated.actions['aratakiitto.skill'].timing.frames, atFrame: ittoCurated.actions['aratakiitto.skill'].hits[0].atFrame, mv: ittoCurated.actions['aratakiitto.skill'].hits[0].motionValue, count: ittoCurated.actions['aratakiitto.skill'].particles[0].count },
+  { frames: 42, atFrame: 18, mv: 5.5296, count: 3 })
+// 一斗爆发不造成伤害，包内不该出现爆发动作。
+assert.equal(ittoCurated.actions['aratakiitto.burst'], undefined)
+// 除这四人外，任何包都不该带非普攻动作。
+const curatedKeys = new Set(['zhongli', 'albedo', 'gorou', 'aratakiitto'])
+const stray = []
+for (const name of packFiles) {
+  const key = name.replace(/\.json$/, '')
+  const pack = JSON.parse(fs.readFileSync(new URL(name, packsDir), 'utf8'))
+  for (const action of Object.values(pack.actions)) if (action.kind !== 'normal' && !curatedKeys.has(key)) stray.push(action.id)
+}
+assert.deepEqual(stray, [])
