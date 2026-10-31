@@ -11,7 +11,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **源码**：`src/` → `tsc` → `lib/`（目录结构一致）。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
-- **常用命令**：`pnpm build`、`pnpm test`（68 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（72 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -123,6 +123,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 | 测试命令、前置与跳过 | [docs/测试.md](./docs/测试.md) |
 | 队伍模拟 P0 的分层、契约、目标口径与已知限制 | [docs/队伍模拟-P0底座.md](./docs/队伍模拟-P0底座.md) |
 | 队伍模拟 P0 与重构方案的契约差异、裁决与落地状态 | [docs/队伍模拟-P0与重构方案差异.md](./docs/队伍模拟-P0与重构方案差异.md) |
+| 队伍模拟 P1 纯岩试点的契约、时间模型、四角色拆解与数据需求 | [docs/队伍模拟-P1纯岩试点设计.md](./docs/队伍模拟-P1纯岩试点设计.md) |
 | 许可、字体、版权声明、数据来源 | [docs/许可与来源.md](./docs/许可与来源.md) |
 | 待办与规划（含 Atlas 导出清单） | [docs/待办与规划.md](./docs/待办与规划.md) |
 | 盘符映射、部署机、本机工作区 | `docs/private/`（**不入库，新克隆上不存在**） |
@@ -193,7 +194,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 68 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 72 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。
@@ -206,7 +207,11 @@ pnpm build && pnpm test     # 68 套；任意 cwd 可跑、不发真实网络、
   `team-build-adapter`（miao 面板到 `CharacterBuild` 的校验：主词条部位匹配、五星满级 4 条副词条、实例 id 与角色 id 一致）、
   `team-sim-build`（四个独立角色的永久面板算式、`talents.modifiers` 来源登记、`panelCheck` 拒绝）、
   `team-sim-formula`（普通直伤各乘区、减防 0.9 上限、负抗不截断、目标预设绑定与回填）、
-  `team-sim-legacy`（`legacyEstimate` 的三项标记与入参隔离）。
+  `team-sim-legacy`（`legacyEstimate` 的三项标记与入参隔离）、
+  `team-sim-timeline`（整数帧调度、相位顺序、取消窗口、冷却与产球回能、帧率档位与确定性）、
+  `team-sim-hit-damage`（时间轴命中接到直伤公式：结算属性与元素加成映射、减益必须显式 0、目标与面板拒绝项）、
+  `team-sim-pack`（数据包与轴的拒绝项：版本、动作 id 与键一致、未知动作、帧率档位与初始资源）、
+  `team-sim-team-run`（数据包 → 轴 → 面板 → 时间线 → 结算的串联与每关拒绝；端到端伤害与直接调公式逐段一致）。
 - 维护者区自检（不在 `pnpm test` 内）：`node scripts/editor-selftest.mjs`（258/258）、`display-selftest.mjs`、`display-audit.mjs`、`audit-guide-html.mjs`。`node scripts/scan-portrait-padding.mjs` 是**按需**跑的白边扫描（生成 `out/portrait-padding.json`，攻略页立绘据此跳过白边图；图库变动后重跑）。
 - 细节与固定验收集见 [docs/测试.md](./docs/测试.md) 与 [docs/改动传播清单.md](./docs/改动传播清单.md)。
 
@@ -220,17 +225,18 @@ pnpm build && pnpm test     # 68 套；任意 cwd 可跑、不发真实网络、
 
 细节见 [docs/待办与规划.md](./docs/待办与规划.md)。
 
-## 当前工作区提交摘要（2026-11-01）
+## 当前工作区提交摘要（2026-11-01，P1 响应型时长口径）
 
-> 依据：`git log -1` = `525d54b fix: 契约层补配装结构校验，不再只靠适配器把关`（上一轮已提交，工作区只剩本轮改动）；`git diff --stat` = 8 files changed, 55 insertions(+), 30 deletions(-)（含本段与 `docs/队伍模拟-P0底座.md`）。
+> 依据：`git log -1` = `8759f3e feat: 队伍模拟 P1 增数据包与轴契约，编排串联数据包→轴→面板→时间线→结算`（上一轮已提交，本轮只含时长口径）；`git diff --stat` = 8 files changed, 246 insertions(+), 35 deletions(-)，无未跟踪文件。
 
 ```text
-fix: 静态加成不再走无审计通道，P0 要求 bonuses 为空
- - src/modules/teamSimulation/build.ts 及 lib 产物：新增 bonuses 空数组校验，非空即按 unsupported 拒绝并指向效果 modifiers
- - src/modules/teamSimulation/build.ts 及 lib 产物：删除把角色/武器 bonuses 直接累加进面板的两行，属性只从已审计效果来
- - src/modules/teamSimulation/types.ts 及 lib 产物：注明 PermanentData 的 bonuses 在 P0 必须为空数组
- - test/team-sim-build.test.mjs：夹具把 atkPct、cpct 挪进对应来源的 modifiers，四角色攻击预期同步
- - test/team-sim-build.test.mjs：新增角色与武器 bonuses 注入两条负例，属性类负例改到效果 modifiers 上
+feat: 队伍模拟 P1 支持响应型动作时长，按帧率档位折算整数帧
+ - src/modules/teamSimulation/timeline.ts 及 lib 产物：ActionSpec 的 durationFrames 换成必填的 timing 判别字段（frames / response）
+ - src/modules/teamSimulation/timeline.ts：新增 resolveActionTiming，响应型按 k × 帧生成时间 + bMs 算现实时长并向上取整成帧
+ - src/modules/teamSimulation/timeline.ts：validateActionSpec 只校验时长结构，响应型的命中/取消窗口/产球上界改为在档位确定后判并点名档位与折算帧数
+ - src/modules/teamSimulation/timeline.ts：动作结束帧与最早可取消帧改用折算后的帧数，不再读固定帧数
+ - test/team-sim-timeline.test.mjs：补响应型折算（60/56/625 档 17/16/77 帧）、换档位越界、时长口径四类拒绝项
+ - test/team-sim-hit-damage.test.mjs、test/team-sim-pack.test.mjs、test/team-sim-team-run.test.mjs：夹具迁移到 timing 字段
 ```
 
-文档同步（不计入上述代码改动）：`docs/队伍模拟-P0底座.md` 公式段去掉「角色/武器静态加成」，并补一段说明 bonuses 必须为空、突破加成登记在 `character:<id>:a<突破>` 名下、武器效果登记在 `weapon:<id>:r<精炼>` 名下。
+文档同步（不计入上述代码改动）：`docs/队伍模拟-P1纯岩试点设计.md` 的 `ActionSpec` 契约改成 `timing` 判别字段并补两种口径的换算、校验与示例（60 档 17 帧 / 56 档 16 帧 / 625 档 77 帧），未落地清单把响应型从「未做」改为「只做时长口径、命中时刻仍按帧给定」。
