@@ -61,7 +61,7 @@ export type {
 export { createEffectRuntime, validateEffectSpec, validateEffects, applyPanelModifiers, PANEL_STAT_KEYS, NO_ENEMY_MODIFIERS } from './effects.js'
 export type { EffectSpec, EffectTarget, StackingPolicy, PanelStatKey, PanelModifiers, EnemyModifiers, EffectRuntime, TriggerRecord, ActiveEffectState } from './effects.js'
 
-export { validateDataPack } from './dataPack.js'
+export { combineDataPacks, validateDataPack } from './dataPack.js'
 export type { DataPack, DataPackResult } from './dataPack.js'
 
 export { validateRotation } from './rotation.js'

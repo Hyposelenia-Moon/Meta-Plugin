@@ -71,6 +71,17 @@
   随 `Mhydps-Plugin` 迁入（榜单 / 危战 / 状态页的 `@font-face` 依赖它们），故对 `*.ttf` 加了
   `!resources/common/font/*.ttf` 例外。若上游对这些字体文件有异议，删除后页面会回落系统字体，功能不受影响。
 
+## 6. gcsim（SimulationStandard）—— 命中帧与动作时长的数值来源
+
+- **用途**：`scripts/extract-gcsim-frames.mjs` 从**本机克隆的 gcsim 源码**抽取角色普通攻击的命中帧
+  （`attackHitmarks` / `attackReleases`）与动作收尾帧（`internal/frames` 的 `InitNormalCancelSlice` / `InitAbilSlice`），
+  生成 `data/team-sim/packs/` 的数据包。抽取只在构建期跑一次，产出是**数值**（帧号）；运行时既不依赖也不携带 gcsim 代码。
+- **来源版本**：`fcc117b31ce45010ded40e48e6adcc2676306015`（2026-10-30 快照）。源码不在本仓库内（`.gitignore` 排除 `out/`），
+  仓库里只留帧号与 `test/team-sim-geo-pack.test.mjs` 注释中的对照数字。
+- **许可**：gcsim 自 2026-09-19 起改为 AGPL-3.0-only（v2.47.2 及更早为 MIT）。本仓库不复制其实现，
+  只把公开帧数当事实数据引用；将来若要引入其算法或代码，必须重新评估 AGPL 的传染范围。
+- **边界**：倍率不取 gcsim（取 miao 天赋 10 级）；元素只对法器角色采用，附魔态一律按物理处理。
+
 ---
 
 ## 与其他文档的关系

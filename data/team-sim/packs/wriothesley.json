@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "wriothesley.normal-1": {
+      "id": "wriothesley.normal-1",
+      "actorId": "wriothesley",
+      "kind": "normal",
+      "element": "cryo",
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 1.0548,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 27
+      }
+    },
+    "wriothesley.normal-2": {
+      "id": "wriothesley.normal-2",
+      "actorId": "wriothesley",
+      "kind": "normal",
+      "element": "cryo",
+      "hits": [
+        {
+          "atFrame": 10,
+          "motionValue": 1.0239,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 25
+      }
+    },
+    "wriothesley.normal-3": {
+      "id": "wriothesley.normal-3",
+      "actorId": "wriothesley",
+      "kind": "normal",
+      "element": "cryo",
+      "hits": [
+        {
+          "atFrame": 18,
+          "motionValue": 1.3288,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 41
+      }
+    },
+    "wriothesley.normal-4": {
+      "id": "wriothesley.normal-4",
+      "actorId": "wriothesley",
+      "kind": "normal",
+      "element": "cryo",
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 0.7493,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 35,
+          "motionValue": 0.7493,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 56
+      }
+    },
+    "wriothesley.normal-5": {
+      "id": "wriothesley.normal-5",
+      "actorId": "wriothesley",
+      "kind": "normal",
+      "element": "cryo",
+      "hits": [
+        {
+          "atFrame": 39,
+          "motionValue": 1.7937,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 59
+      }
+    }
+  }
+}

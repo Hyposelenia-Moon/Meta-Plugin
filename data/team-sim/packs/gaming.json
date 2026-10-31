@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "gaming.normal-1": {
+      "id": "gaming.normal-1",
+      "actorId": "gaming",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 1.6576,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 39
+      }
+    },
+    "gaming.normal-2": {
+      "id": "gaming.normal-2",
+      "actorId": "gaming",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 18,
+          "motionValue": 1.5625,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 46
+      }
+    },
+    "gaming.normal-3": {
+      "id": "gaming.normal-3",
+      "actorId": "gaming",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 34,
+          "motionValue": 2.1081,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 86
+      }
+    },
+    "gaming.normal-4": {
+      "id": "gaming.normal-4",
+      "actorId": "gaming",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 48,
+          "motionValue": 2.5292,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 89
+      }
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "mona.normal-1": {
+      "id": "mona.normal-1",
+      "actorId": "mona",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.6768,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 29
+      }
+    },
+    "mona.normal-2": {
+      "id": "mona.normal-2",
+      "actorId": "mona",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.648,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 30
+      }
+    },
+    "mona.normal-3": {
+      "id": "mona.normal-3",
+      "actorId": "mona",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 0.8064,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 54
+      }
+    },
+    "mona.normal-4": {
+      "id": "mona.normal-4",
+      "actorId": "mona",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 27,
+          "motionValue": 1.0109,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 67
+      }
+    }
+  }
+}

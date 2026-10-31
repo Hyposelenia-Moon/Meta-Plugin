@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "clorinde.normal-1": {
+      "id": "clorinde.normal-1",
+      "actorId": "clorinde",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 18,
+          "motionValue": 1.0686,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 24
+      }
+    },
+    "clorinde.normal-2": {
+      "id": "clorinde.normal-2",
+      "actorId": "clorinde",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 1.0206,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 27
+      }
+    },
+    "clorinde.normal-3": {
+      "id": "clorinde.normal-3",
+      "actorId": "clorinde",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 0.6758,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 32,
+          "motionValue": 0.6758,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      }
+    },
+    "clorinde.normal-4": {
+      "id": "clorinde.normal-4",
+      "actorId": "clorinde",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 0.4573,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 18,
+          "motionValue": 0.4573,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 23,
+          "motionValue": 0.4573,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 35
+      }
+    },
+    "clorinde.normal-5": {
+      "id": "clorinde.normal-5",
+      "actorId": "clorinde",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 21,
+          "motionValue": 1.7793,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 60
+      }
+    }
+  }
+}

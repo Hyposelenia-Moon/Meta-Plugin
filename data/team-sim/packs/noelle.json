@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "noelle.normal-1": {
+      "id": "noelle.normal-1",
+      "actorId": "noelle",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 27,
+          "motionValue": 1.564,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 54
+      }
+    },
+    "noelle.normal-2": {
+      "id": "noelle.normal-2",
+      "actorId": "noelle",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 24,
+          "motionValue": 1.4501,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 66
+      }
+    },
+    "noelle.normal-3": {
+      "id": "noelle.normal-3",
+      "actorId": "noelle",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 19,
+          "motionValue": 1.7051,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 72
+      }
+    },
+    "noelle.normal-4": {
+      "id": "noelle.normal-4",
+      "actorId": "noelle",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 41,
+          "motionValue": 2.2423,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 112
+      }
+    }
+  }
+}

@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "author": "Hyposelenia",
-  "license": "GPL-3.0-only",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc --noEmit",

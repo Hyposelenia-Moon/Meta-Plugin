@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "chasca.normal-1": {
+      "id": "chasca.normal-1",
+      "actorId": "chasca",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 10,
+          "motionValue": 0.949,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 27
+      }
+    },
+    "chasca.normal-2": {
+      "id": "chasca.normal-2",
+      "actorId": "chasca",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 8,
+          "motionValue": 0.8814,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 29
+      }
+    },
+    "chasca.normal-3": {
+      "id": "chasca.normal-3",
+      "actorId": "chasca",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.587,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 20,
+          "motionValue": 0.587,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 53
+      }
+    },
+    "chasca.normal-4": {
+      "id": "chasca.normal-4",
+      "actorId": "chasca",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 39,
+          "motionValue": 1.5102,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 73
+      }
+    }
+  }
+}

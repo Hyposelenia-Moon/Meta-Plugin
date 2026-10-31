@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "rosaria.normal-1": {
+      "id": "rosaria.normal-1",
+      "actorId": "rosaria",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 9,
+          "motionValue": 1.037,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 24
+      }
+    },
+    "rosaria.normal-2": {
+      "id": "rosaria.normal-2",
+      "actorId": "rosaria",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 1.02,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 27
+      }
+    },
+    "rosaria.normal-3": {
+      "id": "rosaria.normal-3",
+      "actorId": "rosaria",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 19,
+          "motionValue": 0.629,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 28,
+          "motionValue": 0.629,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 34
+      }
+    },
+    "rosaria.normal-4": {
+      "id": "rosaria.normal-4",
+      "actorId": "rosaria",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 32,
+          "motionValue": 1.377,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 52
+      }
+    },
+    "rosaria.normal-5": {
+      "id": "rosaria.normal-5",
+      "actorId": "rosaria",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 26,
+          "motionValue": 0.8228,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 40,
+          "motionValue": 0.85,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 66
+      }
+    }
+  }
+}

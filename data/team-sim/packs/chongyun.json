@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "chongyun.normal-1": {
+      "id": "chongyun.normal-1",
+      "actorId": "chongyun",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 26,
+          "motionValue": 1.3838,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 30
+      }
+    },
+    "chongyun.normal-2": {
+      "id": "chongyun.normal-2",
+      "actorId": "chongyun",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 24,
+          "motionValue": 1.2478,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 36
+      }
+    },
+    "chongyun.normal-3": {
+      "id": "chongyun.normal-3",
+      "actorId": "chongyun",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 41,
+          "motionValue": 1.5878,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 57
+      }
+    },
+    "chongyun.normal-4": {
+      "id": "chongyun.normal-4",
+      "actorId": "chongyun",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 53,
+          "motionValue": 2.0009,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 101
+      }
+    }
+  }
+}

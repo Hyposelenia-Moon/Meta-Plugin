@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "yaemiko.normal-1": {
+      "id": "yaemiko.normal-1",
+      "actorId": "yaemiko",
+      "kind": "normal",
+      "element": "electro",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.7139,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 28
+      }
+    },
+    "yaemiko.normal-2": {
+      "id": "yaemiko.normal-2",
+      "actorId": "yaemiko",
+      "kind": "normal",
+      "element": "electro",
+      "hits": [
+        {
+          "atFrame": 22,
+          "motionValue": 0.6933,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 40
+      }
+    },
+    "yaemiko.normal-3": {
+      "id": "yaemiko.normal-3",
+      "actorId": "yaemiko",
+      "kind": "normal",
+      "element": "electro",
+      "hits": [
+        {
+          "atFrame": 33,
+          "motionValue": 1.024,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 79
+      }
+    }
+  }
+}

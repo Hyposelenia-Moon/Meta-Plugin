@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "sayu.normal-1": {
+      "id": "sayu.normal-1",
+      "actorId": "sayu",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 1.428,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 36
+      }
+    },
+    "sayu.normal-2": {
+      "id": "sayu.normal-2",
+      "actorId": "sayu",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 29,
+          "motionValue": 1.411,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 48
+      }
+    },
+    "sayu.normal-3": {
+      "id": "sayu.normal-3",
+      "actorId": "sayu",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.8585,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 26,
+          "motionValue": 0.8585,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 52
+      }
+    },
+    "sayu.normal-4": {
+      "id": "sayu.normal-4",
+      "actorId": "sayu",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 35,
+          "motionValue": 1.9397,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 71
+      }
+    }
+  }
+}

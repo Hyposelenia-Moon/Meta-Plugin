@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "yoimiya.normal-1": {
+      "id": "yoimiya.normal-1",
+      "actorId": "yoimiya",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 0.6359,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 24,
+          "motionValue": 0.6359,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 35
+      }
+    },
+    "yoimiya.normal-2": {
+      "id": "yoimiya.normal-2",
+      "actorId": "yoimiya",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 17,
+          "motionValue": 1.2199,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 26
+      }
+    },
+    "yoimiya.normal-3": {
+      "id": "yoimiya.normal-3",
+      "actorId": "yoimiya",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 1.5859,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 39
+      }
+    },
+    "yoimiya.normal-4": {
+      "id": "yoimiya.normal-4",
+      "actorId": "yoimiya",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.8282,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 26,
+          "motionValue": 0.8282,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 44
+      }
+    },
+    "yoimiya.normal-5": {
+      "id": "yoimiya.normal-5",
+      "actorId": "yoimiya",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 17,
+          "motionValue": 1.8887,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 52
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "charlotte.normal-1": {
+      "id": "charlotte.normal-1",
+      "actorId": "charlotte",
+      "kind": "normal",
+      "element": "cryo",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 0.8972,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 32
+      }
+    },
+    "charlotte.normal-2": {
+      "id": "charlotte.normal-2",
+      "actorId": "charlotte",
+      "kind": "normal",
+      "element": "cryo",
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 0.7808,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 45
+      }
+    },
+    "charlotte.normal-3": {
+      "id": "charlotte.normal-3",
+      "actorId": "charlotte",
+      "kind": "normal",
+      "element": "cryo",
+      "hits": [
+        {
+          "atFrame": 31,
+          "motionValue": 1.1628,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 74
+      }
+    }
+  }
+}

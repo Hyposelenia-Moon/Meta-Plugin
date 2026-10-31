@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "yanfei.normal-1": {
+      "id": "yanfei.normal-1",
+      "actorId": "yanfei",
+      "kind": "normal",
+      "element": "pyro",
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 1.0501,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 26
+      }
+    },
+    "yanfei.normal-2": {
+      "id": "yanfei.normal-2",
+      "actorId": "yanfei",
+      "kind": "normal",
+      "element": "pyro",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.9383,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 28
+      }
+    },
+    "yanfei.normal-3": {
+      "id": "yanfei.normal-3",
+      "actorId": "yanfei",
+      "kind": "normal",
+      "element": "pyro",
+      "hits": [
+        {
+          "atFrame": 37,
+          "motionValue": 1.3682,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 73
+      }
+    }
+  }
+}

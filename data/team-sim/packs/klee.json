@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "klee.normal-1": {
+      "id": "klee.normal-1",
+      "actorId": "klee",
+      "kind": "normal",
+      "element": "pyro",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 1.2989,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 34
+      }
+    },
+    "klee.normal-2": {
+      "id": "klee.normal-2",
+      "actorId": "klee",
+      "kind": "normal",
+      "element": "pyro",
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 1.1232,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 41
+      }
+    },
+    "klee.normal-3": {
+      "id": "klee.normal-3",
+      "actorId": "klee",
+      "kind": "normal",
+      "element": "pyro",
+      "hits": [
+        {
+          "atFrame": 37,
+          "motionValue": 1.6186,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 77
+      }
+    }
+  }
+}

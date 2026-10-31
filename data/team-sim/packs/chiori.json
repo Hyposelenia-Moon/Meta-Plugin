@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "chiori.normal-1": {
+      "id": "chiori.normal-1",
+      "actorId": "chiori",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 17,
+          "motionValue": 0.9767,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 22
+      }
+    },
+    "chiori.normal-2": {
+      "id": "chiori.normal-2",
+      "actorId": "chiori",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.9258,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 33
+      }
+    },
+    "chiori.normal-3": {
+      "id": "chiori.normal-3",
+      "actorId": "chiori",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 24,
+          "motionValue": 0.6013,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 32,
+          "motionValue": 0.6013,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      }
+    },
+    "chiori.normal-4": {
+      "id": "chiori.normal-4",
+      "actorId": "chiori",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 37,
+          "motionValue": 1.485,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 59
+      }
+    }
+  }
+}

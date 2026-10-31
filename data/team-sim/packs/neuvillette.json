@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "neuvillette.normal-1": {
+      "id": "neuvillette.normal-1",
+      "actorId": "neuvillette",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 19,
+          "motionValue": 0.9824,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 36
+      }
+    },
+    "neuvillette.normal-2": {
+      "id": "neuvillette.normal-2",
+      "actorId": "neuvillette",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.8324,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 33
+      }
+    },
+    "neuvillette.normal-3": {
+      "id": "neuvillette.normal-3",
+      "actorId": "neuvillette",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 32,
+          "motionValue": 1.3021,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 62
+      }
+    }
+  }
+}

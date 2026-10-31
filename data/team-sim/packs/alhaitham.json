@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "alhaitham.normal-1": {
+      "id": "alhaitham.normal-1",
+      "actorId": "alhaitham",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.979,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 29
+      }
+    },
+    "alhaitham.normal-2": {
+      "id": "alhaitham.normal-2",
+      "actorId": "alhaitham",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 1.0032,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      }
+    },
+    "alhaitham.normal-3": {
+      "id": "alhaitham.normal-3",
+      "actorId": "alhaitham",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 0.6756,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 29,
+          "motionValue": 0.6756,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 55
+      }
+    },
+    "alhaitham.normal-4": {
+      "id": "alhaitham.normal-4",
+      "actorId": "alhaitham",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 21,
+          "motionValue": 1.3198,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 51
+      }
+    },
+    "alhaitham.normal-5": {
+      "id": "alhaitham.normal-5",
+      "actorId": "alhaitham",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 35,
+          "motionValue": 1.6575,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 90
+      }
+    }
+  }
+}

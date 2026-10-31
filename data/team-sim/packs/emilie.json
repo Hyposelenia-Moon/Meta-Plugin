@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "emilie.normal-1": {
+      "id": "emilie.normal-1",
+      "actorId": "emilie",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.9599,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 28
+      }
+    },
+    "emilie.normal-2": {
+      "id": "emilie.normal-2",
+      "actorId": "emilie",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.8875,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 32
+      }
+    },
+    "emilie.normal-3": {
+      "id": "emilie.normal-3",
+      "actorId": "emilie",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 33,
+          "motionValue": 1.1722,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 49
+      }
+    },
+    "emilie.normal-4": {
+      "id": "emilie.normal-4",
+      "actorId": "emilie",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 34,
+          "motionValue": 1.4846,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 71
+      }
+    }
+  }
+}

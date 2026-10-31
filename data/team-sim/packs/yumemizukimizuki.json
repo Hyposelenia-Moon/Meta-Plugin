@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "yumemizukimizuki.normal-1": {
+      "id": "yumemizukimizuki.normal-1",
+      "actorId": "yumemizukimizuki",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 7,
+          "motionValue": 0.941,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 34
+      }
+    },
+    "yumemizukimizuki.normal-2": {
+      "id": "yumemizukimizuki.normal-2",
+      "actorId": "yumemizukimizuki",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 19,
+          "motionValue": 0.8445,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 38
+      }
+    },
+    "yumemizukimizuki.normal-3": {
+      "id": "yumemizukimizuki.normal-3",
+      "actorId": "yumemizukimizuki",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 37,
+          "motionValue": 1.2846,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 98
+      }
+    }
+  }
+}

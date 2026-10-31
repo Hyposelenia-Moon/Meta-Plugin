@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "faruzan.normal-1": {
+      "id": "faruzan.normal-1",
+      "actorId": "faruzan",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.8842,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 26
+      }
+    },
+    "faruzan.normal-2": {
+      "id": "faruzan.normal-2",
+      "actorId": "faruzan",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 10,
+          "motionValue": 0.8339,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 21
+      }
+    },
+    "faruzan.normal-3": {
+      "id": "faruzan.normal-3",
+      "actorId": "faruzan",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 24,
+          "motionValue": 1.0509,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 39
+      }
+    },
+    "faruzan.normal-4": {
+      "id": "faruzan.normal-4",
+      "actorId": "faruzan",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 29,
+          "motionValue": 1.396,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 86
+      }
+    }
+  }
+}

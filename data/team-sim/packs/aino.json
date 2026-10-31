@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "aino.normal-1": {
+      "id": "aino.normal-1",
+      "actorId": "aino",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 1.3145,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 48
+      }
+    },
+    "aino.normal-2": {
+      "id": "aino.normal-2",
+      "actorId": "aino",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 20,
+          "motionValue": 1.3084,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 75
+      }
+    },
+    "aino.normal-3": {
+      "id": "aino.normal-3",
+      "actorId": "aino",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 35,
+          "motionValue": 0.9729,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 43,
+          "motionValue": 0.9729,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 93
+      }
+    }
+  }
+}

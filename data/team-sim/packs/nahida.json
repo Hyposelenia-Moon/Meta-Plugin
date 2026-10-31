@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "nahida.normal-1": {
+      "id": "nahida.normal-1",
+      "actorId": "nahida",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 0.7255,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 35
+      }
+    },
+    "nahida.normal-2": {
+      "id": "nahida.normal-2",
+      "actorId": "nahida",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 0.6655,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      }
+    },
+    "nahida.normal-3": {
+      "id": "nahida.normal-3",
+      "actorId": "nahida",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 26,
+          "motionValue": 0.8257,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 45
+      }
+    },
+    "nahida.normal-4": {
+      "id": "nahida.normal-4",
+      "actorId": "nahida",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 40,
+          "motionValue": 1.0513,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 71
+      }
+    }
+  }
+}

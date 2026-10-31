@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "nicole.normal-1": {
+      "id": "nicole.normal-1",
+      "actorId": "nicole",
+      "kind": "normal",
+      "element": "pyro",
+      "hits": [
+        {
+          "atFrame": 10,
+          "motionValue": 0.6332,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 26
+      }
+    },
+    "nicole.normal-2": {
+      "id": "nicole.normal-2",
+      "actorId": "nicole",
+      "kind": "normal",
+      "element": "pyro",
+      "hits": [
+        {
+          "atFrame": 8,
+          "motionValue": 0.5334,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 34
+      }
+    },
+    "nicole.normal-3": {
+      "id": "nicole.normal-3",
+      "actorId": "nicole",
+      "kind": "normal",
+      "element": "pyro",
+      "hits": [
+        {
+          "atFrame": 38,
+          "motionValue": 0.8314,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 67
+      }
+    }
+  }
+}

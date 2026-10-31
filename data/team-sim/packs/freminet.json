@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "freminet.normal-1": {
+      "id": "freminet.normal-1",
+      "actorId": "freminet",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 26,
+          "motionValue": 1.6652,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 47
+      }
+    },
+    "freminet.normal-2": {
+      "id": "freminet.normal-2",
+      "actorId": "freminet",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 1.5948,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 49
+      }
+    },
+    "freminet.normal-3": {
+      "id": "freminet.normal-3",
+      "actorId": "freminet",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 31,
+          "motionValue": 2.0144,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 65
+      }
+    },
+    "freminet.normal-4": {
+      "id": "freminet.normal-4",
+      "actorId": "freminet",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 42,
+          "motionValue": 2.4473,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 86
+      }
+    }
+  }
+}

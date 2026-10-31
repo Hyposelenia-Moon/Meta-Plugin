@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "mavuika.normal-1": {
+      "id": "mavuika.normal-1",
+      "actorId": "mavuika",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 21,
+          "motionValue": 1.5821,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 40
+      }
+    },
+    "mavuika.normal-2": {
+      "id": "mavuika.normal-2",
+      "actorId": "mavuika",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.7211,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 26,
+          "motionValue": 0.7211,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 50
+      }
+    },
+    "mavuika.normal-3": {
+      "id": "mavuika.normal-3",
+      "actorId": "mavuika",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 28,
+          "motionValue": 0.6567,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 33,
+          "motionValue": 0.6567,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 39,
+          "motionValue": 0.6567,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 59
+      }
+    },
+    "mavuika.normal-4": {
+      "id": "mavuika.normal-4",
+      "actorId": "mavuika",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 30,
+          "motionValue": 2.2968,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 61
+      }
+    }
+  }
+}

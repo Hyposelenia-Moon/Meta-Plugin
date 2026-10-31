@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "shikanoinheizou.normal-1": {
+      "id": "shikanoinheizou.normal-1",
+      "actorId": "shikanoinheizou",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 0.6745,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 21
+      }
+    },
+    "shikanoinheizou.normal-2": {
+      "id": "shikanoinheizou.normal-2",
+      "actorId": "shikanoinheizou",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 0.6633,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 21
+      }
+    },
+    "shikanoinheizou.normal-3": {
+      "id": "shikanoinheizou.normal-3",
+      "actorId": "shikanoinheizou",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 21,
+          "motionValue": 0.9191,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 46
+      }
+    },
+    "shikanoinheizou.normal-4": {
+      "id": "shikanoinheizou.normal-4",
+      "actorId": "shikanoinheizou",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 0.2661,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 19,
+          "motionValue": 0.2927,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 27,
+          "motionValue": 0.3459,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 38
+      }
+    },
+    "shikanoinheizou.normal-5": {
+      "id": "shikanoinheizou.normal-5",
+      "actorId": "shikanoinheizou",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 31,
+          "motionValue": 1.1061,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 66
+      }
+    }
+  }
+}

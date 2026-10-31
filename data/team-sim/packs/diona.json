@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "diona.normal-1": {
+      "id": "diona.normal-1",
+      "actorId": "diona",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 19,
+          "motionValue": 0.714,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 30
+      }
+    },
+    "diona.normal-2": {
+      "id": "diona.normal-2",
+      "actorId": "diona",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.663,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 21
+      }
+    },
+    "diona.normal-3": {
+      "id": "diona.normal-3",
+      "actorId": "diona",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 21,
+          "motionValue": 0.901,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 44
+      }
+    },
+    "diona.normal-4": {
+      "id": "diona.normal-4",
+      "actorId": "diona",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 10,
+          "motionValue": 0.85,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 21
+      }
+    },
+    "diona.normal-5": {
+      "id": "diona.normal-5",
+      "actorId": "diona",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 38,
+          "motionValue": 1.0625,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 73
+      }
+    }
+  }
+}

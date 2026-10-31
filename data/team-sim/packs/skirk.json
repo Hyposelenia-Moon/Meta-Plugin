@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "skirk.normal-1": {
+      "id": "skirk.normal-1",
+      "actorId": "skirk",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 1.0778,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 27
+      }
+    },
+    "skirk.normal-2": {
+      "id": "skirk.normal-2",
+      "actorId": "skirk",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 7,
+          "motionValue": 0.9843,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 25
+      }
+    },
+    "skirk.normal-3": {
+      "id": "skirk.normal-3",
+      "actorId": "skirk",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 8,
+          "motionValue": 0.6409,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 22,
+          "motionValue": 0.6409,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 43
+      }
+    },
+    "skirk.normal-4": {
+      "id": "skirk.normal-4",
+      "actorId": "skirk",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 1.2019,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 23
+      }
+    },
+    "skirk.normal-5": {
+      "id": "skirk.normal-5",
+      "actorId": "skirk",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 35,
+          "motionValue": 1.6388,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 72
+      }
+    }
+  }
+}

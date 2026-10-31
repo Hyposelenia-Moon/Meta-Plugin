@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "lyney.normal-1": {
+      "id": "lyney.normal-1",
+      "actorId": "lyney",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 17,
+          "motionValue": 0.7667,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 32
+      }
+    },
+    "lyney.normal-2": {
+      "id": "lyney.normal-2",
+      "actorId": "lyney",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 0.7514,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 34
+      }
+    },
+    "lyney.normal-3": {
+      "id": "lyney.normal-3",
+      "actorId": "lyney",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 20,
+          "motionValue": 0.5389,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 29,
+          "motionValue": 0.5389,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 86
+      }
+    },
+    "lyney.normal-4": {
+      "id": "lyney.normal-4",
+      "actorId": "lyney",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 29,
+          "motionValue": 1.1254,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 66
+      }
+    }
+  }
+}

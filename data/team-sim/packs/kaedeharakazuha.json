@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "kaedeharakazuha.normal-1": {
+      "id": "kaedeharakazuha.normal-1",
+      "actorId": "kaedeharakazuha",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 0.8891,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 21
+      }
+    },
+    "kaedeharakazuha.normal-2": {
+      "id": "kaedeharakazuha.normal-2",
+      "actorId": "kaedeharakazuha",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.8942,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 20
+      }
+    },
+    "kaedeharakazuha.normal-3": {
+      "id": "kaedeharakazuha.normal-3",
+      "actorId": "kaedeharakazuha",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.51,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 25,
+          "motionValue": 0.612,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 33
+      }
+    },
+    "kaedeharakazuha.normal-4": {
+      "id": "kaedeharakazuha.normal-4",
+      "actorId": "kaedeharakazuha",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 1.2002,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 38
+      }
+    },
+    "kaedeharakazuha.normal-5": {
+      "id": "kaedeharakazuha.normal-5",
+      "actorId": "kaedeharakazuha",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 0.5015,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 19,
+          "motionValue": 0.5015,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 27,
+          "motionValue": 0.5015,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 72
+      }
+    }
+  }
+}

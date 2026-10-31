@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "tighnari.normal-1": {
+      "id": "tighnari.normal-1",
+      "actorId": "tighnari",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.8823,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 26
+      }
+    },
+    "tighnari.normal-2": {
+      "id": "tighnari.normal-2",
+      "actorId": "tighnari",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 0.8296,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 23
+      }
+    },
+    "tighnari.normal-3": {
+      "id": "tighnari.normal-3",
+      "actorId": "tighnari",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 0.5228,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 25,
+          "motionValue": 0.5228,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 37
+      }
+    },
+    "tighnari.normal-4": {
+      "id": "tighnari.normal-4",
+      "actorId": "tighnari",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 28,
+          "motionValue": 1.3566,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 68
+      }
+    }
+  }
+}

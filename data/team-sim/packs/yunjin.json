@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "yunjin.normal-1": {
+      "id": "yunjin.normal-1",
+      "actorId": "yunjin",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 0.8007,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 25
+      }
+    },
+    "yunjin.normal-2": {
+      "id": "yunjin.normal-2",
+      "actorId": "yunjin",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 0.7956,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 29
+      }
+    },
+    "yunjin.normal-3": {
+      "id": "yunjin.normal-3",
+      "actorId": "yunjin",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 8,
+          "motionValue": 0.4539,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 23,
+          "motionValue": 0.544,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 32
+      }
+    },
+    "yunjin.normal-4": {
+      "id": "yunjin.normal-4",
+      "actorId": "yunjin",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.4743,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 23,
+          "motionValue": 0.5695,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 46
+      }
+    },
+    "yunjin.normal-5": {
+      "id": "yunjin.normal-5",
+      "actorId": "yunjin",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 1.3311,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 67
+      }
+    }
+  }
+}

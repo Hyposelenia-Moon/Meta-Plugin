@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "xinyan.normal-1": {
+      "id": "xinyan.normal-1",
+      "actorId": "xinyan",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 1.513,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 33
+      }
+    },
+    "xinyan.normal-2": {
+      "id": "xinyan.normal-2",
+      "actorId": "xinyan",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 27,
+          "motionValue": 1.462,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 39
+      }
+    },
+    "xinyan.normal-3": {
+      "id": "xinyan.normal-3",
+      "actorId": "xinyan",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 47,
+          "motionValue": 1.887,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 64
+      }
+    },
+    "xinyan.normal-4": {
+      "id": "xinyan.normal-4",
+      "actorId": "xinyan",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 35,
+          "motionValue": 2.2899,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 94
+      }
+    }
+  }
+}

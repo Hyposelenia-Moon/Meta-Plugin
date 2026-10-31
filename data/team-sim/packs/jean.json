@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "jean.normal-1": {
+      "id": "jean.normal-1",
+      "actorId": "jean",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 0.9554,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 25
+      }
+    },
+    "jean.normal-2": {
+      "id": "jean.normal-2",
+      "actorId": "jean",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 6,
+          "motionValue": 0.901,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 20
+      }
+    },
+    "jean.normal-3": {
+      "id": "jean.normal-3",
+      "actorId": "jean",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 17,
+          "motionValue": 1.1917,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      }
+    },
+    "jean.normal-4": {
+      "id": "jean.normal-4",
+      "actorId": "jean",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 37,
+          "motionValue": 1.3022,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 49
+      }
+    },
+    "jean.normal-5": {
+      "id": "jean.normal-5",
+      "actorId": "jean",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 1.5657,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 68
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "lauma.normal-1": {
+      "id": "lauma.normal-1",
+      "actorId": "lauma",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.6066,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 29
+      }
+    },
+    "lauma.normal-2": {
+      "id": "lauma.normal-2",
+      "actorId": "lauma",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.5725,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 33
+      }
+    },
+    "lauma.normal-3": {
+      "id": "lauma.normal-3",
+      "actorId": "lauma",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.8009,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 38
+      }
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "raidenshogun.normal-1": {
+      "id": "raidenshogun.normal-1",
+      "actorId": "raidenshogun",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.7837,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 24
+      }
+    },
+    "raidenshogun.normal-2": {
+      "id": "raidenshogun.normal-2",
+      "actorId": "raidenshogun",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 9,
+          "motionValue": 0.7854,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 26
+      }
+    },
+    "raidenshogun.normal-3": {
+      "id": "raidenshogun.normal-3",
+      "actorId": "raidenshogun",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.986,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 36
+      }
+    },
+    "raidenshogun.normal-4": {
+      "id": "raidenshogun.normal-4",
+      "actorId": "raidenshogun",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.5729,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 27,
+          "motionValue": 0.5729,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 57
+      }
+    },
+    "raidenshogun.normal-5": {
+      "id": "raidenshogun.normal-5",
+      "actorId": "raidenshogun",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 34,
+          "motionValue": 1.2937,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 50
+      }
+    }
+  }
+}

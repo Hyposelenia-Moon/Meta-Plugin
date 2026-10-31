@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "barbara.normal-1": {
+      "id": "barbara.normal-1",
+      "actorId": "barbara",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 6,
+          "motionValue": 0.6811,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 23
+      }
+    },
+    "barbara.normal-2": {
+      "id": "barbara.normal-2",
+      "actorId": "barbara",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.6394,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 28
+      }
+    },
+    "barbara.normal-3": {
+      "id": "barbara.normal-3",
+      "actorId": "barbara",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 0.7387,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 30
+      }
+    },
+    "barbara.normal-4": {
+      "id": "barbara.normal-4",
+      "actorId": "barbara",
+      "kind": "normal",
+      "element": "hydro",
+      "hits": [
+        {
+          "atFrame": 32,
+          "motionValue": 0.9936,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 60
+      }
+    }
+  }
+}

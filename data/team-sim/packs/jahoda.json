@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "jahoda.normal-1": {
+      "id": "jahoda.normal-1",
+      "actorId": "jahoda",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.8238,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 35
+      }
+    },
+    "jahoda.normal-2": {
+      "id": "jahoda.normal-2",
+      "actorId": "jahoda",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 0.3802,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 29,
+          "motionValue": 0.3802,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 52
+      }
+    },
+    "jahoda.normal-3": {
+      "id": "jahoda.normal-3",
+      "actorId": "jahoda",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 40,
+          "motionValue": 1.012,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 99
+      }
+    }
+  }
+}

@@ -1,0 +1,1541 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "gcsimCommit": "fcc117b31ce45010ded40e48e6adcc2676306015",
+  "source": "miao-plugin meta-gs 角色表 + gcsim names.dm.json（Chinese.character_names）+ pkg/shortcut/character.dm.go",
+  "counts": {
+    "characters": 127,
+    "mapped": 113,
+    "traveler": 2,
+    "alias": 1,
+    "no-gcsim": 11
+  },
+  "characters": [
+    {
+      "charId": "10000035",
+      "cn": "七七",
+      "element": "cryo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "qiqi"
+      ],
+      "dir": "qiqi",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000114",
+      "cn": "丝柯克",
+      "element": "cryo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "skirk"
+      ],
+      "dir": "skirk",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000006",
+      "cn": "丽莎",
+      "element": "electro",
+      "weapon": "catalyst",
+      "star": 4,
+      "keys": [
+        "lisa"
+      ],
+      "dir": "lisa",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000065",
+      "cn": "久岐忍",
+      "element": "electro",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [
+        "kukishinobu"
+      ],
+      "dir": "kuki",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000056",
+      "cn": "九条裟罗",
+      "element": "electro",
+      "weapon": "bow",
+      "star": 4,
+      "keys": [
+        "kujousara"
+      ],
+      "dir": "sara",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000064",
+      "cn": "云堇",
+      "element": "geo",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "yunjin"
+      ],
+      "dir": "yunjin",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000055",
+      "cn": "五郎",
+      "element": "geo",
+      "weapon": "bow",
+      "star": 4,
+      "keys": [
+        "gorou"
+      ],
+      "dir": "gorou",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000110",
+      "cn": "伊安珊",
+      "element": "electro",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "iansan"
+      ],
+      "dir": "iansan",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000113",
+      "cn": "伊法",
+      "element": "anemo",
+      "weapon": "catalyst",
+      "star": 4,
+      "keys": [
+        "ifa"
+      ],
+      "dir": "ifa",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000116",
+      "cn": "伊涅芙",
+      "element": "electro",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "ineffa"
+      ],
+      "dir": "ineffa",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000051",
+      "cn": "优菈",
+      "element": "cryo",
+      "weapon": "claymore",
+      "star": 5,
+      "keys": [
+        "eula"
+      ],
+      "dir": "eula",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000098",
+      "cn": "克洛琳德",
+      "element": "electro",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "clorinde"
+      ],
+      "dir": "clorinde",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000058",
+      "cn": "八重神子",
+      "element": "electro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "yaemiko"
+      ],
+      "dir": "yaemiko",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000126",
+      "cn": "兹白",
+      "element": "geo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "zibai"
+      ],
+      "dir": "zibai",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000027",
+      "cn": "凝光",
+      "element": "geo",
+      "weapon": "catalyst",
+      "star": 4,
+      "keys": [
+        "ningguang"
+      ],
+      "dir": "ningguang",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000015",
+      "cn": "凯亚",
+      "element": "cryo",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [
+        "kaeya"
+      ],
+      "dir": "kaeya",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000042",
+      "cn": "刻晴",
+      "element": "electro",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "keqing"
+      ],
+      "dir": "keqing",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000024",
+      "cn": "北斗",
+      "element": "electro",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "beidou"
+      ],
+      "dir": "beidou",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000094",
+      "cn": "千织",
+      "element": "geo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "chiori"
+      ],
+      "dir": "chiori",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000081",
+      "cn": "卡维",
+      "element": "dendro",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "kaveh"
+      ],
+      "dir": "kaveh",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000100",
+      "cn": "卡齐娜",
+      "element": "geo",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 卡齐娜"
+    },
+    {
+      "charId": "10000029",
+      "cn": "可莉",
+      "element": "pyro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "klee"
+      ],
+      "dir": "klee",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000127",
+      "cn": "叶洛亚",
+      "element": "geo",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "illuga"
+      ],
+      "dir": "illuga",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000125",
+      "cn": "哥伦比娅",
+      "element": "hydro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "columbina"
+      ],
+      "dir": "columbina",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000092",
+      "cn": "嘉明",
+      "element": "pyro",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "gaming"
+      ],
+      "dir": "gaming",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000072",
+      "cn": "坎蒂丝",
+      "element": "hydro",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "candace"
+      ],
+      "dir": "candace",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000062",
+      "cn": "埃洛伊",
+      "element": "cryo",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [
+        "aloy"
+      ],
+      "dir": "aloy",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000101",
+      "cn": "基尼奇",
+      "element": "dendro",
+      "weapon": "claymore",
+      "star": 5,
+      "keys": [
+        "kinich"
+      ],
+      "dir": "kinich",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000115",
+      "cn": "塔利雅",
+      "element": "hydro",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [
+        "dahlia"
+      ],
+      "dir": "dahlia",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000090",
+      "cn": "夏沃蕾",
+      "element": "pyro",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "chevreuse"
+      ],
+      "dir": "chevreuse",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000088",
+      "cn": "夏洛蒂",
+      "element": "cryo",
+      "weapon": "catalyst",
+      "star": 4,
+      "keys": [
+        "charlotte"
+      ],
+      "dir": "charlotte",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000068",
+      "cn": "多莉",
+      "element": "electro",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "dori"
+      ],
+      "dir": "dori",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000060",
+      "cn": "夜兰",
+      "element": "hydro",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [
+        "yelan"
+      ],
+      "dir": "yelan",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000118",
+      "cn": "奇偶·女性",
+      "element": "pyro",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 奇偶·女性"
+    },
+    {
+      "charId": "10000117",
+      "cn": "奇偶·男性",
+      "element": "pyro",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 奇偶·男性"
+    },
+    {
+      "charId": "10000122",
+      "cn": "奈芙尔",
+      "element": "dendro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 奈芙尔"
+    },
+    {
+      "charId": "10000150",
+      "cn": "奥黛塔",
+      "element": "cryo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "odette"
+      ],
+      "dir": "odette",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000070",
+      "cn": "妮露",
+      "element": "hydro",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "nilou"
+      ],
+      "dir": "nilou",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000091",
+      "cn": "娜维娅",
+      "element": "geo",
+      "weapon": "claymore",
+      "star": 5,
+      "keys": [
+        "navia"
+      ],
+      "dir": "navia",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000021",
+      "cn": "安柏",
+      "element": "pyro",
+      "weapon": "bow",
+      "star": 4,
+      "keys": [
+        "amber"
+      ],
+      "dir": "amber",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000049",
+      "cn": "宵宫",
+      "element": "pyro",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [
+        "yoimiya"
+      ],
+      "dir": "yoimiya",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000131",
+      "cn": "尼可",
+      "element": "pyro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "nicole"
+      ],
+      "dir": "nicole",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000132",
+      "cn": "布伦妮",
+      "element": "anemo",
+      "weapon": "catalyst",
+      "star": 4,
+      "keys": [
+        "prune"
+      ],
+      "dir": "prune",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000095",
+      "cn": "希格雯",
+      "element": "hydro",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [
+        "sigewinne"
+      ],
+      "dir": "sigewinne",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000103",
+      "cn": "希诺宁",
+      "element": "geo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "xilonen"
+      ],
+      "dir": "xilonen",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000104",
+      "cn": "恰斯卡",
+      "element": "anemo",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [
+        "chasca"
+      ],
+      "dir": "chasca",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000050",
+      "cn": "托马",
+      "element": "pyro",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "thoma"
+      ],
+      "dir": "thoma",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000069",
+      "cn": "提纳里",
+      "element": "dendro",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [
+        "tighnari"
+      ],
+      "dir": "tighnari",
+      "status": "mapped"
+    },
+    {
+      "charId": "20000000",
+      "cn": "旅行者",
+      "element": "multi",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [],
+      "dir": null,
+      "status": "alias",
+      "note": "与 10000005 / 10000007 同源，不单独占用键"
+    },
+    {
+      "charId": "10000053",
+      "cn": "早柚",
+      "element": "anemo",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "sayu"
+      ],
+      "dir": "sayu",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000123",
+      "cn": "杜林",
+      "element": "pyro",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "durin"
+      ],
+      "dir": "durin",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000084",
+      "cn": "林尼",
+      "element": "pyro",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [
+        "lyney"
+      ],
+      "dir": "lyney",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000047",
+      "cn": "枫原万叶",
+      "element": "anemo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "kaedeharakazuha"
+      ],
+      "dir": "kazuha",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000067",
+      "cn": "柯莱",
+      "element": "dendro",
+      "weapon": "bow",
+      "star": 4,
+      "keys": [
+        "collei"
+      ],
+      "dir": "collei",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000133",
+      "cn": "桑多涅",
+      "element": "cryo",
+      "weapon": "claymore",
+      "star": 5,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 桑多涅"
+    },
+    {
+      "charId": "10000109",
+      "cn": "梦见月瑞希",
+      "element": "anemo",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "yumemizukimizuki"
+      ],
+      "dir": "mizuki",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000105",
+      "cn": "欧洛伦",
+      "element": "electro",
+      "weapon": "bow",
+      "star": 4,
+      "keys": [
+        "ororon"
+      ],
+      "dir": "ororon",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000140",
+      "cn": "沃雅妮莎",
+      "element": "hydro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 沃雅妮莎"
+    },
+    {
+      "charId": "10000128",
+      "cn": "法尔伽",
+      "element": "anemo",
+      "weapon": "claymore",
+      "star": 5,
+      "keys": [
+        "varka"
+      ],
+      "dir": "varka",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000129",
+      "cn": "洛恩",
+      "element": "cryo",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 洛恩"
+    },
+    {
+      "charId": "10000075",
+      "cn": "流浪者",
+      "element": "anemo",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "wanderer"
+      ],
+      "dir": "wanderer",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000022",
+      "cn": "温迪",
+      "element": "anemo",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [
+        "venti"
+      ],
+      "dir": "venti",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000048",
+      "cn": "烟绯",
+      "element": "pyro",
+      "weapon": "catalyst",
+      "star": 4,
+      "keys": [
+        "yanfei"
+      ],
+      "dir": "yanfei",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000112",
+      "cn": "爱可菲",
+      "element": "cryo",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "escoffier"
+      ],
+      "dir": "escoffier",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000121",
+      "cn": "爱诺",
+      "element": "hydro",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "aino"
+      ],
+      "dir": "aino",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000102",
+      "cn": "玛拉妮",
+      "element": "hydro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "mualani"
+      ],
+      "dir": "mualani",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000106",
+      "cn": "玛薇卡",
+      "element": "pyro",
+      "weapon": "claymore",
+      "star": 5,
+      "keys": [
+        "mavuika"
+      ],
+      "dir": "mavuika",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000054",
+      "cn": "珊瑚宫心海",
+      "element": "hydro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "sangonomiyakokomi"
+      ],
+      "dir": "kokomi",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000076",
+      "cn": "珐露珊",
+      "element": "anemo",
+      "weapon": "bow",
+      "star": 4,
+      "keys": [
+        "faruzan"
+      ],
+      "dir": "faruzan",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000032",
+      "cn": "班尼特",
+      "element": "pyro",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [
+        "bennett"
+      ],
+      "dir": "bennett",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000083",
+      "cn": "琳妮特",
+      "element": "anemo",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [
+        "lynette"
+      ],
+      "dir": "lynette",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000003",
+      "cn": "琴",
+      "element": "anemo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "jean"
+      ],
+      "dir": "jean",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000077",
+      "cn": "瑶瑶",
+      "element": "dendro",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "yaoyao"
+      ],
+      "dir": "yaoyao",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000137",
+      "cn": "瓦列里",
+      "element": "electro",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 瓦列里"
+    },
+    {
+      "charId": "10000111",
+      "cn": "瓦雷莎",
+      "element": "electro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "varesa"
+      ],
+      "dir": "varesa",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000037",
+      "cn": "甘雨",
+      "element": "cryo",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [
+        "ganyu"
+      ],
+      "dir": "ganyu",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000063",
+      "cn": "申鹤",
+      "element": "cryo",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "shenhe"
+      ],
+      "dir": "shenhe",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000082",
+      "cn": "白术",
+      "element": "dendro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "baizhu"
+      ],
+      "dir": "baizhu",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000043",
+      "cn": "砂糖",
+      "element": "anemo",
+      "weapon": "catalyst",
+      "star": 4,
+      "keys": [
+        "sucrose"
+      ],
+      "dir": "sucrose",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000066",
+      "cn": "神里绫人",
+      "element": "hydro",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "kamisatoayato"
+      ],
+      "dir": "ayato",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000002",
+      "cn": "神里绫华",
+      "element": "cryo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "kamisatoayaka"
+      ],
+      "dir": "ayaka",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000005",
+      "cn": "空",
+      "element": "multi",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "aetheranemo",
+        "aethercryo",
+        "aetherdendro",
+        "aetherelectro",
+        "aethergeo",
+        "aetherhydro",
+        "aetherpyro"
+      ],
+      "dir": "traveler",
+      "status": "traveler",
+      "note": "按元素展开为七个 gcsim 键"
+    },
+    {
+      "charId": "10000080",
+      "cn": "米卡",
+      "element": "cryo",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "mika"
+      ],
+      "dir": "mika",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000136",
+      "cn": "米提亚",
+      "element": "electro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 米提亚"
+    },
+    {
+      "charId": "10000073",
+      "cn": "纳西妲",
+      "element": "dendro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "nahida"
+      ],
+      "dir": "nahida",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000061",
+      "cn": "绮良良",
+      "element": "dendro",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [
+        "kirara"
+      ],
+      "dir": "kirara",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000045",
+      "cn": "罗莎莉亚",
+      "element": "cryo",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "rosaria"
+      ],
+      "dir": "rosaria",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000046",
+      "cn": "胡桃",
+      "element": "pyro",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "hutao"
+      ],
+      "dir": "hutao",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000078",
+      "cn": "艾尔海森",
+      "element": "dendro",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "alhaitham"
+      ],
+      "dir": "alhaitham",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000099",
+      "cn": "艾梅莉埃",
+      "element": "dendro",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "emilie"
+      ],
+      "dir": "emilie",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000089",
+      "cn": "芙宁娜",
+      "element": "hydro",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "furina"
+      ],
+      "dir": "furina",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000014",
+      "cn": "芭芭拉",
+      "element": "hydro",
+      "weapon": "catalyst",
+      "star": 4,
+      "keys": [
+        "barbara"
+      ],
+      "dir": "barbara",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000107",
+      "cn": "茜特菈莉",
+      "element": "cryo",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "citlali"
+      ],
+      "dir": "citlali",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000057",
+      "cn": "荒泷一斗",
+      "element": "geo",
+      "weapon": "claymore",
+      "star": 5,
+      "keys": [
+        "aratakiitto"
+      ],
+      "dir": "itto",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000007",
+      "cn": "荧",
+      "element": "multi",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "lumineanemo",
+        "luminecryo",
+        "luminedendro",
+        "lumineelectro",
+        "luminegeo",
+        "luminehydro",
+        "luminepyro"
+      ],
+      "dir": "traveler",
+      "status": "traveler",
+      "note": "按元素展开为七个 gcsim 键"
+    },
+    {
+      "charId": "10000130",
+      "cn": "莉奈娅",
+      "element": "geo",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 莉奈娅"
+    },
+    {
+      "charId": "10000041",
+      "cn": "莫娜",
+      "element": "hydro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "mona"
+      ],
+      "dir": "mona",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000074",
+      "cn": "莱依拉",
+      "element": "cryo",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [
+        "layla"
+      ],
+      "dir": "layla",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000086",
+      "cn": "莱欧斯利",
+      "element": "cryo",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "wriothesley"
+      ],
+      "dir": "wriothesley",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000119",
+      "cn": "菈乌玛",
+      "element": "dendro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "lauma"
+      ],
+      "dir": "lauma",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000120",
+      "cn": "菲林斯",
+      "element": "electro",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "flins"
+      ],
+      "dir": "flins",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000085",
+      "cn": "菲米尼",
+      "element": "cryo",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "freminet"
+      ],
+      "dir": "freminet",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000031",
+      "cn": "菲谢尔",
+      "element": "electro",
+      "weapon": "bow",
+      "star": 4,
+      "keys": [
+        "fischl"
+      ],
+      "dir": "fischl",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000108",
+      "cn": "蓝砚",
+      "element": "anemo",
+      "weapon": "catalyst",
+      "star": 4,
+      "keys": [
+        "lanyan"
+      ],
+      "dir": "lanyan",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000143",
+      "cn": "薇斯纳",
+      "element": "anemo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [],
+      "dir": null,
+      "status": "no-gcsim",
+      "note": "gcsim 本地化表里没有中文名 薇斯纳"
+    },
+    {
+      "charId": "10000025",
+      "cn": "行秋",
+      "element": "hydro",
+      "weapon": "sword",
+      "star": 4,
+      "keys": [
+        "xingqiu"
+      ],
+      "dir": "xingqiu",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000034",
+      "cn": "诺艾尔",
+      "element": "geo",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "noelle"
+      ],
+      "dir": "noelle",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000097",
+      "cn": "赛索斯",
+      "element": "electro",
+      "weapon": "bow",
+      "star": 4,
+      "keys": [
+        "sethos"
+      ],
+      "dir": "sethos",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000071",
+      "cn": "赛诺",
+      "element": "electro",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "cyno"
+      ],
+      "dir": "cyno",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000044",
+      "cn": "辛焱",
+      "element": "pyro",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "xinyan"
+      ],
+      "dir": "xinyan",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000033",
+      "cn": "达达利亚",
+      "element": "hydro",
+      "weapon": "bow",
+      "star": 5,
+      "keys": [
+        "tartaglia"
+      ],
+      "dir": "tartaglia",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000016",
+      "cn": "迪卢克",
+      "element": "pyro",
+      "weapon": "claymore",
+      "star": 5,
+      "keys": [
+        "diluc"
+      ],
+      "dir": "diluc",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000039",
+      "cn": "迪奥娜",
+      "element": "cryo",
+      "weapon": "bow",
+      "star": 4,
+      "keys": [
+        "diona"
+      ],
+      "dir": "diona",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000079",
+      "cn": "迪希雅",
+      "element": "pyro",
+      "weapon": "claymore",
+      "star": 5,
+      "keys": [
+        "dehya"
+      ],
+      "dir": "dehya",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000087",
+      "cn": "那维莱特",
+      "element": "hydro",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "neuvillette"
+      ],
+      "dir": "neuvillette",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000036",
+      "cn": "重云",
+      "element": "cryo",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "chongyun"
+      ],
+      "dir": "chongyun",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000030",
+      "cn": "钟离",
+      "element": "geo",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "zhongli"
+      ],
+      "dir": "zhongli",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000093",
+      "cn": "闲云",
+      "element": "anemo",
+      "weapon": "catalyst",
+      "star": 5,
+      "keys": [
+        "xianyun"
+      ],
+      "dir": "xianyun",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000148",
+      "cn": "阿罗夏",
+      "element": "electro",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "alyosha"
+      ],
+      "dir": "alyosha",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000096",
+      "cn": "阿蕾奇诺",
+      "element": "pyro",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "arlecchino"
+      ],
+      "dir": "arlecchino",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000038",
+      "cn": "阿贝多",
+      "element": "geo",
+      "weapon": "sword",
+      "star": 5,
+      "keys": [
+        "albedo"
+      ],
+      "dir": "albedo",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000124",
+      "cn": "雅珂达",
+      "element": "anemo",
+      "weapon": "bow",
+      "star": 4,
+      "keys": [
+        "jahoda"
+      ],
+      "dir": "jahoda",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000020",
+      "cn": "雷泽",
+      "element": "electro",
+      "weapon": "claymore",
+      "star": 4,
+      "keys": [
+        "razor"
+      ],
+      "dir": "razor",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000052",
+      "cn": "雷电将军",
+      "element": "electro",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "raidenshogun"
+      ],
+      "dir": "raiden",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000023",
+      "cn": "香菱",
+      "element": "pyro",
+      "weapon": "polearm",
+      "star": 4,
+      "keys": [
+        "xiangling"
+      ],
+      "dir": "xiangling",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000026",
+      "cn": "魈",
+      "element": "anemo",
+      "weapon": "polearm",
+      "star": 5,
+      "keys": [
+        "xiao"
+      ],
+      "dir": "xiao",
+      "status": "mapped"
+    },
+    {
+      "charId": "10000059",
+      "cn": "鹿野院平藏",
+      "element": "anemo",
+      "weapon": "catalyst",
+      "star": 4,
+      "keys": [
+        "shikanoinheizou"
+      ],
+      "dir": "heizou",
+      "status": "mapped"
+    }
+  ]
+}

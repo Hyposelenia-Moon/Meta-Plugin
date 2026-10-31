@@ -57,7 +57,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 数据与许可
 
 - 攻略数据由本仓库维护产出（`data/gi/*.json`），流水线见 [docs/](./docs/) 下的数据册；运行时**只写** `out/` 与 `config/`。
-- 代码 [GPL-3.0-only](./LICENSE)；数据许可与字体的商业条款见 [docs/许可与来源.md](./docs/许可与来源.md)。
+- 代码 [PolyForm Noncommercial 1.0.0](./LICENSE)；数据许可与字体的商业条款见 [docs/许可与来源.md](./docs/许可与来源.md)。
 - 游戏内容版权归米哈游所有；图鉴数据来源与鸣谢见同册。
 
 ## 回归套件

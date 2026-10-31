@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "flins.normal-1": {
+      "id": "flins.normal-1",
+      "actorId": "flins",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.8841,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      }
+    },
+    "flins.normal-2": {
+      "id": "flins.normal-2",
+      "actorId": "flins",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.8925,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      }
+    },
+    "flins.normal-3": {
+      "id": "flins.normal-3",
+      "actorId": "flins",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 1.1054,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 45
+      }
+    },
+    "flins.normal-4": {
+      "id": "flins.normal-4",
+      "actorId": "flins",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 20,
+          "motionValue": 0.6333,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 29,
+          "motionValue": 0.6333,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 67
+      }
+    },
+    "flins.normal-5": {
+      "id": "flins.normal-5",
+      "actorId": "flins",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 29,
+          "motionValue": 1.518,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 68
+      }
+    }
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "zhongli.normal-1": {
+      "id": "zhongli.normal-1",
+      "actorId": "zhongli",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.6082,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 30
+      }
+    },
+    "zhongli.normal-2": {
+      "id": "zhongli.normal-2",
+      "actorId": "zhongli",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 9,
+          "motionValue": 0.6158,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 30
+      }
+    },
+    "zhongli.normal-3": {
+      "id": "zhongli.normal-3",
+      "actorId": "zhongli",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 8,
+          "motionValue": 0.7626,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 28
+      }
+    },
+    "zhongli.normal-4": {
+      "id": "zhongli.normal-4",
+      "actorId": "zhongli",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.8488,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 34
+      }
+    },
+    "zhongli.normal-5": {
+      "id": "zhongli.normal-5",
+      "actorId": "zhongli",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.2125,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 18,
+          "motionValue": 0.2125,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 23,
+          "motionValue": 0.2125,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 29,
+          "motionValue": 0.2125,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      }
+    },
+    "zhongli.normal-6": {
+      "id": "zhongli.normal-6",
+      "actorId": "zhongli",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 29,
+          "motionValue": 1.0773,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 54
+      }
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "mika.normal-1": {
+      "id": "mika.normal-1",
+      "actorId": "mika",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 20,
+          "motionValue": 0.8552,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 35
+      }
+    },
+    "mika.normal-2": {
+      "id": "mika.normal-2",
+      "actorId": "mika",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.8204,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 28
+      }
+    },
+    "mika.normal-3": {
+      "id": "mika.normal-3",
+      "actorId": "mika",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 1.0774,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 41
+      }
+    },
+    "mika.normal-4": {
+      "id": "mika.normal-4",
+      "actorId": "mika",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 0.5459,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 24,
+          "motionValue": 0.5459,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 48
+      }
+    },
+    "mika.normal-5": {
+      "id": "mika.normal-5",
+      "actorId": "mika",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 30,
+          "motionValue": 1.401,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 71
+      }
+    }
+  }
+}

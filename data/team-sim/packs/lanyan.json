@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "lanyan.normal-1": {
+      "id": "lanyan.normal-1",
+      "actorId": "lanyan",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.7459,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 30
+      }
+    },
+    "lanyan.normal-2": {
+      "id": "lanyan.normal-2",
+      "actorId": "lanyan",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 17,
+          "motionValue": 0.3674,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 37,
+          "motionValue": 0.4491,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 46
+      }
+    },
+    "lanyan.normal-3": {
+      "id": "lanyan.normal-3",
+      "actorId": "lanyan",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 0.4846,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 21,
+          "motionValue": 0.4846,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 53
+      }
+    },
+    "lanyan.normal-4": {
+      "id": "lanyan.normal-4",
+      "actorId": "lanyan",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 40,
+          "motionValue": 1.1621,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 63
+      }
+    }
+  }
+}

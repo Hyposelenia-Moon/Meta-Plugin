@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "varka.normal-1": {
+      "id": "varka.normal-1",
+      "actorId": "varka",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 19,
+          "motionValue": 1.294,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 46
+      }
+    },
+    "varka.normal-2": {
+      "id": "varka.normal-2",
+      "actorId": "varka",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 18,
+          "motionValue": 0.4742,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 28,
+          "motionValue": 0.8806,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 46
+      }
+    },
+    "varka.normal-3": {
+      "id": "varka.normal-3",
+      "actorId": "varka",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 27,
+          "motionValue": 0.6412,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 43,
+          "motionValue": 1.1908,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 60
+      }
+    },
+    "varka.normal-4": {
+      "id": "varka.normal-4",
+      "actorId": "varka",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 19,
+          "motionValue": 1.0957,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 24,
+          "motionValue": 0.59,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 47
+      }
+    },
+    "varka.normal-5": {
+      "id": "varka.normal-5",
+      "actorId": "varka",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 44,
+          "motionValue": 1.3788,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 45,
+          "motionValue": 0.7424,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 82
+      }
+    }
+  }
+}

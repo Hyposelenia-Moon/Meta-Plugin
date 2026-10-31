@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "baizhu.normal-1": {
+      "id": "baizhu.normal-1",
+      "actorId": "baizhu",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 17,
+          "motionValue": 0.6727,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 33
+      }
+    },
+    "baizhu.normal-2": {
+      "id": "baizhu.normal-2",
+      "actorId": "baizhu",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 0.6556,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 39
+      }
+    },
+    "baizhu.normal-3": {
+      "id": "baizhu.normal-3",
+      "actorId": "baizhu",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 0.4057,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 35,
+          "motionValue": 0.4057,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 46
+      }
+    },
+    "baizhu.normal-4": {
+      "id": "baizhu.normal-4",
+      "actorId": "baizhu",
+      "kind": "normal",
+      "element": "dendro",
+      "hits": [
+        {
+          "atFrame": 30,
+          "motionValue": 0.9745,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 67
+      }
+    }
+  }
+}

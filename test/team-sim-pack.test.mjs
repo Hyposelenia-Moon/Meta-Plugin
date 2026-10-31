@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { mod } from './_helper.mjs'
 
-const { validateDataPack } = await import(mod('modules/teamSimulation/dataPack.js'))
+const { combineDataPacks, validateDataPack } = await import(mod('modules/teamSimulation/dataPack.js'))
 const { validateRotation } = await import(mod('modules/teamSimulation/rotation.js'))
 const { FRAME_TIERS, simulateTimeline } = await import(mod('modules/teamSimulation/timeline.js'))
 
@@ -154,5 +154,25 @@ assert.deepEqual(smoke.hits.map(h => h.frame), [6, 18, 30])
 // 步骤里出现的角色必须在 rotation.actors 登记：否则内核拿不到能量与冷却状态。
 const rosterMiss = validateRotation({ ...exampleRotation, actors: [{ actorId: 'actor:example-a', energy: 0, energyMax: 60 }] }, examplePack)
 assert.ok(rosterMiss.some(i => i.path === 'rotation.steps.1.actorId' && i.message.includes('登记')), JSON.stringify(rosterMiss))
+
+// 合并多份数据包：动作键跨包重复必须拒绝，不能被对象合并静默覆盖。
+const packB = {
+  schemaVersion: 1,
+  gameVersion: '7.1',
+  source: 'synthetic-pack-b',
+  actions: { 'ganyu.skill': { id: 'ganyu.skill', actorId: 'actor:ganyu', kind: 'skill', timing: { type: 'frames', frames: 40 }, hits: [{ atFrame: 12, motionValue: 1.2, scaling: 'atk', element: 'cryo', canCrit: true }] } }
+}
+const merged = combineDataPacks([pack, packB])
+assert.equal(merged.status, 'ok', JSON.stringify(merged.issues))
+assert.deepEqual(Object.keys(merged.pack.actions).sort(), ['albedo.skill', 'ganyu.skill', 'itto.normal-1'])
+assert.ok(merged.pack.effects['itto.hit'], '合并后效果表不能丢')
+const clash = combineDataPacks([pack, { ...packB, actions: { 'itto.normal-1': normal } }])
+assert.equal(clash.status, 'invalid')
+assert.ok(clash.issues.some(i => i.path === 'packs.1.actions.itto.normal-1' && i.message.includes('重复')), JSON.stringify(clash.issues))
+const versionClash = combineDataPacks([pack, { ...packB, gameVersion: '7.0' }])
+assert.equal(versionClash.status, 'version-mismatch')
+const emptyMerge = combineDataPacks([])
+assert.equal(emptyMerge.status, 'invalid')
+assert.equal(emptyMerge.issues[0].code, 'missing')
 
 console.log('team-sim-pack ok')

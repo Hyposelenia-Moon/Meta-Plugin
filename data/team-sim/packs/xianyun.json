@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "xianyun.normal-1": {
+      "id": "xianyun.normal-1",
+      "actorId": "xianyun",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 0.7254,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 34
+      }
+    },
+    "xianyun.normal-2": {
+      "id": "xianyun.normal-2",
+      "actorId": "xianyun",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 0.6994,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 38
+      }
+    },
+    "xianyun.normal-3": {
+      "id": "xianyun.normal-3",
+      "actorId": "xianyun",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 34,
+          "motionValue": 0.8798,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 65
+      }
+    },
+    "xianyun.normal-4": {
+      "id": "xianyun.normal-4",
+      "actorId": "xianyun",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 38,
+          "motionValue": 1.1685,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 93
+      }
+    }
+  }
+}

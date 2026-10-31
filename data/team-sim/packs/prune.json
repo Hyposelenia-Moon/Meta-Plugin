@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "prune.normal-1": {
+      "id": "prune.normal-1",
+      "actorId": "prune",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 19,
+          "motionValue": 0.8752,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 47
+      }
+    },
+    "prune.normal-2": {
+      "id": "prune.normal-2",
+      "actorId": "prune",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 24,
+          "motionValue": 0.8691,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 54
+      }
+    },
+    "prune.normal-3": {
+      "id": "prune.normal-3",
+      "actorId": "prune",
+      "kind": "normal",
+      "element": "anemo",
+      "hits": [
+        {
+          "atFrame": 42,
+          "motionValue": 1.2236,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 84
+      }
+    }
+  }
+}

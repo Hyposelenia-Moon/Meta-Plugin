@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "odette.normal-1": {
+      "id": "odette.normal-1",
+      "actorId": "odette",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 9,
+          "motionValue": 1.0251,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 25
+      }
+    },
+    "odette.normal-2": {
+      "id": "odette.normal-2",
+      "actorId": "odette",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 9,
+          "motionValue": 1.0182,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 23
+      }
+    },
+    "odette.normal-3": {
+      "id": "odette.normal-3",
+      "actorId": "odette",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.6446,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 31,
+          "motionValue": 0.7567,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 69
+      }
+    },
+    "odette.normal-4": {
+      "id": "odette.normal-4",
+      "actorId": "odette",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 1.4741,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 85
+      }
+    },
+    "odette.normal-5": {
+      "id": "odette.normal-5",
+      "actorId": "odette",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 1.7833,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 70
+      }
+    }
+  }
+}

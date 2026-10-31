@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "diluc.normal-1": {
+      "id": "diluc.normal-1",
+      "actorId": "diluc",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 24,
+          "motionValue": 1.7731,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 32
+      }
+    },
+    "diluc.normal-2": {
+      "id": "diluc.normal-2",
+      "actorId": "diluc",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 39,
+          "motionValue": 1.7323,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 46
+      }
+    },
+    "diluc.normal-3": {
+      "id": "diluc.normal-3",
+      "actorId": "diluc",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 26,
+          "motionValue": 1.9533,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 34
+      }
+    },
+    "diluc.normal-4": {
+      "id": "diluc.normal-4",
+      "actorId": "diluc",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 49,
+          "motionValue": 2.6486,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 99
+      }
+    }
+  }
+}

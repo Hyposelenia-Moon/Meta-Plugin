@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "escoffier.normal-1": {
+      "id": "escoffier.normal-1",
+      "actorId": "escoffier",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 7,
+          "motionValue": 1.019,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 22
+      }
+    },
+    "escoffier.normal-2": {
+      "id": "escoffier.normal-2",
+      "actorId": "escoffier",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.9408,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 30
+      }
+    },
+    "escoffier.normal-3": {
+      "id": "escoffier.normal-3",
+      "actorId": "escoffier",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 27,
+          "motionValue": 0.6523,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 40,
+          "motionValue": 0.7973,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 62
+      }
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "kirara.normal-1": {
+      "id": "kirara.normal-1",
+      "actorId": "kirara",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 0.9469,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 33
+      }
+    },
+    "kirara.normal-2": {
+      "id": "kirara.normal-2",
+      "actorId": "kirara",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 18,
+          "motionValue": 0.9163,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 35
+      }
+    },
+    "kirara.normal-3": {
+      "id": "kirara.normal-3",
+      "actorId": "kirara",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 17,
+          "motionValue": 0.5025,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 39,
+          "motionValue": 0.7538,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 61
+      }
+    },
+    "kirara.normal-4": {
+      "id": "kirara.normal-4",
+      "actorId": "kirara",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 39,
+          "motionValue": 1.4484,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 63
+      }
+    }
+  }
+}

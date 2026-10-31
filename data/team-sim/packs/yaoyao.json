@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "yaoyao.normal-1": {
+      "id": "yaoyao.normal-1",
+      "actorId": "yaoyao",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 1.0082,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 28
+      }
+    },
+    "yaoyao.normal-2": {
+      "id": "yaoyao.normal-2",
+      "actorId": "yaoyao",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.9378,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      }
+    },
+    "yaoyao.normal-3": {
+      "id": "yaoyao.normal-3",
+      "actorId": "yaoyao",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 0.6202,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 31,
+          "motionValue": 0.6513,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 51
+      }
+    },
+    "yaoyao.normal-4": {
+      "id": "yaoyao.normal-4",
+      "actorId": "yaoyao",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 21,
+          "motionValue": 1.5405,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 59
+      }
+    }
+  }
+}

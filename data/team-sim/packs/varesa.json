@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "varesa.normal-1": {
+      "id": "varesa.normal-1",
+      "actorId": "varesa",
+      "kind": "normal",
+      "element": "electro",
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 0.842,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 49
+      }
+    },
+    "varesa.normal-2": {
+      "id": "varesa.normal-2",
+      "actorId": "varesa",
+      "kind": "normal",
+      "element": "electro",
+      "hits": [
+        {
+          "atFrame": 7,
+          "motionValue": 0.7205,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 30
+      }
+    },
+    "varesa.normal-3": {
+      "id": "varesa.normal-3",
+      "actorId": "varesa",
+      "kind": "normal",
+      "element": "electro",
+      "hits": [
+        {
+          "atFrame": 33,
+          "motionValue": 1.0136,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 59
+      }
+    }
+  }
+}

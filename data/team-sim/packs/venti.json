@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "venti.normal-1": {
+      "id": "venti.normal-1",
+      "actorId": "venti",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 17,
+          "motionValue": 0.4029,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 27,
+          "motionValue": 0.4029,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 30
+      }
+    },
+    "venti.normal-2": {
+      "id": "venti.normal-2",
+      "actorId": "venti",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 19,
+          "motionValue": 0.8772,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 38
+      }
+    },
+    "venti.normal-3": {
+      "id": "venti.normal-3",
+      "actorId": "venti",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 28,
+          "motionValue": 1.0353,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 33
+      }
+    },
+    "venti.normal-4": {
+      "id": "venti.normal-4",
+      "actorId": "venti",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 0.5151,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 28,
+          "motionValue": 0.5151,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      }
+    },
+    "venti.normal-5": {
+      "id": "venti.normal-5",
+      "actorId": "venti",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 17,
+          "motionValue": 1.0013,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 22
+      }
+    },
+    "venti.normal-6": {
+      "id": "venti.normal-6",
+      "actorId": "venti",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 49,
+          "motionValue": 1.4025,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 98
+      }
+    }
+  }
+}

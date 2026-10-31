@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "beidou.normal-1": {
+      "id": "beidou.normal-1",
+      "actorId": "beidou",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 1.4059,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      }
+    },
+    "beidou.normal-2": {
+      "id": "beidou.normal-2",
+      "actorId": "beidou",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 22,
+          "motionValue": 1.4008,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 36
+      }
+    },
+    "beidou.normal-3": {
+      "id": "beidou.normal-3",
+      "actorId": "beidou",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 45,
+          "motionValue": 1.7459,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 54
+      }
+    },
+    "beidou.normal-4": {
+      "id": "beidou.normal-4",
+      "actorId": "beidou",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 1.7102,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 36
+      }
+    },
+    "beidou.normal-5": {
+      "id": "beidou.normal-5",
+      "actorId": "beidou",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 43,
+          "motionValue": 2.2168,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 96
+      }
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "keqing.normal-1": {
+      "id": "keqing.normal-1",
+      "actorId": "keqing",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 10,
+          "motionValue": 0.8109,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 19
+      }
+    },
+    "keqing.normal-2": {
+      "id": "keqing.normal-2",
+      "actorId": "keqing",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 10,
+          "motionValue": 0.8109,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 24
+      }
+    },
+    "keqing.normal-3": {
+      "id": "keqing.normal-3",
+      "actorId": "keqing",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 14,
+          "motionValue": 1.0761,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 36
+      }
+    },
+    "keqing.normal-4": {
+      "id": "keqing.normal-4",
+      "actorId": "keqing",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 11,
+          "motionValue": 0.6222,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        },
+        {
+          "atFrame": 21,
+          "motionValue": 0.68,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 58
+      }
+    },
+    "keqing.normal-5": {
+      "id": "keqing.normal-5",
+      "actorId": "keqing",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 22,
+          "motionValue": 1.3243,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 66
+      }
+    }
+  }
+}

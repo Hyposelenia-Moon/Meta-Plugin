@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao-plugin 7.1 天赋 10 级倍率 + gcsim fcc117b 命中帧与收尾帧（60fps 口径）",
+  "actions": {
+    "kaveh.normal-1": {
+      "id": "kaveh.normal-1",
+      "actorId": "kaveh",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 27,
+          "motionValue": 1.506,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 44
+      }
+    },
+    "kaveh.normal-2": {
+      "id": "kaveh.normal-2",
+      "actorId": "kaveh",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 22,
+          "motionValue": 1.3766,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 45
+      }
+    },
+    "kaveh.normal-3": {
+      "id": "kaveh.normal-3",
+      "actorId": "kaveh",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 33,
+          "motionValue": 1.6656,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 56
+      }
+    },
+    "kaveh.normal-4": {
+      "id": "kaveh.normal-4",
+      "actorId": "kaveh",
+      "kind": "normal",
+      "element": "physical",
+      "hits": [
+        {
+          "atFrame": 40,
+          "motionValue": 2.0299,
+          "scaling": "atk",
+          "element": "physical",
+          "canCrit": true
+        }
+      ],
+      "timing": {
+        "type": "frames",
+        "frames": 81
+      }
+    }
+  }
+}
