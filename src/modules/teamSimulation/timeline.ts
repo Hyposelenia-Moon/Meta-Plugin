@@ -7,6 +7,7 @@
  * 现实时间与游戏计时器时间不一样，给默认值等于把前提藏起来。
  */
 import type { Issue } from './types.js'
+import { createEffectRuntime, NO_ENEMY_MODIFIERS, type ActiveEffectState, type EffectSpec, type EnemyModifiers, type PanelModifiers, type TriggerRecord } from './effects.js'
 
 /** 数据编帧用的标称帧率。60 档位上一帧的真实时长是 16.667ms，不是整数毫秒。 */
 export const FRAME_RATE = 60
@@ -131,6 +132,8 @@ export interface TimelineInput {
   energyRecharge?: Record<string, number>
   /** 已满足的状态标记，用于 `requires` 门槛。 */
   stateFlags?: string[]
+  /** 效果表：命中段的 `triggerIds` 按这张表结算，未登记的一律拒绝。 */
+  effects?: Record<string, EffectSpec>
 }
 
 export interface TimelineHit {
@@ -143,9 +146,11 @@ export interface TimelineHit {
   element: 'geo' | 'physical'
   canCrit: boolean
   triggerIds: string[]
+  /** 该命中结算时实际生效的修饰：面板增量与全局敌人减益。触发先于伤害之外的效果不影响这一发。 */
+  modifiers: { stats: PanelModifiers; enemy: EnemyModifiers }
 }
 
-export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'action-end' | 'switch' | 'wait' | 'rejected'
+export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger'
 
 export interface TimelineEvent {
   frame: number
@@ -191,6 +196,10 @@ export interface TimelineResult {
   endFrame: number
   events: TimelineEvent[]
   hits: TimelineHit[]
+  /** 每次实际生效的触发；叠层已满或被 ignore 策略跳过时不记录。 */
+  triggers: TriggerRecord[]
+  /** 窗口结束时的存续效果快照。 */
+  effects: ActiveEffectState[]
   actors: { actorId: string; energy: number; energyMax: number; cooldowns: Record<string, number> }[]
   requests: TimelineRequest[]
   issues: Issue[]
@@ -345,6 +354,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const hits: TimelineHit[] = []
   const requests: TimelineRequest[] = []
   const approximateItems: string[] = []
+  const triggers: TriggerRecord[] = []
   const add = (code: Issue['code'], path: string, message: string) => issues.push({ code, path, message })
 
   const actions = input?.actions ?? {}
@@ -363,6 +373,8 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const recharge = input?.energyRecharge ?? {}
   let activeActorId = input?.activeActorId
   if (!actors.has(activeActorId)) add('missing', 'activeActorId', '前台角色必须在 actors 里')
+  // 效果运行时按帧累积状态：命中结算时先取当帧修饰，再结算这一发携带的触发，所以触发不会反过来加强自己。
+  const effectRuntime = createEffectRuntime(input?.effects ?? {}, [...actors.keys()], isInteger(input?.measurementEndFrame) ? input.measurementEndFrame : 0)
 
   const durationCache = new Map<string, ResolvedTiming>()
   const durationOf = (spec: ActionSpec): ResolvedTiming => {
@@ -419,8 +431,16 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const handle = (queued: QueuedItem) => {
     const { item } = queued
     if (item.kind === 'hit') {
-      hits.push({ frame: queued.frame, actorId: item.actorId, actionId: item.actionId, hitIndex: item.hitIndex, motionValue: item.hit.motionValue, scaling: item.hit.scaling, element: item.hit.element, canCrit: item.hit.canCrit, triggerIds: item.hit.triggerIds ?? [] })
+      const modifiers = effectRuntime.modifiersAt(item.actorId, queued.frame)
+      hits.push({ frame: queued.frame, actorId: item.actorId, actionId: item.actionId, hitIndex: item.hitIndex, motionValue: item.hit.motionValue, scaling: item.hit.scaling, element: item.hit.element, canCrit: item.hit.canCrit, triggerIds: item.hit.triggerIds ?? [], modifiers })
       record(queued.frame, 'hit', 'hit', item.actorId, item.actionId, { hitIndex: item.hitIndex, motionValue: item.hit.motionValue, element: item.hit.element })
+      for (const [index, effectId] of (item.hit.triggerIds ?? []).entries()) {
+        if (!effectRuntime.has(effectId)) { add('unsupported', `actions.${item.actionId}.hits.${item.hitIndex}.triggerIds.${index}`, `触发标记 ${effectId} 在效果表里没有登记，无法兑现`); continue }
+        const trigger = effectRuntime.trigger(effectId, queued.frame, item.actorId)
+        if (!trigger) continue
+        triggers.push(trigger)
+        record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId, stacks: trigger.stacks, expiresAt: trigger.expiresAt })
+      }
       return
     }
     if (item.kind === 'particle') {
@@ -574,6 +594,8 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
       endFrame: currentFrame,
       events,
       hits,
+      triggers,
+      effects: effectRuntime.snapshot(),
       actors: [...actors.values()].map(a => ({ actorId: a.actorId, energy: a.energy, energyMax: a.energyMax, cooldowns: { ...a.cooldowns } })),
       requests,
       issues

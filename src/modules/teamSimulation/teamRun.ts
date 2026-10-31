@@ -118,7 +118,8 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
     measurementEndFrame: input.rotation.measurementEndFrame,
     switchFrames: input.rotation.switchFrames,
     energyRecharge: input.rotation.energyRecharge,
-    stateFlags: input.rotation.stateFlags
+    stateFlags: input.rotation.stateFlags,
+    effects: packResult.pack.effects ?? {}
   })
   checks.push({ stage: 'timeline', status: timeline.status === 'simulated' ? 'ok' : timeline.status, issues: timeline.issues })
   if (timeline.status !== 'simulated') return fail('invalid', checks, timeline.issues)

@@ -143,4 +143,27 @@ const badTarget = simulateTeam({ pack, rotation, members, expected, targetPreset
 assert.equal(badTarget.status, 'unsupported')
 assert.ok(badTarget.checks.find(c => c.stage === 'damage').issues.some(i => i.path.includes('targetPresetId')))
 
+// 效果表端到端：同一份包挂一个队伍攻击加成，触发之后的每一段伤害都必须变大。
+const effectPack = {
+  ...pack,
+  effects: { 'party-atk': { id: 'party-atk', target: 'team', stats: { atk: 300 }, durationFrames: 200 } },
+  actions: {
+    ...pack.actions,
+    'itto.normal-1': {
+      ...pack.actions['itto.normal-1'],
+      hits: [{ ...pack.actions['itto.normal-1'].hits[0], triggerIds: ['party-atk'] }, pack.actions['itto.normal-1'].hits[1]]
+    }
+  }
+}
+const buffed = simulateTeam({ pack: effectPack, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs })
+assert.equal(buffed.status, 'calculated', JSON.stringify(buffed.issues))
+assert.equal(buffed.timeline.triggers.length, 1)
+assert.equal(buffed.timeline.triggers[0].effectId, 'party-atk')
+assert.equal(buffed.damage.rows[0].damage, run.damage.rows[0].damage, '触发这一发不吃自己的加成')
+assert.ok(buffed.damage.rows[1].damage > run.damage.rows[1].damage, '同角色后续命中必须吃到加成')
+// 下一个角色是防御倍率，攻击力加成不会改变它的伤害，但修饰本身必须已经挂到它身上。
+assert.equal(buffed.timeline.hits[2].modifiers.stats.atk, 300, '队伍加成对下一个出手角色同样生效')
+assert.equal(buffed.damage.rows[2].damage, run.damage.rows[2].damage, '防御倍率的命中不吃攻击力加成')
+assert.ok(buffed.damage.total > run.damage.total)
+
 console.log('team-sim-team-run ok')

@@ -18,7 +18,8 @@ const pack = {
   schemaVersion: 1,
   gameVersion: '7.1',
   source: 'synthetic-pack',
-  actions: { 'itto.normal-1': normal, 'albedo.skill': skill }
+  actions: { 'itto.normal-1': normal, 'albedo.skill': skill },
+  effects: { 'itto.hit': { id: 'itto.hit', target: 'team', stats: { atk: 240 }, durationFrames: 240 } }
 }
 
 const okPack = validateDataPack(pack)
@@ -55,6 +56,10 @@ assert.ok(badTriggerList.issues.some(i => i.path === 'actions.itto.normal-1.hits
 const badTriggerId = validateDataPack({ ...pack, actions: { 'itto.normal-1': { ...normal, hits: [{ ...normal.hits[0], triggerIds: ['itto.hit', ' '] }] } } })
 assert.equal(badTriggerId.status, 'invalid')
 assert.ok(badTriggerId.issues.some(i => i.path === 'actions.itto.normal-1.hits.0.triggerIds.1'), JSON.stringify(badTriggerId.issues))
+// 写了一个效果表里没有的 id：数据承诺了兑现不了的触发，直接拒绝而不是静默忽略。
+const unknownTrigger = validateDataPack({ ...pack, actions: { 'itto.normal-1': { ...normal, hits: [{ ...normal.hits[0], triggerIds: ['itto.hit', 'itto.unknown'] }] } } })
+assert.equal(unknownTrigger.status, 'unsupported')
+assert.ok(unknownTrigger.issues.some(i => i.path === 'actions.itto.normal-1.hits.0.triggerIds.1' && i.code === 'unsupported'), JSON.stringify(unknownTrigger.issues))
 
 const rotation = {
   id: 'rotation:synthetic',

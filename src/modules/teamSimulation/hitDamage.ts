@@ -1,5 +1,6 @@
 import type { Failure, Issue, OrdinaryDamageResult, OrdinaryHit, PermanentStats } from './types.js'
 import { calculateOrdinaryHit, TARGET_PRESETS } from './formula.js'
+import { applyPanelModifiers } from './effects.js'
 import type { TimelineHit, TimelineResult } from './timeline.js'
 
 export type CritPolicy = 'expected' | 'critical' | 'non-critical'
@@ -130,25 +131,34 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     if (!context) {
       return { status: 'invalid', issues: [{ code: 'missing', path: `contexts.${hit.actorId}`, message: `命中来自 ${hit.actorId}，但没有提供该角色的面板` }] }
     }
+    // 命中自带当帧生效的面板增量与敌人减益：内核已经按帧算好，这里只做加法，不回查效果表。
+    const modifiers = hit.modifiers
+    if (!modifiers || typeof modifiers !== 'object' || !modifiers.enemy || typeof modifiers.stats !== 'object' || modifiers.stats === null) {
+      return { status: 'invalid', issues: [{ code: 'missing', path: `hits.${index}.modifiers`, message: '命中缺少生效修饰快照，无法确定这一发吃到了哪些效果' }] }
+    }
+    const stats = applyPanelModifiers(context.stats, modifiers.stats)
+    const defenseReduction = context.debuffs.defenseReduction + modifiers.enemy.defenseReduction
+    const defenseIgnore = context.debuffs.defenseIgnore + modifiers.enemy.defenseIgnore
+    const resistanceReduction = context.debuffs.resistanceReduction + modifiers.enemy.resistanceReduction
     const spec: OrdinaryHit = {
       kind: 'ordinary',
       reaction: 'none',
       gameVersion: context.gameVersion,
       source: context.source,
       targetId: preset.id,
-      scaling: [{ stat: statFor(hit.scaling, context.stats), multiplier: hit.motionValue }],
+      scaling: [{ stat: statFor(hit.scaling, stats), multiplier: hit.motionValue }],
       additiveBase: 0,
-      damageBonus: damageBonusFor(hit.element, context.stats),
+      damageBonus: damageBonusFor(hit.element, stats),
       canCrit: hit.canCrit,
       crit: context.crit,
-      critRate: context.stats.cpct,
-      critDamage: context.stats.cdmg,
+      critRate: stats.cpct,
+      critDamage: stats.cdmg,
       attackerLevel: context.level,
       enemyLevel: preset.level,
-      defenseReduction: context.debuffs.defenseReduction,
-      defenseIgnore: context.debuffs.defenseIgnore,
+      defenseReduction,
+      defenseIgnore,
       resistance: preset.resistance,
-      resistanceReduction: context.debuffs.resistanceReduction
+      resistanceReduction
     }
     const result: OrdinaryDamageResult = calculateOrdinaryHit(spec)
     if (result.status !== 'calculated') {
