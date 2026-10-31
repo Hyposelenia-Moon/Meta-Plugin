@@ -52,6 +52,8 @@ export type TeamRunResult = {
   plan: MechanismPlan
   /** 只有标准口径才给 DPS；诊断模式为 null。 */
   dps: { total: number; windowSeconds: number; value: number } | null
+  /** 静态部分已计入、但条件/运行时部分没建模的效果；披露用，不放行。 */
+  unmodeled: { actorId: string; id: string; reason: string }[]
   /** 每个角色在窗口结束时的能量与上限，外加起手能量；能量披露用。 */
   energy: { actorId: string; start: number; end: number; max: number }[]
   /** 逐关耗时（毫秒）；未开 `instrument` 时为 null。 */
@@ -139,6 +141,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   const memberIssues: Issue[] = []
   const contexts: Record<string, DamageContext> = {}
   const builds: Record<string, CharacterBuild> = {}
+  const unmodeled: { actorId: string; id: string; reason: string }[] = []
   const actorIds = new Set<string>()
   members.forEach((member, index) => {
     const p = `members.${index}`
@@ -156,6 +159,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
       return
     }
     builds[build.actorId] = build
+    for (const item of permanent.unmodeled) unmodeled.push({ actorId: build.actorId, id: item.id, reason: item.reason })
     contexts[build.actorId] = {
       level: build.level,
       stats: permanent.stats,
@@ -227,6 +231,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
     damage,
     plan,
     dps: mode === 'dps-standard' ? { total: damage.total, windowSeconds, value: damage.total / windowSeconds } : null,
+    unmodeled,
     energy: (input.rotation.actors ?? []).map(actor => {
       const final = timeline.actors.find(item => item.actorId === actor.actorId)
       return { actorId: actor.actorId, start: actor.energy, end: final?.energy ?? actor.energy, max: actor.energyMax }

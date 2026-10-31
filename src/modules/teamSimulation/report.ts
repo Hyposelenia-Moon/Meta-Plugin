@@ -18,6 +18,8 @@ export interface TeamRunReport {
   stages: { stage: string; status: string; issues: number }[]
   window: null | { endFrame: number; tierId: string; tickMs: number; gameMs: number; realMs: number }
   approximateItems: string[]
+  /** 静态部分已计入、条件部分没建模的效果：必须原样披露，不能在摘要里吞掉。 */
+  unmodeled: { actorId: string; id: string; reason: string }[]
   hits: number
   total: number
   perActor: { actorId: string; hits: number; total: number }[]
@@ -48,6 +50,7 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
     stages,
     window: null,
     approximateItems: [],
+    unmodeled: [],
     hits: 0,
     total: 0,
     perActor: [],
@@ -106,6 +109,7 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
       realMs: timeline.timing.realMs
     },
     approximateItems: [...(timeline.approximateItems ?? []), ...(plan?.approximate ?? [])],
+    unmodeled: result.unmodeled ?? [],
     hits: damage.rows.length,
     total: damage.total,
     perActor: Object.entries(damage.perActor).map(([actorId, total]) => ({ actorId, hits: hitsPerActor.get(actorId) ?? 0, total })),
@@ -129,6 +133,12 @@ export function formatTeamRunReport(report: TeamRunReport): string[] {
     lines.push(`窗口：${endFrame} 帧 · ${tierId}（${tickMs}ms/帧）· 游戏 ${gameMs}ms · 现实 ${round1(realMs)}ms`)
   }
   if (report.status === 'calculated') {
+    if (report.unmodeled.length) {
+      const shown = report.unmodeled.slice(0, 5).map(item => `${item.actorId} / ${item.id}（${item.reason}）`)
+      const rest = report.unmodeled.length - shown.length
+      lines.push(`未纳入：${shown.join('；')}${rest > 0 ? `；等 ${report.unmodeled.length} 项` : ''}`)
+      lines.push('以下数字不含上述效果，偏低估；发布闸门会据此拦下。')
+    }
     lines.push(`命中：${report.hits} 段，合计 ${round1(report.total)}`)
     if (report.dps) lines.push(`DPS：${round1(report.dps.value)}（${round1(report.dps.total)} / ${round1(report.dps.windowSeconds)} 秒，110 级小宝 · 10% 抗性 · 0 能量起手）`)
     for (const actor of report.perActor) lines.push(`  角色 ${actor.actorId}：${actor.hits} 段 ${round1(actor.total)}`)

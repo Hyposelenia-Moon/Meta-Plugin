@@ -66,7 +66,17 @@ export interface PermanentData {
   character: { id: string; level: number; ascension: number; base: { hp: number; atk: number; def: number }; bonuses: StatValue[] }
   weapon: { id: string; level: number; ascension: number; baseAtk: number; bonuses: StatValue[] }
   /** 必须覆盖 requiredEffects 的每一个 id，空数组明确表示无静态属性，非未知。 */
-  effects: Record<string, { status: 'verified-static' | 'known-no-static' | 'unsupported'; modifiers: StatValue[]; runtimeRequired: boolean }>
+  effects: Record<string, {
+    status: 'verified-static' | 'known-no-static' | 'unsupported'
+    modifiers: StatValue[]
+    runtimeRequired: boolean
+    /**
+     * 该效果中「运行时才算得出来」的部分，人工写明没建模的是什么。
+     * 只允许出现在 verified-static / known-no-static 上：算得出静态部分、但条件部分没进内核，
+     * 结果会被当成偏低估披露，发布闸门照拦。
+     */
+    unmodeled?: string
+  }>
 }
 export interface PermanentStats {
   hp: number; atk: number; def: number
@@ -82,6 +92,8 @@ export type PermanentBuildResult = {
   base: { hp: number; atk: number; def: number; weaponAtk: number }
   setCounts: Record<string, number>
   runtimeEffects: string[]
+  /** 静态部分已计入、但条件/运行时部分没建模的效果；披露用，不放行。 */
+  unmodeled: { id: string; reason: string }[]
   trace: { source: string; key: string; value: number }[]
   gameVersion: string
   bundleId: string

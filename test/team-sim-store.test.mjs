@@ -88,8 +88,14 @@ const none = S.findRotation(['10000030', '10000038', '10000055', '10000057'])
 assert.equal(none.rotationFile, undefined)
 assert.ok(S.listRotationFiles().every(name => name.endsWith('.json')))
 
-const permanent = S.loadPermanentData({ characterId: IDS.zhongli, name: '钟离' })
-assert.equal(permanent.data, undefined)
-assert.ok(permanent.issue.path.includes('permanent/10000030.json'), JSON.stringify(permanent.issue))
+// 永久数据按「角色 + 武器 + 精炼」定位：七七还没做永久数据，钟离的黑缨枪已经入库。
+const missing = S.loadPermanentData({ characterId: '10000035', name: '七七', weapon: { id: '11401', refinement: 1 } })
+assert.equal(missing.data, undefined)
+assert.ok(missing.issue.path.includes('permanent/10000035-11401-r1.json'), JSON.stringify(missing.issue))
+assert.match(missing.issue.message, /还没有永久数据/)
+
+const already = S.loadPermanentData({ characterId: IDS.zhongli, name: '钟离', weapon: { id: '13303', refinement: 1 } })
+assert.ok(already.data, JSON.stringify(already.issue))
+assert.equal(already.data.bundleId, 'permanent-7.1')
 
 console.log(JSON.stringify({ keys: team.keys, actions: Object.keys(team.pack.actions).length }))

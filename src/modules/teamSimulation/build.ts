@@ -195,6 +195,7 @@ export function buildPermanentStats(input: unknown, dataInput: unknown, expected
   if (object(d.weapon)) requireEmptyBonuses(d.weapon.bonuses, 'permanentData.weapon.bonuses')
   if (!object(d.effects)) add(issues, 'missing', 'permanentData.effects', '效果审计表缺失')
   const effectEntries: [string, any][] = []
+  const unmodeled: { id: string; reason: string }[] = []
   if (object(d.effects)) for (const source of requiredEffectSources(build)) {
     const effect = d.effects[source.id]
     if (!effect) { add(issues, 'missing', `permanentData.effects.${source.id}`, 'requiredEffect 未逐项审计'); continue }
@@ -203,6 +204,12 @@ export function buildPermanentStats(input: unknown, dataInput: unknown, expected
     if (typeof effect.runtimeRequired !== 'boolean') add(issues, 'invalid', `permanentData.effects.${source.id}.runtimeRequired`, '必须显式标注运行时效果状态')
     if (effect.status === 'verified-static' || effect.status === 'known-no-static') checkBonuses(effect.modifiers, `permanentData.effects.${source.id}.modifiers`)
     if (effect.status === 'known-no-static' && effect.modifiers?.length) add(issues, 'invalid', `permanentData.effects.${source.id}.modifiers`, 'known-no-static 必须是空数组')
+    if (effect.unmodeled !== undefined) {
+      // 没建模的部分必须有人话说明；只写「有偏差」等于没说，结果里也没法披露到具体效果。
+      if (typeof effect.unmodeled !== 'string' || !effect.unmodeled.trim()) add(issues, 'invalid', `permanentData.effects.${source.id}.unmodeled`, 'unmodeled 必须是非空字符串')
+      else if (effect.status === 'unsupported') add(issues, 'invalid', `permanentData.effects.${source.id}.unmodeled`, 'unsupported 已经整体不支持，不能再声明未建模部分')
+      else unmodeled.push({ id: source.id, reason: effect.unmodeled.trim() })
+    }
     effectEntries.push([source.id, effect])
   }
   if (issues.length) return failure(issues)
@@ -237,5 +244,5 @@ export function buildPermanentStats(input: unknown, dataInput: unknown, expected
   if (!Object.values(stats).every(Number.isFinite)) return failure([{ code: 'invalid', path: 'stats', message: '属性累计溢出为非有限数值' }])
   const setCounts: Record<string, number> = Object.create(null)
   for (const a of build.artifacts) setCounts[a.setId] = (setCounts[a.setId] || 0) + 1
-  return { status: 'permanent-ready', scope: 'permanent-stats', simulationReady: false, stats, base, setCounts, runtimeEffects: effectEntries.filter(([, e]) => e.runtimeRequired).map(([id]) => id), trace, gameVersion: d.gameVersion, bundleId: d.bundleId }
+  return { status: 'permanent-ready', scope: 'permanent-stats', simulationReady: false, stats, base, setCounts, runtimeEffects: effectEntries.filter(([, e]) => e.runtimeRequired).map(([id]) => id), unmodeled, trace, gameVersion: d.gameVersion, bundleId: d.bundleId }
 }

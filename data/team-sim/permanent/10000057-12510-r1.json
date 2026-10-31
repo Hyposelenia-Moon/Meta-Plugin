@@ -1,0 +1,987 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "bundleId": "permanent-7.1",
+  "source": "miao meta-gs 7.1（白值/突破/武器副属性）+ 本仓库人工审计（套装与被动）",
+  "character": {
+    "id": "10000057",
+    "level": 90,
+    "ascension": 6,
+    "base": {
+      "hp": 12858.21,
+      "atk": 227.22,
+      "def": 959.16
+    },
+    "bonuses": []
+  },
+  "weapon": {
+    "id": "12510",
+    "level": 90,
+    "ascension": 6,
+    "baseAtk": 541.83,
+    "bonuses": []
+  },
+  "effects": {
+    "character:10000057:a6": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "cpct",
+          "value": 0.192
+        }
+      ],
+      "runtimeRequired": false,
+      "unmodeled": "固有天赋条件效果未建模：荒泷第一、赤鬼之血、干裂枝碎"
+    },
+    "weapon:12510:r1": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "cdmg",
+          "value": 0.882
+        },
+        {
+          "key": "defPct",
+          "value": 0.28
+        }
+      ],
+      "runtimeRequired": true,
+      "unmodeled": "普通攻击与重击伤害提高防御力的 40%（R1）：内核没有「按防御折算伤害」通道，未计入"
+    },
+    "artifact-set:400003:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400003:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "行者之心 4 件套未建模：重击的暴击率提升30%。"
+    },
+    "artifact-set:400008:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400008:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "勇士之心 4 件套未建模：对生命值高于50%的敌人，造成的伤害增加30%。"
+    },
+    "artifact-set:400013:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "defPct",
+          "value": 0.3
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400013:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "守护之心 4 件套未建模：队伍里每有不同一种元素类型的自己的角色，自身获得30%相应的元素抗性。"
+    },
+    "artifact-set:400018:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400018:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "奇迹 4 件套未建模：受到某个元素类型的伤害后，相应的抗性提升30%，持续10秒。该效果每10秒只能触发一次。"
+    },
+    "artifact-set:400023:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "cpct",
+          "value": 0.12
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400023:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "战狂 4 件套未建模：生命值低于70%时，暴击率额外提升24%。"
+    },
+    "artifact-set:400028:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400028:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "武人 4 件套未建模：施放元素战技后的8秒内，普通攻击和重击造成的伤害提升25%。"
+    },
+    "artifact-set:400033:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "mastery",
+          "value": 80
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400033:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "教官 4 件套未建模：触发元素反应后，队伍中所有角色的元素精通提高120点，持续8秒。"
+    },
+    "artifact-set:400038:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400038:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "赌徒 4 件套未建模：击败敌人时，有100%概率清除元素战技的冷却时间。该效果每15秒至多触发一次。"
+    },
+    "artifact-set:400043:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "recharge",
+          "value": 0.2
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400043:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "流放者 4 件套未建模：施放元素爆发后，每2秒为队伍中所有角色（不包括自己）恢复2点元素能量。该效果持续6秒，无法叠加。"
+    },
+    "artifact-set:400047:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "hp",
+          "value": 1000
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400047:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "冒险家 4 件套未建模：开启各类宝箱后的5秒内，持续恢复30%生命值。"
+    },
+    "artifact-set:400052:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "def",
+          "value": 100
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400052:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "幸运儿 4 件套未建模：拾取摩拉时，恢复300点生命值。"
+    },
+    "artifact-set:400058:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "recharge",
+          "value": 0.2
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400058:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "学士 4 件套未建模：获得元素微粒或元素晶球时，队伍中所有弓箭和法器角色额外恢复3点元素能量。该效果每3秒只能触发一次。"
+    },
+    "artifact-set:400062:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400062:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "游医 4 件套未建模：施放元素爆发时，恢复20%生命值。"
+    },
+    "artifact-set:400069:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "cryo",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400069:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "冰风迷途的勇士 4 件套未建模：攻击处于冰元素影响下的敌人时，暴击率提高20%；若敌人处于冻结状态下，则暴击率额外提高20%。"
+    },
+    "artifact-set:400074:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400074:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "平息鸣雷的尊者 4 件套未建模：对处于雷元素影响下的敌人造成的伤害提升35%。"
+    },
+    "artifact-set:400079:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400079:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "渡过烈火的贤人 4 件套未建模：对处于火元素影响下的敌人造成的伤害提升35%。"
+    },
+    "artifact-set:400084:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "heal",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400084:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "被怜爱的少女 4 件套未建模：施放元素战技或元素爆发后的10秒内，队伍中所有角色受治疗效果加成提高20%。"
+    },
+    "artifact-set:400089:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400089:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "角斗士的终幕礼 4 件套未建模：装备该圣遗物套装的角色为单手剑、双手剑、长柄武器角色时，角色普通攻击造成的伤害提高35%。"
+    },
+    "artifact-set:400094:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "anemo",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400094:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "翠绿之影 4 件套未建模：扩散反应造成的伤害提升60%，星扩散反应造成的伤害提升20%。根据扩散的元素类型，降低受到影响的敌人40%的对应元素抗性，持续10秒。对敌人触发星扩散反应时，也"
+    },
+    "artifact-set:400099:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "mastery",
+          "value": 80
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400099:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "流浪大地的乐团 4 件套未建模：装备该圣遗物套装的角色为法器、弓箭角色时，角色重击造成的伤害提高35%。"
+    },
+    "artifact-set:400109:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "electro",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400109:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "如雷的盛怒 4 件套未建模：超载、感电、超导、超绽放反应造成的伤害提升40%，超激化反应带来的伤害提升提高20%，月感电、星超导反应造成的伤害提升20%。触发上述元素反应或原激化反应时，元"
+    },
+    "artifact-set:400114:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "pyro",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400114:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "炽烈的炎之魔女 4 件套未建模：超载、燃烧、烈绽放反应造成的伤害提升40%，蒸发、融化反应的加成系数提高15%。施放元素战技后的10秒内，2件套的效果提高50%，该效果最多叠加3次。"
+    },
+    "artifact-set:400119:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400119:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "昔日宗室之仪 4 件套未建模：施放元素爆发后，队伍中所有角色攻击力提升20%，持续12秒。该效果不可叠加。"
+    },
+    "artifact-set:400124:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "phy",
+          "value": 0.25
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400124:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "染血的骑士道 4 件套未建模：击败敌人后的10秒内，施放重击时不消耗体力，且重击造成的伤害提升50%。"
+    },
+    "artifact-set:400128:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400133:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400138:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400148:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400154:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "geo",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400154:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "悠古的磐岩 4 件套未建模：获得结晶反应形成的晶片或触发月结晶反应时，队伍中所有角色获得35%对应元素伤害加成，持续10秒。同时只能通过该效果获得一种元素伤害加成。"
+    },
+    "artifact-set:400159:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400159:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "逆飞的流星 4 件套未建模：处于护盾庇护下时，额外获得40%普通攻击和重击伤害加成。"
+    },
+    "artifact-set:400164:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "hydro",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400164:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "沉沦之心 4 件套未建模：施放元素战技后的15秒内，普通攻击与重击造成的伤害提高30%。"
+    },
+    "artifact-set:400169:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "hpPct",
+          "value": 0.2
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400169:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "千岩牢固 4 件套未建模：元素战技命中敌人后，使队伍中附近的所有角色攻击力提升20%，护盾强效提升30%，持续3秒。该效果每0.5秒至多触发一次。装备此圣遗物套装的角色处于队伍后台时，依"
+    },
+    "artifact-set:400174:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "phy",
+          "value": 0.25
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400174:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "苍白之火 4 件套未建模：元素战技命中敌人后，攻击力提升9%。该效果持续7秒，至多叠加2层，每0.3秒至多触发一次。叠满2层时，2件套的效果提升100%。"
+    },
+    "artifact-set:400179:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400179:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "追忆之注连 4 件套未建模：施放元素战技时，如果角色的元素能量高于或等于15点，则会流失15点元素能量，使接下来的10秒内，普通攻击、重击、下落攻击造成的伤害提高50%，持续期间内该效果不"
+    },
+    "artifact-set:400184:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "recharge",
+          "value": 0.2
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400184:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "绝缘之旗印 4 件套未建模：基于元素充能效率的25%，提高元素爆发造成的伤害。至多通过这种方式获得75%提升。"
+    },
+    "artifact-set:400189:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "defPct",
+          "value": 0.3
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400189:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "华馆梦醒形骸记 4 件套未建模：装备此圣遗物套装的角色在以下情况下，将获得「问答」效果：在场上用岩元素攻击命中敌人后获得一层，每0.3秒至多触发一次；在队伍后台中，每3秒获得一层。问答至多叠加"
+    },
+    "artifact-set:400194:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "heal",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400194:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "海染砗磲 4 件套未建模：装备此圣遗物套装的角色对队伍中的角色进行治疗时，将产生持续3秒的海染泡沫，记录治疗的生命值回复量（包括溢出值）。持续时间结束时，海染泡沫将会爆炸，对周围的敌人造"
+    },
+    "artifact-set:400199:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400199:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "辰砂往生录 4 件套未建模：施放元素爆发后，将产生持续16秒的「潜光」效果：攻击力提升8%；并在角色的生命值降低时，攻击力进一步提升10%，至多通过这种方式提升4次，每0.8秒至多触发一次"
+    },
+    "artifact-set:400204:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400204:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "来歆余响 4 件套未建模：普通攻击命中敌人时，有36%概率触发「幽谷祝祀」：普通攻击造成的伤害提高，伤害提高值为攻击力的70%，该效果将在普通攻击造成伤害后的0.05秒后清除。普通攻击未"
+    },
+    "artifact-set:400209:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "dendro",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400209:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "深林的记忆 4 件套未建模：元素战技或元素爆发命中敌人后，使命中目标的草元素抗性降低30%，持续8秒。装备者处于队伍后台时，依然能触发该效果。"
+    },
+    "artifact-set:400214:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "mastery",
+          "value": 80
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400214:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "饰金之梦 4 件套未建模：触发元素反应后的8秒内，会根据队伍内其他角色的元素类型，使装备者获得强化：队伍中每存在1个和装备者同类元素的角色，攻击力提升14%；每存在1个和装备者不同元素类"
+    },
+    "artifact-set:400221:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "anemo",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400221:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "沙上楼阁史话 4 件套未建模：重击命中敌人后，该角色的普通攻击速度提升10%，普通攻击、重击与下落攻击造成的伤害提升40%，持续15秒。"
+    },
+    "artifact-set:400231:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "mastery",
+          "value": 80
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400231:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "乐园遗落之花 4 件套未建模：装备者绽放、超绽放、烈绽放反应造成的伤害提升40%，造成的月绽放反应伤害提升10%。此外，装备者触发绽放、超绽放、烈绽放、月绽放后，上述效果带来的加成提升25%"
+    },
+    "artifact-set:400241:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "hydro",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400241:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "水仙之梦 4 件套未建模：普通攻击、重击、下落攻击、元素战技或元素爆发命中敌人后，将产生1层持续8秒的「镜中水仙」效果。处于1/2/3层及以上「镜中水仙」效果下时，攻击力将提高7%/16"
+    },
+    "artifact-set:400251:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "hpPct",
+          "value": 0.2
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400251:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "花海甘露之光 4 件套未建模：元素战技与元素爆发造成的伤害提升10%；装备者受到伤害后的5秒内，上述伤害提升效果提高80%，该提高效果至多叠加5层，每层持续时间独立计算，处于队伍后台时依然能"
+    },
+    "artifact-set:400261:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400261:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "逐影猎人 4 件套未建模：当前生命值提升或降低时，暴击率提升12%，该效果持续5秒，至多叠加3次。"
+    },
+    "artifact-set:400271:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400271:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "黄金剧团 4 件套未建模：元素战技造成的伤害提升25%；此外，处于队伍后台时，元素战技造成的伤害还将进一步提升25%，该效果将在登场后2秒移除。"
+    },
+    "artifact-set:400281:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "heal",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400281:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "昔时之歌 4 件套未建模：装备者对队伍中的角色进行治疗时，将产生持续6秒的渴盼效果，记录治疗的生命值回复量（包括溢出值）。持续时间结束时，渴盼效果将转变为「彼时的浪潮」效果：队伍中自己的"
+    },
+    "artifact-set:400291:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400291:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "回声之林夜话 4 件套未建模：施放元素战技后的10秒内，岩元素伤害加成提升20%；若处于结晶反应产生的护盾庇护下，或附近存在月结晶反应产生的月笼，上述效果提高150%，进一步提高的效果将在不"
+    },
+    "artifact-set:400301:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400301:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "谐律异想断章 4 件套未建模：生命之契的数值提升或降低时，角色造成的伤害提升18%，该效果持续6秒，至多叠加3次。"
+    },
+    "artifact-set:400311:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400311:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "未竟的遐思 4 件套未建模：脱离战斗状态3秒后，造成的伤害提升50%。在战斗状态下，附近不存在处于燃烧状态下的敌人超过6秒后，上述伤害提升效果每秒降低10%，直到降低至0%；存在处于燃烧状"
+    },
+    "artifact-set:400321:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400321:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "烬城勇者绘卷 4 件套未建模：装备者触发其对应元素类型的相关反应后，队伍中附近的所有角色的该元素反应相关的元素伤害加成提升12%，持续15秒。若触发该效果时，装备者处于夜魂加持状态下，还将使"
+    },
+    "artifact-set:400331:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400331:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "黑曜秘典 4 件套未建模：装备者在场上消耗1点夜魂值后，暴击率提高40%，持续6秒。该效果每1秒至多触发一次。"
+    },
+    "artifact-set:400341:2pc": {
+      "status": "unsupported",
+      "modifiers": [],
+      "runtimeRequired": false
+    },
+    "artifact-set:400341:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "长夜之誓 4 件套未建模：装备者的下落攻击/重击/元素战技命中敌人后，获得1/2/2层「永照的流辉」，由下落攻击、重击或元素战技产生的该效果分别每1秒至多触发一次。永照的流辉：下落攻击造"
+    },
+    "artifact-set:400351:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "cryo",
+          "value": 0.15
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400351:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "深廊终曲 4 件套未建模：装备者的元素能量为0时，普通攻击造成的伤害提升60%，元素爆发造成的伤害提升60%。装备者的普通攻击造成伤害后，上述元素爆发伤害提升效果将失效6秒；装备者的元素"
+    },
+    "artifact-set:400361:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "mastery",
+          "value": 80
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400361:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "穹境示现之夜 4 件套未建模：队伍中附近的角色触发月曜反应时，若装备者在场上，将获得持续4秒的「月辉明光·蓄念」效果：队伍的月兆为初辉/满辉时，暴击率提升15%/30%。队伍中的角色每拥有一"
+    },
+    "artifact-set:400371:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "recharge",
+          "value": 0.2
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400371:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "纺月的夜歌 4 件套未建模：造成元素伤害时，获得持续8秒的「月辉明光·崇信」效果：队伍的月兆为初辉/满辉时，队伍中的所有角色的元素精通提高60点/120点。装备者处于后台时也能触发上述效果"
+    },
+    "artifact-set:400381:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "mastery",
+          "value": 80
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400381:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "晨星与月的晓歌 4 件套未建模：装备者处于队伍后台时，造成的月曜反应伤害提升20%；队伍的月兆等级至少为满辉时，造成的月曜反应伤害进一步提升40%。上述效果将在装备者位于场上3秒后移除。"
+    },
+    "artifact-set:400391:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400391:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "风起之日 4 件套未建模：普通攻击、重击、元素战技或元素爆发命中敌人后，将获得持续6秒的「风与牧歌的眷怜」：攻击力提高25%。若装备者已经完成了「魔女的课业」，则「风与牧歌的眷怜」将会升"
+    },
+    "artifact-set:400401:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "recharge",
+          "value": 0.2
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400401:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "天之美赐 4 件套未建模：若装备者已经完成了魔女的课业，则施放元素战技后，会获得「天光之引」效果：依据装备者的元素类型，使队伍中附近的所有角色获得20%对应元素伤害加成，持续20秒。装备"
+    },
+    "artifact-set:400411:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400411:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "影中沉凝的幻灭 4 件套未建模：超导反应造成的伤害提升80%，星超导反应造成的伤害提升40%；装备者攻击受到超导或星超导反应影响的敌人时，本次攻击的暴击率提高16%。"
+    },
+    "artifact-set:400421:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400421:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "血红之证 4 件套未建模：装备者触发星扩散反应后的10秒内，暴击率提升16%，星扩散反应伤害提升40%。"
+    },
+    "artifact-set:400431:2pc": {
+      "status": "verified-static",
+      "modifiers": [
+        {
+          "key": "atkPct",
+          "value": 0.18
+        }
+      ],
+      "runtimeRequired": false
+    },
+    "artifact-set:400431:4pc": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "炉火融炼之心 4 件套未建模：装备者触发星烁反应或造成星烁反应伤害后的12秒内，攻击力提升12%，队伍中附近的所有角色造成的星烁反应伤害提升50%。装备者处于后台时也能触发上述效果。同名圣遗"
+    },
+    "constellation:10000057:1": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "命座 1「倘若不知，我讲你听」未建模"
+    },
+    "constellation:10000057:2": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "命座 2「纠集众人，斗倒御岳」未建模"
+    },
+    "constellation:10000057:3": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "命座 3「水陆自在，牛王同行」未建模"
+    },
+    "constellation:10000057:4": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "命座 4「奉行牢狱，茶饭之所」未建模"
+    },
+    "constellation:10000057:5": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "命座 5「十年花坂，皆知我名」未建模"
+    },
+    "constellation:10000057:6": {
+      "status": "verified-static",
+      "modifiers": [],
+      "runtimeRequired": true,
+      "unmodeled": "命座 6「在下荒泷一斗是也」未建模"
+    }
+  }
+}
