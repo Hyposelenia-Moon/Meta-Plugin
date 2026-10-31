@@ -123,3 +123,5 @@ export type { ReactionFamily, ReactionFamilySpec, FamilyGateResult } from './rea
 
 export { GOLDEN_THRESHOLDS, validateGoldenCases, evaluateGolden } from './metrics.js'
 export type { GoldenCase, GoldenExpectation, GoldenActual, GoldenRow, GoldenReport } from './metrics.js'
+export { attributeEffects } from './attribution.js'
+export type { AttributionRow, AttributionResult } from './attribution.js'

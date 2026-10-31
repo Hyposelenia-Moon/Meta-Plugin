@@ -101,6 +101,8 @@ export interface HitSpec {
    * 排在这之后的事件、冷却期限、效果到期一律顺延同样帧数，现实帧照常消耗。
    * 时长来自数据，P1 不校准，用到时结果标 approximate。
    */
+  /** 命中帧相对动作起手，延迟命中允许越过动作结束帧：它由后续事件触发，不受本动作收尾约束。 */
+  delayed?: boolean
   hitlagFrames?: number
   /**
    * 这一发命中的元素反应。ura 是命中瞬间目标身上的附着元素，由数据声明；
@@ -328,7 +330,8 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
       const hp = `${p}.hits.${i}`
       if (!hit || typeof hit !== 'object') { add('invalid', hp, '命中段必须是对象'); return }
       if (!isInteger(hit.atFrame) || hit.atFrame < 0) add('invalid', `${hp}.atFrame`, '命中帧必须是非负整数')
-      if (bound !== null && isInteger(hit.atFrame) && hit.atFrame >= bound) add('invalid', `${hp}.atFrame`, '命中帧不能超出动作时长')
+      if (hit.delayed !== undefined && typeof hit.delayed !== 'boolean') add('invalid', `${hp}.delayed`, '延迟命中标记必须是布尔值')
+      if (bound !== null && isInteger(hit.atFrame) && hit.atFrame >= bound && hit.delayed !== true) add('invalid', `${hp}.atFrame`, '命中帧不能超出动作时长；若这是后续触发的延迟命中，请显式标 delayed: true')
       if (isInteger(hit.atFrame) && hit.atFrame < last) add('invalid', `${hp}.atFrame`, '命中帧必须按时间递增，同帧多段按数组顺序结算')
       if (isInteger(hit.atFrame)) last = Math.max(last, hit.atFrame)
       if (!isFiniteNumber(hit.motionValue) || hit.motionValue <= 0) add('invalid', `${hp}.motionValue`, '倍率必须是正有限数值')
@@ -496,7 +499,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   }
   /** 新动作开始时取消上一个动作尚未发生的命中、产球与收尾。 */
   const cancelPending = (frame: number) => {
-    queue = queue.filter(queued => queued.frame <= frame || queued.item.kind === 'action-start')
+    queue = queue.filter(queued => queued.frame <= frame || queued.item.kind === 'action-start' || (queued.item.kind === 'hit' && queued.item.hit.delayed === true))
   }
   /**
    * 卡肉：`[atFrame, atFrame + frames)` 内游戏时钟冻结。做法是把排在这之后的一切整体顺延同样帧数——

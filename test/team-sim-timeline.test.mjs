@@ -398,3 +398,30 @@ const lateSwitch = simulateTimeline({
 assert.equal(lateSwitch.status, 'invalid')
 assert.ok(lateSwitch.issues.some(i => i.path === 'steps.s2.atFrame' && i.message.includes('超出测量窗口')), JSON.stringify(lateSwitch.issues))
 console.log('team-sim-timeline: passed; integer-frame scheduling, cancel windows, cooldown, energy, frame tier, switch semantics and determinism checked')
+
+// 延迟命中：由后续事件触发的命中可以越过动作结束帧，且不被后续动作取消。
+const delayedActions = {
+  ...actions,
+  'itto.q': {
+    id: 'itto.q', actorId: 'itto', kind: 'burst', timing: { type: 'frames', frames: 56 },
+    hits: [
+      { atFrame: 31, motionValue: 3, element: 'geo', scaling: 'atk', canCrit: true },
+      { atFrame: 121, motionValue: 1.34, element: 'geo', scaling: 'atk', canCrit: true, delayed: true }
+    ]
+  }
+}
+const delayedRun = simulateTimeline({
+  ...base, actions: delayedActions,
+  steps: [
+    { id: 'q', kind: 'action', actorId: 'itto', actionId: 'itto.q', atFrame: 0 },
+    { id: 'n', kind: 'action', actorId: 'itto', actionId: 'itto.normal-1', atFrame: 60 }
+  ]
+})
+assert.equal(delayedRun.status, 'simulated', JSON.stringify(delayedRun.issues))
+assert.deepEqual(delayedRun.hits.map(hit => hit.frame), [31, 66, 78, 121])
+
+const overflowSpec = { id: 'itto.over', actorId: 'itto', kind: 'burst', timing: { type: 'frames', frames: 56 }, hits: [{ atFrame: 121, motionValue: 1, element: 'geo', scaling: 'atk', canCrit: true }] }
+assert.ok(validateActionSpec(overflowSpec).some(issue => issue.path.endsWith('.hits.0.atFrame')), '未标 delayed 的越界命中必须拒')
+assert.equal(validateActionSpec({ ...overflowSpec, hits: [{ ...overflowSpec.hits[0], delayed: true }] }).length, 0)
+assert.ok(validateActionSpec({ ...overflowSpec, hits: [{ ...overflowSpec.hits[0], delayed: 'yes' }] }).some(issue => issue.path.endsWith('.delayed')), 'delayed 必须是布尔值')
+
