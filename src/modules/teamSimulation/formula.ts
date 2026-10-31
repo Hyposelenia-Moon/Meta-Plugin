@@ -3,7 +3,9 @@ import type { OrdinaryHit, OrdinaryDamageResult, Issue } from './types.js'
 export interface TargetPreset { id: string; level: number; resistance: number; defenseRule: 'standard'; health: 'infinite'; stationary: true }
 /** 只读测试目标口径：等级与抗性是固定常量，调用方不能传别的数值冒充同一目标。 */
 export const TARGET_PRESETS: Record<string, TargetPreset> = {
-  'dummy-lv100': { id: 'dummy-lv100', level: 100, resistance: 0.1, defenseRule: 'standard', health: 'infinite', stationary: true }
+  'dummy-lv100': { id: 'dummy-lv100', level: 100, resistance: 0.1, defenseRule: 'standard', health: 'infinite', stationary: true },
+  /* 队伍 DPS 的固定标准目标：110 级遗迹守卫（小宝），10% 抗性。口径写死在常量里，调用方不得覆盖。 */
+  'ruin-guard-lv110': { id: 'ruin-guard-lv110', level: 110, resistance: 0.1, defenseRule: 'standard', health: 'infinite', stationary: true }
 }
 
 /** 普通、无反应、单次直伤；输入全部显式提供，比例不按百分数猜测。 */

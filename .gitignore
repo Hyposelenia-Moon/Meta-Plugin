@@ -8,6 +8,9 @@ config/config.yaml
 .DS_Store
 Thumbs.db
 
+# Python 录制脚本的字节码（scripts/record-keys.py 是维护者工具，运行时不需要它）
+__pycache__/
+
 # 编辑器配置
 .vscode/
 .idea/
