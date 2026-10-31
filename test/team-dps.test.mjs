@@ -116,10 +116,9 @@ const members = [
   // 通过源码函数镜像验证参数分离（app 静态 import 框架 plugin，不能直接 import ts）
   ok('app 从纯模块导入参数解析（解析逻辑不在 app 里）',
     app.includes("parseTeamArgs") && app.includes("from '../modules/teamDamage.js'"))
-  ok('app 把词条交给桥临时重算（不改 miao 面板）', app.includes('patch: patch.items.length ? patch : undefined'))
-  ok('app 计算参考 DPS 并带轴口径', app.includes('teamDps(') && app.includes('axisLabel'))
-  ok('app 用序号轴（配置项 teamDamageAxes），不再用 parseAxis',
-    app.includes('axisByNo(') && app.includes('teamDamageAxes') && !app.includes('parseAxis('))
+  ok('app 不再接临时词条，改为明说没接', app.includes('patchTokens.length') && !app.includes('teamDps('))
+  ok('app 把内置序号轴判为已废除，轴改由录制文件提供',
+    app.includes('内置序号轴已废除') && !app.includes('axisByNo(') && !app.includes('parseAxis('))
 
   const ev = C.matchCommand('#队伍伤害2 胡桃 行秋 夜兰 钟离 暴击+20')
   ok('带序号轴/词条的消息仍命中入口', ev?.key === 'teamDamage')

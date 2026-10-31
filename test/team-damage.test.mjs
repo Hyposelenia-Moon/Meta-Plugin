@@ -126,8 +126,9 @@ const fixture = JSON.parse(readText(path.join(pluginRoot, 'test', 'fixtures', 'd
   ok('app 用 RULES.teamDamage 注册', src.includes('reg: RULES.teamDamage'))
   ok('app 首个导出是插件类', /^export class \w+ extends plugin/m.test(src))
   ok('v1 要求四个角色名（不擅自补队）', src.includes('names.length !== 4'))
-  ok('app 复用 miao 桥与纯函数模块', src.includes("from '../model/MiaoProfile.js'") && src.includes("from '../modules/teamDamage.js'"))
-  ok('app 走榜单缓存取同阵容参考', src.includes('ensureFresh') && src.includes('getSnapshot'))
+  ok('app 只借参数拆分，不直接读 miao 面板',
+    src.includes("from '../modules/teamDamage.js'") && src.includes("from '../model/TeamBuildAdapter.js'") && !src.includes('MiaoProfile.js'))
+  ok('app 走队伍模拟内核结算', src.includes('simulateTeam(') && src.includes('buildTeamRunReport('))
 
   const tpl = readText(path.join(pluginRoot, 'resources', 'dps', 'team-damage.html'))
   ok('模板已就位并引用公共样式', fs.existsSync(path.join(pluginRoot, 'resources', 'dps', 'team-damage.html')) &&
