@@ -29,14 +29,14 @@ const timeline = simulateTimeline({
   measurementEndFrame: 400,
   steps: [
     { id: 'n1', kind: 'action', actorId: 'itto', actionId: 'itto.na1', atFrame: 0 },
-    { id: 'n2', kind: 'action', actorId: 'itto', actionId: 'itto.na2', atFrame: 41 },
-    { id: 'n3', kind: 'action', actorId: 'itto', actionId: 'itto.na3', atFrame: 92 },
-    { id: 'n4', kind: 'action', actorId: 'itto', actionId: 'itto.na4', atFrame: 149 }
+    { id: 'n2', kind: 'action', actorId: 'itto', actionId: 'itto.na2', atFrame: 50 },
+    { id: 'n3', kind: 'action', actorId: 'itto', actionId: 'itto.na3', atFrame: 110 },
+    { id: 'n4', kind: 'action', actorId: 'itto', actionId: 'itto.na4', atFrame: 177 }
   ]
 })
 assert.equal(timeline.status, 'simulated', JSON.stringify(timeline.issues))
 // gcsim 命中帧 23/25/16/48，动作收尾 41/51/57/83，逐段累加后应落在 23/66/108/197。
-assert.deepEqual(timeline.hits.map(hit => hit.frame), [23, 66, 108, 197])
+assert.deepEqual(timeline.hits.map(hit => hit.frame), [23, 75, 126, 225])
 
 const out = calculateTimelineDamage({
   timeline,

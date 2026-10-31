@@ -17,7 +17,8 @@
           "motionValue": 0.7923,
           "scaling": "atk",
           "element": "geo",
-          "canCrit": true
+          "canCrit": true,
+          "hitlagFrames": 9
         }
       ]
     },
@@ -35,7 +36,8 @@
           "motionValue": 0.7637,
           "scaling": "atk",
           "element": "geo",
-          "canCrit": true
+          "canCrit": true,
+          "hitlagFrames": 9
         }
       ]
     },
@@ -53,7 +55,8 @@
           "motionValue": 0.9164,
           "scaling": "atk",
           "element": "geo",
-          "canCrit": true
+          "canCrit": true,
+          "hitlagFrames": 10
         }
       ]
     },
@@ -71,7 +74,8 @@
           "motionValue": 1.1722,
           "scaling": "atk",
           "element": "geo",
-          "canCrit": true
+          "canCrit": true,
+          "hitlagFrames": 10
         }
       ]
     },
