@@ -12,7 +12,13 @@
 /** 反应可用的元素名，与 `TimelineHit.element` 同一套拼写；物理不参与元素反应。 */
 export type ReactionElement = 'pyro' | 'hydro' | 'electro' | 'cryo' | 'anemo' | 'geo' | 'dendro'
 
-export type ReactionClass = 'amplifying' | 'transformative' | 'catalyze'
+export type ReactionClass = 'amplifying' | 'transformative' | 'catalyze' | 'lunar' | 'stellar'
+
+/** 月反应与星烁：专用加成、提升乘区与计数，公式见 docs/队伍模拟-P3-月反应与星烁.md。 */
+export type LunarKind = 'lunar-bloom' | 'lunar-charged' | 'lunar-crystallize'
+export type StellarKind = 'stellar-conduct' | 'stellar-swirl' | 'stellar-vortex'
+export type SpecialKind = LunarKind | StellarKind
+export type SpecialClass = 'lunar' | 'stellar'
 
 /** P1 建模的反应。 */
 export type ReactiveKind =
@@ -298,4 +304,125 @@ export function transformativeBase(
   if (coefficient === undefined || multiplier === undefined) return undefined
   const em = Math.max(0, mastery)
   return coefficient * multiplier * (1 + (TRANSFORM_EM * em) / (em + 2000))
+}
+
+/** 月反应与星烁的规格：倍率或计数表，配对只看元素对。 */
+export interface SpecialReactionSpec {
+  readonly label: string
+  readonly cls: SpecialClass
+  readonly pairs: readonly (readonly [ReactionElement, ReactionElement])[]
+  /** 默认倍率；带 `fy` 天赋时用 `talentMultiplier`。 */
+  readonly multiplier?: number
+  readonly talentMultiplier?: number
+  /** 直接按计数查表（星超导）。 */
+  readonly countTable?: readonly number[]
+  /** 计数达到阈值换倍率（星辉冰旋）。 */
+  readonly countThreshold?: { readonly atLeast: number; readonly multiplier: number }
+}
+
+export const SPECIAL_REACTIONS: Record<SpecialKind, SpecialReactionSpec> = {
+  'lunar-bloom': {
+    label: '月绽放',
+    cls: 'lunar',
+    multiplier: 1,
+    pairs: [['dendro', 'hydro'], ['hydro', 'dendro']]
+  },
+  'lunar-charged': {
+    label: '月感电',
+    cls: 'lunar',
+    multiplier: 3,
+    talentMultiplier: 7.2,
+    pairs: [['hydro', 'electro'], ['electro', 'hydro']]
+  },
+  'lunar-crystallize': {
+    label: '月结晶',
+    cls: 'lunar',
+    multiplier: 1.6,
+    talentMultiplier: 3.84,
+    pairs: [['geo', 'hydro'], ['hydro', 'geo']]
+  },
+  'stellar-conduct': {
+    label: '星超导',
+    cls: 'stellar',
+    multiplier: 1,
+    countTable: [1, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95, 2],
+    pairs: [['cryo', 'electro'], ['electro', 'cryo']]
+  },
+  'stellar-swirl': {
+    label: '星扩散',
+    cls: 'stellar',
+    multiplier: 1,
+    talentMultiplier: 3,
+    pairs: [['anemo', 'pyro'], ['anemo', 'hydro'], ['anemo', 'electro'], ['anemo', 'cryo']]
+  },
+  'stellar-vortex': {
+    label: '星辉冰旋',
+    cls: 'stellar',
+    multiplier: 8,
+    countThreshold: { atLeast: 3, multiplier: 12 },
+    pairs: [['anemo', 'cryo']]
+  }
+}
+
+/** 星超导计数在数据包缺省时的兜底值，与 miao 的默认一致。 */
+export const STELLAR_CONDUCT_DEFAULT_COUNT = 12
+/** 星辉冰旋计数缺省时的兜底值，与 miao 的默认一致。 */
+export const STELLAR_VORTEX_DEFAULT_COUNT = 6
+
+/** 月反应与星烁的精通系数：6 × EM / (EM + 2000)，与剧变的 16 不同。 */
+const SPECIAL_EM = 6
+
+export function isSpecialKind(value: unknown): value is SpecialKind {
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(SPECIAL_REACTIONS, value)
+}
+
+export function specialLabel(kind: SpecialKind): string {
+  return SPECIAL_REACTIONS[kind].label
+}
+
+export function specialClass(kind: SpecialKind): SpecialClass {
+  return SPECIAL_REACTIONS[kind].cls
+}
+
+/** 触发元素与附着元素这一对是否成立（不看倍率，倍率由计数与天赋决定）。 */
+export function specialPairMatches(
+  kind: SpecialKind,
+  trigger: ReactionElement,
+  aura: ReactionElement
+): boolean {
+  return SPECIAL_REACTIONS[kind].pairs.some(([t, a]) => t === trigger && a === aura)
+}
+
+export function describeSpecialMismatch(
+  kind: SpecialKind,
+  trigger: ReactionElement,
+  aura: ReactionElement
+): string | undefined {
+  if (specialPairMatches(kind, trigger, aura)) return undefined
+  const expects = SPECIAL_REACTIONS[kind].pairs.map(([t, a]) => `${t} 打 ${a}`).join(' / ')
+  return `${specialLabel(kind)}只能由 ${expects} 触发，收到的是 ${trigger} 打 ${aura}`
+}
+
+/** 反应倍率：月反应看 `talent`，星超导查计数表，星辉冰旋看计数阈值。 */
+export function specialMultiplier(
+  kind: SpecialKind,
+  options: { readonly talent?: boolean; readonly count?: number } = {}
+): number {
+  const spec = SPECIAL_REACTIONS[kind]
+  if (spec.countTable) {
+    const count = Math.trunc(options.count ?? STELLAR_CONDUCT_DEFAULT_COUNT)
+    const index = Math.min(Math.max(count, 1), spec.countTable.length) - 1
+    return spec.countTable[index]
+  }
+  if (spec.countThreshold && (options.count ?? STELLAR_VORTEX_DEFAULT_COUNT) >= spec.countThreshold.atLeast) {
+    return spec.countThreshold.multiplier
+  }
+  if (options.talent && spec.talentMultiplier !== undefined) return spec.talentMultiplier
+  return spec.multiplier ?? 1
+}
+
+/** 精通系数：1 + 6EM/(EM+2000)。 */
+export function specialMasteryFactor(mastery: number): number {
+  const em = Math.max(0, Number.isFinite(mastery) ? mastery : 0)
+  return 1 + (SPECIAL_EM * em) / (em + 2000)
 }

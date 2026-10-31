@@ -93,9 +93,30 @@ export {
   reactionCoefficient,
   amplifyingFactor,
   catalyzeBonus,
-  transformativeBase
+  transformativeBase,
+  SPECIAL_REACTIONS,
+  specialMultiplier,
+  specialMasteryFactor,
+  specialPairMatches,
+  describeSpecialMismatch,
+  isSpecialKind,
+  specialClass,
+  specialLabel,
+  STELLAR_CONDUCT_DEFAULT_COUNT,
+  STELLAR_VORTEX_DEFAULT_COUNT
 } from './reactions.js'
-export type { ReactionElement, ReactionClass, ReactiveKind, StatefulKind, ReactionSpec } from './reactions.js'
+export type {
+  ReactionElement,
+  ReactionClass,
+  ReactiveKind,
+  StatefulKind,
+  ReactionSpec,
+  LunarKind,
+  StellarKind,
+  SpecialKind,
+  SpecialClass,
+  SpecialReactionSpec
+} from './reactions.js'
 
 export { REACTION_FAMILIES, BLOCKED_FAMILIES, gateReactionFamily, familyCoverage } from './reactionFamilies.js'
 export type { ReactionFamily, ReactionFamilySpec, FamilyGateResult } from './reactionFamilies.js'

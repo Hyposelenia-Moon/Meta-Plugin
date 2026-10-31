@@ -22,6 +22,21 @@ export interface EnemyModifiers {
 
 export const NO_ENEMY_MODIFIERS: EnemyModifiers = { resistanceReduction: 0, defenseReduction: 0, defenseIgnore: 0 }
 
+/**
+ * 反应加成：不进面板、只作用于月反应与星烁的结算乘区。
+ * 多个效果同时生效时按加法叠加（与面板加成一致），层数照常相乘。
+ */
+export interface ReactionBonus {
+  /** 专用反应加成（月曜反应伤害提升一类），加在等级系数上。 */
+  fypct?: number
+  /** 提升乘区。 */
+  elevated?: number
+  /** 反应系数乘区：这里按加法叠加，缺省视为 0（最终乘区 = 1 + 合计）。 */
+  kNum?: number
+}
+
+export const NO_REACTION_BONUS: ReactionBonus = { fypct: 0, elevated: 0, kNum: 0 }
+
 export type EffectTarget = 'self' | 'team' | 'enemy'
 export type StackingPolicy = 'refresh' | 'stack' | 'ignore'
 
@@ -39,6 +54,8 @@ export interface EffectSpec {
   stacking?: StackingPolicy
   /** 仅 `stacking: 'stack'` 可用：层数上限。 */
   maxStacks?: number
+  /** 反应加成：只影响月反应与星烁的结算，不进面板。 */
+  reactionBonus?: ReactionBonus
 }
 
 export interface TriggerRecord {
@@ -137,8 +154,13 @@ export interface EffectRuntime {
   has(effectId: string): boolean
   /** 在 `frame` 帧由 `actorId` 触发，返回本次实际生效的记录；叠层已满或 ignore 命中时返回 undefined。 */
   trigger(effectId: string, frame: number, actorId: string): TriggerRecord | undefined
-  /** 该角色在该帧实际吃的面板增量与全局敌人减益。 */
-  modifiersAt(actorId: string, frame: number): { stats: PanelModifiers; enemy: EnemyModifiers }
+  /** 该角色在该帧实际吃的面板增量、全局敌人减益与反应加成。 */
+  modifiersAt(actorId: string, frame: number): { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
+  /**
+   * 该效果在该帧的层数；没生效返回 0。
+   * 月反应与星烁的叠层计数由这里读，引擎不猜「命中几次就该几层」。
+   */
+  stacksAt(effectId: string, actorId: string, frame: number): number
   /**
    * 该角色在该帧「在场」的效果 id，按字典序排好。
    * 只回答谁在场，不回答谁贡献了多少伤害——连续乘区下把总伤按来源拆账需要反事实重算，P0/P1 不做。
@@ -198,6 +220,7 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
     modifiersAt(actorId, frame) {
       const stats: PanelModifiers = {}
       const enemy: EnemyModifiers = { ...NO_ENEMY_MODIFIERS }
+      const reaction: ReactionBonus = { ...NO_REACTION_BONUS }
       for (const entry of entries.values()) {
         if (frame >= entry.expiresAt) continue
         const { spec } = entry
@@ -213,8 +236,21 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
           const stat = key as PanelStatKey
           stats[stat] = (stats[stat] ?? 0) + value * entry.stacks
         }
+        const bonus = spec.reactionBonus
+        if (bonus) {
+          reaction.fypct = (reaction.fypct ?? 0) + (bonus.fypct ?? 0) * entry.stacks
+          reaction.elevated = (reaction.elevated ?? 0) + (bonus.elevated ?? 0) * entry.stacks
+          reaction.kNum = (reaction.kNum ?? 0) + (bonus.kNum ?? 0) * entry.stacks
+        }
       }
-      return { stats, enemy }
+      return { stats, enemy, reaction }
+    },
+    stacksAt(effectId, actorId, frame) {
+      const spec = table[effectId]
+      if (!spec) return 0
+      const entry = entries.get(entryKey(spec, actorId))
+      if (!entry || frame >= entry.expiresAt) return 0
+      return entry.stacks
     },
     activeAt(actorId, frame) {
       const ids = new Set<string>()

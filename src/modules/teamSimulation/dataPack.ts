@@ -55,6 +55,9 @@ export function validateDataPack(input: unknown): DataPackResult {
           // 空串与非字符串已经由结构校验判 invalid，这里只判「写了 id 但表里没有」。
           if (typeof triggerId === 'string' && triggerId.trim() && !effectIds.has(triggerId)) add('unsupported', `actions.${key}.hits.${i}.triggerIds.${j}`, `触发标记 ${triggerId} 在 effects 表里没有登记，无法兑现`)
         })
+        // 计数来源同样必须是已登记的效果：读一个不存在的效果只会得到 0 层，等于静默降级。
+        const countFrom = hit?.reaction && typeof hit.reaction === 'object' ? hit.reaction.countFrom : undefined
+        if (typeof countFrom === 'string' && countFrom.trim() && !effectIds.has(countFrom)) add('unsupported', `actions.${key}.hits.${i}.reaction.countFrom`, `计数来源 ${countFrom} 在 effects 表里没有登记，读不到层数`)
       })
     }
   }

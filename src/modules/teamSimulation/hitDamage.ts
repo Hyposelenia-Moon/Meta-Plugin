@@ -1,9 +1,19 @@
 import type { Failure, Issue, OrdinaryDamageResult, OrdinaryHit, PermanentStats } from './types.js'
 import { calculateOrdinaryHit, resistanceMultiplier, TARGET_PRESETS } from './formula.js'
-import { applyPanelModifiers, type EnemyModifiers, type PanelModifiers } from './effects.js'
-import type { TimelineHit, TimelineResult } from './timeline.js'
+import { applyPanelModifiers, type EnemyModifiers, type PanelModifiers, type ReactionBonus } from './effects.js'
+import type { ReactionDeclaration, TimelineHit, TimelineResult } from './timeline.js'
 import type { MechanismPlan, StatWindow, EnemyWindow } from './mechanisms.js'
-import { isReactiveKind, reactionClass, transformativeBase, type ReactiveKind } from './reactions.js'
+import {
+  isReactiveKind,
+  isSpecialKind,
+  reactionClass,
+  reactionCoefficient,
+  specialMasteryFactor,
+  specialMultiplier,
+  transformativeBase,
+  type ReactiveKind,
+  type SpecialKind
+} from './reactions.js'
 
 export type CritPolicy = 'expected' | 'critical' | 'non-critical'
 
@@ -194,8 +204,10 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     origin: DamageRow['origin']
     stats: PanelModifiers
     enemy: EnemyModifiers
+    /** 效果表提供的反应加成（专用加成、提升乘区、反应系数乘区），按加法叠加。 */
+    reactionBonus?: ReactionBonus
     effects: string[]
-    reaction?: { kind: string; aura: string }
+    reaction?: ReactionDeclaration
     path: string
   }): Issue[] => {
     const context = contexts[options.actorId]
@@ -231,7 +243,46 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     let damage = base.damage
     let reactionRecord: DamageRow['reaction']
     let reactionRow: DamageRow | undefined
-    const declared = options.reaction && isReactiveKind(options.reaction.kind) ? options.reaction : undefined
+    // 月反应与星烁是独立的一段伤害，不能挂在直伤行上（否则会被读成「这一发被强化了」）。
+    let specialRow: DamageRow | undefined
+    // 月反应与星烁：官方口径的倍率取决于天赋与叠层计数，精通曲线也与剧变不同（6 而不是 16），
+    // 所以单独成段而不是复用剧变分支。公式见 docs/队伍模拟-P3-月反应与星烁.md。
+    const special = options.reaction && isSpecialKind(options.reaction.kind) ? options.reaction : undefined
+    if (special) {
+      const kind = special.kind as SpecialKind
+      const coefficient = reactionCoefficient(context.level)
+      if (coefficient === undefined) return [{ code: 'unsupported', path: `${options.path}.reaction`, message: `等级 ${context.level} 不在反应系数表内` }]
+      const multiplier = specialMultiplier(kind, { talent: special.talent, count: special.count })
+      // 数据写死的加成与效果表提供的加成相加；数据里的 kNum 是乘数，效果里的是加数（最终 1 + 合计）。
+      const bonus = options.reactionBonus
+      const fypct = (special.fypct ?? 0) + (bonus?.fypct ?? 0)
+      const fyplus = special.fyplus ?? 0
+      const elevated = (special.elevated ?? 0) + (bonus?.elevated ?? 0)
+      const kNum = (special.kNum ?? 1) * (1 + (bonus?.kNum ?? 0))
+      const critRate = Math.min(1, Math.max(0, stats.cpct))
+      const critDamage = Math.max(0, stats.cdmg)
+      const critFactor = options.canCrit ? 1 + critRate * critDamage : 1
+      const reactionDamage =
+        (coefficient * (1 + fypct) * multiplier * specialMasteryFactor(stats.mastery) + fyplus) *
+        (1 + elevated) *
+        kNum *
+        critFactor *
+        resistanceMultiplier(preset.resistance - resistanceReduction)
+      specialRow = {
+        frame: options.frame,
+        actorId: options.actorId,
+        actionId: options.actionId,
+        hitIndex: options.hitIndex,
+        element: options.element,
+        scaling: options.scaling,
+        motionValue: options.motionValue,
+        damage: reactionDamage,
+        origin: 'reaction',
+        effects: options.effects,
+        reaction: { kind, damage: reactionDamage }
+      }
+    } else {
+          const declared = options.reaction && isReactiveKind(options.reaction.kind) ? options.reaction : undefined
     if (declared) {
       const kind = declared.kind as ReactiveKind
       const cls = reactionClass(kind)
@@ -265,6 +316,8 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
         reactionRecord = { kind, damage: reacted.damage - base.damage }
       }
     }
+    }
+
     const row: DamageRow = {
       frame: options.frame,
       actorId: options.actorId,
@@ -287,6 +340,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     }
     add(row)
     if (reactionRow) add(reactionRow)
+    if (specialRow) add(specialRow)
     return []
   }
 
@@ -312,6 +366,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       enemy,
       effects: activeIds(plan, hit.actorId, hit.frame, hit.activeEffects),
       reaction: hit.reaction,
+      reactionBonus: modifiers.reaction,
       path: `hits.${index}`
     })
     if (hitIssues.length) return { status: hitIssues.some(i => i.code === 'unsupported') ? 'unsupported' : 'invalid', issues: hitIssues }

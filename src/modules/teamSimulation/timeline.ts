@@ -7,8 +7,8 @@
  * 现实时间与游戏计时器时间不一样，给默认值等于把前提藏起来。
  */
 import type { Issue } from './types.js'
-import { createEffectRuntime, NO_ENEMY_MODIFIERS, type ActiveEffectState, type EffectSpec, type EnemyModifiers, type PanelModifiers, type TriggerRecord } from './effects.js'
-import { describeMismatch, isReactiveKind, isStatefulKind, statefulReason, type ReactionElement } from './reactions.js'
+import { createEffectRuntime, NO_ENEMY_MODIFIERS, type ActiveEffectState, type EffectSpec, type EnemyModifiers, type PanelModifiers, type ReactionBonus, type TriggerRecord } from './effects.js'
+import { describeMismatch, describeSpecialMismatch, isReactiveKind, isSpecialKind, isStatefulKind, statefulReason, type ReactionElement } from './reactions.js'
 
 /** 数据编帧用的标称帧率。60 档位上一帧的真实时长是 16.667ms，不是整数毫秒。 */
 export const FRAME_RATE = 60
@@ -60,6 +60,32 @@ export type HitElement = 'physical' | 'pyro' | 'hydro' | 'electro' | 'cryo' | 'a
 
 const HIT_ELEMENTS: readonly HitElement[] = ['physical', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro']
 
+/**
+ * 命中上的反应声明。aura 是命中瞬间目标身上的附着，由数据声明而不是由引擎推断；
+ * 月反应与星烁额外带专用加成与计数，缺省值见 reactions.ts 的说明。
+ */
+export interface ReactionDeclaration {
+  readonly kind: string
+  readonly aura: string
+  /** 仅月反应与星烁：是否吃到「月曜反应伤害提升」这类天赋倍率。 */
+  readonly talent?: boolean
+  /** 仅星超导与星辉冰旋：叠层计数，缺省用 reactions.ts 的兜底值。与 `countFrom` 互斥。 */
+  readonly count?: number
+  /**
+   * 从效果表的同名效果读当前层数作为计数（月反应与星烁的叠层由效果负责累加，
+   * 引擎不猜「命中几次就该几层」）。与 `count` 互斥。
+   */
+  readonly countFrom?: string
+  /** 专用反应加成，乘在等级系数上。 */
+  readonly fypct?: number
+  /** 固定加值，与 miao 的 fyplus 同位置。 */
+  readonly fyplus?: number
+  /** 提升乘区。 */
+  readonly elevated?: number
+  /** 反应系数乘区。 */
+  readonly kNum?: number
+}
+
 export interface HitSpec {
   /** 相对动作起手帧的偏移，必须是非负整数且落在动作时长内。 */
   atFrame: number
@@ -80,7 +106,7 @@ export interface HitSpec {
    * 这一发命中的元素反应。ura 是命中瞬间目标身上的附着元素，由数据声明；
    * 附着量、衰减与 ICD 不在 P1 建模范围内（见数据包文档的反应段）。
    */
-  reaction?: { kind: string; aura: string }
+  reaction?: ReactionDeclaration
 }
 
 /** 可取消窗口：动作起手后这段时间内可以接下一次动作。 */
@@ -161,9 +187,9 @@ export interface TimelineHit {
   canCrit: boolean
   triggerIds: string[]
   /** 数据声明的元素反应；ura 是命中瞬间目标身上的附着。 */
-  reaction?: { kind: string; aura: string }
+  reaction?: ReactionDeclaration
   /** 该命中结算时实际生效的修饰：面板增量与全局敌人减益。触发先于伤害之外的效果不影响这一发。 */
-  modifiers: { stats: PanelModifiers; enemy: EnemyModifiers }
+  modifiers: { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
   /** 该命中结算时「在场」的效果 id（快照早于本发携带的触发，所以自己不吃自己的加成）。 */
   activeEffects: string[]
 }
@@ -327,6 +353,21 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
           const elementOk = typeof hit.element === 'string' && hit.element !== 'physical'
           if (!elementOk) add('invalid', `${hp}.element`, '物理命中不触发元素反应')
           if (isStatefulKind(reaction.kind)) add('unsupported', `${hp}.reaction.kind`, `P1 不建模：${statefulReason(reaction.kind)}`)
+          else if (isSpecialKind(reaction.kind)) {
+            if (auraOk && elementOk) {
+              const mismatch = describeSpecialMismatch(reaction.kind, hit.element as ReactionElement, reaction.aura as ReactionElement)
+              if (mismatch) add('invalid', `${hp}.reaction`, mismatch)
+            }
+            if (reaction.talent !== undefined && typeof reaction.talent !== 'boolean') add('invalid', `${hp}.reaction.talent`, '天赋倍率开关必须是布尔值')
+            if (reaction.count !== undefined && (!isInteger(reaction.count) || reaction.count < 1)) add('invalid', `${hp}.reaction.count`, '叠层计数必须是正整数')
+            if (reaction.countFrom !== undefined && (typeof reaction.countFrom !== 'string' || !reaction.countFrom.trim())) add('invalid', `${hp}.reaction.countFrom`, '计数来源必须是效果 id')
+            if (reaction.count !== undefined && reaction.countFrom !== undefined) add('invalid', `${hp}.reaction`, '计数只能二选一：写死数字用 count，读效果层数用 countFrom')
+            for (const key of ['fypct', 'fyplus', 'elevated'] as const) {
+              const value = reaction[key]
+              if (value !== undefined && (!isFiniteNumber(value) || value < 0)) add('invalid', `${hp}.reaction.${key}`, '加成必须是非负有限数值')
+            }
+            if (reaction.kNum !== undefined && (!isFiniteNumber(reaction.kNum) || reaction.kNum <= 0)) add('invalid', `${hp}.reaction.kNum`, '反应系数乘区必须是正有限数值')
+          }
           else if (!isReactiveKind(reaction.kind)) add('unsupported', `${hp}.reaction.kind`, '不支持的反应')
           else if (auraOk && elementOk) {
             const mismatch = describeMismatch(reaction.kind, hit.element as ReactionElement, reaction.aura as ReactionElement)
@@ -493,8 +534,13 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     const { item } = queued
     if (item.kind === 'hit') {
       const modifiers = effectRuntime.modifiersAt(item.actorId, queued.frame)
+      // 叠层计数在命中当帧解析：效果先于本发结算，所以读到的是本发之前已经累好的层数。
+      const declaredReaction = item.hit.reaction
+      const reaction = declaredReaction && declaredReaction.countFrom
+        ? { ...declaredReaction, count: effectRuntime.stacksAt(declaredReaction.countFrom, item.actorId, queued.frame) }
+        : declaredReaction
       const activeEffects = effectRuntime.activeAt(item.actorId, queued.frame)
-      hits.push({ frame: queued.frame, actorId: item.actorId, actionId: item.actionId, hitIndex: item.hitIndex, motionValue: item.hit.motionValue, scaling: item.hit.scaling, element: item.hit.element, canCrit: item.hit.canCrit, triggerIds: item.hit.triggerIds ?? [], reaction: item.hit.reaction, modifiers, activeEffects })
+      hits.push({ frame: queued.frame, actorId: item.actorId, actionId: item.actionId, hitIndex: item.hitIndex, motionValue: item.hit.motionValue, scaling: item.hit.scaling, element: item.hit.element, canCrit: item.hit.canCrit, triggerIds: item.hit.triggerIds ?? [], reaction, modifiers, activeEffects })
       record(queued.frame, 'hit', 'hit', item.actorId, item.actionId, { hitIndex: item.hitIndex, motionValue: item.hit.motionValue, element: item.hit.element })
       for (const [index, effectId] of (item.hit.triggerIds ?? []).entries()) {
         if (!effectRuntime.has(effectId)) { add('unsupported', `actions.${item.actionId}.hits.${item.hitIndex}.triggerIds.${index}`, `触发标记 ${effectId} 在效果表里没有登记，无法兑现`); continue }

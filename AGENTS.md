@@ -12,7 +12,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
 - **队伍模拟内核边界**：`src/modules/teamSimulation/` 对外只经 `index.ts`；目录内文件只用相对 import 指向本目录，`src/model/TeamBuildAdapter.ts` 是适配层（它依赖内核，内核不反向依赖它）。
-- **常用命令**：`pnpm build`、`pnpm test`（80 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（81 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -196,7 +196,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 80 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 81 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。
@@ -215,7 +215,8 @@ pnpm build && pnpm test     # 80 套；任意 cwd 可跑、不发真实网络、
   `team-sim-pack`（数据包与轴的拒绝项：版本、动作 id 与键一致、未知动作、帧率档位与初始资源）、
   `team-sim-team-run`（数据包 → 轴 → 面板 → 时间线 → 结算的串联与每关拒绝；端到端伤害与直接调公式逐段一致）、
   `team-sim-effects`（效果表的面板增量与敌人减益：触发先于伤害、自己不吃自己的加成、叠层上限与刷新/忽略策略、未登记触发拒绝）、
-`team-sim-reactions`（元素反应：等级系数表与倍率、增幅乘基础区、激化加基础区、剧变单独成段、状态型与配对错误拒绝）、
+  `team-sim-reactions`（元素反应：等级系数表与倍率、增幅乘基础区、激化加基础区、剧变单独成段、状态型与配对错误拒绝）、
+`team-sim-special-reactions`（月反应与星烁：倍率与计数、6×EM 精通曲线、专用加成与提升乘区、暴击为显式乘区、单独成段）、
   `team-sim-dps-standard`（队伍 DPS 固定标准：110 级小宝/10% 抗性/120 秒/0 能量四项常量与违规路径、窗口帧数随档位换算）、
   `team-sim-mechanisms`（纯岩四角色机制层：Q 窗口、五郎岩人数分档、钟离减抗、阿贝多召唤物、乱神之怪力层数与违规）、
   `team-sim-report`（一轮结果的投影：每角色/每动作合计、触发次数、在场覆盖、近似项、失败问题与摘要行）、
@@ -232,16 +233,3 @@ pnpm build && pnpm test     # 80 套；任意 cwd 可跑、不发真实网络、
 5. 真机验证补跑：`#胡桃攻略`（图 / 文本回退）、编辑器四项（重命名 / 同秒连续替换撤销 / 同名删除 / 他人暂存提交）。
 
 细节见 [docs/待办与规划.md](./docs/待办与规划.md)。
-
-## 当前工作区提交摘要（2026-11-01，P3 家族门槛与月反应资料）
-
-> 依据：`git log -1` = `d65e5ec feat: 队伍模拟 P2 接入元素反应并录入岩系四角色真实数据包`（上一轮已提交，本轮只含 P3 门槛与资料）；`git diff --stat` = 7 files changed, 27 insertions(+), 25 deletions(-)，另有 5 个未跟踪新文件。
-
-```text
-feat: 队伍模拟 P3 落地反应家族覆盖门槛并提取月反应公式
- - src/modules/teamSimulation/reactionFamilies.ts（新增）及 lib 产物：逐家族覆盖表，增幅/激化/剧变标 fixture-covered 并指向测试，月反应与星烁标 blocked 并写明缺什么
- - src/modules/teamSimulation/index.ts：唯一出口补家族门槛 API（gateReactionFamily、familyCoverage、BLOCKED_FAMILIES）
- - test/team-sim-p3-gate.test.mjs（新增）：家族表与 reactionClass 一一对齐、blocked 家族必须带原因且不能挂普通分类、未知家族返回 unknown、覆盖计数 3/2/5
-```
-
-文档同步（不计入上述代码改动）：新增 `docs/队伍模拟-P3-月反应与星烁.md`（从 miao 提取的月感电/月绽放/月结晶与星超导/星扩散倍率、6×EM/(EM+2000) 精通曲线、fypct 与提升乘区的结算公式、落地所需契约字段、未核实项）；`docs/队伍模拟-P1纯岩试点设计.md` 新增「P3 门槛（已落地）」小节并写明反应暴击仍未落地、回归数改 80/80；`AGENTS.md` 契约套件清单加 `team-sim-p3-gate`、套件数 79 → 80；`README.md`、`docs/测试.md` 的套件数同步到 80。
