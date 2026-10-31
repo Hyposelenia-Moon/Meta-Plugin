@@ -39,6 +39,11 @@ export interface DamageRow {
   damage: number
   /** `action`：动作自带的命中；`summon`：召唤物在结算层展开的命中。 */
   origin: 'action' | 'summon'
+  /**
+   * 这一发结算时「在场」的效果与机制窗口 id，按字典序。
+   * 只说明谁在场，不说明谁贡献了多少伤害：连续乘区下要拆账得做反事实重算，P1 不做。
+   */
+  effects: string[]
 }
 
 export type TimelineDamageResult = {
@@ -96,6 +101,15 @@ function mergedEnemy(base: EnemyModifiers, extra: EnemyModifiers[]): EnemyModifi
     out.defenseIgnore += delta.defenseIgnore
   }
   return out
+}
+
+/** 当帧在场的 id：效果表里触发的效果 + 机制层按帧开出的窗口，去重排序。 */
+function activeIds(plan: MechanismPlan | undefined, actorId: string, frame: number, effects: string[] | undefined): string[] {
+  const ids = new Set<string>(effects ?? [])
+  // 机制窗口的 id 带实例后缀（同一来源可以开多个窗口），归因用来源名，同一来源只算一项。
+  for (const window of windowStats(plan, actorId, frame)) ids.add(window.source)
+  for (const window of windowEnemies(plan, frame)) ids.add(window.source)
+  return [...ids].sort()
 }
 
 function validateContext(context: DamageContext | undefined, prefix: string): Issue[] {
@@ -177,6 +191,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     origin: DamageRow['origin']
     stats: PanelModifiers
     enemy: EnemyModifiers
+    effects: string[]
     path: string
   }): Issue[] => {
     const context = contexts[options.actorId]
@@ -222,7 +237,8 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       scaling: options.scaling,
       motionValue: options.motionValue,
       damage: result.damage,
-      origin: options.origin
+      origin: options.origin,
+      effects: options.effects
     })
     return []
   }
@@ -247,6 +263,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       origin: 'action',
       stats,
       enemy,
+      effects: activeIds(plan, hit.actorId, hit.frame, hit.activeEffects),
       path: `hits.${index}`
     })
     if (hitIssues.length) return { status: hitIssues.some(i => i.code === 'unsupported') ? 'unsupported' : 'invalid', issues: hitIssues }
@@ -269,6 +286,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       origin: 'summon',
       stats,
       enemy,
+      effects: activeIds(plan, summon.ownerId, summon.atFrame, undefined),
       path: `summons.${index}`
     })
     if (summonIssues.length) return { status: summonIssues.some(i => i.code === 'unsupported') ? 'unsupported' : 'invalid', issues: summonIssues }

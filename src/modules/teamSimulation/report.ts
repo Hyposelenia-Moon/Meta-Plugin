@@ -23,6 +23,8 @@ export interface TeamRunReport {
   perActor: { actorId: string; hits: number; total: number }[]
   perAction: { actorId: string; actionId: string; hits: number; total: number }[]
   triggers: { effectId: string; count: number }[]
+  /** 当帧在场的效果/机制窗口覆盖到的命中与伤害合计。只作对照，不宣称因果贡献。 */
+  effectUsage: { id: string; hits: number; total: number }[]
   problems: { path: string; code: string; message: string }[]
 }
 
@@ -45,6 +47,7 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
     perActor: [],
     perAction: [],
     triggers: [],
+    effectUsage: [],
     problems
   }
   if (result.status !== 'calculated') return empty
@@ -55,6 +58,7 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
   }
   const hitsPerActor = new Map<string, number>()
   const perAction = new Map<string, { actorId: string; actionId: string; hits: number; total: number }>()
+  const effectUsage = new Map<string, { id: string; hits: number; total: number }>()
   for (const row of damage.rows) {
     hitsPerActor.set(row.actorId, (hitsPerActor.get(row.actorId) ?? 0) + 1)
     const key = `${row.actorId}\u0000${row.actionId}`
@@ -62,6 +66,12 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
     entry.hits += 1
     entry.total += row.damage
     perAction.set(key, entry)
+    for (const id of row.effects ?? []) {
+      const usage = effectUsage.get(id) ?? { id, hits: 0, total: 0 }
+      usage.hits += 1
+      usage.total += row.damage
+      effectUsage.set(id, usage)
+    }
   }
   const triggers = new Map<string, number>()
   for (const trigger of timeline.triggers ?? []) triggers.set(trigger.effectId, (triggers.get(trigger.effectId) ?? 0) + 1)
@@ -84,7 +94,8 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
     total: damage.total,
     perActor: Object.entries(damage.perActor).map(([actorId, total]) => ({ actorId, hits: hitsPerActor.get(actorId) ?? 0, total })),
     perAction: [...perAction.values()],
-    triggers: [...triggers.entries()].map(([effectId, count]) => ({ effectId, count }))
+    triggers: [...triggers.entries()].map(([effectId, count]) => ({ effectId, count })),
+    effectUsage: [...effectUsage.values()].sort((a, b) => b.total - a.total || a.id.localeCompare(b.id))
   }
 }
 
@@ -104,6 +115,7 @@ export function formatTeamRunReport(report: TeamRunReport): string[] {
     for (const actor of report.perActor) lines.push(`  角色 ${actor.actorId}：${actor.hits} 段 ${round1(actor.total)}`)
     for (const action of report.perAction) lines.push(`  动作 ${action.actorId} / ${action.actionId}：${action.hits} 段 ${round1(action.total)}`)
     if (report.triggers.length) lines.push(`触发：${report.triggers.map(trigger => `${trigger.effectId}×${trigger.count}`).join('、')}`)
+    if (report.effectUsage.length) lines.push(`在场覆盖：${report.effectUsage.map(usage => `${usage.id} ${usage.hits} 段 ${round1(usage.total)}`).join('、')}`)
   }
   if (report.approximateItems.length) lines.push(`近似项：${report.approximateItems.join('、')}`)
   for (const resource of report.resources) lines.push(`资源：${resource.id} [${resource.status}` + ') ' + `] ${resource.message}`)

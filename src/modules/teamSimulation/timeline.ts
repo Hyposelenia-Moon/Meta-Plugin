@@ -151,6 +151,8 @@ export interface TimelineHit {
   triggerIds: string[]
   /** 该命中结算时实际生效的修饰：面板增量与全局敌人减益。触发先于伤害之外的效果不影响这一发。 */
   modifiers: { stats: PanelModifiers; enemy: EnemyModifiers }
+  /** 该命中结算时「在场」的效果 id（快照早于本发携带的触发，所以自己不吃自己的加成）。 */
+  activeEffects: string[]
 }
 
 export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger'
@@ -462,7 +464,8 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     const { item } = queued
     if (item.kind === 'hit') {
       const modifiers = effectRuntime.modifiersAt(item.actorId, queued.frame)
-      hits.push({ frame: queued.frame, actorId: item.actorId, actionId: item.actionId, hitIndex: item.hitIndex, motionValue: item.hit.motionValue, scaling: item.hit.scaling, element: item.hit.element, canCrit: item.hit.canCrit, triggerIds: item.hit.triggerIds ?? [], modifiers })
+      const activeEffects = effectRuntime.activeAt(item.actorId, queued.frame)
+      hits.push({ frame: queued.frame, actorId: item.actorId, actionId: item.actionId, hitIndex: item.hitIndex, motionValue: item.hit.motionValue, scaling: item.hit.scaling, element: item.hit.element, canCrit: item.hit.canCrit, triggerIds: item.hit.triggerIds ?? [], modifiers, activeEffects })
       record(queued.frame, 'hit', 'hit', item.actorId, item.actionId, { hitIndex: item.hitIndex, motionValue: item.hit.motionValue, element: item.hit.element })
       for (const [index, effectId] of (item.hit.triggerIds ?? []).entries()) {
         if (!effectRuntime.has(effectId)) { add('unsupported', `actions.${item.actionId}.hits.${item.hitIndex}.triggerIds.${index}`, `触发标记 ${effectId} 在效果表里没有登记，无法兑现`); continue }

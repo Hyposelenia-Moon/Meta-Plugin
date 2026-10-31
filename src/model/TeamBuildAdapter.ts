@@ -1,6 +1,6 @@
 /** miao 原始配装适配。只读取公开 Avatar/Artis 字段，不用最终面板或伤害行反推配装。 */
-import type { ArtifactSlot, BuildAdaptResult, CharacterBuild, Issue, SourceInfo, StatKey, StatValue, TeamBuildResult } from '../modules/teamSimulation/types.js'
-import { requiredEffectSources, validateCharacterBuild } from '../modules/teamSimulation/build.js'
+import type { ArtifactSlot, BuildAdaptResult, CharacterBuild, Issue, SourceInfo, StatKey, StatValue, TeamBuildResult } from '../modules/teamSimulation/index.js'
+import { requiredEffectSources, validateCharacterBuild } from '../modules/teamSimulation/index.js'
 import { loadMiaoModels, resolveUid } from './MiaoProfile.js'
 
 type RecordLike = Record<string, any>

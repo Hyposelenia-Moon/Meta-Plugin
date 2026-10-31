@@ -140,6 +140,11 @@ export interface EffectRuntime {
   /** 该角色在该帧实际吃的面板增量与全局敌人减益。 */
   modifiersAt(actorId: string, frame: number): { stats: PanelModifiers; enemy: EnemyModifiers }
   /**
+   * 该角色在该帧「在场」的效果 id，按字典序排好。
+   * 只回答谁在场，不回答谁贡献了多少伤害——连续乘区下把总伤按来源拆账需要反事实重算，P0/P1 不做。
+   */
+  activeAt(actorId: string, frame: number): string[]
+  /**
    * 卡肉冻结：`frame` 帧之后的一切顺延 `delta` 帧。仍在生效的到期时间（以及对应触发记录里的到期帧）
    * 一起后移，所以冻结期间效果不流逝。
    */
@@ -210,6 +215,16 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
         }
       }
       return { stats, enemy }
+    },
+    activeAt(actorId, frame) {
+      const ids = new Set<string>()
+      for (const entry of entries.values()) {
+        if (frame >= entry.expiresAt) continue
+        const { spec } = entry
+        if (spec.target === 'self' && entry.actorId !== actorId) continue
+        ids.add(spec.id)
+      }
+      return [...ids].sort()
     },
     shiftAfter(frame, delta) {
       if (delta <= 0) return

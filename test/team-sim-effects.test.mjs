@@ -143,6 +143,12 @@ assert.equal(regrown.status, 'simulated', JSON.stringify(regrown.issues))
 assert.deepEqual(regrown.triggers.map(t => [t.frame, t.stacks, t.startsAt]), [[2, 1, 2], [6, 2, 2], [45, 1, 45]], JSON.stringify(regrown.triggers))
 assert.equal(regrown.hits[3].modifiers.stats.atk, 100, JSON.stringify(regrown.hits[3].modifiers))
 
+// 命中快照里的「在场效果」：触发的那一发不算自己，之后才算（与 modifiers 同一时刻）。
+const snapshot = run(mkActions([baseHit(5, { triggerIds: ['stack-atk'] }), baseHit(9)]), { 'stack-atk': { ...stackEffect, durationFrames: 60 } })
+assert.equal(snapshot.status, 'simulated', JSON.stringify(snapshot.issues))
+assert.deepEqual(snapshot.hits[0].activeEffects, [])
+assert.deepEqual(snapshot.hits[1].activeEffects, ['stack-atk'])
+
 // ── 5. 未登记触发标记在内核里也要拒绝 ─────────────────────────────
 const unknown = run(mkActions([baseHit(5, { triggerIds: ['nope'] })]), {})
 assert.equal(unknown.status, 'invalid')

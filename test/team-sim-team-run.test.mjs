@@ -222,4 +222,13 @@ assert.ok(gorouWindows.length > 0, '机制层必须产出五郎窗口')
 assert.equal(gorouWindows[0].stats.def, 371.09, '五郎 E 给固定防御而非百分比')
 assert.equal(gorouWindows[0].stats.geo, undefined, '只有两名岩元素角色，不给岩伤加成')
 assert.notEqual(mechanismRun.damage.rows[2].damage, run.damage.rows[2].damage, '固定防御会抬高按防御结算的那一段')
+// 归因：每段命中记录「当帧在场」的 id，报告里汇总成在场覆盖；只宣称在场，不宣称因果贡献。
+assert.deepEqual(mechanismRun.damage.rows[2].effects, ['gorou-e'], JSON.stringify(mechanismRun.damage.rows[2].effects))
+const mechanismReport = buildTeamRunReport(mechanismRun)
+assert.deepEqual(mechanismReport.effectUsage.map(u => u.id), ['gorou-e'])
+assert.equal(mechanismReport.effectUsage[0].hits, 1)
+assert.ok(Math.abs(mechanismReport.effectUsage[0].total - mechanismRun.damage.rows[2].damage) < 1e-9)
+assert.ok(formatTeamRunReport(mechanismReport).some(line => line.startsWith('在场覆盖：')))
+// 没有机制窗口与效果表时，归因数组为空——不能凭空产生来源。
+assert.deepEqual(run.damage.rows[0].effects, [])
 console.log('team-sim-team-run ok')

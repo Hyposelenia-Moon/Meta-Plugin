@@ -11,7 +11,8 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **源码**：`src/` → `tsc` → `lib/`（目录结构一致）。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
-- **常用命令**：`pnpm build`、`pnpm test`（76 套）、`pnpm check`。
+- **队伍模拟内核边界**：`src/modules/teamSimulation/` 对外只经 `index.ts`；目录内文件只用相对 import 指向本目录，`src/model/TeamBuildAdapter.ts` 是适配层（它依赖内核，内核不反向依赖它）。
+- **常用命令**：`pnpm build`、`pnpm test`（77 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -195,7 +196,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 76 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 77 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。
@@ -216,7 +217,8 @@ pnpm build && pnpm test     # 76 套；任意 cwd 可跑、不发真实网络、
   `team-sim-effects`（效果表的面板增量与敌人减益：触发先于伤害、自己不吃自己的加成、叠层上限与刷新/忽略策略、未登记触发拒绝）、
   `team-sim-dps-standard`（队伍 DPS 固定标准：110 级小宝/10% 抗性/120 秒/0 能量四项常量与违规路径、窗口帧数随档位换算）、
   `team-sim-mechanisms`（纯岩四角色机制层：Q 窗口、五郎岩人数分档、钟离减抗、阿贝多召唤物、乱神之怪力层数与违规）、
-  `team-sim-report`（一轮结果的投影：每角色/每动作合计、触发次数、近似项、失败问题与摘要行）。
+  `team-sim-report`（一轮结果的投影：每角色/每动作合计、触发次数、在场覆盖、近似项、失败问题与摘要行）、
+  `team-sim-metrics`（黄金集与误差指标脚手架：用例来源与重复 id 校验、相对误差与分角色贡献偏差、闸门结论；synthetic 不计入闸门）。
 - 维护者区自检（不在 `pnpm test` 内）：`node scripts/editor-selftest.mjs`（258/258）、`display-selftest.mjs`、`display-audit.mjs`、`audit-guide-html.mjs`。`node scripts/scan-portrait-padding.mjs` 是**按需**跑的白边扫描（生成 `out/portrait-padding.json`，攻略页立绘据此跳过白边图；图库变动后重跑）。
 - 细节与固定验收集见 [docs/测试.md](./docs/测试.md) 与 [docs/改动传播清单.md](./docs/改动传播清单.md)。
 
@@ -230,19 +232,22 @@ pnpm build && pnpm test     # 76 套；任意 cwd 可跑、不发真实网络、
 
 细节见 [docs/待办与规划.md](./docs/待办与规划.md)。
 
-## 当前工作区提交摘要（2026-11-01，P1 机制层）
+## 当前工作区提交摘要（2026-11-01，P2 前准备）
 
-> 依据：`git log -1` = `ce6014c feat: 队伍模拟 P1 固定队伍 DPS 标准并补录制端脚本`（上一轮已提交，本轮只含机制层与 DPS 强制）；`git diff --stat` = 18 files changed, 511 insertions(+), 93 deletions(-)，另有 4 个未跟踪新文件。
+> 依据：`git log -1` = `dfae059 feat: 队伍模拟 P1 接入纯岩四角色机制层并强制 DPS 标准`（上一轮已提交，本轮只含 P2 前准备）；`git diff --stat` = 21 files changed, 175 insertions(+), 35 deletions(-)，另有 7 个未跟踪新文件。
 
 ```text
-feat: 队伍模拟 P1 接入纯岩四角色机制层并强制 DPS 标准
- - src/modules/teamSimulation/mechanisms.ts 及 lib 产物：新增机制层（一斗 Q 与乱神之怪力层数、五郎岩人数分档、钟离减抗、阿贝多召唤物），只接受 fixed 调度
- - src/modules/teamSimulation/timeline.ts 及 lib 产物：动作新增可选 mechanism 标记并校验非空
- - src/modules/teamSimulation/hitDamage.ts 及 lib 产物：命中带来源（action/summon），按机制窗口叠加面板与敌人减益，召唤物在结算层展开
- - src/modules/teamSimulation/teamRun.ts 及 lib 产物：新增 mode（缺省 dps-standard 强制四项标准），新增 dps-standard 与 mechanisms 两关，结果透出 mode/plan/dps
- - src/modules/teamSimulation/report.ts 及 lib 产物：摘要补模式、目标、DPS 与资源检查，近似项合并机制层
- - test/team-sim-mechanisms.test.mjs：Q 窗口、五郎分档、钟离减抗、召唤物帧列、层数与违规、叠加后与逐段公式一致
- - test/team-sim-team-run.test.mjs：DPS 标准端到端（缺省模式拒非标准目标与窗口、标准口径给出 dps、缺省能量在轴关被拦）与机制标记端到端（五郎窗口落到结算、固定防御抬高防御倍率那一段）
+feat: 队伍模拟 P2 前准备（公开出口、在场覆盖、黄金集与误差指标）
+ - src/modules/teamSimulation/index.ts 及 lib 产物：新增模块唯一对外出口，收敛契约与公开 API
+ - src/model/TeamBuildAdapter.ts 及 lib 产物：适配层改从 index.js 导入，不再指向内核内部文件
+ - src/modules/teamSimulation/effects.ts：运行时新增 activeAt(actorId, frame)，返回当帧在场的效果 id
+ - src/modules/teamSimulation/timeline.ts：TimelineHit 新增 activeEffects，与 modifiers 同一时刻快照
+ - src/modules/teamSimulation/hitDamage.ts：DamageRow 新增 effects（效果 id + 机制窗口来源名，去重排序）
+ - src/modules/teamSimulation/report.ts：摘要新增 effectUsage（在场覆盖的命中数与伤害合计）并输出在场覆盖行
+ - src/modules/teamSimulation/metrics.ts：新增黄金集契约、用例校验与误差指标（相对误差、贡献偏差、中位数与单例闸门）
+ - test/team-sim-metrics.test.mjs：用例校验、闸门判定、缺实测与 synthetic 不计入
+ - test/team-sim-effects.test.mjs：在场快照（触发的那一发不算自己）
+ - test/team-sim-team-run.test.mjs：归因断言（机制窗口按来源名归并、无来源时为空数组）
 ```
 
-文档同步（不计入上述代码改动）：`docs/队伍模拟-P1数据包格式.md` 第 3 节补 `mechanism` 字段与机制标记表、第 9 节补 `mode` 与八关顺序、第 11 节补机制层与占位帧数限制；`docs/队伍模拟-P1纯岩试点设计.md` 第 12 节补机制层与 DPS 强制条目、回归数改 76/76；`AGENTS.md`、`README.md`、`docs/测试.md` 的套件数 75 → 76，契约套件清单加 `team-sim-mechanisms`。
+文档同步（不计入上述代码改动）：`docs/队伍模拟-P1数据包格式.md` 新增第 14 节（在场覆盖语义、黄金集契约与闸门规则）；`docs/队伍模拟-P1纯岩试点设计.md` 第 12 节补公开出口、在场覆盖、黄金集三条与回归 77/77，未落地清单补「黄金集无实测用例、归因只到在场」；`AGENTS.md` 补内核边界条目、套件数 76 → 77 与契约套件清单加 `team-sim-metrics`；`README.md`、`docs/测试.md` 的套件数 76 → 77。
