@@ -134,8 +134,11 @@ export interface ReferenceGroupView {
 
 /** 合并后的「未达标与提升建议」：一条建议 + 它绑定的证据（当前→目标） */
 export interface ImprovementView {
+  id: string
   priority: number
   text: string
+  /** 与正文互补的小字（只放正文没有的信息，避免重复当前/目标） */
+  note: string
   evidence: Array<{ group: string, name: string, actual: string, target: string, deltaText: string }>
 }
 
@@ -352,6 +355,19 @@ export function miaoSource (
   }
 }
 
+/** 03 小字备注：只补正文没有的信息，正文已有的当前/目标不重复。 */
+function improvementNote (id: string, evidence: ImprovementView['evidence']): string {
+  if (!evidence.length) return ''
+  if (id === 'talent') return ''
+  if (id === 'panel') {
+    const deltas = [...new Set(evidence.map(e => e.deltaText).filter(Boolean))]
+    return deltas.join('、')
+  }
+  if (id === 'mainstat') return `当前：${evidence.length === 1 ? evidence[0].actual : evidence.map(e => `${e.name} ${e.actual}`).join('、')}`
+  if (id === 'artifact:set' || id === 'artifact:mark' || id === 'weapon') return `当前：${evidence.map(e => e.actual).join('、')}`
+  return `依据：${evidence.map(e => `${e.group} ${e.name} ${e.actual}→${e.target}`).join('；')}`
+}
+
 /** 汇总：一次生成页面需要的全部视图数据 */
 export function buildPresentation (input: {
   result: GradeResult
@@ -403,7 +419,7 @@ export function buildPresentation (input: {
         deltaText: /^差 /.test(delta) ? delta : ''
       }
     }).filter((x): x is NonNullable<typeof x> => !!x)
-    return { priority: Number(s.priority) || 0, text: String(s.text || ''), evidence: evidenceItems }
+    return { id: String(s.id || ''), priority: Number(s.priority) || 0, text: String(s.text || ''), evidence: evidenceItems, note: improvementNote(String(s.id || ''), evidenceItems) }
   })
   const pending: PendingEvidenceView[] = evidence
     .filter(e => e.state === 'unknown' && !referenced.has(e.id))

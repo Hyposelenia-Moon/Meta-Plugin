@@ -374,10 +374,8 @@
               <span class="mx-priority">{{it.priority}}</span>
               <div class="mx-improvement__main">
                 <p class="mx-improvement__text">{{it.text}}</p>
-                {{if it.evidence.length > 0}}
-                <div class="mx-improvement__evidence">
-                  {{each it.evidence e}}<span>{{e.group}} {{e.name}}：{{e.actual}} → {{e.target}}{{if e.deltaText}}（{{e.deltaText}}）{{/if}}</span>{{/each}}
-                </div>
+                {{if it.note}}
+                <div class="mx-improvement__evidence">{{it.note}}</div>
                 {{/if}}
               </div>
             </li>

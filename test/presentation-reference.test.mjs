@@ -46,7 +46,19 @@ const merged = P.buildPresentation({ result: { assessable: false, dims: [{ key: 
 ], suggestionRows: [{ id: 'talent', text: '天赋：Q 2→10', evidenceIds: ['talent:Q'], priority: 1, priorityBasis: 'cost-step' }] } })
 assert.equal(merged.improvements.length, 1)
 assert.deepEqual(merged.improvements[0].evidence[0], { group: '天赋', name: 'Q', actual: '2', target: '10', deltaText: '差 8' })
+assert.equal(merged.improvements[0].note, '', '天赋正文已含 2→10，小字不再重复')
 assert.equal(merged.improvements[0].evidence[0].eid, undefined, '合并版不再展示 E 编号')
+// 面板正文已含当前→目标时，小字只补差值，不重复属性名/目标。
+const panelNote = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
+  { id: 'panel:参考:cpct', group: '参考', name: '暴击率', actual: '72.0%', target: '80~90%', verdict: 'warn', state: 'below', scored: true }
+], suggestionRows: [{ id: 'panel', text: '面板：暴击率 72.0%→80~90%', evidenceIds: ['panel:参考:cpct'], priority: 1, priorityBasis: 'cost-step' }] } })
+assert.equal(panelNote.improvements[0].note, '差 8')
+assert.ok(!panelNote.improvements[0].note.includes('暴击率') && !panelNote.improvements[0].note.includes('80'))
+// 套装/词条/武器正文只有目标，小字保留当前值。
+const setNote = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
+  { id: 'artifact:set', group: '综合', name: '套装', actual: '角斗士×5', target: '如雷的盛怒', verdict: 'warn', state: 'below', scored: true }
+], suggestionRows: [{ id: 'artifact:set', text: '圣遗物：凑攻略推荐套装（如雷的盛怒）', evidenceIds: ['artifact:set'], priority: 1, priorityBasis: 'cost-step' }] } })
+assert.equal(setNote.improvements[0].note, '当前：角斗士×5')
 assert.equal(merged.pending.length, 1, '未绑定建议的数据缺失进入待补区')
 assert.equal(merged.pending[0].name, '裁叶萃光')
 assert.deepEqual(merged.consNote, { name: '关键命座', actual: 'C2', target: '6' })
