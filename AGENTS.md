@@ -11,7 +11,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **源码**：`src/` → `tsc` → `lib/`（目录结构一致）。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
-- **常用命令**：`pnpm build`、`pnpm test`（64 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（68 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -121,6 +121,8 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 | 图形化编辑器、保存即发布（含「预览 = bot 实发页面」） | [docs/脚本-编辑器与发布.md](./docs/脚本-编辑器与发布.md) |
 | 解析告警（防呆，不静默） | [docs/脚本-解析告警.md](./docs/脚本-解析告警.md) |
 | 测试命令、前置与跳过 | [docs/测试.md](./docs/测试.md) |
+| 队伍模拟 P0 的分层、契约、目标口径与已知限制 | [docs/队伍模拟-P0底座.md](./docs/队伍模拟-P0底座.md) |
+| 队伍模拟 P0 与重构方案的契约差异、裁决与落地状态 | [docs/队伍模拟-P0与重构方案差异.md](./docs/队伍模拟-P0与重构方案差异.md) |
 | 许可、字体、版权声明、数据来源 | [docs/许可与来源.md](./docs/许可与来源.md) |
 | 待办与规划（含 Atlas 导出清单） | [docs/待办与规划.md](./docs/待办与规划.md) |
 | 盘符映射、部署机、本机工作区 | `docs/private/`（**不入库，新克隆上不存在**） |
@@ -191,7 +193,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 59 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 68 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。
@@ -200,7 +202,11 @@ pnpm build && pnpm test     # 59 套；任意 cwd 可跑、不发真实网络、
   `miao-artis-contract`（`Artis` 实例形状、`sets` 件数）、`miao-damage-rows`（`{ret}` 伤害结果契约与三种失败口径）、
   `grade-guide-targets`（`kind` 分桶、组合候选、建议口径）、
   `modules-switch`（模块开关的默认值、深合并、闸门拦截与放行、非接管类 app 的接线（7 个））、
-  `render-fallback`（`retType` 第 4 参、图片消息段返回、失败一律回退）。
+  `render-fallback`（`retType` 第 4 参、图片消息段返回、失败一律回退）、
+  `team-build-adapter`（miao 面板到 `CharacterBuild` 的校验：主词条部位匹配、五星满级 4 条副词条、实例 id 与角色 id 一致）、
+  `team-sim-build`（四个独立角色的永久面板算式、`talents.modifiers` 来源登记、`panelCheck` 拒绝）、
+  `team-sim-formula`（普通直伤各乘区、减防 0.9 上限、负抗不截断、目标预设绑定与回填）、
+  `team-sim-legacy`（`legacyEstimate` 的三项标记与入参隔离）。
 - 维护者区自检（不在 `pnpm test` 内）：`node scripts/editor-selftest.mjs`（258/258）、`display-selftest.mjs`、`display-audit.mjs`、`audit-guide-html.mjs`。`node scripts/scan-portrait-padding.mjs` 是**按需**跑的白边扫描（生成 `out/portrait-padding.json`，攻略页立绘据此跳过白边图；图库变动后重跑）。
 - 细节与固定验收集见 [docs/测试.md](./docs/测试.md) 与 [docs/改动传播清单.md](./docs/改动传播清单.md)。
 
@@ -214,16 +220,17 @@ pnpm build && pnpm test     # 59 套；任意 cwd 可跑、不发真实网络、
 
 细节见 [docs/待办与规划.md](./docs/待办与规划.md)。
 
-## 当前工作区提交摘要（2026-10-30）
+## 当前工作区提交摘要（2026-11-01）
 
-> 依据：`git log -1` = `7c06b79 feat: 精简练度页并统一合并卡视觉`；`git diff --stat` 当前仅下列 7 个文件未提交。
+> 依据：`git log -1` = `525d54b fix: 契约层补配装结构校验，不再只靠适配器把关`（上一轮已提交，工作区只剩本轮改动）；`git diff --stat` = 8 files changed, 55 insertions(+), 30 deletions(-)（含本段与 `docs/队伍模拟-P0底座.md`）。
 
 ```text
-fix: 去除练度页 03 建议备注的重复信息
- - presentation 为每条建议增加互补 note：天赋正文已含数值不再重复，面板只补差值，主词条/套装/词条评分/武器只补当前值
- - grade.html 的 03 小字改为消费 note，不再逐条展开完整证据
- - 同步生成 lib/components/presentation.js 与 source map
- - 增加 presentation-reference 的 note 去重断言
+fix: 静态加成不再走无审计通道，P0 要求 bonuses 为空
+ - src/modules/teamSimulation/build.ts 及 lib 产物：新增 bonuses 空数组校验，非空即按 unsupported 拒绝并指向效果 modifiers
+ - src/modules/teamSimulation/build.ts 及 lib 产物：删除把角色/武器 bonuses 直接累加进面板的两行，属性只从已审计效果来
+ - src/modules/teamSimulation/types.ts 及 lib 产物：注明 PermanentData 的 bonuses 在 P0 必须为空数组
+ - test/team-sim-build.test.mjs：夹具把 atkPct、cpct 挪进对应来源的 modifiers，四角色攻击预期同步
+ - test/team-sim-build.test.mjs：新增角色与武器 bonuses 注入两条负例，属性类负例改到效果 modifiers 上
 ```
 
-文档同步（不计入上述代码改动）：`AGENTS.md`、`docs/功能与命令.md` 更新 03 小字只补缺失信息的口径。
+文档同步（不计入上述代码改动）：`docs/队伍模拟-P0底座.md` 公式段去掉「角色/武器静态加成」，并补一段说明 bonuses 必须为空、突破加成登记在 `character:<id>:a<突破>` 名下、武器效果登记在 `weapon:<id>:r<精炼>` 名下。

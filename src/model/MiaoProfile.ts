@@ -64,6 +64,9 @@ async function miaoModels (): Promise<Record<string, any>> {
   return (mod?.default && typeof mod.default === 'object') ? { ...mod.default, ...mod } : mod
 }
 
+/** P0只复用模型加载入口；不调用伤害结算或刷新面板。 */
+export const loadMiaoModels = miaoModels
+
 /**
  * 面板 8 行的显示文本 —— **照抄 miao `apps/profile/ProfileDetail.js:216-242`**
  *
