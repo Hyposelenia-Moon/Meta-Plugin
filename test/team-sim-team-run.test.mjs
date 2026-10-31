@@ -44,7 +44,7 @@ const panels = members.map(({ build, permanentData }) => {
 })
 
 const pack = {
-  schemaVersion: 1, gameVersion: '7.1', source: 'synthetic-pack',
+  schemaVersion: 1, gameVersion: '6.0-synthetic', source: 'synthetic-pack',
   actions: {
     'itto.normal-1': {
       id: 'itto.normal-1', actorId: 'actor:0', kind: 'normal', timing: { type: 'frames', frames: 36 },
@@ -77,8 +77,9 @@ const run = simulateTeam({ pack, rotation, members, expected, targetPresetId: 'd
 assert.equal(run.status, 'calculated', JSON.stringify(run.issues))
 assert.equal(run.scope, 'team-run-no-reaction')
 assert.equal(run.simulationReady, false)
-assert.deepEqual(run.checks.map(c => c.stage), ['data-pack', 'rotation', 'members', 'timeline', 'damage'])
+assert.deepEqual(run.checks.map(c => c.stage), ['data-pack', 'versions', 'rotation', 'members', 'timeline', 'damage'])
 assert.ok(run.checks.every(c => c.status === 'ok' && c.issues.length === 0))
+assert.deepEqual(run.versions, { pack: '6.0-synthetic', panels: '6.0-synthetic' })
 assert.equal(run.timeline.status, 'simulated')
 assert.equal(run.damage.status, 'calculated')
 
@@ -109,6 +110,12 @@ const badPack = simulateTeam({ pack: { ...pack, schemaVersion: 2 }, rotation, me
 assert.equal(badPack.status, 'invalid')
 assert.equal(badPack.checks[0].status, 'version-mismatch')
 assert.deepEqual(badPack.checks.map(c => c.stage), ['data-pack'])
+
+// 数据包与面板版本不一致：在 versions 关拒绝，不能拿两份不同版本的数据混着跑。
+const badVersion = simulateTeam({ pack: { ...pack, gameVersion: '7.1' }, rotation, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs })
+assert.equal(badVersion.status, 'invalid')
+assert.deepEqual(badVersion.checks.map(c => c.stage), ['data-pack', 'versions'])
+assert.equal(badVersion.checks[1].issues[0].path, 'pack.gameVersion')
 
 // 轴引用了包里没有的动作，在 rotation 关拒绝。
 const badRotation = simulateTeam({ pack, rotation: { ...rotation, steps: [{ id: 's1', kind: 'action', actorId: 'actor:0', actionId: 'itto.burst', atFrame: 0 }] }, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs })

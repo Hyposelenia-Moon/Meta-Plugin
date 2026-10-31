@@ -30,6 +30,8 @@ export function validateRotation(spec: RotationSpec | undefined | null, pack: Da
   issues.push(...validateFrameTier(spec.frameTier).map(issue => ({ ...issue, path: `rotation.${issue.path}` })))
   if (!Number.isInteger(spec.measurementEndFrame) || spec.measurementEndFrame <= 0) add('invalid', 'rotation.measurementEndFrame', '测量窗口必须是正整数帧')
   const actions = pack?.actions ?? {}
+  // 角色初始资源是调度前提：步骤里出现的角色必须在这里登记，否则内核拿不到能量与冷却状态。
+  const roster = new Set((Array.isArray(spec.actors) ? spec.actors : []).map(actor => actor?.actorId).filter((id): id is string => typeof id === 'string'))
   if (!Array.isArray(spec.steps) || !spec.steps.length) add('invalid', 'rotation.steps', '轴必须显式列出步骤')
   else {
     spec.steps.forEach((step, i) => {
@@ -48,6 +50,7 @@ export function validateRotation(spec: RotationSpec | undefined | null, pack: Da
         add('unsupported', `${p}.kind`, `未知步骤类型 ${String((step as { kind?: unknown }).kind)}`)
       }
       if (step.kind !== 'wait' && step.atFrame !== undefined && (!Number.isInteger(step.atFrame) || step.atFrame < 0)) add('invalid', `${p}.atFrame`, '请求帧必须是非负整数')
+      if ((step.kind === 'action' || step.kind === 'switch') && step.actorId && roster.size && !roster.has(step.actorId)) add('invalid', `${p}.actorId`, `角色 ${step.actorId} 没有在 rotation.actors 登记初始资源，内核无法调度`)
     })
   }
   if (!Array.isArray(spec.actors) || !spec.actors.length) add('invalid', 'rotation.actors', '必须显式给出每个角色的初始能量')
@@ -72,6 +75,8 @@ export function validateRotation(spec: RotationSpec | undefined | null, pack: Da
     else {
       for (const [actorId, value] of Object.entries(spec.energyRecharge)) {
         if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) add('invalid', `rotation.energyRecharge.${actorId}`, '充能效率必须是正的有限值')
+        // 键写错角色 id 时内核查不到该角色，这项充能效率会被静默忽略，所以必须点名。
+        if (roster.size && !roster.has(actorId)) add('invalid', `rotation.energyRecharge.${actorId}`, `充能效率绑定的角色 ${actorId} 没有在 rotation.actors 登记，这项会被静默忽略`)
       }
     }
   }

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "fixture-7.1",
+  "source": "合成示例：test/fixtures/team-sim/example-pack.json，全部数值为占位值，不是游戏数据",
+  "actions": {
+    "example.normal-1": {
+      "id": "example.normal-1",
+      "actorId": "actor:example-a",
+      "kind": "normal",
+      "timing": { "type": "frames", "frames": 36 },
+      "hits": [
+        { "atFrame": 6, "motionValue": 1, "scaling": "atk", "element": "geo", "canCrit": true },
+        { "atFrame": 18, "motionValue": 1.2, "scaling": "atk", "element": "geo", "canCrit": true }
+      ],
+      "cancelWindows": [{ "fromFrame": 24, "toFrame": 36 }]
+    },
+    "example.skill": {
+      "id": "example.skill",
+      "actorId": "actor:example-b",
+      "kind": "skill",
+      "timing": { "type": "response", "k": 10, "bMs": 100 },
+      "hits": [
+        { "atFrame": 6, "motionValue": 2, "scaling": "def", "element": "geo", "canCrit": true }
+      ],
+      "cooldownFrames": 600,
+      "cooldownId": "skill",
+      "particles": [{ "atFrame": 6, "count": 3, "element": "geo", "travelFrames": 12 }]
+    }
+  }
+}

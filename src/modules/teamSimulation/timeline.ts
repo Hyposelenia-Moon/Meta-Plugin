@@ -281,6 +281,13 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
       else if (!['atk', 'hp', 'def'].includes(hit.scaling)) add('unsupported', `${hp}.scaling`, `未知结算属性 ${String(hit.scaling)}`)
       if (hit.element !== 'geo' && hit.element !== 'physical') add('unsupported', `${hp}.element`, `P1 只支持岩与物理命中，收到 ${String(hit.element)}`)
       if (typeof hit.canCrit !== 'boolean') add('invalid', `${hp}.canCrit`, '必须显式声明该段是否可暴击')
+      // 触发标记将来要按 id 统计命中次数；元素不是非空字符串的话，统计会静默丢项。
+      if (hit.triggerIds !== undefined) {
+        if (!Array.isArray(hit.triggerIds)) add('invalid', `${hp}.triggerIds`, '触发标记必须是数组')
+        else hit.triggerIds.forEach((triggerId, j) => {
+          if (typeof triggerId !== 'string' || !triggerId.trim()) add('invalid', `${hp}.triggerIds.${j}`, '触发标记必须是非空字符串')
+        })
+      }
     })
   }
   if (spec.cancelWindows !== undefined) {

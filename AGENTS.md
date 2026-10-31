@@ -124,6 +124,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 | 队伍模拟 P0 的分层、契约、目标口径与已知限制 | [docs/队伍模拟-P0底座.md](./docs/队伍模拟-P0底座.md) |
 | 队伍模拟 P0 与重构方案的契约差异、裁决与落地状态 | [docs/队伍模拟-P0与重构方案差异.md](./docs/队伍模拟-P0与重构方案差异.md) |
 | 队伍模拟 P1 纯岩试点的契约、时间模型、四角色拆解与数据需求 | [docs/队伍模拟-P1纯岩试点设计.md](./docs/队伍模拟-P1纯岩试点设计.md) |
+| 数据包与轴的字段、单位、校验与录入步骤（**录数据前必看**） | [docs/队伍模拟-P1数据包格式.md](./docs/队伍模拟-P1数据包格式.md) |
 | 许可、字体、版权声明、数据来源 | [docs/许可与来源.md](./docs/许可与来源.md) |
 | 待办与规划（含 Atlas 导出清单） | [docs/待办与规划.md](./docs/待办与规划.md) |
 | 盘符映射、部署机、本机工作区 | `docs/private/`（**不入库，新克隆上不存在**） |
@@ -225,18 +226,18 @@ pnpm build && pnpm test     # 72 套；任意 cwd 可跑、不发真实网络、
 
 细节见 [docs/待办与规划.md](./docs/待办与规划.md)。
 
-## 当前工作区提交摘要（2026-11-01，P1 响应型时长口径）
+## 当前工作区提交摘要（2026-11-01，P1 输入一致性收口）
 
-> 依据：`git log -1` = `8759f3e feat: 队伍模拟 P1 增数据包与轴契约，编排串联数据包→轴→面板→时间线→结算`（上一轮已提交，本轮只含时长口径）；`git diff --stat` = 8 files changed, 246 insertions(+), 35 deletions(-)，无未跟踪文件。
+> 依据：`git log -1` = `f79d466 feat: 队伍模拟 P1 补数据录入路径与轴上角色登记校验`（上一轮已提交，本轮只含输入一致性校验）；`git diff --stat` = 14 files changed, 87 insertions(+), 22 deletions(-)，无未跟踪文件。
 
 ```text
-feat: 队伍模拟 P1 支持响应型动作时长，按帧率档位折算整数帧
- - src/modules/teamSimulation/timeline.ts 及 lib 产物：ActionSpec 的 durationFrames 换成必填的 timing 判别字段（frames / response）
- - src/modules/teamSimulation/timeline.ts：新增 resolveActionTiming，响应型按 k × 帧生成时间 + bMs 算现实时长并向上取整成帧
- - src/modules/teamSimulation/timeline.ts：validateActionSpec 只校验时长结构，响应型的命中/取消窗口/产球上界改为在档位确定后判并点名档位与折算帧数
- - src/modules/teamSimulation/timeline.ts：动作结束帧与最早可取消帧改用折算后的帧数，不再读固定帧数
- - test/team-sim-timeline.test.mjs：补响应型折算（60/56/625 档 17/16/77 帧）、换档位越界、时长口径四类拒绝项
- - test/team-sim-hit-damage.test.mjs、test/team-sim-pack.test.mjs、test/team-sim-team-run.test.mjs：夹具迁移到 timing 字段
+feat: 队伍模拟 P1 补输入一致性校验（版本、充能键、触发标记）
+ - src/modules/teamSimulation/teamRun.ts 及 lib 产物：新增 versions 关，数据包版本与面板版本必须一致，不一致整轮拒绝
+ - src/modules/teamSimulation/teamRun.ts 及 lib 产物：结果透出 versions（包版本 / 面板版本），便于核对用到的数据
+ - src/modules/teamSimulation/rotation.ts 及 lib 产物：充能效率的键必须是已登记角色，写错 id 会被内核查不到而静默忽略
+ - src/modules/teamSimulation/timeline.ts 及 lib 产物：triggerIds 必须是数组且元素为非空字符串，避免将来触发统计静默丢项
+ - test/team-sim-team-run.test.mjs：版本一致性的正反例、checks 关序更新、versions 断言
+ - test/team-sim-pack.test.mjs：triggerIds 结构拒绝与充能效率幽灵键拒绝
 ```
 
-文档同步（不计入上述代码改动）：`docs/队伍模拟-P1纯岩试点设计.md` 的 `ActionSpec` 契约改成 `timing` 判别字段并补两种口径的换算、校验与示例（60 档 17 帧 / 56 档 16 帧 / 625 档 77 帧），未落地清单把响应型从「未做」改为「只做时长口径、命中时刻仍按帧给定」。
+文档同步（不计入上述代码改动）：`docs/队伍模拟-P1数据包格式.md` 的编排入口改为六关并补 `versions` 与两处新校验，已知限制更新为「版本一致性已强制但缺真实数据」；`docs/队伍模拟-P1纯岩试点设计.md` 第 12 节补输入一致性三条。

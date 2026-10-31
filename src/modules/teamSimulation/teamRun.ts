@@ -22,7 +22,7 @@ export interface TeamRunInput {
 }
 
 export interface TeamRunCheck {
-  stage: 'data-pack' | 'rotation' | 'members' | 'timeline' | 'damage'
+  stage: 'data-pack' | 'versions' | 'rotation' | 'members' | 'timeline' | 'damage'
   status: string
   issues: Issue[]
 }
@@ -32,6 +32,8 @@ export type TeamRunResult = {
   scope: 'team-run-no-reaction'
   simulationReady: false
   checks: TeamRunCheck[]
+  /** 两侧版本必须一致才跑；结果里再透出一次，方便核对用到的是哪份数据。 */
+  versions: { pack: string; panels: string }
   timeline: TimelineResult
   damage: TimelineDamageResult
   issues: []
@@ -50,6 +52,14 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   const packResult = validateDataPack(input.pack)
   checks.push({ stage: 'data-pack', status: packResult.status, issues: packResult.issues })
   if (packResult.status !== 'ok') return fail(packResult.status === 'version-mismatch' ? 'invalid' : packResult.status, checks, packResult.issues)
+
+  // 包与面板必须同版本：帧表来自一份版本、属性表来自另一份，跑出来的数没有统一基准。
+  const panelsVersion = typeof input.expected?.gameVersion === 'string' ? input.expected.gameVersion : ''
+  const versionIssues: Issue[] = []
+  if (!panelsVersion) versionIssues.push({ code: 'missing', path: 'expected.gameVersion', message: '必须给出面板数据版本，才能与数据包版本比对' })
+  else if (packResult.pack.gameVersion !== panelsVersion) versionIssues.push({ code: 'invalid', path: 'pack.gameVersion', message: `数据包版本 ${packResult.pack.gameVersion} 与面板数据版本 ${panelsVersion} 不一致：跨版本混跑没有意义` })
+  checks.push({ stage: 'versions', status: versionIssues.length ? 'invalid' : 'ok', issues: versionIssues })
+  if (versionIssues.length) return fail('invalid', checks, versionIssues)
 
   const rotationIssues = validateRotation(input.rotation, packResult.pack)
   checks.push({ stage: 'rotation', status: rotationIssues.length ? 'invalid' : 'ok', issues: rotationIssues })
@@ -89,7 +99,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
       debuffs: input.debuffs
     }
   })
-  // 轴上出手的角色必须有面板，否则命中无法结算；只有切人经过的角色可以没有。
+  // 轴上出手的角色必须有面板，否则命中无法结算；只有切人经过的角色可以没有面板，但必须在 rotation.actors 登记（由 validateRotation 把关）。
   for (const step of input.rotation.steps) {
     if (step.kind === 'action' && step.actorId && !contexts[step.actorId]) {
       memberIssues.push({ code: 'unsupported', path: 'members', message: `轴上出手的角色 ${step.actorId} 没有可用的面板` })
@@ -117,5 +127,5 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   checks.push({ stage: 'damage', status: damage.status === 'calculated' ? 'ok' : damage.status, issues: damage.issues })
   if (damage.status !== 'calculated') return fail(damage.status, checks, damage.issues)
 
-  return { status: 'calculated', scope: 'team-run-no-reaction', simulationReady: false, checks, timeline, damage, issues: [] }
+  return { status: 'calculated', scope: 'team-run-no-reaction', simulationReady: false, checks, versions: { pack: packResult.pack.gameVersion, panels: panelsVersion }, timeline, damage, issues: [] }
 }
