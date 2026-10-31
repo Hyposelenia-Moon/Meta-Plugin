@@ -55,7 +55,11 @@ assert.deepEqual(calculateOrdinaryHit({ ...base, scaling: [{ stat: 100, multipli
 assert.equal(calculateOrdinaryHit({ ...base, scaling: [{ stat: 100, multiplier: 1 }], targetId: 'dummy-lv100', enemyLevel: 90 }).status, 'invalid')
 assert.equal(calculateOrdinaryHit({ ...base, scaling: [{ stat: 100, multiplier: 1 }], targetId: 'dummy-lv100', resistance: 0 }).status, 'invalid')
 assert.equal(calculateOrdinaryHit({ ...base, scaling: [{ stat: 100, multiplier: 1 }], targetId: 'unknown-target' }).status, 'unsupported')
-for (const patch of [{ kind: 'reaction' }, { reaction: 'vaporize' }]) assert.ok(['unsupported'].includes(calculateOrdinaryHit({ ...base, scaling: [{ stat: 1, multiplier: 1 }], ...patch }).status))
+// P2 起反应走独立分支：未知 kind 是 invalid；只写反应名却不给触发元素与附着，也是 invalid。
+assert.equal(calculateOrdinaryHit({ ...base, scaling: [{ stat: 1, multiplier: 1 }], kind: 'reaction' }).status, 'unsupported')
+const partialReaction = calculateOrdinaryHit({ ...base, scaling: [{ stat: 1, multiplier: 1 }], reaction: 'vaporize' })
+assert.equal(partialReaction.status, 'incomplete')
+assert.deepEqual(partialReaction.issues.map(issue => issue.path), ['element', 'aura', 'mastery'])
 for (const patch of [{ critRate: -0.1 }, { critDamage: -0.1 }, { damageBonus: -1.1 }, { scaling: [{ stat: 1, multiplier: -1 }] }, { enemyLevel: NaN }, { defenseIgnore: 1.01 }]) assert.equal(calculateOrdinaryHit({ ...base, scaling: [{ stat: 1, multiplier: 1 }], ...patch }).status, 'invalid')
 assert.equal(calculateOrdinaryHit({ ...base, scaling: [{ stat: 1, multiplier: 1 }], additiveBase: undefined }).status, 'incomplete')
 for (const field of Object.keys(base)) {

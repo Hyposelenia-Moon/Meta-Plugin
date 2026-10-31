@@ -1,3 +1,5 @@
+import type { ReactiveKind } from './reactions.js'
+
 /** 队伍模拟 P0 契约。百分比为比例（20%=0.2），属性为点数；不接管现有命令。 */
 export const SCHEMA_VERSION = 1 as const
 export type StatKey = 'hp' | 'atk' | 'def' | 'hpPct' | 'atkPct' | 'defPct' | 'mastery' | 'cpct' | 'cdmg' | 'recharge' | 'dmg' | 'phy' | 'heal' | 'pyro' | 'hydro' | 'electro' | 'cryo' | 'anemo' | 'geo' | 'dendro'
@@ -87,7 +89,9 @@ export type PermanentBuildResult = {
 /** 普通无反应直伤。所有乘区显式输入；不在 P0 接受反应或未建模的独立乘区。 */
 export interface OrdinaryHit {
   kind: 'ordinary'
-  reaction: 'none'
+  /** 
+one 是普通直伤；其余取值走 reactions.ts 的算术。 */
+  reaction: 'none' | ReactiveKind
   gameVersion: string
   source: string
   /** 可选：绑定只读测试目标口径；指定后等级与抗性必须与预设一致。 */
@@ -105,10 +109,16 @@ export interface OrdinaryHit {
   defenseIgnore: number
   resistance: number
   resistanceReduction: number
+  /** 反应的触发元素；eaction !== 'none' 时必填，取值同 TimelineHit.element。 */
+  element?: string
+  /** 目标身上的附着元素；eaction !== 'none' 时必填。 */
+  aura?: string
+  /** 触发反应的角色精通；eaction !== 'none' 时必填。 */
+  mastery?: number
 }
 export type OrdinaryDamageResult = {
   status: 'calculated'
-  scope: 'ordinary-hit-no-reaction'
+  scope: 'ordinary-hit-no-reaction' | 'ordinary-hit-with-reaction'
   damage: number
   factors: { base: number; damageBonus: number; crit: number; defense: number; resistance: number; effectiveCritRate: number; effectiveDefenseReduction: number; effectiveResistance: number }
   target: { id: string; level: number; resistance: number }

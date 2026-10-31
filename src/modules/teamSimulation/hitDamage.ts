@@ -1,8 +1,9 @@
 import type { Failure, Issue, OrdinaryDamageResult, OrdinaryHit, PermanentStats } from './types.js'
-import { calculateOrdinaryHit, TARGET_PRESETS } from './formula.js'
+import { calculateOrdinaryHit, resistanceMultiplier, TARGET_PRESETS } from './formula.js'
 import { applyPanelModifiers, type EnemyModifiers, type PanelModifiers } from './effects.js'
 import type { TimelineHit, TimelineResult } from './timeline.js'
 import type { MechanismPlan, StatWindow, EnemyWindow } from './mechanisms.js'
+import { isReactiveKind, reactionClass, transformativeBase, type ReactiveKind } from './reactions.js'
 
 export type CritPolicy = 'expected' | 'critical' | 'non-critical'
 
@@ -37,18 +38,20 @@ export interface DamageRow {
   scaling: TimelineHit['scaling']
   motionValue: number
   damage: number
-  /** `action`：动作自带的命中；`summon`：召唤物在结算层展开的命中。 */
-  origin: 'action' | 'summon'
+  /** `action`：动作自带的命中；`summon`：召唤物在结算层展开的命中；`reaction`：剧变反应额外的一段。 */
+  origin: 'action' | 'summon' | 'reaction'
   /**
    * 这一发结算时「在场」的效果与机制窗口 id，按字典序。
    * 只说明谁在场，不说明谁贡献了多少伤害：连续乘区下要拆账得做反事实重算，P1 不做。
    */
   effects: string[]
+  /** 这一发的元素反应：`damage` 是本条记录里反应贡献的那部分；剧变反应单独成行。 */
+  reaction?: { kind: string; damage: number }
 }
 
 export type TimelineDamageResult = {
   status: 'calculated'
-  scope: 'timeline-damage-no-reaction'
+  scope: 'timeline-damage-no-reaction' | 'timeline-damage-with-reaction'
   simulationReady: false
   total: number
   rows: DamageRow[]
@@ -192,6 +195,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     stats: PanelModifiers
     enemy: EnemyModifiers
     effects: string[]
+    reaction?: { kind: string; aura: string }
     path: string
   }): Issue[] => {
     const context = contexts[options.actorId]
@@ -220,15 +224,48 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       resistance: preset.resistance,
       resistanceReduction
     }
-    const result: OrdinaryDamageResult = calculateOrdinaryHit(spec)
-    if (result.status !== 'calculated') {
-      return result.issues.map(issue => ({ ...issue, path: `${options.path}.${issue.path}` }))
+    const base: OrdinaryDamageResult = calculateOrdinaryHit(spec)
+    if (base.status !== 'calculated') {
+      return base.issues.map(issue => ({ ...issue, path: `${options.path}.${issue.path}` }))
     }
-    total += result.damage
-    perActor[options.actorId] = (perActor[options.actorId] ?? 0) + result.damage
-    const actionKey = `${options.actorId}/${options.actionId}`
-    perAction[actionKey] = (perAction[actionKey] ?? 0) + result.damage
-    rows.push({
+    let damage = base.damage
+    let reactionRecord: DamageRow['reaction']
+    let reactionRow: DamageRow | undefined
+    const declared = options.reaction && isReactiveKind(options.reaction.kind) ? options.reaction : undefined
+    if (declared) {
+      const kind = declared.kind as ReactiveKind
+      const cls = reactionClass(kind)
+      if (cls === 'transformative') {
+        // 剧变：不吃防御、不吃增伤、不暴击，只乘抗性区，单独成一段。
+        const coefficient = transformativeBase(kind, context.level, stats.mastery)
+        if (coefficient === undefined) return [{ code: 'unsupported', path: `${options.path}.reaction`, message: `等级 ${context.level} 不在反应系数表内` }]
+        const reactionDamage = coefficient * resistanceMultiplier(preset.resistance - resistanceReduction)
+        reactionRecord = { kind, damage: reactionDamage }
+        reactionRow = {
+          frame: options.frame,
+          actorId: options.actorId,
+          actionId: options.actionId,
+          hitIndex: options.hitIndex,
+          element: options.element,
+          scaling: options.scaling,
+          motionValue: options.motionValue,
+          damage: reactionDamage,
+          origin: 'reaction',
+          effects: options.effects,
+          reaction: reactionRecord
+        }
+      } else {
+        // 增幅与激化：走同一条直伤公式，反应只是换了基础伤害区的算法。
+        const withReaction: OrdinaryHit = { ...spec, reaction: kind, element: options.element, aura: declared.aura, mastery: stats.mastery }
+        const reacted = calculateOrdinaryHit(withReaction)
+        if (reacted.status !== 'calculated') {
+          return reacted.issues.map(issue => ({ ...issue, path: `${options.path}.reaction.${issue.path}` }))
+        }
+        damage = reacted.damage
+        reactionRecord = { kind, damage: reacted.damage - base.damage }
+      }
+    }
+    const row: DamageRow = {
       frame: options.frame,
       actorId: options.actorId,
       actionId: options.actionId,
@@ -236,10 +273,20 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       element: options.element,
       scaling: options.scaling,
       motionValue: options.motionValue,
-      damage: result.damage,
+      damage,
       origin: options.origin,
-      effects: options.effects
-    })
+      effects: options.effects,
+      ...(reactionRecord ? { reaction: reactionRecord } : {})
+    }
+    const add = (target: DamageRow) => {
+      total += target.damage
+      perActor[target.actorId] = (perActor[target.actorId] ?? 0) + target.damage
+      const actionKey = `${target.actorId}/${target.actionId}`
+      perAction[actionKey] = (perAction[actionKey] ?? 0) + target.damage
+      rows.push(target)
+    }
+    add(row)
+    if (reactionRow) add(reactionRow)
     return []
   }
 
@@ -264,6 +311,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       stats,
       enemy,
       effects: activeIds(plan, hit.actorId, hit.frame, hit.activeEffects),
+      reaction: hit.reaction,
       path: `hits.${index}`
     })
     if (hitIssues.length) return { status: hitIssues.some(i => i.code === 'unsupported') ? 'unsupported' : 'invalid', issues: hitIssues }
@@ -295,7 +343,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
   rows.sort((a, b) => a.frame - b.frame || (a.origin === b.origin ? 0 : a.origin === 'action' ? -1 : 1))
   return {
     status: 'calculated',
-    scope: 'timeline-damage-no-reaction',
+    scope: rows.some(row => row.reaction) ? 'timeline-damage-with-reaction' : 'timeline-damage-no-reaction',
     simulationReady: false,
     total,
     rows,

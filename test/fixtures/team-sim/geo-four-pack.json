@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "7.1",
+  "source": "miao data.json 天赋 10 级倍率 + gcsim 动作帧（60fps），2026-11-01 录入",
+  "actions": {
+    "itto.na1": {
+      "id": "itto.na1",
+      "actorId": "itto",
+      "kind": "normal",
+      "timing": {
+        "type": "frames",
+        "frames": 41
+      },
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 0.7923,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ]
+    },
+    "itto.na2": {
+      "id": "itto.na2",
+      "actorId": "itto",
+      "kind": "normal",
+      "timing": {
+        "type": "frames",
+        "frames": 51
+      },
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 0.7637,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ]
+    },
+    "itto.na3": {
+      "id": "itto.na3",
+      "actorId": "itto",
+      "kind": "normal",
+      "timing": {
+        "type": "frames",
+        "frames": 57
+      },
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 0.9164,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ]
+    },
+    "itto.na4": {
+      "id": "itto.na4",
+      "actorId": "itto",
+      "kind": "normal",
+      "timing": {
+        "type": "frames",
+        "frames": 83
+      },
+      "hits": [
+        {
+          "atFrame": 48,
+          "motionValue": 1.1722,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ]
+    },
+    "itto.skill": {
+      "id": "itto.skill",
+      "actorId": "itto",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      },
+      "hits": [],
+      "energyCost": 0,
+      "cooldownFrames": 600,
+      "cooldownId": "skill",
+      "particles": [
+        {
+          "atFrame": 30,
+          "count": 1,
+          "travelFrames": 0,
+          "element": "geo"
+        }
+      ]
+    },
+    "itto.burst": {
+      "id": "itto.burst",
+      "actorId": "itto",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 91
+      },
+      "hits": [],
+      "energyCost": 70,
+      "cooldownFrames": 1080,
+      "cooldownId": "burst"
+    },
+    "gorou.skill": {
+      "id": "gorou.skill",
+      "actorId": "gorou",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 47
+      },
+      "hits": [
+        {
+          "atFrame": 34,
+          "motionValue": 1.9296,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 600,
+      "cooldownId": "skill",
+      "particles": [
+        {
+          "atFrame": 34,
+          "count": 2,
+          "travelFrames": 0,
+          "element": "geo"
+        }
+      ]
+    },
+    "gorou.burst": {
+      "id": "gorou.burst",
+      "actorId": "gorou",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 56
+      },
+      "hits": [
+        {
+          "atFrame": 31,
+          "motionValue": 1.7679,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
+    },
+    "albedo.skill": {
+      "id": "albedo.skill",
+      "actorId": "albedo",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 33
+      },
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 2.3472,
+          "scaling": "def",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 240,
+      "cooldownId": "skill",
+      "particles": [
+        {
+          "atFrame": 25,
+          "count": 1,
+          "travelFrames": 0,
+          "element": "geo"
+        }
+      ]
+    },
+    "albedo.burst": {
+      "id": "albedo.burst",
+      "actorId": "albedo",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 96
+      },
+      "hits": [
+        {
+          "atFrame": 75,
+          "motionValue": 6.6096,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 40,
+      "cooldownFrames": 720,
+      "cooldownId": "burst"
+    },
+    "zhongli.hold-e": {
+      "id": "zhongli.hold-e",
+      "actorId": "zhongli",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 96
+      },
+      "hits": [
+        {
+          "atFrame": 48,
+          "motionValue": 1.44,
+          "scaling": "hp",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 720,
+      "cooldownId": "skill"
+    },
+    "zhongli.burst": {
+      "id": "zhongli.burst",
+      "actorId": "zhongli",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 139
+      },
+      "hits": [
+        {
+          "atFrame": 101,
+          "motionValue": 8.9972,
+          "scaling": "atk",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 40,
+      "cooldownFrames": 720,
+      "cooldownId": "burst"
+    }
+  }
+}

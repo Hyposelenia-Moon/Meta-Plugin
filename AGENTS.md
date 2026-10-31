@@ -12,7 +12,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
 - **队伍模拟内核边界**：`src/modules/teamSimulation/` 对外只经 `index.ts`；目录内文件只用相对 import 指向本目录，`src/model/TeamBuildAdapter.ts` 是适配层（它依赖内核，内核不反向依赖它）。
-- **常用命令**：`pnpm build`、`pnpm test`（77 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（79 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -196,7 +196,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 77 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 79 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。
@@ -215,6 +215,7 @@ pnpm build && pnpm test     # 77 套；任意 cwd 可跑、不发真实网络、
   `team-sim-pack`（数据包与轴的拒绝项：版本、动作 id 与键一致、未知动作、帧率档位与初始资源）、
   `team-sim-team-run`（数据包 → 轴 → 面板 → 时间线 → 结算的串联与每关拒绝；端到端伤害与直接调公式逐段一致）、
   `team-sim-effects`（效果表的面板增量与敌人减益：触发先于伤害、自己不吃自己的加成、叠层上限与刷新/忽略策略、未登记触发拒绝）、
+`team-sim-reactions`（元素反应：等级系数表与倍率、增幅乘基础区、激化加基础区、剧变单独成段、状态型与配对错误拒绝）、
   `team-sim-dps-standard`（队伍 DPS 固定标准：110 级小宝/10% 抗性/120 秒/0 能量四项常量与违规路径、窗口帧数随档位换算）、
   `team-sim-mechanisms`（纯岩四角色机制层：Q 窗口、五郎岩人数分档、钟离减抗、阿贝多召唤物、乱神之怪力层数与违规）、
   `team-sim-report`（一轮结果的投影：每角色/每动作合计、触发次数、在场覆盖、近似项、失败问题与摘要行）、
@@ -232,22 +233,23 @@ pnpm build && pnpm test     # 77 套；任意 cwd 可跑、不发真实网络、
 
 细节见 [docs/待办与规划.md](./docs/待办与规划.md)。
 
-## 当前工作区提交摘要（2026-11-01，P2 前准备）
+## 当前工作区提交摘要（2026-11-01，P2 元素反应与真实数据包）
 
-> 依据：`git log -1` = `dfae059 feat: 队伍模拟 P1 接入纯岩四角色机制层并强制 DPS 标准`（上一轮已提交，本轮只含 P2 前准备）；`git diff --stat` = 21 files changed, 175 insertions(+), 35 deletions(-)，另有 7 个未跟踪新文件。
+> 依据：`git log -1` = `db1acc7 feat: 队伍模拟 P2 前准备（公开出口、在场覆盖、黄金集与误差指标）`（上一轮已提交）；本轮合并两批改动——元素反应与真实数据包。`git diff --stat` = 23 files changed, 426 insertions(+), 84 deletions(-)，另有 6 个未跟踪新文件。
 
 ```text
-feat: 队伍模拟 P2 前准备（公开出口、在场覆盖、黄金集与误差指标）
- - src/modules/teamSimulation/index.ts 及 lib 产物：新增模块唯一对外出口，收敛契约与公开 API
- - src/model/TeamBuildAdapter.ts 及 lib 产物：适配层改从 index.js 导入，不再指向内核内部文件
- - src/modules/teamSimulation/effects.ts：运行时新增 activeAt(actorId, frame)，返回当帧在场的效果 id
- - src/modules/teamSimulation/timeline.ts：TimelineHit 新增 activeEffects，与 modifiers 同一时刻快照
- - src/modules/teamSimulation/hitDamage.ts：DamageRow 新增 effects（效果 id + 机制窗口来源名，去重排序）
- - src/modules/teamSimulation/report.ts：摘要新增 effectUsage（在场覆盖的命中数与伤害合计）并输出在场覆盖行
- - src/modules/teamSimulation/metrics.ts：新增黄金集契约、用例校验与误差指标（相对误差、贡献偏差、中位数与单例闸门）
- - test/team-sim-metrics.test.mjs：用例校验、闸门判定、缺实测与 synthetic 不计入
- - test/team-sim-effects.test.mjs：在场快照（触发的那一发不算自己）
- - test/team-sim-team-run.test.mjs：归因断言（机制窗口按来源名归并、无来源时为空数组）
+feat: 队伍模拟 P2 接入元素反应并录入岩系四角色真实数据包
+ - src/modules/teamSimulation/reactions.ts（新增）及 lib 产物：反应表与等级系数、元素配对、精通曲线与状态型反应的拒绝说明
+ - src/modules/teamSimulation/types.ts：OrdinaryHit 反应放宽到十种，补 element/aura/mastery，结果 scope 区分有无反应
+ - src/modules/teamSimulation/formula.ts：抽出 resistanceMultiplier，反应校验后按增幅乘基础区、激化加基础区结算，剧变明确拒绝
+ - src/modules/teamSimulation/timeline.ts：命中元素放宽到七元素，HitSpec 新增 reaction 声明并校验附着、物理命中、状态型与配对
+ - src/modules/teamSimulation/hitDamage.ts：增幅改同一段伤害并记录贡献，剧变另起一段只乘抗性，DamageRow 增 origin 与 reaction
+ - src/modules/teamSimulation/report.ts：摘要新增反应汇总（种类、段数、贡献合计）并输出「反应：」一行
+ - src/modules/teamSimulation/index.ts：唯一出口补 reactions 的公开导出
+ - test/fixtures/team-sim/geo-four-pack.json（新增）：岩系四角色 12 个动作，帧取自 gcsim、倍率取自 miao 天赋 10 级
+ - test/team-sim-reactions.test.mjs（新增）：等级系数锚点、倍率与配对、精通曲线、公式三种路径与拒绝项、结算层单段与双段
+ - test/team-sim-geo-pack.test.mjs（新增）：真实数据包整体过校验、命中帧逐段累加 23/66/108/197、五郎 E 回两颗元素微粒
+ - test/team-sim-formula.test.mjs：反应相关预期改为 unsupported / incomplete，并断言缺元素时的三个 issue 路径
 ```
 
-文档同步（不计入上述代码改动）：`docs/队伍模拟-P1数据包格式.md` 新增第 14 节（在场覆盖语义、黄金集契约与闸门规则）；`docs/队伍模拟-P1纯岩试点设计.md` 第 12 节补公开出口、在场覆盖、黄金集三条与回归 77/77，未落地清单补「黄金集无实测用例、归因只到在场」；`AGENTS.md` 补内核边界条目、套件数 76 → 77 与契约套件清单加 `team-sim-metrics`；`README.md`、`docs/测试.md` 的套件数 76 → 77。
+文档同步（不计入上述代码改动）：`docs/队伍模拟-P1数据包格式.md` 新增第 15 节（反应声明、方向与倍率、三条公式、状态型与配对拒绝）与第 16 节（真实数据包来源与「延时命中」缺口）；`docs/队伍模拟-P1纯岩试点设计.md` 第 12 节补元素反应与真实帧表接入、回归数改 79/79；`AGENTS.md` 契约套件清单加 `team-sim-reactions`、`team-sim-geo-pack`，套件数 77 → 79；`README.md`、`docs/测试.md` 的套件数同步到 79。

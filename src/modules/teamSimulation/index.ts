@@ -79,5 +79,23 @@ export type { TeamMemberInput, TeamRunMode, TeamRunInput, TeamRunCheck, TeamRunR
 export { buildTeamRunReport, formatTeamRunReport } from './report.js'
 export type { TeamRunReport } from './report.js'
 
+export {
+  REACTION_COEFFICIENT,
+  REACTIONS,
+  isReactiveKind,
+  isStatefulKind,
+  statefulReason,
+  reactionLabel,
+  reactionClass,
+  reactionMultiplier,
+  pairMultiplier,
+  describeMismatch,
+  reactionCoefficient,
+  amplifyingFactor,
+  catalyzeBonus,
+  transformativeBase
+} from './reactions.js'
+export type { ReactionElement, ReactionClass, ReactiveKind, StatefulKind, ReactionSpec } from './reactions.js'
+
 export { GOLDEN_THRESHOLDS, validateGoldenCases, evaluateGolden } from './metrics.js'
 export type { GoldenCase, GoldenExpectation, GoldenActual, GoldenRow, GoldenReport } from './metrics.js'

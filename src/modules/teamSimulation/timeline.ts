@@ -8,6 +8,7 @@
  */
 import type { Issue } from './types.js'
 import { createEffectRuntime, NO_ENEMY_MODIFIERS, type ActiveEffectState, type EffectSpec, type EnemyModifiers, type PanelModifiers, type TriggerRecord } from './effects.js'
+import { describeMismatch, isReactiveKind, isStatefulKind, statefulReason, type ReactionElement } from './reactions.js'
 
 /** 数据编帧用的标称帧率。60 档位上一帧的真实时长是 16.667ms，不是整数毫秒。 */
 export const FRAME_RATE = 60
@@ -54,13 +55,18 @@ export type EventPhase = typeof EVENT_PHASES[number]
 
 export type ActionKind = 'normal' | 'charged' | 'plunge' | 'skill' | 'burst' | 'switch'
 
+/** 命中元素：物理不吃元素反应，其余七种都可以。 */
+export type HitElement = 'physical' | 'pyro' | 'hydro' | 'electro' | 'cryo' | 'anemo' | 'geo' | 'dendro'
+
+const HIT_ELEMENTS: readonly HitElement[] = ['physical', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro']
+
 export interface HitSpec {
   /** 相对动作起手帧的偏移，必须是非负整数且落在动作时长内。 */
   atFrame: number
   motionValue: number
   /** 这一段按哪一项面板属性结算：倍率乘的是攻击、生命还是防御。数据必须显式给，不设默认。 */
   scaling: 'atk' | 'hp' | 'def'
-  element: 'geo' | 'physical'
+  element: HitElement
   canCrit: boolean
   /** 命中后触发的效果 id；同帧先后由规则表解析，不写死在数据里。 */
   triggerIds?: string[]
@@ -70,6 +76,11 @@ export interface HitSpec {
    * 时长来自数据，P1 不校准，用到时结果标 approximate。
    */
   hitlagFrames?: number
+  /**
+   * 这一发命中的元素反应。ura 是命中瞬间目标身上的附着元素，由数据声明；
+   * 附着量、衰减与 ICD 不在 P1 建模范围内（见数据包文档的反应段）。
+   */
+  reaction?: { kind: string; aura: string }
 }
 
 /** 可取消窗口：动作起手后这段时间内可以接下一次动作。 */
@@ -146,9 +157,11 @@ export interface TimelineHit {
   hitIndex: number
   motionValue: number
   scaling: 'atk' | 'hp' | 'def'
-  element: 'geo' | 'physical'
+  element: HitElement
   canCrit: boolean
   triggerIds: string[]
+  /** 数据声明的元素反应；ura 是命中瞬间目标身上的附着。 */
+  reaction?: { kind: string; aura: string }
   /** 该命中结算时实际生效的修饰：面板增量与全局敌人减益。触发先于伤害之外的效果不影响这一发。 */
   modifiers: { stats: PanelModifiers; enemy: EnemyModifiers }
   /** 该命中结算时「在场」的效果 id（快照早于本发携带的触发，所以自己不吃自己的加成）。 */
@@ -295,7 +308,7 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
       if (!isFiniteNumber(hit.motionValue) || hit.motionValue <= 0) add('invalid', `${hp}.motionValue`, '倍率必须是正有限数值')
       if (hit.scaling === undefined) add('missing', `${hp}.scaling`, '必须声明该段按 attack、hp 还是 def 结算')
       else if (!['atk', 'hp', 'def'].includes(hit.scaling)) add('unsupported', `${hp}.scaling`, `未知结算属性 ${String(hit.scaling)}`)
-      if (hit.element !== 'geo' && hit.element !== 'physical') add('unsupported', `${hp}.element`, `P1 只支持岩与物理命中，收到 ${String(hit.element)}`)
+      if (!HIT_ELEMENTS.includes(hit.element as HitElement)) add('unsupported', `${hp}.element`, `未知命中元素 ${String(hit.element)}`)
       if (typeof hit.canCrit !== 'boolean') add('invalid', `${hp}.canCrit`, '必须显式声明该段是否可暴击')
       // 触发标记将来要按 id 统计命中次数；元素不是非空字符串的话，统计会静默丢项。
       if (hit.triggerIds !== undefined) {
@@ -305,6 +318,22 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
         })
       }
       if (hit.hitlagFrames !== undefined && (!isInteger(hit.hitlagFrames) || hit.hitlagFrames < 0)) add('invalid', `${hp}.hitlagFrames`, '卡肉帧数必须是非负整数')
+      if (hit.reaction !== undefined) {
+        const reaction = hit.reaction
+        if (!reaction || typeof reaction !== 'object' || Array.isArray(reaction)) add('invalid', `${hp}.reaction`, '反应必须写成 { kind, aura }')
+        else {
+          const auraOk = typeof reaction.aura === 'string' && ['pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro'].includes(reaction.aura)
+          if (!auraOk) add('invalid', `${hp}.reaction.aura`, '附着元素必须是七种元素之一')
+          const elementOk = typeof hit.element === 'string' && hit.element !== 'physical'
+          if (!elementOk) add('invalid', `${hp}.element`, '物理命中不触发元素反应')
+          if (isStatefulKind(reaction.kind)) add('unsupported', `${hp}.reaction.kind`, `P1 不建模：${statefulReason(reaction.kind)}`)
+          else if (!isReactiveKind(reaction.kind)) add('unsupported', `${hp}.reaction.kind`, '不支持的反应')
+          else if (auraOk && elementOk) {
+            const mismatch = describeMismatch(reaction.kind, hit.element as ReactionElement, reaction.aura as ReactionElement)
+            if (mismatch) add('invalid', `${hp}.reaction`, mismatch)
+          }
+        }
+      }
     })
   }
   if (spec.cancelWindows !== undefined) {
@@ -465,7 +494,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     if (item.kind === 'hit') {
       const modifiers = effectRuntime.modifiersAt(item.actorId, queued.frame)
       const activeEffects = effectRuntime.activeAt(item.actorId, queued.frame)
-      hits.push({ frame: queued.frame, actorId: item.actorId, actionId: item.actionId, hitIndex: item.hitIndex, motionValue: item.hit.motionValue, scaling: item.hit.scaling, element: item.hit.element, canCrit: item.hit.canCrit, triggerIds: item.hit.triggerIds ?? [], modifiers, activeEffects })
+      hits.push({ frame: queued.frame, actorId: item.actorId, actionId: item.actionId, hitIndex: item.hitIndex, motionValue: item.hit.motionValue, scaling: item.hit.scaling, element: item.hit.element, canCrit: item.hit.canCrit, triggerIds: item.hit.triggerIds ?? [], reaction: item.hit.reaction, modifiers, activeEffects })
       record(queued.frame, 'hit', 'hit', item.actorId, item.actionId, { hitIndex: item.hitIndex, motionValue: item.hit.motionValue, element: item.hit.element })
       for (const [index, effectId] of (item.hit.triggerIds ?? []).entries()) {
         if (!effectRuntime.has(effectId)) { add('unsupported', `actions.${item.actionId}.hits.${item.hitIndex}.triggerIds.${index}`, `触发标记 ${effectId} 在效果表里没有登记，无法兑现`); continue }
