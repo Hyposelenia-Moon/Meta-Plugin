@@ -123,6 +123,26 @@ assert.equal(ignored.hits[2].modifiers.stats.atk, 100)
 const refreshed = run(mkActions([baseHit(2, { triggerIds: ['stack-atk'] }), baseHit(15, { triggerIds: ['stack-atk'] })]), { 'stack-atk': { ...stackEffect, stacking: 'refresh', durationFrames: 60 } })
 assert.deepEqual(refreshed.triggers.map(t => [t.stacks, t.expiresAt]), [[1, 62], [1, 75]])
 
+// 到期后再触发要从 1 层重新开始，而不是接着上一轮的层数与起点继续累。
+const expiredStack = { ...stackEffect, durationFrames: 20 }
+const regrown = (() => {
+  const markHits = [baseHit(2, { triggerIds: ['stack-atk'] }), baseHit(6, { triggerIds: ['stack-atk'] })]
+  const pack = mkActions(markHits)
+  return simulateTimeline({
+    frameTier: FRAME_TIERS['fps-60'], measurementEndFrame: 400, scheduler: 'fixed',
+    actions: { ...pack, 'itto.mark2': { ...pack['itto.mark'], id: 'itto.mark2', hits: [baseHit(5, { triggerIds: ['stack-atk'] }), baseHit(10)] } },
+    effects: { 'stack-atk': expiredStack },
+    actors: [{ actorId: 'itto', energy: 60, energyMax: 60 }], activeActorId: 'itto',
+    steps: [
+      { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.mark', atFrame: 0 },
+      { id: 's2', kind: 'action', actorId: 'itto', actionId: 'itto.mark2', atFrame: 40 }
+    ]
+  })
+})()
+assert.equal(regrown.status, 'simulated', JSON.stringify(regrown.issues))
+assert.deepEqual(regrown.triggers.map(t => [t.frame, t.stacks, t.startsAt]), [[2, 1, 2], [6, 2, 2], [45, 1, 45]], JSON.stringify(regrown.triggers))
+assert.equal(regrown.hits[3].modifiers.stats.atk, 100, JSON.stringify(regrown.hits[3].modifiers))
+
 // ── 5. 未登记触发标记在内核里也要拒绝 ─────────────────────────────
 const unknown = run(mkActions([baseHit(5, { triggerIds: ['nope'] })]), {})
 assert.equal(unknown.status, 'invalid')

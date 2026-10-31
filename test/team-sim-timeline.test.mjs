@@ -6,11 +6,23 @@ import { mod } from './_helper.mjs'
 import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const ts = createRequire(import.meta.url)('typescript')
+const sourceCache = new Map()
+// 源码模式把 .ts 转译成 data URL 再 import；相对 import 也要一起转译，否则 data: 协议解析不到文件。
+async function sourceUrl(rel) {
+  if (sourceCache.has(rel)) return sourceCache.get(rel)
+  const source = fs.readFileSync(path.join(root, 'src', 'modules', 'teamSimulation', rel), 'utf8')
+  let js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText
+  for (const [specifier] of js.matchAll(/(?<=from ')\.\/[\w-]+\.js(?=')/g)) {
+    const depRel = specifier.replace(/^\.\//, '').replace(/\.js$/, '.ts')
+    js = js.replaceAll(`'${specifier}'`, `'${await sourceUrl(depRel)}'`)
+  }
+  const url = `data:text/javascript;base64,${Buffer.from(js).toString('base64')}`
+  sourceCache.set(rel, url)
+  return url
+}
 async function load(rel) {
   if (process.env.META_TEAM_SIM_SOURCE_TEST !== '1') return import(mod(`modules/teamSimulation/${rel.replace(/\.ts$/, '.js')}`))
-  const source = fs.readFileSync(path.join(root, 'src', 'modules', 'teamSimulation', rel), 'utf8')
-  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText
-  return import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`)
+  return import(await sourceUrl(rel))
 }
 const { FRAME_RATE, FRAME_TIERS, EVENT_PHASES, simulateTimeline, validateActionSpec, validateFrameTier, resolveActionTiming } = await load('timeline.ts')
 
@@ -139,13 +151,127 @@ const badHit = simulateTimeline({ ...base, actions: { bad: { id: 'bad', actorId:
 assert.equal(badHit.status, 'invalid')
 assert.ok(badHit.issues.some(i => i.message.includes('整数')))
 
-// 未登记动作与卡肉：前者拒绝，后者只能作为未建模近似。
+// 未登记动作：拒绝，不能静默跳过。
 const unknown = simulateTimeline({ ...base, steps: [{ id: 's1', kind: 'action', actorId: 'itto', actionId: 'missing', atFrame: 0 }] })
 assert.equal(unknown.status, 'invalid')
 assert.ok(unknown.issues.some(i => i.code === 'unsupported'))
-const hitlag = simulateTimeline({ ...base, actions: { ...actions, lagged: { ...actions['itto.normal-1'], id: 'lagged', hitlagFrames: 3 } }, steps: [{ id: 's1', kind: 'action', actorId: 'itto', actionId: 'lagged', atFrame: 0 }] })
-assert.equal(hitlag.accuracy, 'approximate')
-assert.ok(hitlag.approximateItems.some(item => item.startsWith('hitlag:')))
+
+// 卡肉：命中造成的冻结把之后的一切顺延，现实帧照走、游戏帧不走。
+const lagged = {
+  ...actions['itto.normal-1'], id: 'itto.lagged',
+  hits: [
+    { atFrame: 6, motionValue: 1, element: 'geo', scaling: 'atk', canCrit: true, hitlagFrames: 5 },
+    { atFrame: 18, motionValue: 1.2, element: 'geo', scaling: 'atk', canCrit: true }
+  ]
+}
+const lag = simulateTimeline({ ...base, actions: { ...actions, 'itto.lagged': lagged }, steps: [{ id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.lagged', atFrame: 0 }] })
+assert.equal(lag.status, 'simulated', JSON.stringify(lag.issues))
+// 第一发在第 6 帧冻结 5 帧：第二发从 18 顺延到 23，收尾从 36 顺延到 41。
+assert.deepEqual(lag.hits.map(h => h.frame), [6, 23])
+assert.ok(lag.events.some(e => e.kind === 'action-end' && e.frame === 41), JSON.stringify(lag.events.filter(e => e.kind === 'action-end')))
+assert.equal(lag.timing.hitlagFrames, 5)
+// 游戏时间把冻结帧扣掉，现实时间不扣：同一个动作在现实里更久。
+assert.equal(lag.endFrame, 24 + 5)
+assert.equal(lag.timing.gameMs, 24 * 17)
+assert.ok(Math.abs(lag.timing.realMs - (24 + 5) * (1000 / 60.36144)) < 1e-9, String(lag.timing.realMs))
+assert.equal(lag.accuracy, 'approximate')
+assert.ok(lag.approximateItems.some(item => item.startsWith('hitlag:')))
+// 效果到期也在冻结里顺延：6 帧触发、持续 40 帧，本应 46 帧到期；同帧冻结 10 帧后推到 56 帧。
+const lagTrigger = {
+  ...actions['itto.normal-1'], id: 'itto.lag-trigger',
+  hits: [{ atFrame: 6, motionValue: 1, element: 'geo', scaling: 'atk', canCrit: true, triggerIds: ['buff'], hitlagFrames: 10 }]
+}
+const shifted = simulateTimeline({
+  ...base, actions: { ...actions, 'itto.lag-trigger': lagTrigger },
+  effects: { buff: { id: 'buff', target: 'team', stats: { atk: 100 }, durationFrames: 40 } },
+  steps: [{ id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.lag-trigger', atFrame: 0 }]
+})
+assert.equal(shifted.status, 'simulated', JSON.stringify(shifted.issues))
+assert.equal(shifted.triggers[0].expiresAt, 56)
+assert.equal(shifted.effects[0].expiresAt, 56)
+// 冷却期限也在冻结里顺延：600 帧的冷却变成 605。
+const lagSkill = {
+  ...actions['itto.skill'], id: 'itto.lag-skill',
+  hits: [{ atFrame: 10, motionValue: 2, element: 'geo', scaling: 'atk', canCrit: true, hitlagFrames: 5 }]
+}
+const cool = simulateTimeline({
+  ...base, measurementEndFrame: 700, actions: { ...actions, 'itto.lag-skill': lagSkill },
+  steps: [
+    { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.lag-skill', atFrame: 0 },
+    { id: 's2', kind: 'action', actorId: 'itto', actionId: 'itto.lag-skill', atFrame: 600 }
+  ]
+})
+assert.equal(cool.status, 'invalid')
+assert.ok(cool.issues.some(i => i.path === 'steps.s2.cooldown' && i.message.includes('605')), JSON.stringify(cool.issues))
+assert.equal(simulateTimeline({
+  ...base, measurementEndFrame: 700, actions: { ...actions, 'itto.lag-skill': lagSkill },
+  steps: [
+    { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.lag-skill', atFrame: 0 },
+    { id: 's2', kind: 'action', actorId: 'itto', actionId: 'itto.lag-skill', atFrame: 605 }
+  ]
+}).status, 'simulated')
+// 固定轴把动作排进冻结期：直接拒绝，并报最早可行动帧。
+// 取消窗口（10 帧）比命中（20 帧）早时，动作最早可取消帧是 70，而冻结到 80——请求 70 落在冻结里。
+const frozenBurst = {
+  ...actions['itto.burst'], id: 'itto.frozen', cancelWindows: [{ fromFrame: 10, toFrame: 60 }],
+  hits: [{ atFrame: 20, motionValue: 3, element: 'geo', scaling: 'atk', canCrit: true, hitlagFrames: 60 }]
+}
+const inFrozen = simulateTimeline({
+  ...base, actions: { ...actions, 'itto.frozen': frozenBurst }, actors: [{ actorId: 'itto', energy: 120, energyMax: 120 }],
+  steps: [
+    { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.frozen', atFrame: 0 },
+    { id: 's2', kind: 'action', actorId: 'itto', actionId: 'itto.normal-1', atFrame: 70 }
+  ]
+})
+assert.equal(inFrozen.status, 'invalid')
+assert.ok(inFrozen.issues.some(i => i.path === 'steps.s2.hitlag' && i.message.includes('80')), JSON.stringify(inFrozen.issues))
+// 冻结段若整体落在结束帧之后（取消窗口早于命中），游戏时长不能被扣成负数。
+assert.ok(inFrozen.timing.gameMs >= 0, String(inFrozen.timing.gameMs))
+assert.ok(inFrozen.timing.hitlagFrames <= inFrozen.endFrame, `${inFrozen.timing.hitlagFrames} > ${inFrozen.endFrame}`)
+// 请求帧正好压在命中帧上：这一发的卡肉要在起手前结算，动作不能在冻结期里起手。
+const sameFrameHit = simulateTimeline({
+  ...base, actions: { ...actions, 'itto.frozen': frozenBurst }, actors: [{ actorId: 'itto', energy: 120, energyMax: 120 }],
+  steps: [
+    { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.frozen', atFrame: 0 },
+    { id: 's2', kind: 'action', actorId: 'itto', actionId: 'itto.normal-1', atFrame: 20 }
+  ]
+})
+assert.equal(sameFrameHit.status, 'invalid')
+assert.ok(sameFrameHit.issues.some(i => i.path === 'steps.s2.hitlag'), JSON.stringify(sameFrameHit.issues))
+assert.equal(sameFrameHit.requests.find(r => r.stepId === 's2').ok, false)
+// 同一帧的多段命中落在同一段冻结里：不叠加顺延，也不把同一段冻结算两次。
+const twinLag = simulateTimeline({
+  ...base,
+  actions: {
+    ...actions,
+    'itto.twin': {
+      ...actions['itto.normal-1'], id: 'itto.twin',
+      hits: [
+        { atFrame: 6, motionValue: 1, element: 'geo', scaling: 'atk', canCrit: true, hitlagFrames: 10 },
+        { atFrame: 6, motionValue: 1, element: 'geo', scaling: 'atk', canCrit: true, hitlagFrames: 10 }
+      ]
+    }
+  },
+  steps: [{ id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.twin', atFrame: 0 }]
+})
+assert.equal(twinLag.status, 'simulated', JSON.stringify(twinLag.issues))
+assert.equal(twinLag.timing.hitlagFrames, 10, String(twinLag.timing.hitlagFrames))
+assert.equal(twinLag.endFrame, 24 + 10, `${twinLag.endFrame}`)
+// ASAP 轴在冻结结束时才排下一个动作，请求帧与实际帧都记录下来。
+// 请求帧要落在命中之后，内核才知道冻结存在：请求 30 帧被顺延到 80 帧。
+const asapLag = simulateTimeline({
+  ...base, scheduler: 'asap-sequence', actions: { ...actions, 'itto.frozen': frozenBurst }, actors: [{ actorId: 'itto', energy: 120, energyMax: 120 }],
+  steps: [
+    { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.frozen', atFrame: 0 },
+    { id: 's2', kind: 'action', actorId: 'itto', actionId: 'itto.normal-1', atFrame: 30 }
+  ]
+})
+assert.equal(asapLag.status, 'simulated', JSON.stringify(asapLag.issues))
+assert.equal(asapLag.requests.find(r => r.stepId === 's2').actualFrame, 80)
+// 卡肉帧数必须是非负整数，且只有命中层能声明。
+assert.ok(validateActionSpec(lagged).length === 0)
+assert.ok(validateActionSpec({ ...lagged, hits: [{ ...lagged.hits[0], hitlagFrames: -1 }] }).some(i => i.path.endsWith('hits.0.hitlagFrames')))
+assert.ok(validateActionSpec({ ...actions['itto.normal-1'], hitlagFrames: 3 }).length === 0)
 
 // 响应型：动作时长按 `k × 帧生成时间 + bMs` 算现实时长，再向上取整到帧——换档位帧数会变。
 const response = { id: 'itto.response', actorId: 'itto', kind: 'normal', timing: { type: 'response', k: 10, bMs: 100 }, hits: [{ atFrame: 6, motionValue: 1, element: 'geo', scaling: 'atk', canCrit: true }] }
@@ -199,4 +325,76 @@ assert.ok(badTick.issues.some(i => i.path === 'frameTier.timerTickMs' && i.messa
 const noTier = simulateTimeline({ ...base, frameTier: undefined, steps: [{ id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.normal-1', atFrame: 0 }] })
 assert.equal(noTier.status, 'invalid')
 assert.ok(noTier.issues.some(i => i.code === 'missing' && i.path === 'frameTier'))
-console.log('team-sim-timeline: passed; integer-frame scheduling, cancel windows, cooldown, energy, frame tier and determinism checked')
+
+// 换人：与动作同口径，压在上一动作最早可取消帧之前就换不出去。
+const duo = [{ actorId: 'itto', energy: 60, energyMax: 60 }, { actorId: 'albedo', energy: 0, energyMax: 60 }]
+const duoActions = {
+  ...actions,
+  'itto.slow': {
+    id: 'itto.slow', actorId: 'itto', kind: 'normal', timing: { type: 'frames', frames: 40 },
+    hits: [
+      { atFrame: 6, motionValue: 1, element: 'geo', scaling: 'atk', canCrit: true },
+      { atFrame: 30, motionValue: 1, element: 'geo', scaling: 'atk', canCrit: true }
+    ],
+    cancelWindows: [{ fromFrame: 24, toFrame: 40 }]
+  },
+  'albedo.skill': {
+    id: 'albedo.skill', actorId: 'albedo', kind: 'skill', timing: { type: 'frames', frames: 20 },
+    hits: [{ atFrame: 5, motionValue: 2, element: 'geo', scaling: 'def', canCrit: true }]
+  }
+}
+const earlySwitch = simulateTimeline({
+  ...base, actors: duo, actions: duoActions,
+  steps: [
+    { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.slow', atFrame: 0 },
+    { id: 's2', kind: 'switch', actorId: 'albedo', atFrame: 12 }
+  ]
+})
+assert.equal(earlySwitch.status, 'invalid')
+assert.ok(earlySwitch.issues.some(i => i.path === 'steps.s2.atFrame' && i.message.includes('最早可取消帧')), JSON.stringify(earlySwitch.issues))
+
+// 换人打断后摇：取消帧之后尚未发生的命中与收尾都不再结算。
+const cut = simulateTimeline({
+  ...base, actors: duo, actions: duoActions,
+  steps: [
+    { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.slow', atFrame: 0 },
+    { id: 's2', kind: 'switch', actorId: 'albedo', atFrame: 24 }
+  ]
+})
+assert.equal(cut.status, 'simulated', JSON.stringify(cut.issues))
+assert.deepEqual(cut.hits.map(h => h.frame), [6])
+assert.equal(cut.events.some(e => e.kind === 'action-end'), false)
+
+// 换人动画占用帧数：新前台在换人结束前不能起手，结束帧之后才可以。
+const switchFrames = simulateTimeline({
+  ...base, actors: duo, actions: duoActions, switchFrames: 10,
+  steps: [
+    { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.slow', atFrame: 0 },
+    { id: 's2', kind: 'switch', actorId: 'albedo', atFrame: 24 },
+    { id: 's3', kind: 'action', actorId: 'albedo', actionId: 'albedo.skill', atFrame: 30 }
+  ]
+})
+assert.equal(switchFrames.status, 'invalid')
+assert.ok(switchFrames.issues.some(i => i.path === 'steps.s3.atFrame' && i.message.includes('最早可取消帧 34')), JSON.stringify(switchFrames.issues))
+const afterSwitch = simulateTimeline({
+  ...base, actors: duo, actions: duoActions, switchFrames: 10,
+  steps: [
+    { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.slow', atFrame: 0 },
+    { id: 's2', kind: 'switch', actorId: 'albedo', atFrame: 24 },
+    { id: 's3', kind: 'action', actorId: 'albedo', actionId: 'albedo.skill', atFrame: 34 }
+  ]
+})
+assert.equal(afterSwitch.status, 'simulated', JSON.stringify(afterSwitch.issues))
+assert.deepEqual(afterSwitch.hits.map(h => [h.frame, h.actorId]), [[6, 'itto'], [39, 'albedo']])
+
+// 换人请求帧超出测量窗口同样拒绝，不能只在动作上判窗口。
+const lateSwitch = simulateTimeline({
+  ...base, actors: duo, actions: duoActions,
+  steps: [
+    { id: 's1', kind: 'action', actorId: 'itto', actionId: 'itto.slow', atFrame: 0 },
+    { id: 's2', kind: 'switch', actorId: 'albedo', atFrame: 500 }
+  ]
+})
+assert.equal(lateSwitch.status, 'invalid')
+assert.ok(lateSwitch.issues.some(i => i.path === 'steps.s2.atFrame' && i.message.includes('超出测量窗口')), JSON.stringify(lateSwitch.issues))
+console.log('team-sim-timeline: passed; integer-frame scheduling, cancel windows, cooldown, energy, frame tier, switch semantics and determinism checked')

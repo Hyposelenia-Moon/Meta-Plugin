@@ -11,7 +11,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **源码**：`src/` → `tsc` → `lib/`（目录结构一致）。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
-- **常用命令**：`pnpm build`、`pnpm test`（73 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（74 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -195,7 +195,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 73 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 74 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。
@@ -209,11 +209,12 @@ pnpm build && pnpm test     # 73 套；任意 cwd 可跑、不发真实网络、
   `team-sim-build`（四个独立角色的永久面板算式、`talents.modifiers` 来源登记、`panelCheck` 拒绝）、
   `team-sim-formula`（普通直伤各乘区、减防 0.9 上限、负抗不截断、目标预设绑定与回填）、
   `team-sim-legacy`（`legacyEstimate` 的三项标记与入参隔离）、
-  `team-sim-timeline`（整数帧调度、相位顺序、取消窗口、冷却与产球回能、帧率档位与确定性）、
+  `team-sim-timeline`（整数帧调度、相位顺序、取消窗口、冷却与产球回能、帧率档位、换人语义与确定性）、
   `team-sim-hit-damage`（时间轴命中接到直伤公式：结算属性与元素加成映射、减益必须显式 0、目标与面板拒绝项）、
   `team-sim-pack`（数据包与轴的拒绝项：版本、动作 id 与键一致、未知动作、帧率档位与初始资源）、
   `team-sim-team-run`（数据包 → 轴 → 面板 → 时间线 → 结算的串联与每关拒绝；端到端伤害与直接调公式逐段一致）、
-  `team-sim-effects`（效果表的面板增量与敌人减益：触发先于伤害、自己不吃自己的加成、叠层上限与刷新/忽略策略、未登记触发拒绝）。
+  `team-sim-effects`（效果表的面板增量与敌人减益：触发先于伤害、自己不吃自己的加成、叠层上限与刷新/忽略策略、未登记触发拒绝）、
+  `team-sim-report`（一轮结果的投影：每角色/每动作合计、触发次数、近似项、失败问题与摘要行）。
 - 维护者区自检（不在 `pnpm test` 内）：`node scripts/editor-selftest.mjs`（258/258）、`display-selftest.mjs`、`display-audit.mjs`、`audit-guide-html.mjs`。`node scripts/scan-portrait-padding.mjs` 是**按需**跑的白边扫描（生成 `out/portrait-padding.json`，攻略页立绘据此跳过白边图；图库变动后重跑）。
 - 细节与固定验收集见 [docs/测试.md](./docs/测试.md) 与 [docs/改动传播清单.md](./docs/改动传播清单.md)。
 
@@ -227,20 +228,19 @@ pnpm build && pnpm test     # 73 套；任意 cwd 可跑、不发真实网络、
 
 细节见 [docs/待办与规划.md](./docs/待办与规划.md)。
 
-## 当前工作区提交摘要（2026-11-01，P1 效果触发与队伍减益）
+## 当前工作区提交摘要（2026-11-01，P1 换人语义与结果摘要）
 
-> 依据：`git log -1` = `e61c28a feat: 队伍模拟 P1 补输入一致性校验（版本、充能键、触发标记）`（上一轮已提交，本轮只含效果表与减益）；`git diff --stat` = 19 files changed, 195 insertions(+), 47 deletions(-)，另有 4 个未跟踪新文件（`effects.ts`、`effects.js`、`effects.js.map`、`team-sim-effects.test.mjs`）。
+> 依据：`git log -1` = `1283433 fix: 队伍模拟 P1 补轴与数据包的边界校验`（上一轮已提交，本轮只含换人语义与结果摘要）；`git diff --stat` = 10 files changed, 126 insertions(+), 13 deletions(-)，另有 4 个未跟踪新文件。
 
 ```text
-feat: 队伍模拟 P1 支持数据包效果表与队伍减益
- - src/modules/teamSimulation/effects.ts（新增）：EffectSpec 契约与校验、运行时（触发、叠层、到期、按帧取修饰）、面板修饰加法
- - src/modules/teamSimulation/timeline.ts 及 lib 产物：命中带当帧修饰快照，先结算伤害再结算本发触发，未登记触发报 unsupported
- - src/modules/teamSimulation/dataPack.ts 及 lib 产物：数据包增 effects 表，触发标记必须能在表里找到
- - src/modules/teamSimulation/hitDamage.ts 及 lib 产物：结算前套用面板修饰，敌人减益叠加到公式入参，命中缺修饰快照直接拒绝
- - src/modules/teamSimulation/teamRun.ts 及 lib 产物：编排把数据包的效果表传给时间线
- - test/team-sim-effects.test.mjs（新增）：效果定义拒绝项、触发先于伤害、同帧事件顺序、敌人减益到期、叠层封顶、刷新与忽略、未登记触发
- - test/team-sim-team-run.test.mjs：队伍加成的端到端（只影响之后的命中，防御倍率角色的伤害不变而修饰已挂上）
- - test/team-sim-pack.test.mjs：基础包补效果表，新增未登记触发 id 的拒绝项
+feat: 队伍模拟 P1 收口换人语义并补结果摘要
+ - src/modules/teamSimulation/timeline.ts 及 lib 产物：换人请求压在上一动作最早可取消帧之前直接拒绝
+ - src/modules/teamSimulation/timeline.ts 及 lib 产物：换人取消上一动作尚未发生的命中与产球，后摇被打断的段不再结算
+ - src/modules/teamSimulation/timeline.ts 及 lib 产物：换人请求受测量窗口约束，落在卡肉冻结期里顺延到冻结结束
+ - src/modules/teamSimulation/report.ts 及 lib 产物：新增 buildTeamRunReport 与 formatTeamRunReport，把一轮结果投影成摘要与文本行
+ - test/team-sim-timeline.test.mjs：换人四例（可取消帧前被拒、打断后摇、换人动画占帧、超出测量窗口）
+ - test/team-sim-report.test.mjs：投影、角色/动作合计、触发计数、近似项与失败布局
+ - test/team-sim-team-run.test.mjs：真实一轮结果能投影成摘要且合计对得上
 ```
 
-文档同步（不计入上述代码改动）：`docs/队伍模拟-P1数据包格式.md` 新增第 5 节「效果 `EffectSpec`」并把后续小节顺延到 11，编排入口与录入步骤补效果表，已知限制改写为「效果只有静态声明与命中触发」；`docs/队伍模拟-P1纯岩试点设计.md` 第 12 节补效果与减益、回归数改为 73；`AGENTS.md`、`README.md`、`docs/测试.md` 的套件数 72 → 73，契约套件清单补 `team-sim-effects`。
+文档同步（不计入上述代码改动）：`docs/队伍模拟-P1数据包格式.md` 补换人三条约束与结果整理用法；`docs/队伍模拟-P1纯岩试点设计.md` 第 12 节补换人语义、结果整理与回归条目；`AGENTS.md`、`README.md`、`docs/测试.md` 的套件数 73 → 74，契约套件清单加 `team-sim-report`。

@@ -117,6 +117,12 @@ assert.equal(badVersion.status, 'invalid')
 assert.deepEqual(badVersion.checks.map(c => c.stage), ['data-pack', 'versions'])
 assert.equal(badVersion.checks[1].issues[0].path, 'pack.gameVersion')
 
+// 面板版本没给：缺输入是 incomplete，关状态也要跟着，而不是一律 invalid。
+const noVersion = simulateTeam({ pack, rotation, members, expected: { ...expected, gameVersion: undefined }, targetPresetId: 'dummy-lv100', crit, debuffs })
+assert.equal(noVersion.status, 'incomplete')
+assert.equal(noVersion.checks[1].stage, 'versions')
+assert.equal(noVersion.checks[1].status, 'incomplete')
+
 // 轴引用了包里没有的动作，在 rotation 关拒绝。
 const badRotation = simulateTeam({ pack, rotation: { ...rotation, steps: [{ id: 's1', kind: 'action', actorId: 'actor:0', actionId: 'itto.burst', atFrame: 0 }] }, members, expected, targetPresetId: 'dummy-lv100', crit, debuffs })
 assert.equal(badRotation.status, 'unsupported')
@@ -165,5 +171,16 @@ assert.ok(buffed.damage.rows[1].damage > run.damage.rows[1].damage, '同角色�
 assert.equal(buffed.timeline.hits[2].modifiers.stats.atk, 300, '队伍加成对下一个出手角色同样生效')
 assert.equal(buffed.damage.rows[2].damage, run.damage.rows[2].damage, '防御倍率的命中不吃攻击力加成')
 assert.ok(buffed.damage.total > run.damage.total)
+
+// 结果整理：真实一轮跑完后能直接投影成摘要，角色合计与命中段数对得上。
+const { buildTeamRunReport, formatTeamRunReport } = await import(mod('modules/teamSimulation/report.js'))
+const summary = buildTeamRunReport(run)
+assert.equal(summary.status, 'calculated')
+assert.equal(summary.hits, run.damage.rows.length)
+assert.equal(summary.total, run.damage.total)
+assert.deepEqual(summary.perActor.reduce((sum, actor) => sum + actor.total, 0), run.damage.total)
+const lines = formatTeamRunReport(summary)
+assert.equal(lines[0], '队伍模拟：calculated（不可用于正式结论）')
+assert.ok(lines.some(line => line.startsWith(`命中：${run.damage.rows.length} 段`)), lines.join('\n'))
 
 console.log('team-sim-team-run ok')

@@ -139,6 +139,11 @@ export interface EffectRuntime {
   trigger(effectId: string, frame: number, actorId: string): TriggerRecord | undefined
   /** 该角色在该帧实际吃的面板增量与全局敌人减益。 */
   modifiersAt(actorId: string, frame: number): { stats: PanelModifiers; enemy: EnemyModifiers }
+  /**
+   * 卡肉冻结：`frame` 帧之后的一切顺延 `delta` 帧。仍在生效的到期时间（以及对应触发记录里的到期帧）
+   * 一起后移，所以冻结期间效果不流逝。
+   */
+  shiftAfter(frame: number, delta: number): void
   snapshot(): ActiveEffectState[]
 }
 
@@ -163,16 +168,19 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
       const expiresAt = expiryOf(spec, frame)
       const existing = entries.get(key)
       const policy: StackingPolicy = spec.stacking ?? 'refresh'
-      if (existing) {
+      // 旧记录已经到期就按新状态重来：否则叠层会带着上一轮的层数与起点继续累，层数封顶后永远回不到 1。
+      if (existing && frame >= existing.expiresAt) entries.delete(key)
+      const live = entries.get(key)
+      if (live) {
         if (policy === 'ignore') return undefined
         if (policy === 'stack') {
-          existing.stacks = Math.min(spec.maxStacks ?? 1, existing.stacks + 1)
-          existing.expiresAt = expiresAt
+          live.stacks = Math.min(spec.maxStacks ?? 1, live.stacks + 1)
+          live.expiresAt = expiresAt
         } else {
-          existing.stacks = 1
-          existing.expiresAt = expiresAt
+          live.stacks = 1
+          live.expiresAt = expiresAt
         }
-        const record: TriggerRecord = { frame, actorId, effectId, stacks: existing.stacks, startsAt: existing.startedAt, expiresAt: existing.expiresAt }
+        const record: TriggerRecord = { frame, actorId, effectId, stacks: live.stacks, startsAt: live.startedAt, expiresAt: live.expiresAt }
         triggers.push(record)
         return record
       }
@@ -202,6 +210,11 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
         }
       }
       return { stats, enemy }
+    },
+    shiftAfter(frame, delta) {
+      if (delta <= 0) return
+      for (const entry of entries.values()) if (entry.expiresAt > frame) entry.expiresAt += delta
+      for (const record of triggers) if (record.expiresAt > frame) record.expiresAt += delta
     },
     snapshot() {
       return [...entries.values()].map(entry => ({

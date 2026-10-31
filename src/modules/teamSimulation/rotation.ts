@@ -34,10 +34,14 @@ export function validateRotation(spec: RotationSpec | undefined | null, pack: Da
   const roster = new Set((Array.isArray(spec.actors) ? spec.actors : []).map(actor => actor?.actorId).filter((id): id is string => typeof id === 'string'))
   if (!Array.isArray(spec.steps) || !spec.steps.length) add('invalid', 'rotation.steps', '轴必须显式列出步骤')
   else {
+    const stepIds = new Set<string>()
     spec.steps.forEach((step, i) => {
       const p = `rotation.steps.${i}`
       if (!step || typeof step !== 'object') { add('invalid', p, '步骤必须是对象'); return }
       if (!step.id) add('missing', `${p}.id`, '步骤必须有 id')
+      // 步骤 id 是报错路径与请求记录的锚点，重复会让「哪一步出的错」无法分辨。
+      else if (stepIds.has(step.id)) add('invalid', `${p}.id`, `步骤 id ${step.id} 重复，报错路径与请求记录会指向同一处`)
+      else stepIds.add(step.id)
       if (step.kind === 'action') {
         if (!step.actionId) add('missing', `${p}.actionId`, '动作步骤必须指定动作')
         else if (!actions[step.actionId]) add('unsupported', `${p}.actionId`, `动作包里没有 ${String(step.actionId)}`)
@@ -46,10 +50,12 @@ export function validateRotation(spec: RotationSpec | undefined | null, pack: Da
         if (!step.actorId) add('missing', `${p}.actorId`, '切人步骤必须指定目标角色')
       } else if (step.kind === 'wait') {
         if (!Number.isInteger(step.frames) || step.frames <= 0) add('invalid', `${p}.frames`, '等待步骤必须是正整数帧')
+        // 等待步骤按自身帧数推进，写请求帧说明数据把两种步骤混了，直接拒而不是静默忽略。
+        if ((step as { atFrame?: unknown }).atFrame !== undefined) add('invalid', `${p}.atFrame`, '等待步骤按自身帧数推进，不接受请求帧')
       } else {
         add('unsupported', `${p}.kind`, `未知步骤类型 ${String((step as { kind?: unknown }).kind)}`)
       }
-      if (step.kind !== 'wait' && step.atFrame !== undefined && (!Number.isInteger(step.atFrame) || step.atFrame < 0)) add('invalid', `${p}.atFrame`, '请求帧必须是非负整数')
+      if ((step.kind === 'action' || step.kind === 'switch') && step.atFrame !== undefined && (!Number.isInteger(step.atFrame) || step.atFrame < 0)) add('invalid', `${p}.atFrame`, '请求帧必须是非负整数')
       if ((step.kind === 'action' || step.kind === 'switch') && step.actorId && roster.size && !roster.has(step.actorId)) add('invalid', `${p}.actorId`, `角色 ${step.actorId} 没有在 rotation.actors 登记初始资源，内核无法调度`)
     })
   }
@@ -66,9 +72,11 @@ export function validateRotation(spec: RotationSpec | undefined | null, pack: Da
       if (typeof actor.energyMax !== 'number' || !Number.isFinite(actor.energyMax) || actor.energyMax <= 0) add('invalid', `${p}.energyMax`, '能量上限必须是正有限值')
       if (typeof actor.energy === 'number' && typeof actor.energyMax === 'number' && actor.energy > actor.energyMax) add('invalid', `${p}.energy`, '初始能量不能超过上限')
     })
-    if (typeof spec.activeActorId !== 'string' || !spec.activeActorId.trim()) add('missing', 'rotation.activeActorId', '必须指定初始前台角色')
-    else if (spec.actors.every(actor => actor?.actorId !== spec.activeActorId)) add('invalid', 'rotation.activeActorId', '初始前台角色必须在角色表里')
   }
+  // 初始前台是独立字段：角色表本身不合法时也要单独查，否则只报一个错、看不出前台也没给。
+  const actors = Array.isArray(spec.actors) ? spec.actors : []
+  if (typeof spec.activeActorId !== 'string' || !spec.activeActorId.trim()) add('missing', 'rotation.activeActorId', '必须指定初始前台角色')
+  else if (actors.length && actors.every(actor => actor?.actorId !== spec.activeActorId)) add('invalid', 'rotation.activeActorId', '初始前台角色必须在角色表里')
   if (spec.switchFrames !== undefined && (!Number.isInteger(spec.switchFrames) || spec.switchFrames < 0)) add('invalid', 'rotation.switchFrames', '切人帧数必须是非负整数')
   if (spec.energyRecharge !== undefined) {
     if (!spec.energyRecharge || typeof spec.energyRecharge !== 'object' || Array.isArray(spec.energyRecharge)) add('invalid', 'rotation.energyRecharge', '充能效率必须是按角色 id 的映射')

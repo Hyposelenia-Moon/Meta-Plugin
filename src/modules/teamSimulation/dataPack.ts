@@ -43,6 +43,7 @@ export function validateDataPack(input: unknown): DataPackResult {
     add('invalid', 'pack.actions', '空动作表不能冒充可用数据包')
   } else {
     for (const [key, action] of Object.entries(actions)) {
+      if (!key.trim()) { add('invalid', 'actions.', '动作键不能是空字符串，否则报错路径与引用都指向同一处'); continue }
       if (!action || typeof action !== 'object') { add('invalid', `actions.${key}`, '动作必须是对象'); continue }
       if (action.id !== key) add('invalid', `actions.${key}.id`, `动作 id 必须与键一致，收到 ${String(action.id)}`)
       issues.push(...validateActionSpec(action as ActionSpec))

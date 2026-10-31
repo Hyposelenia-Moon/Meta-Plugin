@@ -60,6 +60,10 @@ assert.ok(badTriggerId.issues.some(i => i.path === 'actions.itto.normal-1.hits.0
 const unknownTrigger = validateDataPack({ ...pack, actions: { 'itto.normal-1': { ...normal, hits: [{ ...normal.hits[0], triggerIds: ['itto.hit', 'itto.unknown'] }] } } })
 assert.equal(unknownTrigger.status, 'unsupported')
 assert.ok(unknownTrigger.issues.some(i => i.path === 'actions.itto.normal-1.hits.0.triggerIds.1' && i.code === 'unsupported'), JSON.stringify(unknownTrigger.issues))
+// 空键会让报错路径与引用都塌到同一处，没法分辨是哪个动作。
+const emptyKey = validateDataPack({ ...pack, actions: { '': { ...normal, id: '' } } })
+assert.equal(emptyKey.status, 'invalid')
+assert.ok(emptyKey.issues.some(i => i.path === 'actions.' && i.code === 'invalid'), JSON.stringify(emptyKey.issues))
 
 const rotation = {
   id: 'rotation:synthetic',
@@ -96,6 +100,12 @@ assert.equal(badKind[0].code, 'unsupported')
 assert.ok(badKind.some(i => i.path === 'rotation.steps.0.kind'))
 const badWait = validateRotation({ ...rotation, steps: [{ id: 's1', kind: 'wait', frames: 0 }] }, pack)
 assert.ok(badWait.some(i => i.path === 'rotation.steps.0.frames'))
+// 等待步骤按自身帧数推进，写请求帧说明把两类步骤混了。
+const waitWithFrame = validateRotation({ ...rotation, steps: [{ id: 's1', kind: 'wait', frames: 5, atFrame: 10 }] }, pack)
+assert.ok(waitWithFrame.some(i => i.path === 'rotation.steps.0.atFrame' && i.code === 'invalid'), JSON.stringify(waitWithFrame))
+// 步骤 id 是报错锚点，重复会让「哪一步出的错」无法分辨。
+const dupStep = validateRotation({ ...rotation, steps: [{ id: 's1', kind: 'wait', frames: 5 }, { id: 's1', kind: 'wait', frames: 5 }] }, pack)
+assert.ok(dupStep.some(i => i.path === 'rotation.steps.1.id' && i.code === 'invalid'), JSON.stringify(dupStep))
 const dupActor = validateRotation({ ...rotation, actors: [...rotation.actors, { actorId: 'actor:itto', energy: 0, energyMax: 60 }] }, pack)
 assert.ok(dupActor.some(i => i.code === 'invalid' && i.message.includes('重复')))
 const overEnergy = validateRotation({ ...rotation, actors: [{ actorId: 'actor:itto', energy: 70, energyMax: 60 }] }, pack)

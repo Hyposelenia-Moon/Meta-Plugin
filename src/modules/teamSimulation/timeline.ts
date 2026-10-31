@@ -64,6 +64,12 @@ export interface HitSpec {
   canCrit: boolean
   /** 命中后触发的效果 id；同帧先后由规则表解析，不写死在数据里。 */
   triggerIds?: string[]
+  /**
+   * 这一段命中造成的卡肉（命中停顿）帧数。窗口 `[命中帧, 命中帧 + 本值)` 内游戏时钟冻结：
+   * 排在这之后的事件、冷却期限、效果到期一律顺延同样帧数，现实帧照常消耗。
+   * 时长来自数据，P1 不校准，用到时结果标 approximate。
+   */
+  hitlagFrames?: number
 }
 
 /** 可取消窗口：动作起手后这段时间内可以接下一次动作。 */
@@ -98,10 +104,6 @@ export interface ActionSpec {
   cooldownFrames?: number
   cooldownId?: string
   requires?: string[]
-  /**
-   * 卡肉（命中停顿）帧。P1 未校准：非 0 时内核不延长任何时钟，只在结果里标成未建模近似。
-   */
-  hitlagFrames?: number
 }
 
 export type TimelineStep =
@@ -180,6 +182,8 @@ export interface TimelineTiming {
   realMsPerFrame: number
   /** 技能文本一秒对应的现实秒数：小于 1 是快帧，大于 1 是慢帧。 */
   timerSecondsPerGameSecond: number
+  /** 整轮里卡肉冻结掉的现实帧数：现实时长包含它们，游戏时长不包含。 */
+  hitlagFrames: number
   /** 测量窗口结束帧对应的游戏时长与现实时长。 */
   gameMs: number
   realMs: number
@@ -297,6 +301,7 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
           if (typeof triggerId !== 'string' || !triggerId.trim()) add('invalid', `${hp}.triggerIds.${j}`, '触发标记必须是非空字符串')
         })
       }
+      if (hit.hitlagFrames !== undefined && (!isInteger(hit.hitlagFrames) || hit.hitlagFrames < 0)) add('invalid', `${hp}.hitlagFrames`, '卡肉帧数必须是非负整数')
     })
   }
   if (spec.cancelWindows !== undefined) {
@@ -325,7 +330,6 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
   if (spec.energyCost !== undefined && (!isFiniteNumber(spec.energyCost) || spec.energyCost < 0)) add('invalid', `${p}.energyCost`, '能量消耗必须是非负有限数值')
   if (spec.cooldownFrames !== undefined && (!isInteger(spec.cooldownFrames) || spec.cooldownFrames < 0)) add('invalid', `${p}.cooldownFrames`, '冷却帧数必须是非负整数')
   if (spec.requires !== undefined && !Array.isArray(spec.requires)) add('invalid', `${p}.requires`, '门槛标记必须是数组')
-  if (spec.hitlagFrames !== undefined && (!isInteger(spec.hitlagFrames) || spec.hitlagFrames < 0)) add('invalid', `${p}.hitlagFrames`, '卡肉帧数必须是非负整数')
   return issues
 }
 
@@ -376,12 +380,12 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   // 效果运行时按帧累积状态：命中结算时先取当帧修饰，再结算这一发携带的触发，所以触发不会反过来加强自己。
   const effectRuntime = createEffectRuntime(input?.effects ?? {}, [...actors.keys()], isInteger(input?.measurementEndFrame) ? input.measurementEndFrame : 0)
 
-  const durationCache = new Map<string, ResolvedTiming>()
+  const durationCache = new Map<ActionSpec, ResolvedTiming>()
   const durationOf = (spec: ActionSpec): ResolvedTiming => {
-    const cached = durationCache.get(spec.id)
+    const cached = durationCache.get(spec)
     if (cached) return cached
     const resolved = resolveActionTiming(spec.timing, input?.frameTier)
-    durationCache.set(spec.id, resolved)
+    durationCache.set(spec, resolved)
     return resolved
   }
   /** 响应型的帧上界要拿档位折算后才能判断：同一动作换档位可能放不下原来的命中帧。 */
@@ -405,6 +409,9 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   let queue: QueuedItem[] = []
   let sequence = 0
   let currentFrame = 0
+  /** 累计卡肉帧数与冻结期的结束帧（现实帧口径）。 */
+  let hitlagWindows: { from: number; to: number }[] = []
+  let hitlagUntil = -1
   const push = (item: QueueItem) => {
     const phase = phaseOf(item.kind)
     queue.push({ frame: item.frame, phase, sequence: sequence++, item })
@@ -416,6 +423,27 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   /** 新动作开始时取消上一个动作尚未发生的命中、产球与收尾。 */
   const cancelPending = (frame: number) => {
     queue = queue.filter(queued => queued.frame <= frame || queued.item.kind === 'action-start')
+  }
+  /**
+   * 卡肉：`[atFrame, atFrame + frames)` 内游戏时钟冻结。做法是把排在这之后的一切整体顺延同样帧数——
+   * 队列里未发生的事件、冷却期限、效果到期、当前最早可取消帧；现实帧照常消耗，所以动作变长而游戏内时间不变。
+   */
+  const applyHitlag = (atFrame: number, frames: number) => {
+    if (frames <= 0) return
+    const end = atFrame + frames
+    // 同一帧的多段命中落在同一段冻结里时不叠加：只顺延超出已冻结区间的那部分。
+    const delta = Math.max(0, end - Math.max(atFrame, hitlagUntil))
+    hitlagWindows.push({ from: atFrame, to: end })
+    hitlagUntil = Math.max(hitlagUntil, end)
+    if (delta <= 0) return
+    approximateItems.push(`hitlag:${atFrame}:${frames}`)
+    for (const queued of queue) if (queued.frame > atFrame) queued.frame += delta
+    queue.sort((a, b) => a.frame - b.frame || phaseIndex(a.phase) - phaseIndex(b.phase) || a.sequence - b.sequence)
+    for (const actor of actors.values()) {
+      for (const cooldownId of Object.keys(actor.cooldowns)) if (actor.cooldowns[cooldownId] > atFrame) actor.cooldowns[cooldownId] += delta
+    }
+    effectRuntime.shiftAfter(atFrame, delta)
+    if (currentFrame > atFrame) currentFrame += delta
   }
   const readyFrame = (actorId: string, action: ActionSpec, from: number) => {
     const actor = actors.get(actorId)
@@ -441,6 +469,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         triggers.push(trigger)
         record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId, stacks: trigger.stacks, expiresAt: trigger.expiresAt })
       }
+      applyHitlag(queued.frame, item.hit.hitlagFrames ?? 0)
       return
     }
     if (item.kind === 'particle') {
@@ -456,8 +485,18 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     }
     record(queued.frame, 'action-start', 'action-start', item.actorId, item.actionId)
   }
-  const processUntil = (frame: number) => {
-    while (queue.length && queue[0].frame < frame) handle(queue.shift() as QueuedItem)
+  /**
+   * 结算 `frame` 之前的事件。`includeHitsAtFrame` 额外结算落在 `frame` 当帧的命中——
+   * 请求帧正好压在命中帧上时必须先知道这一发的卡肉，否则动作会在冻结期里起手；
+   * 产球等后续相位仍留到下一帧，保持「能量到达后先结算、动作下一帧成立」的口径。
+   */
+  const processUntil = (frame: number, includeHitsAtFrame = false) => {
+    while (queue.length) {
+      const head = queue[0]
+      if (head.frame < frame) { handle(queue.shift() as QueuedItem); continue }
+      if (includeHitsAtFrame && head.frame === frame && phaseIndex(head.phase) <= phaseIndex('hit')) { handle(queue.shift() as QueuedItem); continue }
+      break
+    }
   }
   const reject = (step: Extract<TimelineStep, { kind: 'action' }>, frame: number): TimelineRequest => {
     record(frame, 'action-start', 'rejected', step.actorId, step.actionId, { reason: 'not-ready' })
@@ -467,7 +506,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const checkAction = (step: Extract<TimelineStep, { kind: 'action' }>, spec: ActionSpec, frame: number): Issue[] => {
     const problems: Issue[] = []
     const p = `steps.${step.id}`
-    processUntil(frame)
+    processUntil(frame, true)
     if (spec.actorId !== step.actorId) problems.push({ code: 'invalid', path: `${p}.actorId`, message: `动作 ${spec.id} 属于 ${spec.actorId}，不能由 ${step.actorId} 发起` })
     if (step.actorId !== activeActorId) problems.push({ code: 'invalid', path: `${p}.actorId`, message: `动作必须由前台角色发起，当前前台是 ${activeActorId}` })
     const missing = (spec.requires ?? []).filter(flag => !flags.has(flag))
@@ -478,6 +517,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     if (actor && (spec.energyCost ?? 0) > actor.energy) problems.push({ code: 'invalid', path: `${p}.energy`, message: `动作需要 ${spec.energyCost} 能量，当前 ${actor.energy}` })
     const cooldownId = spec.cooldownId ?? spec.id
     if (actor && frame < (actor.cooldowns[cooldownId] ?? 0)) problems.push({ code: 'invalid', path: `${p}.cooldown`, message: `冷却到 ${actor.cooldowns[cooldownId]} 帧才结束，请求在 ${frame} 帧` })
+    if (frame < hitlagUntil) problems.push({ code: 'invalid', path: `${p}.hitlag`, message: `第 ${frame} 帧仍在卡肉冻结期内（冻结到第 ${hitlagUntil - 1} 帧），游戏时钟不走，动作最早只能在 ${hitlagUntil} 帧开始` })
     return problems
   }
   /** 成立后执行：扣能量、进冷却、取消上一动作未发生的段并登记事件。 */
@@ -489,7 +529,6 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
       actor.energy -= spec.energyCost ?? 0
       if (spec.cooldownFrames) actor.cooldowns[cooldownId] = frame + spec.cooldownFrames
     }
-    if (spec.hitlagFrames) approximateItems.push(`hitlag:${spec.id}`)
     cancelPending(frame)
     const frames = durationOf(spec).frames
     record(frame, 'action-start', 'action-start', step.actorId, step.actionId)
@@ -515,13 +554,21 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     if (node.atFrame !== undefined && (!isInteger(node.atFrame) || node.atFrame < 0)) add('invalid', `steps.${node.id}.atFrame`, '请求帧必须是非负整数')
     const frame = node.atFrame ?? 0
     if (node.kind === 'switch') {
-      processUntil(frame)
+      processUntil(frame, true)
       const switchFrames = input.switchFrames ?? 0
       if (node.actorId === activeActorId) { add('invalid', `steps.${node.id}.actorId`, '目标已经是前台角色'); continue }
       if (!actors.has(node.actorId)) { add('missing', `steps.${node.id}.actorId`, `切换目标 ${node.actorId} 不在队伍中`); continue }
+      if (frame > input.measurementEndFrame) { add('invalid', `steps.${node.id}.atFrame`, `换人请求帧 ${frame} 超出测量窗口 ${input.measurementEndFrame}`); continue }
+      // 换人与动作同口径：压在上一动作最早可取消帧之前就换不出去，画面还在动作里。
+      if (frame < currentFrame) { add('invalid', `steps.${node.id}.atFrame`, `换人请求帧 ${frame} 早于上一动作最早可取消帧 ${currentFrame}，这时还换不出去`); continue }
+      // 卡肉冻结期内不能切人：请求帧落在冻结里就顺延到冻结结束，结果里两个帧都记下。
+      const actual = Math.max(frame, hitlagUntil)
+      const from = activeActorId
+      // 换人取消上一动作尚未发生的命中与产球：后摇被换人打断，落空的那几段不能再结算。
+      cancelPending(actual)
       activeActorId = node.actorId
-      record(frame, 'state', 'switch', node.actorId, undefined, { switchFrames })
-      currentFrame = Math.max(currentFrame, frame + switchFrames)
+      record(actual, 'state', 'switch', node.actorId, undefined, { switchFrames, requestedFrame: frame, from })
+      currentFrame = Math.max(currentFrame, actual + switchFrames)
       continue
     }
     const spec = actions[node.actionId]
@@ -545,13 +592,13 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     }
     if (input.scheduler === 'asap-sequence') {
       let attempt = 0
-      let request = Math.max(frame, currentFrame)
+      let request = Math.max(frame, currentFrame, hitlagUntil)
       for (;;) {
         const problems = checkAction(node, spec, request)
-        if (!problems.length) { requests.push(perform(node, spec, request, request)); break }
-        const deferrable = problems.every(problem => problem.path.endsWith('.energy') || problem.path.endsWith('.cooldown'))
+        if (!problems.length) { requests.push(perform(node, spec, request, frame)); break }
+        const deferrable = problems.every(problem => problem.path.endsWith('.energy') || problem.path.endsWith('.cooldown') || problem.path.endsWith('.hitlag'))
         if (!deferrable) { issues.push(...problems); requests.push(reject(node, request)); break }
-        const next = readyFrame(node.actorId, spec, request)
+        const next = Math.max(readyFrame(node.actorId, spec, request), hitlagUntil)
         if (!Number.isFinite(next) || next > input.measurementEndFrame || attempt++ > 64) {
           add('invalid', `steps.${node.id}.deadlock`, `ASAP 在测量窗口内等不到可用状态，最后请求帧 ${request}`)
           requests.push(reject(node, request))
@@ -566,7 +613,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     requests.push(perform(node, spec, frame, frame))
   }
   while (queue.length) handle(queue.shift() as QueuedItem)
-  if (approximateItems.length) approximateItems.push('hitlag 未建模：命名帧未校准，时长与窗口内命中数只能算近似')
+  if (hitlagWindows.length) approximateItems.push('hitlag 时长来自数据、未经实测校准：受影响的收尾、冷却与效果到期都按数据顺延')
 
   return finish(issues.length ? 'invalid' : 'simulated')
 
@@ -575,6 +622,27 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     const validFps = tier && isFiniteNumber(tier.fps) && tier.fps > 0
     const realMsPerFrame = validFps ? 1000 / tier.fps : 0
     const tick = tier && isInteger(tier.timerTickMs) && tier.timerTickMs > 0 ? tier.timerTickMs : 0
+    // 只统计落在结束帧之前的冻结段，重叠的冻结段先合并再累加（同帧多段命中不叠加）。
+    const frozenFrames = (() => {
+      const windows = hitlagWindows
+        .map(w => ({ from: w.from, to: Math.min(currentFrame, w.to) }))
+        .filter(w => w.to > w.from)
+        .sort((a, b) => a.from - b.from)
+      let total = 0
+      let from = -1
+      let to = -1
+      for (const w of windows) {
+        if (w.from > to) {
+          if (to > from) total += to - from
+          from = w.from
+          to = w.to
+        } else {
+          to = Math.max(to, w.to)
+        }
+      }
+      if (to > from) total += to - from
+      return total
+    })()
     return {
       status,
       simulationReady: false,
@@ -586,7 +654,8 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         gameMsPerFrame: tick,
         realMsPerFrame,
         timerSecondsPerGameSecond: tick > 0 ? realMsPerFrame / tick : 0,
-        gameMs: currentFrame * tick,
+        hitlagFrames: frozenFrames,
+        gameMs: (currentFrame - frozenFrames) * tick,
         realMs: currentFrame * realMsPerFrame,
         assumptions: ['constant-frame-rate']
       },

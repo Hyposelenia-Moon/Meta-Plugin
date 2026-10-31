@@ -42,6 +42,16 @@ export type TeamRunResult = {
 const fail = (status: 'invalid' | 'unsupported' | 'incomplete', checks: TeamRunCheck[], issues: Issue[]): TeamRunResult => ({ status, checks, issues })
 
 /**
+ * 关状态与整轮状态用同一套归类：有 unsupported 先报 unsupported，其次 invalid，
+ * 只剩缺字段才算 incomplete——缺字段与写错值是两种不同的修法，不能都塞进 invalid。
+ */
+const statusOf = (issues: Issue[]): 'ok' | 'invalid' | 'unsupported' | 'incomplete' =>
+  !issues.length ? 'ok'
+    : issues.some(issue => issue.code === 'unsupported') ? 'unsupported'
+      : issues.some(issue => issue.code === 'invalid') ? 'invalid'
+        : 'incomplete'
+
+/**
  * 编排：数据包 → 轴 → 每个成员的面板 → 时间线 → 每段命中结算。
  * 任何一关不过就整轮拒绝，不拿默认值降级；结果里保留每关的 issues 便于定位。
  */
@@ -58,12 +68,14 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   const versionIssues: Issue[] = []
   if (!panelsVersion) versionIssues.push({ code: 'missing', path: 'expected.gameVersion', message: '必须给出面板数据版本，才能与数据包版本比对' })
   else if (packResult.pack.gameVersion !== panelsVersion) versionIssues.push({ code: 'invalid', path: 'pack.gameVersion', message: `数据包版本 ${packResult.pack.gameVersion} 与面板数据版本 ${panelsVersion} 不一致：跨版本混跑没有意义` })
-  checks.push({ stage: 'versions', status: versionIssues.length ? 'invalid' : 'ok', issues: versionIssues })
-  if (versionIssues.length) return fail('invalid', checks, versionIssues)
+  const versionsStatus = statusOf(versionIssues)
+  checks.push({ stage: 'versions', status: versionsStatus, issues: versionIssues })
+  if (versionsStatus !== 'ok') return fail(versionsStatus, checks, versionIssues)
 
   const rotationIssues = validateRotation(input.rotation, packResult.pack)
-  checks.push({ stage: 'rotation', status: rotationIssues.length ? 'invalid' : 'ok', issues: rotationIssues })
-  if (rotationIssues.length) return fail(rotationIssues.some(i => i.code === 'unsupported') ? 'unsupported' : 'invalid', checks, rotationIssues)
+  const rotationStatus = statusOf(rotationIssues)
+  checks.push({ stage: 'rotation', status: rotationStatus, issues: rotationIssues })
+  if (rotationStatus !== 'ok') return fail(rotationStatus, checks, rotationIssues)
 
   const members = input.members
   if (!Array.isArray(members) || !members.length) {
@@ -105,8 +117,9 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
       memberIssues.push({ code: 'unsupported', path: 'members', message: `轴上出手的角色 ${step.actorId} 没有可用的面板` })
     }
   }
-  checks.push({ stage: 'members', status: memberIssues.length ? 'invalid' : 'ok', issues: memberIssues })
-  if (memberIssues.length) return fail(memberIssues.some(i => i.code === 'unsupported') ? 'unsupported' : 'invalid', checks, memberIssues)
+  const memberStatus = statusOf(memberIssues)
+  checks.push({ stage: 'members', status: memberStatus, issues: memberIssues })
+  if (memberStatus !== 'ok') return fail(memberStatus, checks, memberIssues)
 
   const timeline = simulateTimeline({
     scheduler: input.rotation.scheduler,
