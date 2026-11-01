@@ -8,7 +8,7 @@
  */
 import { setsWithEffect } from '../model/artiEffect.js'
 import { getGradePanelTiers, getGradeRankThresholds, getGradeRule, getGradeRuleOverrides, getPluginConfig, getProxy } from '../components/config.js'
-import { COPYRIGHT, COMMANDS, RULES } from '../components/constants.js'
+import { COMMANDS, DPS_COPYRIGHT, RULES } from '../components/constants.js'
 import { botRoot } from '../dir.js'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -426,7 +426,7 @@ export class MetaGrade extends plugin {
       mx,
       assessable: result.assessable,
       notes: [...result.notes, ...profile.notes, ruleNote],
-      copyright: COPYRIGHT
+      copyright: DPS_COPYRIGHT
     }
 
     // 文本回落与图片**共用同一份说明**（来源与刷新限制不能只在图上出现）

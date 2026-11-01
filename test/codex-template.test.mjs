@@ -123,17 +123,12 @@ ok('立绘区标题分色（名字金色 + 副标题实心胶囊 + 定位冷色�
   /\.codex-name\s*\{[^}]*color:\s*#ffe6b3/.test(tpl) &&
   /\.codex-name \.codex-name-sub\s*\{[^}]*background:\s*linear-gradient/.test(tpl) &&
   /\.codex-desc\s*\{[^}]*border-radius:\s*999px/.test(tpl))
-/* 2026-10-17 用户定：来源区精简为两行（来源+免责同行，版权另一行），且不再有「口径：」 */
-ok('来源区两行：`.mx-footer__line`（来源+免责同行）+ `.mx-copyright`，不再单独一行免责',
-  tpl.includes('class="mx-footer__line"') &&
-  /class="mx-footer__line"[\s\S]{0,400}mx-footer__method/.test(tpl) &&
-  !/<p class="mx-footer__method">/.test(tpl) &&
-  !tpl.includes('口径：<'))
-ok('来源行文案：`最后更新时间：xxxx.xx.xx · 攻略数据仅供参考`（不再渲染来源名与模式）',
-  tpl.includes('最后更新时间：{{s.updatedAt') &&
-  tpl.includes('攻略数据仅供参考') &&
-  !tpl.includes('{{s.modeText}}') &&
-  !/codex-source[^>]*>本仓库攻略数据/.test(tpl))
+/* 2026-11-01 用户定：页脚只保留一行版权（数据来源与作者都写进版权行） */
+ok('页脚只剩版权一行，不再有来源/免责行',
+  tpl.includes('class="mx-copyright">{{copyright}}') &&
+  !tpl.includes('mx-footer__line') &&
+  !tpl.includes('攻略数据仅供参考') &&
+  !tpl.includes('最后更新时间'))
 ok('配队头像间距显式固定（`.codex-team .codex-sep` 6px / 24px，不被行内规则带跑；2026-10-18 由 10px 收紧）',
   /\.codex-team \.codex-sep\s*\{[^}]*margin:\s*0 6px/.test(tpl) &&
   /\.codex-team \.codex-sep\s*\{[^}]*font-size:\s*24px/.test(tpl) &&
@@ -154,7 +149,7 @@ ok('专武 / 可选档沿用旧版标色（sig-strict / sig-alt）',
 ok('活动标签走 note', tpl.includes('codex-note-inline') && tpl.includes('{{item.note}}'))
 ok('武器精炼提示', tpl.includes('{{section.hint}}') && tpl.includes('mx-section__hint'))
 ok('长标签独占一行（审核 4.4：不加宽标签列）', tpl.includes('codex-row--long') && tpl.includes('{{each row.labelLines l}}'))
-ok('数据来源一行 + 版权', tpl.includes('{{each mx.sources s}}') && tpl.includes('codex-source') && tpl.includes('{{copyright}}'))
+ok('版权行是唯一页脚内容', tpl.includes('{{copyright}}') && !tpl.includes('{{each mx.sources s}}'))
 ok('元素底主题（page--elem + gd-elem-*）', tpl.includes('class="page page--elem"') && tpl.includes('gd-elem-{{element}}'))
 {
   const ifEachOpens = (tpl.match(/\{\{(?:if|each)\b/g) || []).length

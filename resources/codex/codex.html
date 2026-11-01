@@ -226,7 +226,6 @@
     .codex-talent-letter { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; font-weight: 700; color: #fff; text-shadow: 0 0 5px #000; }
 
     /* 数据来源一行（视图层投影给出；版权照旧） */
-    .codex-source { font-size: 16px; color: var(--muted-2); padding: 2px 0; }
       /* ===== 照抄 miao 图鉴页（2026-10-16）：立绘骨架 + 卡片外壳，均限定在攻略页 ===== */
     /* 立绘骨架：照 profile-detail.css:20/24（.basic + .basic:after 发光框） */
     .codex-head::after { display: none;   /* 去掉 miao 的发光框：立绘区不再呈现卡片轮廓 */
@@ -271,7 +270,6 @@
     .mx-content--glass .codex-team { font-size: 21px; }
     .mx-content--glass .codex-note-inline,
     .mx-content--glass .codex-team-note { font-size: 18px; }
-    .mx-content--glass .codex-source { font-size: 18px; }
     .mx-content--glass .codex-empty { font-size: 21px; }
     /* 立绘区去边框（2026-10-17：页头卡片已移除，立绘卡改用 `.head-card--portrait` 标记，选择器不再靠"第二个 head-card"） */
     .page-inner > .card.head-card.head-card--portrait {
@@ -371,9 +369,8 @@
     .mx-content--glass .codex-row-items { font-size: 22px; }
     .mx-content--glass .codex-note-inline,
     .mx-content--glass .codex-team-note { font-size: 17px; }
-    .mx-content--glass .mx-footer .mx-footer__method,
     .mx-content--glass .mx-footer .mx-copyright { font-size: 17px; }
-    .page-inner .mx-footer__method, .page-inner .mx-copyright { font-size: 17px; }
+    .page-inner .mx-copyright { font-size: 17px; }
     /* 行条：去掉行自身外边距（无间距）、统一单层底（2026-10-16：不用斑马纹） */
     .mx-content--glass .mx-section > .codex-row { margin: 0; }   /* 无间距；行底由 meta-ui 的直接子元素规则统一提供（已验证：斑马纹从未生效，无需自绘） */
     /* 天赋块压高 */
@@ -388,7 +385,7 @@
     .mx-content--glass .codex-note-inline,
     .mx-content--glass .codex-team-note { font-size: 22px; flex: 0 0 auto; white-space: nowrap; margin-left: auto; }
     .mx-content--glass .codex-empty { font-size: 28px; }
-    .page-inner .mx-footer__method, .page-inner .mx-copyright { font-size: 20px; }
+    .page-inner .mx-copyright { font-size: 20px; }
     .mx-content--glass .codex-row { min-height: 58px; line-height: 58px; }
 
     /* ===== 配平版（2026-10-16 第三版）：字号 + 可用宽度一起调，消除折行 =====
@@ -400,7 +397,7 @@
     .mx-content--glass .codex-row-items { font-size: 26px; }
     .mx-content--glass .codex-note-inline,
     .mx-content--glass .codex-team-note { font-size: 20px; }
-    .page-inner .mx-footer__method, .page-inner .mx-copyright { font-size: 19px; }
+    .page-inner .mx-copyright { font-size: 19px; }
     .mx-content--glass .mx-section > .mx-section__head { padding: 12px 14px; }
     .mx-content--glass .mx-section > .codex-talents { padding: 6px 14px 8px; }
     .mx-content--glass .mx-section { margin: 6px -10px; padding-bottom: 0; }
@@ -535,16 +532,7 @@
       padding: 8px var(--mx-inset) 10px;
     }
     .page-inner > .mx-footer > * { margin: 0; padding: 0; background: none; }
-    /* 来源区两行（2026-10-17 用户定）：第一行 = 来源 + 免责说明（同行），第二行 = 版权 */
-    .page-inner > .mx-footer > .mx-footer__line {
-      display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px;
-      font-size: 19px; color: var(--muted);
-    }
-    .page-inner > .mx-footer > .mx-footer__line .codex-source,
-    .page-inner > .mx-footer > .mx-footer__line .mx-footer__method,
-    .page-inner > .mx-footer > .mx-footer__line .mx-footer__dot { font-size: 19px; padding: 0; }
-    .page-inner > .mx-footer > .mx-footer__line .mx-footer__dot { color: var(--muted-2); }
-    .page-inner > .mx-footer > .mx-footer__line .mx-footer__label { font-size: 19px; color: var(--muted); }
+    /* 页脚只剩版权一行（2026-11-01 用户定） */
     /* 副词条**默认三条一行**，超过三条自动换行（2026-10-16 用户指定）：
        条目与分隔符已同属一个 `.codex-item`，故用 3 列网格即"每行三个"。
        `输出向` 行按用户选择 **A**：接受换行，不动字号。 */
@@ -686,11 +674,7 @@
       </main>
 
       <footer class="mx-footer">
-        <!-- 2026-10-17 用户定：来源区**精简为两行**、改用书面语（去掉与来源行重复的「本仓库攻略数据」） -->
-        <p class="mx-footer__line">
-          {{each mx.sources s}}<span class="codex-source">最后更新时间：{{s.updatedAt || '未提供'}}</span>{{/each}}
-          <span class="mx-footer__dot">·</span><span class="mx-footer__method">攻略数据仅供参考</span>
-        </p>
+        <!-- 2026-11-01 用户定：来源区**只留一行**版权行（数据来源与作者都在这一行里） -->
         <p class="mx-copyright">{{copyright}}</p>
       </footer>
     </div>

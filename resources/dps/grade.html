@@ -252,7 +252,9 @@
     }
     /* 页脚标题模块（2026-10-30 用户定：原顶栏标题并入页脚，单行/两行内说完） */
     .mx-footer__title { font-size: 18px; font-weight: 700; line-height: 1.5; color: var(--mx-accent); }
-    .mx-footer__preset { margin-left: 6px; padding: 0 6px; border: 1px solid var(--mx-rule); border-radius: 4px; font-size: 13px; font-weight: 400; color: var(--mx-secondary); }</style>
+    .mx-footer__preset { margin-left: 6px; padding: 0 6px; border: 1px solid var(--mx-rule); border-radius: 4px; font-size: 13px; font-weight: 400; color: var(--mx-secondary); }
+    /* 版权行：14px 时 76 字符会折行，压到 13px 刚好单行（2026-11-01 用户定） */
+    .mx-copyright { font-size: 13px; }</style>
 </head>
 <body class="gd-elem-{{elemClass}}" style="zoom:{{renderScale}}">
   <div class="page page--elem">

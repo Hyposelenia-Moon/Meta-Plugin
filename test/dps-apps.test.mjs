@@ -79,8 +79,8 @@ for (const name of APPS) {
 {
   const sign = C.PLUGIN_SIGN
   ok('PLUGIN_SIGN 已改为 Meta-Plugin（阶段 6 收尾改名）', sign === 'Meta-Plugin')
-  ok('页脚版权行由它拼出',
-    C.DPS_COPYRIGHT === `Data from mhydps.cn · Created By TRSS-yunzai & ${sign}`)
+  ok('页脚版权行由它拼出（练度查询同时用 miao 面板与 mhydps 数据）',
+    C.DPS_COPYRIGHT === `Data from miao-plugin & mhydps.cn · Created By TRSS-yunzai & ${sign}`)
   const prefixed = APPS.filter(name => readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`)).includes('[Meta]'))
   ok('各 app 的回复前缀统一为 [Meta]', prefixed.length === APPS.length)
   const stale = APPS.filter(name => readText(path.join(pluginRoot, 'src', 'apps', `${name}.ts`)).includes('[Mhydps]'))
