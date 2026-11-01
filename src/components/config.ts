@@ -95,7 +95,7 @@ export interface MetaConfig {
    * `默认` 或留空 = 保守轴（每人最高单次 ×1／20s）。例：`1:保守轴=默认,2:重击轴=重击×8@20s`
    */
   teamDamageAxes: string
-  /** 总体练度九档阈值（`MAX:95,ACE:88,…`，低于最后一项记 D） */
+  /** 总体练度九档阈值（`MAX:100,ACE:88,…`，低于最后一项记 D） */
   gradeRankThresholds: string
   /**
    * 评分规则（2026-10-27：直接用 miao 面板当前激活的评分规则）
@@ -124,7 +124,7 @@ export const defaultConfig: MetaConfig = {
   gradeRule: 'auto',
   gradeRuleOverrides: '',
   teamDamageAxes: '1:保守轴=默认',
-  gradeRankThresholds: 'MAX:95,ACE:88,SSS:80,SS:72,S:64,A:55,B:45,C:30'
+  gradeRankThresholds: 'MAX:100,ACE:88,SSS:80,SS:72,S:64,A:55,B:45,C:30'
 }
 
 /** 运行时配置文件路径（`META_CONFIG_FILE` 优先） */
@@ -318,7 +318,7 @@ export function getGradePanelTiers (): { big: number, normal: number, small: num
   return { big: pick('big', 0.9), normal: pick('normal', 0.6), small: pick('small', 0.3) }
 }
 
-/** 总体练度九档阈值（写法 `MAX:95,ACE:88,…`；解析失败回落默认） */
+/** 总体练度九档阈值（写法 `MAX:100,ACE:88,…`；解析失败回落默认） */
 export function getGradeRankThresholds (): Array<[string, number]> {
   return parseRankThresholdsSafe(loadConfig().gradeRankThresholds)
 }
@@ -356,12 +356,16 @@ function parseSpecSafe (spec: unknown): Record<string, number> {
   return out
 }
 
+/** 九档顺序与兜底值；MAX 一档固定 100（配置写别的值也按 100 处理） */
 const RANK_ORDER: Array<[string, number]> = [
-  ['MAX', 95], ['ACE', 88], ['SSS', 80], ['SS', 72], ['S', 64], ['A', 55], ['B', 45], ['C', 30]
+  ['MAX', 100], ['ACE', 88], ['SSS', 80], ['SS', 72], ['S', 64], ['A', 55], ['B', 45], ['C', 30]
 ]
 
 function parseRankThresholdsSafe (spec: unknown): Array<[string, number]> {
   const parsed = parseSpecSafe(spec)
   if (!Object.keys(parsed).length) return RANK_ORDER
-  return RANK_ORDER.map(([name, def]) => [name, Number.isFinite(parsed[name]) ? parsed[name] : def])
+  return RANK_ORDER.map(([name, def]) => {
+    if (name === 'MAX') return [name, 100]
+    return [name, Number.isFinite(parsed[name]) ? parsed[name] : def]
+  })
 }

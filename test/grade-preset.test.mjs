@@ -91,7 +91,14 @@ for (const [name, mutate, key] of [
   ok('面板未满目标时计分/证据/建议一致', r.suggestionRows.some(s => s.evidenceIds.includes('panel:辅助向:recharge')))
   b.attrs.recharge = 199
   const close = run(t, b)
-  ok('面板 99.75% 不因旧 .9 线达标', dim(close, 'panel').state === 'below' && row(close, 'panel:辅助向:recharge').state === 'below' && close.suggestionRows.some(s => s.id === 'panel'))
+  ok('面板 99.5% 按 95% 线达标（逐项证据仍指出差 1 点）',
+    dim(close, 'panel').state === 'met' && row(close, 'panel:辅助向:recharge').state === 'below' && close.suggestionRows.some(s => s.id === 'panel'))
+  b.attrs.recharge = 179
+  const below95 = run(t, b)
+  ok('面板 94.75%（两项均值）低于 95% 线仍判未达标', dim(below95, 'panel').state === 'below')
+  b.attrs.recharge = 180
+  const exact95 = run(t, b)
+  ok('面板正好 95%（(100%+90%)/2）算达标（含边界）', dim(exact95, 'panel').state === 'met')
   t.panel = [panel('recharge', 200, ['辅助向'], { name: '', mark: '（满命）', consMin: 6 })]
   delete b.attrs.recharge
   const conditional = run(t, b)

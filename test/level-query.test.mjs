@@ -65,8 +65,8 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
   const t = CFG.getGradePanelTiers()
   ok('面板档阈值读到了覆盖值', t.big === 0.95 && t.normal === 0.5 && t.small === 0.2, JSON.stringify(t))
   const ranks = CFG.getGradeRankThresholds()
-  ok('九档阈值读到了覆盖值且顺序不变',
-    ranks[0][0] === 'MAX' && ranks[0][1] === 90 && ranks.length === 8, JSON.stringify(ranks))
+  ok('九档阈值读到了覆盖值且顺序不变；MAX 一档固定 100 不被配置改小',
+    ranks[0][0] === 'MAX' && ranks[0][1] === 100 && ranks[1][1] === 80 && ranks.length === 8, JSON.stringify(ranks))
   ok('默认配置三项齐全', ['gradeWeights', 'gradePanelTiers', 'gradeRankThresholds'].every(k => typeof CFG.defaultConfig[k] === 'string'))
 
   // 非法配置回落
@@ -75,7 +75,7 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
   ok('非法权重回落默认', wBad.comprehensive === 65 && wBad.weapon === 20 && wBad.talent === 15, JSON.stringify(wBad))
   const t2 = CFG.getGradePanelTiers()
   ok('越界面板阈值回落默认', t2.big === 0.9, JSON.stringify(t2))
-  ok('非法九档阈值回落默认', CFG.getGradeRankThresholds()[0][1] === 95)
+  ok('非法九档阈值回落默认（MAX 必须 100）', CFG.getGradeRankThresholds()[0][1] === 100)
 }
 
 // ---------- 3. miao 薄桥：无 miao 时必须可读失败 ----------

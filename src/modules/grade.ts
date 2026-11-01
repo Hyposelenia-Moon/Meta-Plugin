@@ -50,11 +50,20 @@ export const LEGACY_WEIGHT_KEYS = ['panel', 'artifact'] as const
  */
 export const COMPREHENSIVE_MET_RATIO = 0.95
 
+/**
+ * 维度达标线（2026-11-01 用户定）：面板 / 圣遗物 95%，武器 / 天赋 90%
+ *
+ * 低于阈值判未达标；到达阈值即算达标（含正好 95% / 90%）。
+ * 圣遗物仍按分量判（词条 95% + 套装 80% + 主词条 100%），因为它由四个分量组成，
+ * 单看加权比值会让一个 0 分主词条被其它分量掩盖。
+ */
+export const DIM_MET_FLOORS = { artifact: 0.95, panel: 0.95, weapon: 0.9, talent: 0.9 } as const
+
 export const DEFAULT_PANEL_TIERS = { big: 0.9, normal: 0.6, small: 0.3 }
 
 /** 九档阈值：分数 ≥ 阈值即该档（配置项 `gradeRankThresholds` 可覆盖） */
 export const DEFAULT_RANK_THRESHOLDS: Array<[string, number]> = [
-  ['MAX', 95], ['ACE', 88], ['SSS', 80], ['SS', 72], ['S', 64], ['A', 55], ['B', 45], ['C', 30]
+  ['MAX', 100], ['ACE', 88], ['SSS', 80], ['SS', 72], ['S', 64], ['A', 55], ['B', 45], ['C', 30]
 ]
 
 /** miao 圣遗物评分档位 → 0~1（与 miao `ArtisMark.getMarkClass` 的档位一一对应） */
@@ -100,8 +109,8 @@ const PART_KEYS: PartKey[] = ['mark', 'set', 'main', 'panel']
 /** 内置预设（主C / 副C / 辅助三档；由 miao 规则的输出向权重占比自动选中） */
 export const GRADE_RULE_PRESETS: Record<RuleName, GradeRule> = {
   dps: { weights: { mark: 80, set: 20 }, floors: { mark: 0.95, set: 0.8 }, requireMark: true, minParts: 2 },
-  subdps: { weights: { mark: 45, set: 25, panel: 30 }, floors: { mark: 0.8, set: 0.8, panel: 0.9 }, requireMark: true, minParts: 2 },
-  support: { weights: { set: 40, main: 30, panel: 30 }, floors: { set: 0.8, main: 1, panel: 0.9 }, requireMark: false, minParts: 2 }
+  subdps: { weights: { mark: 45, set: 25, panel: 30 }, floors: { mark: 0.8, set: 0.8, panel: DIM_MET_FLOORS.panel }, requireMark: true, minParts: 2 },
+  support: { weights: { set: 40, main: 30, panel: 30 }, floors: { set: 0.8, main: 1, panel: DIM_MET_FLOORS.panel }, requireMark: false, minParts: 2 }
 }
 
 /** 是否内置预设名 */
@@ -1020,7 +1029,7 @@ function scorePanelPart (targets: GuideTargets, build: BuildSnapshot): { part: P
     return { part: partNull('panel', targets.panel.length ? 'data-missing' : 'target-missing', pa.detail), direction: [] }
   }
   return {
-    part: { key: 'panel', ratio: pa.ratio, state: pa.ratio >= 0.9 ? 'met' : 'below', detail: pa.detail },
+    part: { key: 'panel', ratio: pa.ratio, state: pa.ratio + 1e-9 >= DIM_MET_FLOORS.panel ? 'met' : 'below', detail: pa.detail },
     direction: pa.direction
   }
 }
@@ -1100,7 +1109,7 @@ function scoreWeapon (targets: GuideTargets, build: BuildSnapshot): GradeDim {
   if (!name) return { key: 'weapon', label, ratio: null, weight: 0, detail: '未读取到武器', state: 'unknown', reason: 'data-missing' }
 
   const inBucket = (list: string[]) => list.some(w => w === name || w.includes(name) || name.includes(w))
-  const met = (r: number, detail: string): GradeDim => ({ key: 'weapon', label, ratio: r, weight: 0, detail, state: r >= 1 ? 'met' : 'below' })
+  const met = (r: number, detail: string): GradeDim => ({ key: 'weapon', label, ratio: r, weight: 0, detail, state: r + 1e-9 >= DIM_MET_FLOORS.weapon ? 'met' : 'below' })
   if (inBucket(targets.weapon.recommend)) {
     const sig = targets.weapon.recommend[0] === name
     return met(1, `推荐档：${name}${sig ? '（专武，不加分）' : ''}`)
@@ -1133,7 +1142,7 @@ function scoreTalent (targets: GuideTargets, build: BuildSnapshot): GradeDim {
     ratio,
     weight: 0,
     detail: miss.length ? `未达标：${miss.join('、')}` : '全部达标',
-    state: ratio !== null && ratio >= 1 ? 'met' : 'below'
+    state: ratio !== null && ratio + 1e-9 >= DIM_MET_FLOORS.talent ? 'met' : 'below'
   }
 }
 
@@ -1160,9 +1169,15 @@ export function panelTierOf (
   return { tier, capped }
 }
 
-/** 档位判定 */
+/**
+ * 档位判定
+ *
+ * MAX 只有满分 100 才给：阈值里把 MAX 写成 95 也按 100 处理（否则 97.2 会被标成 MAX）。
+ */
 export function rankOf (total: number, thresholds = DEFAULT_RANK_THRESHOLDS): string {
-  for (const [name, min] of thresholds) if (total >= min) return name
+  for (const [name, min] of thresholds) {
+    if (total >= min) return name === 'MAX' && total < 100 ? 'ACE' : name
+  }
   return 'D'
 }
 
@@ -1236,7 +1251,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   if ((targets.artifact.recommend.length || targets.artifact.optional.length) && (!build.artis?.length || build.artis.some(a => !a.set))) missing('set', '套装数据不全')
   if (applicableMain.some(t => !build.artis?.find(a => a.slot === t.slot)?.mainName)) missing('main', '主词条数据不全')
   if (applicable.some(t => !Number.isFinite(build.attrs?.[t.attrKey]))) missing('panel', '面板数据不全')
-  const floors = { mark: COMPREHENSIVE_MET_RATIO, set: 0.8, main: 1, panel: 1 }
+  const floors = { mark: DIM_MET_FLOORS.artifact, set: 0.8, main: 1, panel: DIM_MET_FLOORS.panel }
   for (const k of PART_KEYS) if (parts[k].ratio !== null) parts[k].state = parts[k].ratio! + 1e-9 >= floors[k] ? 'met' : 'below'
   const artifactWeights: Partial<Record<PartKey, number>> = { mark: 60, set: 25, main: 15 }
   const required = (['mark', 'set', 'main'] as PartKey[]).filter(k => parts[k].state !== 'unscored')
@@ -1632,7 +1647,7 @@ export function buildSuggestions (targets: GuideTargets, build: BuildSnapshot, d
   return out
 }
 
-/** 解析九档阈值写法 `MAX:95,ACE:88,…`（失败则回落默认） */
+/** 解析九档阈值写法 `MAX:100,ACE:88,…`（失败则回落默认） */
 export function parseRankThresholds (spec: unknown): Array<[string, number]> {
   const parsed = parseSpec(spec, DEFAULT_RANK_THRESHOLDS.map(([n]) => n))
   if (!Object.keys(parsed).length) return DEFAULT_RANK_THRESHOLDS

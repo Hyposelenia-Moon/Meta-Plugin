@@ -275,7 +275,10 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
     G.panelTierOf(0.6, good, targets).tier === '毕业' &&
     G.panelTierOf(0.3, good, targets).tier === '小毕业' &&
     G.panelTierOf(0.29, good, targets).tier === '未毕业')
-  ok('rankOf 阈值（含 D 兜底）', G.rankOf(95) === 'MAX' && G.rankOf(88) === 'ACE' && G.rankOf(64) === 'S' && G.rankOf(29) === 'D')
+  ok('rankOf 阈值（含 D 兜底；MAX 必须满分 100）', G.rankOf(100) === 'MAX' && G.rankOf(99.9) === 'ACE' && G.rankOf(88) === 'ACE' && G.rankOf(64) === 'S' && G.rankOf(29) === 'D')
+  ok('阈值把 MAX 写成 95 时，97.2 仍判 ACE（不足 100 不给 MAX）',
+    G.rankOf(97.2, [['MAX', 95], ['ACE', 88], ['SSS', 80]]) === 'ACE' &&
+    G.rankOf(100, [['MAX', 95], ['ACE', 88], ['SSS', 80]]) === 'MAX')
   ok('parseSpec 解析权重写法', JSON.stringify(G.parseSpec('comprehensive:65,weapon:20,talent:15', ['comprehensive', 'weapon', 'talent'])) ===
     JSON.stringify({ comprehensive: 65, weapon: 20, talent: 15 }))
   ok('parseSpec 忽略非法项', Object.keys(G.parseSpec('comprehensive:abc,unknown:5', ['comprehensive'])).length === 0)
