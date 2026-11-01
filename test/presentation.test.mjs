@@ -72,7 +72,13 @@ const fullBuild = {
 {
   const r = G.gradeBuild(targets, fullBuild)
   const dims = P.buildDims(r.dims)
-  ok('比例 0.84 → 84%', dims.every(d => d.pct === null || d.pct === Math.round((d.ratio || 0) * 100)))
+  ok('比例 0.84 → 84%', dims.every(d => d.pct === null || d.pct === P.pctOfRatio(d.ratio)))
+  // 回归（2026-11-01 现场）：面板条满格显示 100%、右侧却写「未达标」
+  const nearFull = P.buildDims([{ key: 'panel', label: '面板', ratio: 0.996, weight: 0.3, detail: '', state: 'below' }])
+  ok('比例 0.996（未达标）显示 99%，不四舍五入成 100%',
+    nearFull[0].pct === 99 && nearFull[0].pctText === '99%')
+  const fullDim = P.buildDims([{ key: 'panel', label: '面板', ratio: 1, weight: 0.3, detail: '', state: 'met' }])
+  ok('比例 1（达标）才显示 100%', fullDim[0].pct === 100 && fullDim[0].pctText === '100%')
   ok('四态文本与图形齐全（颜色之外的两条通道）',
     dims.every(d => P.STATE_LABEL[d.state] && P.STATE_SYMBOL[d.state]) &&
     P.STATE_SYMBOL.met === '✓' && P.STATE_SYMBOL.below === '!' &&

@@ -4,14 +4,14 @@
  * 2026-10-27 复审 R2 后从 `apps/grade.ts` 提成纯模块：`apps/*` 依赖框架（只能在 bot 下 import），
  * 而"差在哪"的判定必须能被套件直接驱动做行为断言（「对比行没有 warn」≠「全部达标」）。
  */
-import { deltaTextOf } from '../components/presentation.js'
+import { deltaTextOf, pctOfRatio } from '../components/presentation.js'
 import type { CompareRow, GradeResult } from './grade.js'
 
 export function gradeText (result: GradeResult, missRows: CompareRow[], okLine: string): string {
   const dimText = (d: GradeResult['dims'][number]): string => {
     if (d.state === 'unknown') return `${d.label} 未知`
     if (d.state === 'unscored') return `${d.label} 不计分`
-    return `${d.label} ${Math.round((d.ratio || 0) * 100)}%`
+    return `${d.label} ${pctOfRatio(d.ratio) ?? 0}%`
   }
   const lines = [
     result.assessable
@@ -33,7 +33,7 @@ export function gradeText (result: GradeResult, missRows: CompareRow[], okLine: 
     for (const r of missRows) lines.push(`  ${r.group} ${r.name}　${r.actual} → ${r.target}（${deltaTextOf(r)}）`)
   } else {
     if (belowDims.length) {
-      lines.push(`  ${belowDims.map(d => `${d.label} ${Math.round((d.ratio ?? 0) * 100)}% 未达标`).join('、')}（按下面的建议逐项优化）`)
+      lines.push(`  ${belowDims.map(d => `${d.label} ${pctOfRatio(d.ratio) ?? 0}% 未达标`).join('、')}（按下面的建议逐项优化）`)
     }
     if (unknownDims.length) {
       lines.push(`  数据不全：${unknownDims.map(d => d.label).join('、')} 未取到，暂不判定达标`)

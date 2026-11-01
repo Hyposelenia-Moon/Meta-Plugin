@@ -12,7 +12,7 @@ import { COMMANDS, DPS_COPYRIGHT, RULES } from '../components/constants.js'
 import { botRoot } from '../dir.js'
 import fs from 'node:fs'
 import path from 'node:path'
-import { buildPresentation, deltaTextOf, setSummary } from '../components/presentation.js'
+import { buildPresentation, deltaTextOf, pctOfRatio, setSummary } from '../components/presentation.js'
 import { gradeText } from '../modules/gradeText.js'
 import { extractTargets, gradeBuild, resolveGradeRule } from '../modules/grade.js'
 import { listGuidePresets, matchGuidePreset, presetWeights, selectGuidePreset } from '../modules/guidePresets.js'
@@ -46,7 +46,8 @@ function targetVersionOf (signature: Record<string, unknown> | null): string {
 /** 维度徽标：达标 / 百分比 / 不计分 / 未知（四态，2026-10-15 UI 契约） */
 function badgeOf (label: string, ratio: number | null): { label: string, value: string, kind: string } {
   if (ratio === null) return { label, value: '不计分', kind: 'off' }
-  const pct = Math.round(ratio * 100)
+  // 与页面百分比同一口径：100% 只在 ratio ≥ 1 时出现，避免「100% 但未达标」
+  const pct = pctOfRatio(ratio) ?? 0
   return { label, value: pct >= 100 ? '达标' : `${pct}%`, kind: pct >= 100 ? 'ok' : pct >= 60 ? 'warn' : 'off' }
 }
 
@@ -407,11 +408,10 @@ export class MetaGrade extends plugin {
       ranks: result.rank,
       rankClass: String(result.rank || '').toUpperCase(),
       total: result.total,
-      dims: result.dims.map(d => ({
-        label: d.label,
-        pct: d.ratio === null ? 0 : Math.round(d.ratio * 100),
-        pctText: d.ratio === null ? '不计分' : `${Math.round(d.ratio * 100)}%`
-      })),
+      dims: result.dims.map(d => {
+        const pct = pctOfRatio(d.ratio)
+        return { label: d.label, pct: pct ?? 0, pctText: pct === null ? '不计分' : `${pct}%` }
+      }),
       missRows,
       consLine,
       suggestions: result.suggestions,
