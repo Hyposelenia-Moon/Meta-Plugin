@@ -88,6 +88,12 @@ const near = (a, b) => Math.abs(a - b) < 1e-9
   const t = target({ talent: [{ key: 'A', target: 10, crown: true }, { key: 'E', target: 10, crown: true }, { key: 'Q', target: 1, crown: false }] })
   const r = run(t, build({ talent: { A: 10, E: 8, Q: 1 }, talentOriginal: { A: 10, E: 8, Q: 1 } }))
   ok('2 皇冠各 50%，E 8/10 → 天赋 90% 未达标', near(dim(r, 'talent').ratio, 0.9) && dim(r, 'talent').state === 'below')
+  // 2026-11-02 用户反馈：天赋未达标却没进提升建议（命座 +3 让对比行误判达标）
+  ok('天赋未达标写进提升建议', r.suggestions.some(s => s.startsWith('天赋：')))
+  ok('天赋对比行取原始等级（命座不计）', r.rows.find(x => x.id === 'talent:E').state === 'below')
+  const consBoost = run(t, build({ talent: { A: 10, E: 11, Q: 1 }, talentOriginal: { A: 10, E: 8, Q: 1 } }))
+  ok('命座 +3 不把 E 判成达标', consBoost.rows.find(x => x.id === 'talent:E').state === 'below' &&
+    consBoost.suggestions.some(s => s.startsWith('天赋：')))
   const easy = run(target({ talent: [{ key: 'E', target: 6, crown: false }] }), build({ talent: { E: 1 }, talentOriginal: { E: 1 } }))
   ok('无皇冠、无高等级 → 直接 100%（不看实际等级）', near(dim(easy, 'talent').ratio, 1) && dim(easy, 'talent').state === 'met')
   const high = run(target({ talent: [{ key: 'E', target: 9, crown: false }] }), build({ talent: { E: 9 }, talentOriginal: { E: 9 } }))
