@@ -87,7 +87,20 @@ assert.equal(shortWindow.status, 'invalid')
 // 2026-11-02：纯岩四人已有示例轴（geo-four.json），这里换一支没有轴的队伍验证「如实报缺」
 const none = S.findRotation(['10000035', '10000036', '10000037', '10000039'])
 assert.equal(none.rotationFile, undefined)
+assert.deepEqual(none.nearby, [])
 assert.ok(S.listRotationFiles().every(name => name.endsWith('.json')))
+
+// 没有同队轴时，要能指出「最接近的现有轴」——差哪个人一目了然。
+const near = S.findRotation(['10000032', '10000023', '10000025', '10000089'])
+assert.equal(near.rotationFile, undefined)
+assert.ok(near.nearby.length >= 1, JSON.stringify(near.nearby))
+assert.ok(near.nearby[0].shared.length >= 3, JSON.stringify(near.nearby[0]))
+assert.ok(near.nearby.every(item => item.shared.length >= 2))
+const exactTeam = JSON.parse(fs.readFileSync(S.listRotationFiles().find(file => file.endsWith('demo-skill-sequence.json')) ?? '', 'utf8'))
+assert.ok(exactTeam.team)
+const exact = S.findRotation(exactTeam.team)
+assert.ok(exact.rotationFile)
+assert.deepEqual(exact.nearby, [], '命中同队轴时不再给候选')
 
 // 永久数据：钟离的黑缨枪有入库文件；没有文件的组合（七七 + 祭礼剑）按玩家配装现算。
 // 2026-11-02 用户定：不再要求先跑离线生成器，任意角色 + 武器都能现算。

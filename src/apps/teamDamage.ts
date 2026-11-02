@@ -10,16 +10,19 @@
  */
 import { getPluginConfig } from '../components/config.js'
 import { COMMANDS, RULES } from '../components/constants.js'
-import { parseTeamArgs } from '../modules/teamDamage.js'
+import { parseTeamArgs, rotationHelpText } from '../modules/teamDamage.js'
 import { readTeamBuilds } from '../model/TeamBuildAdapter.js'
-import { findRotation, loadPermanentData, loadTeamPack, toRotation } from '../model/TeamSimStore.js'
+import { findRotation, loadPermanentData, loadRoster, loadTeamPack, toRotation } from '../model/TeamSimStore.js'
 import {
   DPS_STANDARD,
+  FRAME_TIERS,
   buildTeamRunReport,
+  dpsWindowFrames,
   evaluateReleaseGate,
   formatTeamRunReport,
   simulateTeam,
   type CharacterBuild,
+  type DataPack,
   type Issue,
   type TeamMemberInput
 } from '../modules/teamSimulation/index.js'
@@ -45,15 +48,6 @@ function issueLines (issues: Issue[]): string {
   const lines = issues.slice(0, 6).map(i => `  · ${i.path}: ${i.message}`)
   if (issues.length > 6) lines.push(`  · …… 还有 ${issues.length - 6} 条`)
   return lines.join('\n')
-}
-
-/** 缺轴时的说明：告诉用户文件放哪、长什么样，不编数字 */
-function rotationHelp (): string {
-  return [
-    '本队伍需要轴：先在游戏里录制一套按键，再落到 `data/team-sim/rotations/*.json`。',
-    '文件格式：{ schemaVersion: 1, id, team: [四个 charId], measurementEndFrame, keymap, recording }',
-    '其中 recording 是录制（按键与毫秒时间戳），keymap 把按键映射到本队的动作 id。'
-  ].join('\n')
 }
 
 export class MetaTeamDamage extends plugin {
@@ -116,10 +110,17 @@ export class MetaTeamDamage extends plugin {
       return true
     }
 
-    // 3. 轴：没有就明说，不给数字
+    // 3. 轴：没有就明说，不给数字；有相近的轴就把「差谁」一起说清楚
     const found = findRotation(builds.map(b => b.characterId))
     if (!found.rotationFile) {
-      await e.reply(`[Meta] ${rotationHelp()}${found.issues.length ? `\n${issueLines(found.issues)}` : ''}`)
+      const help = rotationHelpText({
+        builds: builds.map(build => ({ actorId: build.actorId, characterId: build.characterId, name: build.name })),
+        actions: Object.values(team.pack.actions ?? {}).map(action => ({ id: action.id, actorId: action.actorId, kind: action.kind })),
+        nearby: found.nearby,
+        rosterNames: Object.fromEntries(loadRoster().characters.map(entry => [entry.charId, entry.cn])),
+        windowFrames: dpsWindowFrames(FRAME_TIERS['fps-60'])
+      })
+      await e.reply(`[Meta] ${help}${found.issues.length ? `\n${issueLines(found.issues)}` : ''}`)
       return true
     }
     const converted = toRotation(found.rotationFile, team.pack)

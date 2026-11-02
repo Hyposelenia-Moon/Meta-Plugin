@@ -189,3 +189,67 @@ export function parseTeamArgs (raw: string): {
 
   return { names, uid, patchTokens, legacyTokens }
 }
+
+/** 轴候选（`TeamSimStore.findRotation` 的返回子集，避免这里依赖 model 层） */
+export interface NearbyAxis {
+  file: string
+  name: string
+  team: string[]
+  shared: string[]
+}
+
+export interface RotationHelpInput {
+  builds: Array<{ actorId: string, characterId: string, name: string }>
+  /** 数据包里的动作（只用到 id / actorId / kind） */
+  actions: Array<{ id: string, actorId: string, kind: string }>
+  nearby: NearbyAxis[]
+  /** charId → 中文名（名录），用于把「换成它差谁」写成名字而不是 id */
+  rosterNames?: Record<string, string>
+  /** 标准窗口帧数（fps-60 为 7243） */
+  windowFrames: number
+}
+
+/**
+ * 「本队伍没有轴」的回复文本（2026-11-02）。
+ *
+ * 以前只有一句「需要轴」；现在要给出三件事，用户才知道下一步做什么：
+ *   1. 现有轴里最接近的一份、差哪个人；
+ *   2. 可以直接照抄的顺序轴模板（只写动作顺序，不用时间戳）；
+ *   3. 模板里填的是该队伍每人第一个战技 + 一个普攻，能跑通即可，用户自己再改。
+ */
+export function rotationHelpText (input: RotationHelpInput): string {
+  const lines = ['本队伍还没有轴，不能出数。']
+  const top = input.nearby[0]
+  if (top) {
+    const present = new Set(input.builds.map(build => build.characterId))
+    const missing = top.team.filter(id => !present.has(id)).map(id => input.rosterNames?.[id] ?? nameOf(input.builds, id))
+    lines.push(`最接近的现有轴：${top.file.replace(/\.json$/, '')}（重合 ${top.shared.length}/4${missing.length ? `，换成它只差 ${missing.join('、')}` : ''}）`)
+  }
+  lines.push('加一份顺序轴最快（不用写时间戳）：`data/team-sim/rotations/<队伍名>.json`')
+  lines.push(JSON.stringify({
+    schemaVersion: 1,
+    id: 'my-team',
+    team: input.builds.map(build => build.characterId),
+    measurementEndFrame: input.windowFrames,
+    scheduler: 'asap-sequence',
+    frameTierId: 'fps-60',
+    sequence: suggestedSequence(input.builds, input.actions)
+  }, null, 2))
+  return lines.join('\n')
+}
+
+function suggestedSequence (builds: RotationHelpInput['builds'], actions: RotationHelpInput['actions']): string[] {
+  const out: string[] = []
+  for (const build of builds) {
+    const own = actions.filter(action => action.actorId === build.actorId)
+    const skill = own.find(action => action.kind === 'skill')
+    const normal = own.find(action => action.kind === 'normal')
+    if (skill) out.push(skill.id)
+    if (normal) out.push(normal.id)
+  }
+  return out.length ? out : builds.map(build => `${build.actorId}.normal-1`)
+}
+
+function nameOf (builds: RotationHelpInput['builds'], charId: string): string {
+  return builds.find(build => build.characterId === charId)?.name ?? charId
+}

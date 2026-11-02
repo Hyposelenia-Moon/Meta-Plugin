@@ -180,10 +180,22 @@ export function listRotationFiles (): string[] {
   }
 }
 
-/** 按队伍成员找轴：team 集合完全相等才算命中；同名多份时取文件名排序第一份并在 issues 里提示 */
-export function findRotation (charIds: string[]): { file?: string, rotationFile?: RotationFile, issues: Issue[] } {
+/** 轴文件与当前队伍的重合度：用于「没有轴」时给出最接近的现成轴，而不是一句空的「需要轴」 */
+export interface NearbyRotation {
+  file: string
+  name: string
+  team: string[]
+  shared: string[]
+}
+
+/**
+ * 按队伍成员找轴：team 集合完全相等才算命中；同名多份时取文件名排序第一份并在 issues 里提示。
+ * 没命中时返回 `nearby`（重合 ≥2 人的轴，按重合人数降序），调用方可以据此提示「差哪个人」。
+ */
+export function findRotation (charIds: string[]): { file?: string, rotationFile?: RotationFile, nearby: NearbyRotation[], issues: Issue[] } {
   const wanted = [...charIds].sort().join(',')
   const hits: Array<{ file: string, rotationFile: RotationFile }> = []
+  const nearby: NearbyRotation[] = []
   const issues: Issue[] = []
   for (const file of listRotationFiles()) {
     const read = readJson(file)
@@ -193,12 +205,22 @@ export function findRotation (charIds: string[]): { file?: string, rotationFile?
       issues.push({ code: 'invalid', path: path.basename(file), message: '轴文件必须是 { schemaVersion: 1, team: [...] }' })
       continue
     }
-    if ([...raw.team as string[]].sort().join(',') !== wanted) continue
-    hits.push({ file, rotationFile: raw as unknown as RotationFile })
+    const team = raw.team as string[]
+    if ([...team].sort().join(',') === wanted) {
+      hits.push({ file, rotationFile: raw as unknown as RotationFile })
+      continue
+    }
+    const shared = team.filter(id => charIds.includes(id))
+    if (shared.length >= 2) {
+      nearby.push({ file, name: String((raw as { id?: string }).id ?? path.basename(file, '.json')), team, shared })
+    }
   }
-  if (!hits.length) return { issues }
+  if (!hits.length) {
+    nearby.sort((a, b) => b.shared.length - a.shared.length)
+    return { nearby: nearby.slice(0, 3), issues }
+  }
   if (hits.length > 1) issues.push({ code: 'invalid', path: 'rotations', message: `有 ${hits.length} 份轴都声明了这支队伍，取 ${path.basename(hits[0].file)}` })
-  return { file: hits[0].file, rotationFile: hits[0].rotationFile, issues }
+  return { file: hits[0].file, rotationFile: hits[0].rotationFile, nearby: [], issues }
 }
 
 /** 录制 + 键位表 → 轴；键位版本不一致、窗口不合法、步骤引用不存在的动作都会被拒绝 */
