@@ -49,28 +49,24 @@ dpsPageSize: ${meta_dpsPageSize}
 # 是否缓存并渲染角色立绘
 dpsAvatarEnabled: ${meta_dpsAvatarEnabled}
 
-# 练度评分权重（综合 / 武器 / 天赋；只对攻略里有目标的维度加权）
-# 「综合」= 圣遗物有效词条（miao 评分规则）为主 + 套装符合度，面板目标不计分
-# 兼容旧写法：写 panel + artifact 会自动相加折进 comprehensive
+# ---------- 练度评分（2026-11-02 起口径写死） ----------
+# 综合权重：输出 圣遗物45 / 武器25 / 天赋25 / 角色等级5；辅助 面板45 / 武器25 / 天赋25 / 角色等级5
+# 维度达标线：圣遗物95% / 面板95% / 武器90% / 天赋100%
+# 九档：MAX100 · ACE90 · SSS80 · SS70 · S60 · A50 · B40 · C30 · D20（MAX 仅满分）
+# 圣遗物 = 套装30% + 评分70%（200分30%，240分65%达标，250分70%封顶）
+# ⚠ 下面三个键已废弃：保留仅为旧配置可读，锅巴面板不再展示，写什么都不生效
 gradeWeights: "${meta_gradeWeights}"
 
-# 面板三档阈值：大毕业 / 毕业 / 小毕业（按面板目标平均达成度）
-gradePanelTiers: "${meta_gradePanelTiers}"
-
-# 总体练度九档阈值（MAX/ACE/SSS/SS/S/A/B/C，低于最后一项记 D）
+# 总体练度九档阈值（已废弃，写死为 MAX:100,ACE:90,SSS:80,SS:70,S:60,A:50,B:40,C:30,D:20）
 gradeRankThresholds: "${meta_gradeRankThresholds}"
 
-# ---------- 练度评分规则（2026-10-27：直接用 miao 面板当前激活的评分规则） ----------
-# auto = 读 miao 面板「评分规则」的属性权重（charWeight），按输出向占比自动分档（推荐）
-# 也可强制整站按某套规则（回退用）：dps / subdps / support
+# 旧评分规则 / 逐角色覆盖（已废弃；新版按攻略预设与 miao 规则名称匹配）
 gradeRule: "${meta_gradeRule}"
-
-# 逐角色覆盖（部署侧临时纠偏，优先级最高）：胡桃:dps,钟离:support
-# ⚠ 长期口径请改 miao 里该角色的评分规则（artis_user.js），本项只作逃生阀
 gradeRuleOverrides: "${meta_gradeRuleOverrides}"
 
-# ---------- 队伍伤害（序号轴） ----------
-# 写法：`序号:名称=轴定义`，多个轴用逗号分隔；轴定义 = 关键词×次数@窗口s（多段用 +，关键词对 miao 伤害行标题包含匹配）
-# 查询：#队伍伤害2 胡桃 行秋 夜兰 钟离 —— 序号省略 = 1；词条直接写（暴击+20），不用加「词条:」
-# `默认` 或留空 = 保守轴（每位队员取自己伤害最高的 1 行 ×1，窗口 20s）
+# 面板三档阈值（唯一仍可调的练度项）：大毕业 / 毕业 / 小毕业（按面板目标平均达成度）
+gradePanelTiers: "${meta_gradePanelTiers}"
+
+# ---------- 队伍伤害 ----------
+# 内置序号轴已废除（改用录制轴文件），本键保留仅为旧配置可读、不生效
 teamDamageAxes: "${meta_teamDamageAxes}"

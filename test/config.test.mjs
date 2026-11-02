@@ -76,7 +76,11 @@ ok('supportGuoba 返回 configInfo', !!configInfo)
 ok('configInfo.schemas 是数组', Array.isArray(configInfo?.schemas))
 
 const schemaFields = (configInfo?.schemas || []).filter(s => s.field).map(s => s.field).sort()
-push('schemas 覆盖全部配置键（模块逐项展开）', schemaFields, expectedFields)
+// 2026-11-02：练度权重 / 九档阈值 / 评分规则 / 序号轴已从面板移除（键仍保留在配置里）
+const hiddenFields = [...G.HIDDEN_CONFIG_FIELDS].sort()
+const visibleFields = expectedFields.filter(f => !hiddenFields.includes(f))
+push('schemas 只展示仍在生效的配置键（模块逐项展开）', schemaFields, visibleFields)
+ok('已废弃的配置键不出现在面板', hiddenFields.every(f => !schemaFields.includes(f)), hiddenFields.join(','))
 
 const got = configInfo.getConfigData()
 push('getConfigData 覆盖全部配置键（模块逐项展开）', Object.keys(got).sort(), expectedFields)

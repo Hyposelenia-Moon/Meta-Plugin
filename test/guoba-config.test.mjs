@@ -16,7 +16,8 @@ const cfgFile = path.join(cfgDir, 'config.yaml')
 process.env.META_CONFIG_FILE = cfgFile
 
 const YAML = (await import('yaml')).default
-const { supportGuoba } = await import(mod('guoba/index.js'))
+const G = await import(mod('guoba/index.js'))
+const { supportGuoba } = G
 const { defaultConfig } = await import(mod('components/config.js'))
 
 const { check, finish } = checker()
@@ -38,8 +39,10 @@ check('占位符无重复', new Set(vars).size === vars.length)
 const norm = (s) => String(s).replace(/^meta_/, '').replace(/[^a-z0-9]/gi, '').toLowerCase()
 const fieldKeys = fields.map(norm)
 
-const orphanVars = vars.filter(v => !fieldKeys.includes(norm(v)))
-check('每个占位符都有面板字段对应', orphanVars.length === 0, orphanVars.join(','))
+// 2026-11-02：部分旧配置键已从面板移除，但占位符仍保留在模板里
+const hidden = new Set((G.HIDDEN_CONFIG_FIELDS || []).map(norm))
+const orphanVars = vars.filter(v => !fieldKeys.includes(norm(v)) && !hidden.has(norm(v)))
+check('每个占位符都有面板字段对应（已废弃键除外）', orphanVars.length === 0, orphanVars.join(','))
 
 const orphanFields = fields.filter(f => !vars.some(v => norm(v) === norm(f)))
 check('每个面板字段都有占位符', orphanFields.length === 0, orphanFields.join(','))
