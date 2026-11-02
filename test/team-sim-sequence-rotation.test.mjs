@@ -85,6 +85,27 @@ const baseFile = (patch = {}) => ({
 }
 
 {
+  // 可选步骤：初始 0 能量下放不出的爆发，标 optional 后应当被跳过而不是让整份轴失效。
+  const pack = teamPack()
+  const optional = {
+    schemaVersion: 1,
+    id: 'optional-burst',
+    team: ['10000023', '10000025', '10000032', '10000060'],
+    measurementEndFrame: 7243,
+    scheduler: 'asap-sequence',
+    frameTierId: 'fps-60',
+    sequence: ['bennett.skill', { actionId: 'bennett.burst', optional: true }]
+  }
+  const converted = S.toRotation(optional, pack)
+  ok('optional 爆发排不进去时整份轴仍可用', converted.status === 'ok', JSON.stringify(converted.issues?.slice(0, 2)))
+  ok('optional 爆发确实被跳过', converted.rotation ? converted.rotation.steps.every(step => step.kind !== 'action' || !step.actionId.endsWith('.burst')) : false)
+
+  const required = { ...optional, sequence: ['bennett.skill', 'bennett.burst'] }
+  const strict = S.toRotation(required, pack)
+  ok('不带 optional 的爆发排不进去时轴报错，不静默跳过', strict.status !== 'ok')
+}
+
+{
   // 目录里每一份轴都要能对着自己的数据包转成轴——顺序轴和录制轴都算。
   const roster = JSON.parse(fs.readFileSync(path.join('data', 'team-sim', 'roster.json'), 'utf8'))
   const keyOf = (charId) => roster.characters.find(c => c.charId === charId)?.keys?.[0]

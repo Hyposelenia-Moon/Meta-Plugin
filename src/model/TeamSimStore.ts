@@ -159,8 +159,8 @@ export interface RotationFile {
   team: string[]
   measurementEndFrame: number
   scheduler?: 'fixed' | 'asap-sequence'
-  /** 顺序轴：动作 id 列表（或 { actionId, actorId }），与 recording 互斥 */
-  sequence?: Array<string | { actionId: string, actorId?: string }>
+  /** 顺序轴：动作 id 列表（或 { actionId, actorId, optional }），与 recording 互斥 */
+  sequence?: Array<string | { actionId: string, actorId?: string, optional?: boolean }>
   /** 顺序轴可选：显式给初始能量（缺省 0 / 上限取爆发能耗） */
   actors?: Array<{ actorId: string, energy?: number, energyMax?: number }>
   /** 顺序轴可选：帧率档位 id，缺省 fps-60 */
@@ -259,6 +259,7 @@ function sequenceToRotation (file: RotationFile, pack: DataPack): { status: 'ok'
 
   const actions = pack.actions ?? {}
   const steps: TimelineStep[] = []
+  const optionalIds = new Set<string>()
   let index = 0
   let currentActor = ''
   for (const raw of file.sequence ?? []) {
@@ -277,7 +278,9 @@ function sequenceToRotation (file: RotationFile, pack: DataPack): { status: 'ok'
       continue
     }
     if (currentActor && currentActor !== actorId) steps.push({ id: `switch-${index}`, kind: 'switch', actorId })
-    steps.push({ id: `step-${index}`, kind: 'action', actorId, actionId })
+    const stepId = `step-${index}`
+    if (typeof raw !== 'string' && raw.optional === true) optionalIds.add(stepId)
+    steps.push({ id: stepId, kind: 'action', actorId, actionId })
     currentActor = actorId
     index += 1
   }
@@ -289,7 +292,9 @@ function sequenceToRotation (file: RotationFile, pack: DataPack): { status: 'ok'
   const actors = actorInitOf(file, pack, steps)
   const firstActor = steps.find(step => step.kind === 'action' || step.kind === 'switch')?.actorId
   const activeActorId = file.actors?.[0]?.actorId ?? firstActor ?? actors[0].actorId
-  const expanded = file.loop === true ? loopSteps(steps, file, pack, tier, actors, activeActorId) : steps
+  // 可选步骤（典型是「初始 0 能量下放不出来」的爆发）：排不进去就丢掉这一步，不整份轴判死。
+  const pruned = pruneOptional(steps, optionalIds, pack, file, tier, actors, activeActorId)
+  const expanded = file.loop === true ? loopSteps(pruned, file, pack, tier, actors, activeActorId) : pruned
   const rotation: RotationSpec = {
     id: file.id,
     scheduler: 'asap-sequence',
@@ -329,13 +334,17 @@ function freezeSequenceFrames (rotation: RotationSpec, pack: DataPack): { status
   }
   /*
    * 换人步骤不进 `requests`（它不产生动作请求），但固定轴要求每步都有帧。
-   * 换人一定紧挨着下一个动作发生，所以取「下一个动作的实际帧」；没有下一个动作时退回上一个动作帧。
+   * 空跑的时间线会把每次换人的实际帧记进 events（phase=state、kind=switch），按出现顺序对上即可；
+   * 万一事件对不上（理论上不会），退回「下一个动作的实际帧」。
    */
+  const switchFrames = dry.events.filter(event => event.phase === 'state' && event.kind === 'switch').map(event => event.frame)
+  let switchCursor = 0
   const actionFrames = rotation.steps
     .map((step, index) => ({ step, index }))
     .filter(item => item.step.kind === 'action' && frameOf.has(item.step.id))
     .map(item => ({ index: item.index, frame: frameOf.get(item.step.id) as number }))
   const frameForSwitch = (index: number): number | null => {
+    if (switchCursor < switchFrames.length) return switchFrames[switchCursor++]
     const next = actionFrames.find(item => item.index > index)
     if (next) return next.frame
     const prev = [...actionFrames].reverse().find(item => item.index < index)
@@ -356,6 +365,41 @@ function freezeSequenceFrames (rotation: RotationSpec, pack: DataPack): { status
   const issues = validateRotation(fixed, pack)
   if (issues.length) return { status: issues.some(x => x.code === 'unsupported') ? 'unsupported' : 'invalid', rotation: fixed, issues }
   return { status: 'ok', rotation: fixed, issues: [] }
+}
+
+/**
+ * 可选步骤的兜底：某一步在窗口内排不出来（典型是初始 0 能量下的爆发）时把它丢掉，
+ * 而不是整份轴判死。只有作者显式写 `optional: true` 的步骤才会被丢；其它步骤照旧报错。
+ */
+function pruneOptional (
+  steps: TimelineStep[],
+  optionalIds: Set<string>,
+  pack: DataPack,
+  file: RotationFile,
+  tier: FrameTier,
+  actors: ActorInit[],
+  activeActorId: string
+): TimelineStep[] {
+  if (!optionalIds.size) return steps
+  let current = steps
+  for (let guard = 0; guard < 20; guard += 1) {
+    const dry = simulateTimeline({
+      scheduler: 'asap-sequence',
+      steps: current,
+      actions: pack.actions ?? {},
+      actors,
+      activeActorId,
+      frameTier: tier,
+      measurementEndFrame: file.measurementEndFrame
+    })
+    if (!dry.issues.length) break
+    const dead = dry.issues.find(issue => /^steps\..+\.deadlock$/.test(issue.path))
+    const id = dead ? /^steps\.(.+)\.deadlock$/.exec(dead.path)?.[1] : undefined
+    if (!id || !optionalIds.has(id)) break
+    optionalIds.delete(id)
+    current = current.filter(step => step.id !== id)
+  }
+  return current
 }
 
 /**
