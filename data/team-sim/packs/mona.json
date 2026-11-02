@@ -89,7 +89,15 @@
       },
       "hits": [],
       "cooldownFrames": 720,
-      "cooldownId": "skill"
+      "cooldownId": "skill",
+      "delayedParticles": [
+        {
+          "atFrame": 329,
+          "count": 3,
+          "element": "hydro",
+          "travelFrames": 0
+        }
+      ]
     },
     "mona.burst": {
       "id": "mona.burst",

@@ -378,3 +378,48 @@ for (const name of packFiles) {
   for (const action of Object.values(pack.actions)) if (action.kind !== 'normal' && !curatedKeys.has(key)) stray.push(action.id)
 }
 assert.deepEqual(stray, [])
+
+/*
+ * 人工核对数据的两条硬约束（2026-11-02 加）：
+ *   1) 每个 curated 文件必须留下 gcsim 出处（`文件.go:行`），否则无法复核；
+ *   2) 倍率必须能在 miao 天赋 10 级表里找到同名数值——防手抄/换算错误。
+ * miao 不在本机时跳过第 2 条（开发工作区没有 miao 的套件已经这么处理）。
+ */
+const curatedDir = new URL('../data/team-sim/curated/', import.meta.url)
+const curatedFiles = fs.readdirSync(curatedDir).filter(name => name.endsWith('.json'))
+const noEvidence = []
+for (const file of curatedFiles) {
+  const data = JSON.parse(fs.readFileSync(new URL(file, curatedDir), 'utf8'))
+  const text = [data.source, ...(data.notes ?? [])].join('\n')
+  if (!/\.go:\d+/.test(text)) noEvidence.push(file)
+}
+assert.deepEqual(noEvidence, [], '每个 curated 文件都要写 gcsim 出处（文件.go:行）')
+
+const miaoRoot = process.env.MIAO_ROOT || 'D:/Program Files/Yunzai/Yunzai/plugins/miao-plugin/resources/meta-gs/character'
+if (fs.existsSync(miaoRoot)) {
+  const byKey = new Map(roster.characters.map(c => [c.keys?.[0], c]))
+  const wrong = []
+  for (const file of curatedFiles) {
+    const data = JSON.parse(fs.readFileSync(new URL(file, curatedDir), 'utf8'))
+    const entry = byKey.get(data.key)
+    if (!entry) continue
+    let talent = null
+    try { talent = JSON.parse(fs.readFileSync(`${miaoRoot}/${entry.cn}/data.json`, 'utf8')).talentData ?? {} } catch { continue }
+    const allowed = new Set()
+    for (const kind of ['e', 'q']) {
+      for (const value of Object.values(talent[kind] ?? {})) {
+        for (const n of (Array.isArray(value) ? value.flat(9) : [value])) {
+          if (typeof n === 'number') allowed.add(Math.round(n * 100) / 100)
+        }
+      }
+    }
+    if (!allowed.size) continue
+    for (const action of Object.values(data.actions ?? {})) {
+      for (const hit of action.hits ?? []) {
+        const pct = Math.round(Number(hit.motionValue) * 100 * 100) / 100
+        if (!allowed.has(pct)) wrong.push(`${data.key}.${action.kind} ${pct}%`)
+      }
+    }
+  }
+  assert.deepEqual(wrong, [], 'curated 倍率必须能在 miao 天赋 10 级表里找到同值')
+}

@@ -17,7 +17,7 @@
     "burst：默认 hexerei 开启（hex 参数缺省 1），Q 后 5 秒内可接特殊重击（c2HexereiPostBurstCAKey，300 帧），未建模",
     "通用：本文件只含 E/Q 默认分支；普攻/重击/天赋/命座，以及 E 的虚影（嘲讽幻影实体）均未建模",
     "mona.skill：幻影爆裂在 329 帧、倍率 239.04%，属于动画后的场地/召唤物伤害，不建模（若按 329 帧记时长会让莫娜在场上多锁 280 帧，代价远大于伤害收益）；动作用 50 帧动画，hits 为空",
-    "mona.skill：产球 3 颗水元素微粒（gcsim 挂在幻影相关回调上），原草稿记在 329 帧、超出 50 帧动画，按「粒子到达才结算」的模型会永远取消，故不写入 particles；产球期望缺失已在报告中披露"
+    "skill：3 颗水微粒由虚影在约 329 帧（5.5 秒）后产生，按 delayedParticles 记（允许超出动作时长）；gcsim phantom 实现 mona/phantom.go"
   ],
   "actions": {
     "mona.skill": {
@@ -30,7 +30,15 @@
       },
       "hits": [],
       "cooldownFrames": 720,
-      "cooldownId": "skill"
+      "cooldownId": "skill",
+      "delayedParticles": [
+        {
+          "atFrame": 329,
+          "count": 3,
+          "element": "hydro",
+          "travelFrames": 0
+        }
+      ]
     },
     "mona.burst": {
       "id": "mona.burst",

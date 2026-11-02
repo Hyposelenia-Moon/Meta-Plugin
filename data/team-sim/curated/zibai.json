@@ -1,7 +1,7 @@
 {
   "key": "zibai",
   "gameVersion": "7.1",
-  "source": "gcsim + miao 天赋10级；子代理草稿。证据：undefined（undefined）；undefined（undefined）；undefined（undefined）；undefined（undefined）；undefined（undefined）；undefined（undefined）",
+  "source": "gcsim fcc117b + miao 天赋10级；证据：skill.go:20（skillStrideHitmark 30/34，灵驹飞踏两段）、skill.go:44（InitAbilSlice(61)）、skill.go:82（起手 0 伤害）、skill.go:89（E 起手命中 18）、burst.go:14（burstHitmarks 95/95）、burst.go:17（InitAbilSlice(103)）、burst.go:47（AttackTagDirectLunarCrystallize）",
   "notes": [
     "skill：建模对象是「灵驹飞踏」（「天地忽然身」在月转时隙模式下的替换技），不是起手「天地忽然身」；起手本身 0 伤害（AttackTagNone 占位）、动画 52 帧、命中帧 18、并挂 18 秒 CD，未单列",
     "skill：灵驹飞踏的前提是处于月转时隙模式且「时隙浮光」≥70，每次消耗 70 点，一个模式内至多 4 次，模式最长 15 秒（gcsim AddStatus(skillKey, 15*60+18)）；这些前提只记录，未进动作",
