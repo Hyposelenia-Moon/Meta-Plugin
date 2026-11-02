@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "hyperbloom-skills",
+  "team": ["10000073", "10000089", "10000031", "10000065"],
+  "measurementEndFrame": 7243,
+  "scheduler": "asap-sequence",
+  "frameTierId": "fps-60",
+  "sequence": [
+    "furina.skill",
+    "nahida.skill",
+    "fischl.skill",
+    "kukishinobu.skill",
+    "nahida.normal-1",
+    "nahida.normal-2",
+    "furina.normal-1",
+    "furina.normal-2",
+    "fischl.normal-1",
+    "fischl.normal-2",
+    "kukishinobu.normal-1",
+    "kukishinobu.normal-2"
+  ]
+}

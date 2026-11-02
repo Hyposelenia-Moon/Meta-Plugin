@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "skirk-freeze-skills",
+  "team": ["10000114", "10000063", "10000047", "10000089"],
+  "measurementEndFrame": 7243,
+  "scheduler": "asap-sequence",
+  "frameTierId": "fps-60",
+  "sequence": [
+    "furina.skill",
+    "shenhe.skill",
+    "kaedeharakazuha.skill",
+    "skirk.skill",
+    "skirk.normal-1",
+    "skirk.normal-2",
+    "kaedeharakazuha.normal-1",
+    "kaedeharakazuha.normal-2",
+    "shenhe.normal-1",
+    "shenhe.normal-2",
+    "furina.normal-1",
+    "furina.normal-2"
+  ]
+}

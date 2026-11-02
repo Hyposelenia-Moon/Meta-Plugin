@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "national-skills",
+  "team": ["10000052", "10000023", "10000032", "10000025"],
+  "measurementEndFrame": 7243,
+  "scheduler": "asap-sequence",
+  "frameTierId": "fps-60",
+  "sequence": [
+    "bennett.skill",
+    "bennett.normal-1",
+    "bennett.normal-2",
+    "xiangling.skill",
+    "xiangling.normal-1",
+    "xiangling.normal-2",
+    "xingqiu.skill",
+    "xingqiu.normal-1",
+    "xingqiu.normal-2",
+    "raidenshogun.skill",
+    "raidenshogun.normal-1",
+    "raidenshogun.normal-2"
+  ]
+}

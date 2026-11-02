@@ -75,4 +75,20 @@ const baseFile = (patch = {}) => ({
   ok('示例轴只写动作顺序（13 条）', file.sequence.length === 13)
 }
 
+{
+  // 目录里每一份轴都要能对着自己的数据包转成轴——顺序轴和录制轴都算。
+  const roster = JSON.parse(fs.readFileSync(path.join('data', 'team-sim', 'roster.json'), 'utf8'))
+  const keyOf = (charId) => roster.characters.find(c => c.charId === charId)?.keys?.[0]
+  const dir = path.join('data', 'team-sim', 'rotations')
+  for (const name of fs.readdirSync(dir).filter(n => n.endsWith('.json'))) {
+    const file = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'))
+    const keys = (file.team ?? []).map(keyOf)
+    if (keys.some(k => !k)) { ok(`${name}：队伍成员都能在名录里找到`, false, JSON.stringify(file.team)); continue }
+    const merged = K.combineDataPacks(keys.map(readPack))
+    if (merged.status !== 'ok') { ok(`${name}：数据包能合成`, false); continue }
+    const converted = S.toRotation(file, merged.pack)
+    ok(`${name}：能转成可执行的轴`, converted.status === 'ok', JSON.stringify(converted.issues?.slice(0, 2)))
+  }
+}
+
 report()
