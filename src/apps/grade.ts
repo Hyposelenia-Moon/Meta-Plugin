@@ -401,7 +401,8 @@ export class MetaGrade extends plugin {
       subtitle: `${preset.name}预设 · 攻略目标 × 当前配装`,
       presetName: preset.name,
       presetMatchReason: matchReason,
-      presetWeightText: result.dims.filter(d => d.weight > 0).map(d => `${d.label} ${Math.round(d.weight * 100)}%`).join(' · '),
+      // 2026-11-02：与下方「默认分配」同源，包含隐藏的角色等级 5%（不再从 dims 反推，dims 里没有等级维）
+      presetWeightText: weightText,
       charName: result.charName,
       ranks: result.rank,
       rankClass: String(result.rank || '').toUpperCase(),

@@ -50,6 +50,7 @@ try {
   assert.equal(rendered.charName, '芙宁娜')
   assert.equal(rendered.presetName, '辅助')
   assert.equal(rendered.presetMatchReason, '芙宁娜-西风纯辅', '02 直接显示实际评分规则名')
+  assert.ok(rendered.presetWeightText.includes('角色等级 5%'), `实际权重含隐藏的等级维：${rendered.presetWeightText}`)
   assert.equal(rendered.mx.dims.length, 3)
   assert.equal(rendered.mx.dims.find(d => d.key === 'weapon').state, 'met')
   assert.equal(rendered.mx.dims.find(d => d.key === 'panel').state, 'met')
