@@ -124,6 +124,12 @@ const baseFile = (patch = {}) => ({
     if (merged.status !== 'ok') { ok(`${name}：数据包能合成`, false); continue }
     const converted = S.toRotation(file, merged.pack)
     ok(`${name}：能转成可执行的轴`, converted.status === 'ok', JSON.stringify(converted.issues?.slice(0, 2)))
+    // 2026-11-02：爆发示例轴要真的把爆发排进固定轴（0 能量起手时前几轮会被 optional 跳过，后面才放得出来）。
+    if (name === 'national-bursts.json' && converted.status === 'ok') {
+      const bursts = converted.rotation.steps.filter(step => step.kind === 'action' && step.actionId.endsWith('.burst'))
+      ok('national-bursts：爆发出现在固定轴里', bursts.length >= 1, String(bursts.length))
+      ok('national-bursts：充能效率写进了轴', Object.keys(file.energyRecharge ?? {}).length >= 3)
+    }
   }
 }
 

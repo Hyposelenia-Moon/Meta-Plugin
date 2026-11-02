@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "national-bursts",
+  "team": [
+    "10000052",
+    "10000023",
+    "10000032",
+    "10000025"
+  ],
+  "measurementEndFrame": 7243,
+  "scheduler": "asap-sequence",
+  "frameTierId": "fps-60",
+  "loop": true,
+  "energyRecharge": {
+    "bennett": 2.6,
+    "xiangling": 2.2,
+    "xingqiu": 2.2,
+    "raidenshogun": 2.0
+  },
+  "sequence": [
+    "bennett.skill",
+    "bennett.normal-1",
+    "bennett.normal-2",
+    "xiangling.skill",
+    "xiangling.normal-1",
+    "xiangling.normal-2",
+    "xingqiu.skill",
+    "xingqiu.normal-1",
+    "xingqiu.normal-2",
+    "raidenshogun.skill",
+    "raidenshogun.normal-1",
+    "raidenshogun.normal-2",
+    { "actionId": "bennett.burst", "actorId": "bennett", "optional": true },
+    { "actionId": "xiangling.burst", "actorId": "xiangling", "optional": true },
+    { "actionId": "xingqiu.burst", "actorId": "xingqiu", "optional": true },
+    { "actionId": "raidenshogun.burst", "actorId": "raidenshogun", "optional": true }
+  ]
+}

@@ -17,6 +17,7 @@
  *   PUT  /api/rotation               → { file } 先校验再写 data/team-sim/rotations/<id>.json
  *   POST /api/validate               → { file } 只校验不写
  */
+import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import http from 'node:http'
 import path from 'node:path'
@@ -244,8 +245,22 @@ if (isMain) {
     process.exit(result.ok ? 0 : 1)
   }
   const server = createServer()
+  const shouldOpen = process.argv.includes('--open')
+  const openBrowser = (port) => {
+    const url = `http://127.0.0.1:${port}/`
+    const command = process.platform === 'win32'
+      ? { cmd: 'cmd', args: ['/c', 'start', '', url] }
+      : process.platform === 'darwin'
+        ? { cmd: 'open', args: [url] }
+        : { cmd: 'xdg-open', args: [url] }
+    try {
+      const child = spawn(command.cmd, command.args, { detached: true, stdio: 'ignore' })
+      child.unref()
+    } catch { /* 打不开浏览器不影响服务 */ }
+  }
   const listen = (port, left = 10) => server.listen(port, '127.0.0.1', () => {
     console.log(`轴编辑器：http://127.0.0.1:${port}/（数据目录 data/team-sim/）`)
+    if (shouldOpen) openBrowser(port)
   }).on('error', err => {
     if (err.code === 'EADDRINUSE' && left > 0) { server.close(); listen(port + 1, left - 1); return }
     console.error(err.message)
@@ -253,3 +268,4 @@ if (isMain) {
   })
   listen(basePort)
 }
+
