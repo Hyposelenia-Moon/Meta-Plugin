@@ -16,6 +16,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { botRoot } from '../dir.js'
 import type { PermanentData, StatKey, StatValue } from '../modules/teamSimulation/types.js'
+import type { EffectSpec } from '../modules/teamSimulation/effects.js'
 
 /**
  * miao 数据根：优先环境变量，其次按 Yunzai 标准安装位置找；开发仓库不在 Yunzai/plugins 下时
@@ -183,8 +184,28 @@ const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTyp
   }
 }
 
-function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, notes: string[] } {
+/**
+ * 触发式 4 件套（2026-11-02 切片 2）：由时间轴在该角色起手对应动作时激活。
+ *
+ * 生效时长按 60fps 帧数写（与现有动作包的帧口径一致）；换档位时尚未折算，
+ * 与 §「帧数口径」里记录的限制相同。
+ */
+const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: 'cast-skill' | 'cast-burst' }; note: string }> = {
+  '400164': {
+    effect: {
+      id: 'artifact-set:400164:4pc',
+      target: 'self',
+      stats: { normalDmg: 0.3, chargedDmg: 0.3 },
+      durationFrames: 900,
+      trigger: 'cast-skill'
+    },
+    note: '4 件套：施放元素战技后 15 秒内普攻与重击伤害 +30%'
+  }
+}
+
+function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' }>, notes: string[] } {
   const effects: Record<string, EffectEntry> = {}
+  const runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' }> = {}
   const notes: string[] = []
 
   const ascension = ascensionModifier(character)
@@ -232,8 +253,17 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
     }
     if (typeof four === 'string') {
       const staticFour = STATIC_FOUR_PIECE[setId]
+      const triggered = TRIGGERED_FOUR_PIECE[setId]
       const applies = staticFour !== undefined && (!staticFour.weaponTypes || staticFour.weaponTypes.includes(weaponType))
-      if (staticFour && applies) {
+      if (triggered) {
+        // 审计条目只声明「运行时生效」，数值与触发时机放在 runtimeEffects 里。
+        effects[`artifact-set:${setId}:4pc`] = {
+          status: 'verified-static',
+          modifiers: [],
+          runtimeRequired: true
+        }
+        runtimeEffects[`artifact-set:${setId}:4pc`] = triggered.effect
+      } else if (staticFour && applies) {
         effects[`artifact-set:${setId}:4pc`] = {
           status: 'verified-static',
           modifiers: [{ key: staticFour.key, value: staticFour.value }],
@@ -268,7 +298,7 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
     }
   }
 
-  return { effects, notes }
+  return { effects, runtimeEffects, notes }
 }
 
 // 仅作类型别名，避免上面签名里写出过长的 Record 类型
@@ -320,7 +350,7 @@ export function buildRuntimePermanent (input: RuntimePermanentInput): RuntimePer
   const [hp, atk, def] = details
   if (![hp, atk, def].every(value => Number.isFinite(Number(value)))) return { ok: false, error: `${input.name} 的 ${LEVEL} 级白值不是数字` }
 
-  const { effects } = buildEffects(character, weapon, refine, artifactData, weaponType)
+  const { effects, runtimeEffects } = buildEffects(character, weapon, refine, artifactData, weaponType)
   const data: PermanentData = {
     gameVersion: GAME_VERSION,
     bundleId: BUNDLE_ID,
@@ -339,7 +369,8 @@ export function buildRuntimePermanent (input: RuntimePermanentInput): RuntimePer
       baseAtk,
       bonuses: []
     },
-    effects
+    effects,
+    ...(Object.keys(runtimeEffects).length ? { runtimeEffects } : {})
   }
   cache.set(key, data)
   return { ok: true, data, source: 'runtime' }

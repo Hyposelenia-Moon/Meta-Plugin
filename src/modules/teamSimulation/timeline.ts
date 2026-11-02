@@ -200,6 +200,11 @@ export interface TimelineInput {
   stateFlags?: string[]
   /** 效果表：命中段的 `triggerIds` 按这张表结算，未登记的一律拒绝。 */
   effects?: Record<string, EffectSpec>
+  /**
+   * 动作起手触发的效果（4 件套「施放战技/爆发后」）：角色起手对应类型的动作时激活。
+   * 只列真正穿在身上的套装，别把全库套装都塞进来。
+   */
+  effectTriggers?: Array<{ effectId: string; actorId: string; on: 'cast-skill' | 'cast-burst' }>
 }
 
 export interface TimelineHit {
@@ -507,6 +512,19 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   if (!actors.has(activeActorId)) add('missing', 'activeActorId', '前台角色必须在 actors 里')
   // 效果运行时按帧累积状态：命中结算时先取当帧修饰，再结算这一发携带的触发，所以触发不会反过来加强自己。
   const effectRuntime = createEffectRuntime(input?.effects ?? {}, [...actors.keys()], isInteger(input?.measurementEndFrame) ? input.measurementEndFrame : 0)
+  /*
+   * 动作起手触发（4 件套触发式）：声明必须能兑现——效果要在效果表里登记、角色要在 actors 里，
+   * 否则直接报错，不静默跳过（跳过会让「说触发了其实没触发」变成隐形低估）。
+   */
+  const effectTriggers = Array.isArray(input?.effectTriggers) ? input.effectTriggers : []
+  for (const [index, item] of effectTriggers.entries()) {
+    const p = `effectTriggers.${index}`
+    if (!item || typeof item !== 'object') { add('invalid', p, '触发项必须是对象'); continue }
+    if (typeof item.effectId !== 'string' || !item.effectId) add('missing', `${p}.effectId`, '触发项必须指出效果 id')
+    else if (!effectRuntime.has(item.effectId)) add('unsupported', `${p}.effectId`, `触发效果 ${item.effectId} 在效果表里没有登记`)
+    if (!actors.has(item.actorId)) add('missing', `${p}.actorId`, `触发角色 ${String(item.actorId)} 不在本队`)
+    if (item.on !== 'cast-skill' && item.on !== 'cast-burst') add('unsupported', `${p}.on`, `未知触发时机 ${String(item.on)}`)
+  }
 
   const durationCache = new Map<ActionSpec, ResolvedTiming>()
   const durationOf = (spec: ActionSpec): ResolvedTiming => {
@@ -700,6 +718,17 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     cancelPending(frame)
     const frames = durationOf(spec).frames
     record(frame, 'action-start', 'action-start', step.actorId, step.actionId)
+    // 4 件套触发式：施放战技 / 爆发当帧激活；同帧先于本次动作的命中结算。
+    const castTrigger = spec.kind === 'skill' ? 'cast-skill' : spec.kind === 'burst' ? 'cast-burst' : null
+    if (castTrigger) {
+      for (const item of effectTriggers) {
+        if (item.actorId !== step.actorId || item.on !== castTrigger) continue
+        const fired = effectRuntime.trigger(item.effectId, frame, step.actorId)
+        if (!fired) continue
+        triggers.push(fired)
+        record(frame, 'trigger', 'trigger', step.actorId, spec.id, { effectId: item.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: 'cast' })
+      }
+    }
     push({ kind: 'action-end', frame: frame + frames, actorId: step.actorId, actionId: spec.id })
     spec.hits.forEach((hit, hitIndex) => push({ kind: 'hit', frame: frame + hit.atFrame, actorId: step.actorId, actionId: spec.id, hitIndex, hit }))
     for (const particle of spec.particles ?? []) push({ kind: 'particle', frame: frame + particle.atFrame + particle.travelFrames, actorId: step.actorId, actionId: spec.id, particle })

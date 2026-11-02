@@ -1,4 +1,5 @@
 import type { ReactiveKind } from './reactions.js'
+import type { EffectSpec, EffectTriggerKind } from './effects.js'
 
 /** 队伍模拟 P0 契约。百分比为比例（20%=0.2），属性为点数；不接管现有命令。 */
 export const SCHEMA_VERSION = 1 as const
@@ -77,6 +78,11 @@ export interface PermanentData {
      */
     unmodeled?: string
   }>
+  /**
+   * 运行时触发效果（4 件套「施放战技/爆发后」一类）：`trigger` 必填，
+   * 时间轴在该角色起手对应动作时激活。只有真正穿在身上的套装才会被并进这次模拟。
+   */
+  runtimeEffects?: Record<string, EffectSpec & { trigger: EffectTriggerKind }>
 }
 export interface PermanentStats {
   hp: number; atk: number; def: number

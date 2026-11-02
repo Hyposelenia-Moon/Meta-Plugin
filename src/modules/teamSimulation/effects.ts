@@ -43,9 +43,13 @@ export const NO_REACTION_BONUS: ReactionBonus = { fypct: 0, elevated: 0, kNum: 0
 export type EffectTarget = 'self' | 'team' | 'enemy'
 export type StackingPolicy = 'refresh' | 'stack' | 'ignore'
 
+/** 动作起手触发的效果时机（4 件套「施放战技/爆发后」一类）。 */
+export type EffectTriggerKind = 'cast-skill' | 'cast-burst'
+
 /**
  * 效果定义。`self` 与 `team` 加面板，`enemy` 减抗减防；两者互斥，避免「一个效果既加面板又减抗」这种口径不清的写法。
  * `durationFrames` 省略表示持续到测量窗口结束：不写到期时间就是一直有效，内核不会猜一个有限的默认值。
+ * `trigger` 省略表示常驻（开局就生效）；写 `cast-skill` / `cast-burst` 时由时间轴在对应动作起手时激活。
  */
 export interface EffectSpec {
   id: string
@@ -59,6 +63,8 @@ export interface EffectSpec {
   maxStacks?: number
   /** 反应加成：只影响月反应与星烁的结算，不进面板。 */
   reactionBonus?: ReactionBonus
+  /** 触发时机；给定时不再常驻，只在对应动作起手被激活。 */
+  trigger?: EffectTriggerKind
 }
 
 export interface TriggerRecord {
@@ -127,6 +133,8 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
 
   if (spec.durationFrames !== undefined && (!isInteger(spec.durationFrames) || spec.durationFrames <= 0)) add('invalid', `${p}.durationFrames`, '持续帧数必须是正整数；要一直有效就省略这个字段')
   if (spec.stacking !== undefined && !['refresh', 'stack', 'ignore'].includes(spec.stacking)) add('unsupported', `${p}.stacking`, `未知叠加策略 ${String(spec.stacking)}`)
+  if (spec.trigger !== undefined && spec.trigger !== 'cast-skill' && spec.trigger !== 'cast-burst') add('unsupported', `${p}.trigger`, `未知触发时机 ${String(spec.trigger)}`)
+  if (spec.trigger !== undefined && spec.durationFrames === undefined) add('missing', `${p}.durationFrames`, '触发式效果必须给持续时间：常驻到窗口结束的那套写法只适用于开局即生效的效果')
   if (spec.stacking === 'stack') {
     if (!isInteger(spec.maxStacks) || spec.maxStacks <= 0) add('invalid', `${p}.maxStacks`, '叠层策略必须给出正整数层数上限')
   } else if (spec.maxStacks !== undefined) {

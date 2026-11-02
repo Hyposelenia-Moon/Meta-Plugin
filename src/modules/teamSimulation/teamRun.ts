@@ -1,4 +1,5 @@
 import type { CharacterBuild, Failure, Issue, PermanentData } from './types.js'
+import type { EffectSpec } from './effects.js'
 import { buildPermanentStats, validateCharacterBuild, type PermanentDataExpectation } from './build.js'
 import { simulateTimeline, type TimelineResult } from './timeline.js'
 import { calculateTimelineDamage, type CritPolicy, type DamageContext, type DamageDebuffs, type TimelineDamageResult } from './hitDamage.js'
@@ -142,6 +143,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   const contexts: Record<string, DamageContext> = {}
   const builds: Record<string, CharacterBuild> = {}
   const unmodeled: { actorId: string; id: string; reason: string }[] = []
+  const permanentByActor: Record<string, PermanentData> = {}
   const actorIds = new Set<string>()
   members.forEach((member, index) => {
     const p = `members.${index}`
@@ -159,6 +161,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
       return
     }
     builds[build.actorId] = build
+    permanentByActor[build.actorId] = member.permanentData as PermanentData
     for (const item of permanent.unmodeled) unmodeled.push({ actorId: build.actorId, id: item.id, reason: item.reason })
     contexts[build.actorId] = {
       level: build.level,
@@ -197,6 +200,23 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   lap('mechanisms')
   if (mechanismStatus !== 'ok') return fail(mechanismStatus, checks, allMechanismIssues)
 
+  /*
+   * 4 件套触发式（2026-11-02）：只并入真正穿在身上的套装的运行时效果。
+   * 永久数据是按角色+武器一次生成的，里面包含全部 63 套的 `runtimeEffects`；
+   * 这里用本队实际圣遗物的 setId 过滤，避免「没穿也触发」。
+   */
+  const equippedSets = new Set<string>()
+  for (const build of Object.values(builds)) for (const artifact of build.artifacts) equippedSets.add(artifact.setId)
+  const effects: Record<string, EffectSpec> = { ...(packResult.pack.effects ?? {}) }
+  const effectTriggers: Array<{ effectId: string; actorId: string; on: 'cast-skill' | 'cast-burst' }> = []
+  for (const [actorId, data] of Object.entries(permanentByActor)) {
+    for (const [effectId, spec] of Object.entries(data.runtimeEffects ?? {})) {
+      const setId = /^artifact-set:([^:]+):/.exec(effectId)?.[1]
+      if (!setId || !equippedSets.has(setId)) continue
+      effects[effectId] = spec
+      effectTriggers.push({ effectId, actorId, on: spec.trigger })
+    }
+  }
   const timeline = simulateTimeline({
     scheduler: input.rotation.scheduler,
     steps: input.rotation.steps,
@@ -208,7 +228,8 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
     switchFrames: input.rotation.switchFrames,
     energyRecharge: input.rotation.energyRecharge,
     stateFlags: input.rotation.stateFlags,
-    effects: packResult.pack.effects ?? {}
+    effects,
+    ...(effectTriggers.length ? { effectTriggers } : {})
   })
   checks.push({ stage: 'timeline', status: timeline.status === 'simulated' ? 'ok' : timeline.status, issues: timeline.issues })
   lap('timeline')
