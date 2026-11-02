@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "demo-skill-sequence",
+  "team": ["10000023", "10000025", "10000032", "10000060"],
+  "measurementEndFrame": 7243,
+  "scheduler": "asap-sequence",
+  "frameTierId": "fps-60",
+  "sequence": [
+    "bennett.skill",
+    "xiangling.skill",
+    "xingqiu.skill",
+    "yelan.skill",
+    "bennett.normal-1",
+    "bennett.normal-2",
+    "bennett.normal-3",
+    "xiangling.normal-1",
+    "xiangling.normal-2",
+    "xingqiu.normal-1",
+    "xingqiu.normal-2",
+    "yelan.normal-1",
+    "yelan.normal-2"
+  ]
+}

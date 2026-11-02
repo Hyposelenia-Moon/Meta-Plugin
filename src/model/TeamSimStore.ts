@@ -18,12 +18,17 @@ import {
   recordingToRotation,
   validateRecording,
   validateRotation,
+  simulateTimeline,
+  FRAME_TIERS,
+  type ActorInit,
   type CharacterBuild,
   type DataPack,
+  type FrameTier,
   type Issue,
   type PermanentData,
   type RecordingKeymap,
-  type RotationSpec
+  type RotationSpec,
+  type TimelineStep
 } from '../modules/teamSimulation/index.js'
 
 const teamSimDir = path.join(dataDir, 'team-sim')
@@ -139,7 +144,14 @@ export function loadTeamPack (builds: CharacterBuild[]): TeamPackResult {
   return { status: 'ok', keys, pack: merged.pack, issues: [] }
 }
 
-/** 轴文件：一份录制 + 一张键位表 + 队伍声明 */
+/**
+ * 轴文件：两种写法。
+ *
+ * 1. 录制轴（精确帧）：`recording` + `keymap`，由录制器/编辑器产出；
+ * 2. **顺序轴（手写友好）**：`sequence: ["bennett.skill", ...]`，只写动作顺序，
+ *    帧由 `asap-sequence` 调度器排，角色变化时自动插切人步骤。
+ *    两种写法二选一；`actorId` 默认取动作 id 的点号前缀（动作包键）。
+ */
 export interface RotationFile {
   schemaVersion: 1
   id: string
@@ -147,8 +159,16 @@ export interface RotationFile {
   team: string[]
   measurementEndFrame: number
   scheduler?: 'fixed' | 'asap-sequence'
-  keymap: RecordingKeymap
-  recording: unknown
+  /** 顺序轴：动作 id 列表（或 { actionId, actorId }），与 recording 互斥 */
+  sequence?: Array<string | { actionId: string, actorId?: string }>
+  /** 顺序轴可选：显式给初始能量（缺省 0 / 上限取爆发能耗） */
+  actors?: Array<{ actorId: string, energy?: number, energyMax?: number }>
+  /** 顺序轴可选：帧率档位 id，缺省 fps-60 */
+  frameTierId?: string
+  /** 录制轴必需 */
+  keymap?: RecordingKeymap
+  /** 录制轴必需 */
+  recording?: unknown
 }
 
 /** 列出目录下所有轴文件（缺失目录按「没有轴」处理） */
@@ -183,6 +203,10 @@ export function findRotation (charIds: string[]): { file?: string, rotationFile?
 
 /** 录制 + 键位表 → 轴；键位版本不一致、窗口不合法、步骤引用不存在的动作都会被拒绝 */
 export function toRotation (file: RotationFile, pack: DataPack): { status: 'ok' | 'invalid' | 'unsupported', rotation?: RotationSpec, issues: Issue[] } {
+  if (Array.isArray(file.sequence) && file.sequence.length) return sequenceToRotation(file, pack)
+  if (file.recording === undefined || file.keymap === undefined) {
+    return { status: 'invalid', issues: [{ code: 'missing', path: 'rotation', message: '轴文件要么给 sequence（顺序轴），要么给 recording + keymap（录制轴）' }] }
+  }
   const checked = validateRecording(file.recording)
   if (checked.status !== 'ok' || !checked.recording) return { status: checked.status === 'unsupported' ? 'unsupported' : 'invalid', issues: checked.issues }
   const converted = recordingToRotation(checked.recording, file.keymap, {
@@ -194,6 +218,130 @@ export function toRotation (file: RotationFile, pack: DataPack): { status: 'ok' 
   const issues = validateRotation(converted.rotation, pack)
   if (issues.length) return { status: issues.some(x => x.code === 'unsupported') ? 'unsupported' : 'invalid', rotation: converted.rotation, issues }
   return { status: 'ok', rotation: converted.rotation, issues }
+}
+
+/**
+ * 顺序轴 → 轴：只写动作顺序，帧交给 `asap-sequence` 调度器。
+ *
+ * 角色变化时自动插一个切人步骤（`kind: 'switch'`），与录制轴里 `to_xxx` 键等价；
+ * 初始能量缺省 0、上限取该角色爆发动作的 energyCost（没有爆发就按 100）。
+ * 引用了包里没有的动作仍由 `validateRotation` 拒绝——不跑空。
+ */
+function sequenceToRotation (file: RotationFile, pack: DataPack): { status: 'ok' | 'invalid' | 'unsupported', rotation?: RotationSpec, issues: Issue[] } {
+  const issues: Issue[] = []
+  const tierId = file.frameTierId ?? 'fps-60'
+  const tier: FrameTier | undefined = FRAME_TIERS[tierId]
+  if (!tier) return { status: 'unsupported', issues: [{ code: 'unsupported', path: 'frameTierId', message: `未知帧率档位 ${tierId}` }] }
+
+  const actions = pack.actions ?? {}
+  const steps: TimelineStep[] = []
+  let index = 0
+  let currentActor = ''
+  for (const raw of file.sequence ?? []) {
+    const actionId = typeof raw === 'string' ? raw.trim() : String(raw.actionId ?? '').trim()
+    if (!actionId) { issues.push({ code: 'invalid', path: `sequence.${index}`, message: '顺序轴的动作 id 不能为空' }); index += 1; continue }
+    const actorId = typeof raw === 'string' ? actionId.split('.')[0] : String(raw.actorId ?? actionId.split('.')[0])
+    if (!actions[actionId]) {
+      issues.push({ code: 'unsupported', path: `sequence.${index}`, message: `动作包里没有 ${actionId}` })
+      index += 1
+      continue
+    }
+    const packActor = actions[actionId].actorId
+    if (packActor && packActor !== actorId) {
+      issues.push({ code: 'invalid', path: `sequence.${index}`, message: `${actionId} 属于 ${packActor}，但 actorId 写成了 ${actorId}` })
+      index += 1
+      continue
+    }
+    if (currentActor && currentActor !== actorId) steps.push({ id: `switch-${index}`, kind: 'switch', actorId })
+    steps.push({ id: `step-${index}`, kind: 'action', actorId, actionId })
+    currentActor = actorId
+    index += 1
+  }
+  if (!steps.length) {
+    const all = [...issues, { code: 'invalid' as const, path: 'sequence', message: '顺序轴里没有一个可解析的动作' }]
+    return { status: all.some(x => x.code === 'unsupported') ? 'unsupported' : 'invalid', issues: all }
+  }
+
+  const actors = actorInitOf(file, pack, steps)
+  const firstActor = steps.find(step => step.kind === 'action' || step.kind === 'switch')?.actorId
+  const rotation: RotationSpec = {
+    id: file.id,
+    scheduler: 'asap-sequence',
+    frameTier: tier,
+    measurementEndFrame: file.measurementEndFrame,
+    steps,
+    actors,
+    activeActorId: file.actors?.[0]?.actorId ?? firstActor ?? actors[0].actorId
+  }
+  const checked = validateRotation(rotation, pack)
+  const all = [...issues, ...checked]
+  // 顺序轴里写错一个动作不能让整份轴「看起来成功」——有问题就按问题类型失败，错在哪一条都在 issues 里。
+  if (all.length) return { status: all.some(x => x.code === 'unsupported') ? 'unsupported' : 'invalid', rotation, issues: all }
+  // 机制规划（buff 窗口/活跃段）目前只认 fixed 调度，所以顺序轴在这里先跑一遍空时间线，
+  // 把 asap 排出来的实际帧固化成固定轴——作者只写顺序，内核看到的仍是可规划的固定帧。
+  return freezeSequenceFrames(rotation, pack)
+}
+
+/**
+ * 顺序轴 → 固定轴：用一次空时间线（不结算伤害归属）取每个步骤的实际帧。
+ * 这一步只决定「第几帧按下去」，数值仍由后续正式模拟算。
+ */
+function freezeSequenceFrames (rotation: RotationSpec, pack: DataPack): { status: 'ok' | 'invalid' | 'unsupported', rotation?: RotationSpec, issues: Issue[] } {
+  const dry = simulateTimeline({
+    scheduler: rotation.scheduler,
+    steps: rotation.steps,
+    actions: pack.actions ?? {},
+    actors: rotation.actors,
+    activeActorId: rotation.activeActorId,
+    frameTier: rotation.frameTier,
+    measurementEndFrame: rotation.measurementEndFrame
+  })
+  if (dry.issues.length) return { status: 'invalid', issues: dry.issues }
+  const frameOf = new Map<string, number>()
+  for (const request of dry.requests) {
+    if (request.actualFrame !== null) frameOf.set(request.stepId, request.actualFrame)
+  }
+  /*
+   * 换人步骤不进 `requests`（它不产生动作请求），但固定轴要求每步都有帧。
+   * 换人一定紧挨着下一个动作发生，所以取「下一个动作的实际帧」；没有下一个动作时退回上一个动作帧。
+   */
+  const actionFrames = rotation.steps
+    .map((step, index) => ({ step, index }))
+    .filter(item => item.step.kind === 'action' && frameOf.has(item.step.id))
+    .map(item => ({ index: item.index, frame: frameOf.get(item.step.id) as number }))
+  const frameForSwitch = (index: number): number | null => {
+    const next = actionFrames.find(item => item.index > index)
+    if (next) return next.frame
+    const prev = [...actionFrames].reverse().find(item => item.index < index)
+    return prev ? prev.frame : null
+  }
+  const frozen: TimelineStep[] = []
+  rotation.steps.forEach((step, index) => {
+    if (step.kind === 'wait') { frozen.push(step); return }
+    const atFrame = step.kind === 'switch' ? frameForSwitch(index) : frameOf.get(step.id)
+    if (atFrame === undefined || atFrame === null) {
+      return
+    }
+    frozen.push({ ...step, atFrame })
+  })
+  const missing = rotation.steps.filter(step => step.kind !== 'wait').length - frozen.filter(step => step.kind !== 'wait').length
+  if (missing > 0) return { status: 'invalid', issues: [{ code: 'invalid', path: 'steps', message: `有 ${missing} 个步骤没有排到执行帧，无法固化成固定轴` }] }
+  const fixed: RotationSpec = { ...rotation, scheduler: 'fixed', steps: frozen }
+  const issues = validateRotation(fixed, pack)
+  if (issues.length) return { status: issues.some(x => x.code === 'unsupported') ? 'unsupported' : 'invalid', rotation: fixed, issues }
+  return { status: 'ok', rotation: fixed, issues: [] }
+}
+
+/** 顺序轴的初始资源：文件里给了就用，没给就 0 能量 + 按爆发能耗推上限。 */
+function actorInitOf (file: RotationFile, pack: DataPack, steps: TimelineStep[]): ActorInit[] {
+  const ids: string[] = []
+  for (const step of steps) if (step.kind === 'action' && step.actorId && !ids.includes(step.actorId)) ids.push(step.actorId)
+  return ids.map(actorId => {
+    const given = file.actors?.find(item => item.actorId === actorId)
+    const burst = Object.values(pack.actions ?? {}).find(action => action.actorId === actorId && action.kind === 'burst' && Number.isFinite(Number(action.energyCost)))
+    const energyMax = given?.energyMax ?? (burst ? Number(burst.energyCost) : 100)
+    return { actorId, energy: given?.energy ?? 0, energyMax: energyMax > 0 ? energyMax : 100 }
+  })
 }
 
 /**
