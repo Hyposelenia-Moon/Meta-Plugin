@@ -1,0 +1,60 @@
+{
+  "key": "furina",
+  "gameVersion": "7.1",
+  "source": "倍率=miao 天赋 10 级；帧/冷却/能量=gcsim fcc117b。证据：out/gcsim/internal/characters/furina/skill.go:26（ousiaBubbleHitmark = 18）；out/gcsim/internal/characters/furina/skill.go:64（skillFrames[ousia] = frames.InitAbilSlice(54)）；out/gcsim/internal/characters/furina/skill.go:72（skillFrames[pneuma] = frames.InitAbilSlice(57)）；out/gcsim/internal/characters/furina/skill.go:116（Element: attributes.Hydro）；out/gcsim/internal/characters/furina/skill.go:118（FlatDmg: skillOusiaBubble[lv] * c.MaxHP()（按生命上限结算））；out/gcsim/internal/characters/furina/skill.go:125（SetCDWithDelay(action.ActionSkill, 1200, ousiaCDDelay=0)）",
+  "notes": [
+    "furina.skill：按荒性（ousia，gcsim 默认 arkhe）结算：泡沫伤害是 FlatDmg = 生命上限 × 14.16%，故 scaling 记 hp",
+    "furina.skill：芒性（pneuma）分支不造成伤害（只召唤众水的歌者治疗），动画 57 帧、CD 1200，未建模",
+    "furina.skill：三只召唤物未建模：乌瑟勋爵 / 海薇玛夫人 / 谢贝蕾妲小姐，首次命中分别约 74.5 / 72.3 / 71.6 帧、之后约 3.37 / 1.63 / 5.23 秒一次，同样按生命上限 10.73% / 5.82% / 14.92%，并各扣队友血换 10% 增伤",
+    "furina.skill：施放本身不产球：particleCB 只挂在召唤物命中上（1 颗水元素、2.5 秒 ICD），因此省略 particles",
+    "furina.skill：倍率 0.1416 ← miao 荒性泡沫伤害[9]=14.16%；gcsim 表为 0.141552（14.1552%），差在 miao 的两位小数舍入",
+    "furina.burst：爆发伤害是 FlatDmg = 生命上限 × 20.53%，故 scaling 记 hp",
+    "furina.burst：气氛值（fanfare）未建模：每点 +0.25% 增伤、+0.1% 受治疗加成，上限 300 点（C1 400）；C1 起手 150 点、C2 上限 800 均未建模",
+    "furina.burst：gcsim 在 95 帧先挂爆发状态（早于 98 帧命中，注释说明已实测确认 C1 的初始气氛值能吃到这一发）；这里只记伤害本身，buff 时序未建模",
+    "furina.burst：能量取 EnergyMax=60；gcsim 的 ConsumeEnergy(7) 里 7 是扣能延迟帧数，不是耗能量",
+    "furina.burst：倍率 0.2053 ← miao 技能伤害[9]=20.53%；gcsim 表为 0.205315，差在两位小数舍入"
+  ],
+  "actions": {
+    "furina.skill": {
+      "id": "furina.skill",
+      "actorId": "furina",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 54
+      },
+      "hits": [
+        {
+          "atFrame": 18,
+          "motionValue": 0.1416,
+          "scaling": "hp",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 1200,
+      "cooldownId": "skill"
+    },
+    "furina.burst": {
+      "id": "furina.burst",
+      "actorId": "furina",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 121
+      },
+      "hits": [
+        {
+          "atFrame": 98,
+          "motionValue": 0.2053,
+          "scaling": "hp",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

@@ -117,7 +117,8 @@ export interface CancelWindow { fromFrame: number; toFrame: number }
 export interface ParticleSpec {
   atFrame: number
   count: number
-  element: 'geo' | 'physical' | 'clear'
+  /** 2026-11-02：粒子的元素与命中元素同一套，另加 `clear`（无元素） */
+  element: HitElement | 'clear'
   /** 粒子飞到收取者所需的帧数；到达时才加能量。 */
   travelFrames: number
 }
@@ -398,7 +399,7 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
         const pp = `${p}.particles.${i}`
         if (!isInteger(particle?.atFrame) || particle.atFrame < 0 || (bound !== null && particle.atFrame >= bound)) add('invalid', `${pp}.atFrame`, '产球帧必须是非负整数且落在动作内')
         if (!isInteger(particle?.count) || particle.count <= 0) add('invalid', `${pp}.count`, '产球数量必须是正整数')
-        if (!['geo', 'physical', 'clear'].includes(particle?.element)) add('unsupported', `${pp}.element`, `未知粒子元素 ${String(particle?.element)}`)
+        if (![...HIT_ELEMENTS, 'clear'].includes(particle?.element)) add('unsupported', `${pp}.element`, `未知粒子元素 ${String(particle?.element)}`)
         if (!isInteger(particle?.travelFrames) || particle.travelFrames < 0) add('invalid', `${pp}.travelFrames`, '粒子飞行帧数必须是非负整数')
       })
     }

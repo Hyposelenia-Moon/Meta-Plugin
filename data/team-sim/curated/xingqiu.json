@@ -1,0 +1,67 @@
+{
+  "key": "xingqiu",
+  "gameVersion": "7.1",
+  "source": "倍率=miao 天赋 10 级；帧/冷却/能量=gcsim fcc117b。证据：out/gcsim/internal/characters/xingqiu/skill.go:16（skillHitmarks = []int{12, 31}）；out/gcsim/internal/characters/xingqiu/skill.go:22（skillFrames = frames.InitAbilSlice(67)）；out/gcsim/internal/characters/xingqiu/skill.go:42（Element: attributes.Hydro）；out/gcsim/internal/characters/xingqiu/skill.go:81（SetCDWithDelay(action.ActionSkill, 21*60, 10) → 1260 帧）；out/gcsim/internal/characters/xingqiu/skill.go:99（QueueParticle 5 颗水元素（1 秒 ICD））；out/gcsim/internal/characters/xingqiu/zz_xingqiu.dm.go:194-229（rainscreen 两段 lv10 = 3.024 / 3.4416）",
+  "notes": [
+    "xingqiu.skill：miao 的「技能伤害」646.56% 是两段合计行；逐段取「技能伤害2」= [302.4, 344.16]，与 gcsim rainscreen 的 2 段（3.024 / 3.4416）按顺序一一对应，两者之和 646.56 吻合",
+    "xingqiu.skill：雨帘剑（orbital，44 帧起、每 135 帧挂一次水，无倍率）与减伤/抗打断未建模",
+    "xingqiu.skill：C4 加成未建模：爆发状态中 E 倍率 ×1.5（skill.go:53-58）",
+    "xingqiu.skill：产球取 particleCB：5 颗水元素微粒，1 秒 ICD（两段命中只触发一次）；travelFrames 记 0，gcsim 默认粒子延迟 100 帧未建模",
+    "xingqiu.skill：内核 ParticleSpec 的 element 目前只接受 geo/physical/clear，hydro 需扩枚举后才能直接入库",
+    "xingqiu.burst：爆发施放本身不造成伤害：gcsim 只调 applyOrbital 挂雨帘剑并初始化剑雨计数，没有 QueueAttack；hits 留空是事实，不是缺数据",
+    "xingqiu.burst：剑雨未建模：由普通攻击触发，每波 2/3 把（C6 为 2→3→5 循环）、约 1 秒一波、每把 97.69% 攻击力、命中延迟 20 帧",
+    "xingqiu.burst：雨帘剑未建模：15 秒（C2 +3 秒）、减伤与 C2 剑雨减水抗 15%",
+    "xingqiu.burst：能量取 EnergyMax=80；gcsim 的 ConsumeEnergy(3) 里 3 是扣能延迟帧数，不是耗能量",
+    "xingqiu.burst：C6 每波首把剑回 3 点能量未建模"
+  ],
+  "actions": {
+    "xingqiu.skill": {
+      "id": "xingqiu.skill",
+      "actorId": "xingqiu",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 67
+      },
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 3.024,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 31,
+          "motionValue": 3.4416,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 12,
+          "count": 5,
+          "element": "hydro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 1260,
+      "cooldownId": "skill"
+    },
+    "xingqiu.burst": {
+      "id": "xingqiu.burst",
+      "actorId": "xingqiu",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 40
+      },
+      "hits": [],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
+    }
+  }
+}

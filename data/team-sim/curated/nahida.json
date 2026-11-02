@@ -1,0 +1,53 @@
+{
+  "key": "nahida",
+  "gameVersion": "7.1",
+  "source": "倍率=miao 天赋 10 级；帧/冷却/能量=gcsim fcc117b。证据：out/gcsim/internal/characters/nahida/skill.go:20（skillPressFrames = frames.InitAbilSlice(32)）；out/gcsim/internal/characters/nahida/skill.go:42（skillPressHitmark = 13）；out/gcsim/internal/characters/nahida/skill.go:65（Element: attributes.Dendro）；out/gcsim/internal/characters/nahida/skill.go:78（SetCDWithDelay(action.ActionSkill, skillPressCD=300, 11)）；out/gcsim/internal/characters/nahida/skill.go:108（长按命中 = hold + 3 + 30）；out/gcsim/internal/characters/nahida/skill.go:216-220（灭净三业：Mult=triKarmaAtk，FlatDmg=EM×triKarmaEM）",
+  "notes": [
+    "nahida.skill：按点按结算（gcsim 的 hold 缺省为 0）",
+    "nahida.skill：长按未建模：命中 = 蓄力帧 + 33、动画 = 蓄力帧 + 63（基准 63）、CD 360、蓄力上限 300 帧、命中范围 25",
+    "nahida.skill：灭净三业未建模：被标记目标被元素反应/绽放触发时造成 185.76% 攻击 + 371.52% 精通，2.5 秒间隔（雷队友可缩短），是本角色主要伤害来源",
+    "nahida.skill：蕴种印（目标标记，1500 帧、最多 8 个）未建模",
+    "nahida.skill：施放本身不产球：particleCB 只挂在灭净三业命中上（3 颗草元素、7 秒 ICD），因此省略 particles",
+    "nahida.skill：倍率 1.7712 ← miao 点按伤害[9]=177.12%，与 gcsim skillPress 表 lv10 值一致",
+    "nahida.burst：爆发没有任何直接伤害：gcsim 只挂状态与 buff，没有 QueueAttack；miao 的 talentData.q 也只有增益行（火/雷/水档位），无伤害行——hits 为空是事实",
+    "nahida.burst：队友档位加成未建模：火（灭净三业增伤 26.78% / 40.18%）、雷（间隔 -0.45 / -0.67 秒）、水（持续 +6.02 / +9.03 秒）",
+    "nahida.burst：领域 15 秒、每 30 帧刷新一次、半径 20；66 帧才起效，均未建模",
+    "nahida.burst：能量取 EnergyMax=50；gcsim 的 ConsumeEnergy(5) 里 5 是扣能延迟帧数，不是耗能量",
+    "nahida.burst：C6 的灭净三业强化未建模"
+  ],
+  "actions": {
+    "nahida.skill": {
+      "id": "nahida.skill",
+      "actorId": "nahida",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 32
+      },
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 1.7712,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 300,
+      "cooldownId": "skill"
+    },
+    "nahida.burst": {
+      "id": "nahida.burst",
+      "actorId": "nahida",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 112
+      },
+      "hits": [],
+      "energyCost": 50,
+      "cooldownFrames": 810,
+      "cooldownId": "burst"
+    }
+  }
+}

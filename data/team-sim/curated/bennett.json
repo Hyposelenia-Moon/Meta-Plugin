@@ -1,0 +1,68 @@
+{
+  "key": "bennett",
+  "gameVersion": "7.1",
+  "source": "倍率=miao 天赋 10 级；帧/冷却/能量=gcsim fcc117b。证据：out/gcsim/internal/characters/bennett/skill.go:22（skillPressHitmark = 16（点按命中帧））；out/gcsim/internal/characters/bennett/skill.go:31（skillFrames[0] = frames.InitAbilSlice(42)（点按动画 42 帧，dash 最早可取消 22））；out/gcsim/internal/characters/bennett/skill.go:111（SetCDWithDelay(action.ActionSkill, c.a4CD(c.a1(5*60)), 14)）；out/gcsim/internal/characters/bennett/asc.go:4-9（a1()：E 冷却 ×0.8 → 240 帧）；out/gcsim/internal/characters/bennett/skill.go:90（Element: attributes.Pyro）；out/gcsim/internal/characters/bennett/skill.go:130-134（pressParticleCB：QueueParticle 2 颗，25% 概率 3 颗）",
+  "notes": [
+    "bennett.skill：按点按结算（gcsim 的 hold 缺省为 0）。长按一段（命中 45/57、动画 98、CD 450）、长按二段（命中 112/121、另有 166 帧爆炸、动画 343、CD 600）、C4 追加一击（94 帧、二段伤害 ×1.35）均未建模",
+    "bennett.skill：冷却取 SetCDWithDelay(action.ActionSkill, c.a4CD(c.a1(5*60)), 14)：字面是 5*60=300，A1 起再 ×0.8 → 240 帧（这里记 240）；站在爆发领域内 A4 会再 ×0.5（→120 帧），未计入",
+    "bennett.skill：产球取 pressParticleCB：2 颗火元素微粒，25% 概率 3 颗；这里按 2 颗记，不算期望值",
+    "bennett.skill：travelFrames 记 0（飞行延迟未建模）：gcsim 的角色粒子延迟 ParticleDelay=80（班尼特特例，其余角色默认 100），与既有 data/team-sim/curated/albedo.json 的处理一致，属刻意简化",
+    "bennett.skill：内核 ParticleSpec 的 element 目前只接受 geo/physical/clear，pyro 需扩枚举后才能直接入库",
+    "bennett.skill：倍率 2.4768 ← miao 点按伤害[9]=247.68%，与 gcsim skill 表 lv10 值一致",
+    "bennett.burst：能量取 EnergyMax=60；gcsim 的 ConsumeEnergy(36) 里 36 是扣能延迟帧数（template/character/energy.go:9 → ConsumeEnergyPartial(..., EnergyMax)），不是耗能量；内核是起手扣，延迟未建模",
+    "bennett.burst：领域未建模：12 秒 13 次 tick（首 tick 34 帧只加攻击、之后每 60 帧一次治疗），攻击力加成为 100.8% 基础攻击力",
+    "bennett.burst：命座加成未建模：C1 攻击加成 +20%、C6 火伤 +15% 与单手剑/大剑/长柄附魔",
+    "bennett.burst：倍率 4.1904 ← miao 技能伤害[9]=419.04%，与 gcsim burst 表 lv10 值一致"
+  ],
+  "actions": {
+    "bennett.skill": {
+      "id": "bennett.skill",
+      "actorId": "bennett",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      },
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 2.4768,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 16,
+          "count": 2,
+          "element": "pyro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 240,
+      "cooldownId": "skill"
+    },
+    "bennett.burst": {
+      "id": "bennett.burst",
+      "actorId": "bennett",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 53
+      },
+      "hits": [
+        {
+          "atFrame": 37,
+          "motionValue": 4.1904,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

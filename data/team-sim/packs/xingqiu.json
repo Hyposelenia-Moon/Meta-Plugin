@@ -111,6 +111,54 @@
         "type": "frames",
         "frames": 66
       }
+    },
+    "xingqiu.skill": {
+      "id": "xingqiu.skill",
+      "actorId": "xingqiu",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 67
+      },
+      "hits": [
+        {
+          "atFrame": 12,
+          "motionValue": 3.024,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 31,
+          "motionValue": 3.4416,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 12,
+          "count": 5,
+          "element": "hydro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 1260,
+      "cooldownId": "skill"
+    },
+    "xingqiu.burst": {
+      "id": "xingqiu.burst",
+      "actorId": "xingqiu",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 40
+      },
+      "hits": [],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
     }
   }
 }

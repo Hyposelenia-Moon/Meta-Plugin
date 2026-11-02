@@ -55,7 +55,12 @@ for (const name of packFiles) {
     else assert.ok(['skill', 'burst', 'charged'].includes(action.kind), `${name} 的动作 ${action.id} 种类未知：${action.kind}`)
     assert.equal(allActions.has(action.id), false, `动作 id 重复：${action.id}`)
     allActions.set(action.id, action)
-    assert.ok(action.hits.length >= 1)
+    // 施放本身无伤害的爆发（行秋/纳西妲）允许显式空 hits；普攻不允许，且无伤害动作必须有冷却
+    if (!action.hits.length) {
+      assert.notEqual(action.kind, 'normal', `${action.id} 普攻不能没有命中`)
+      assert.ok(Number(action.cooldownFrames) > 0, `${action.id} 无伤害动作必须有冷却`)
+      continue
+    }
     assert.ok(action.hits.at(-1).atFrame < action.timing.frames, `${action.id} 命中帧必须早于动作结束`)
     for (let i = 1; i < action.hits.length; i++) assert.ok(action.hits[i].atFrame >= action.hits[i - 1].atFrame, `${action.id} 命中帧必须递增`)
     if (action.hits.length > 1) multiHitActions++
@@ -116,8 +121,31 @@ assert.deepEqual(
   { frames: 42, atFrame: 18, mv: 5.5296, count: 3 })
 // 一斗爆发不造成伤害，包内不该出现爆发动作。
 assert.equal(ittoCurated.actions['aratakiitto.burst'], undefined)
-// 除这四人外，任何包都不该带非普攻动作。
-const curatedKeys = new Set(['zhongli', 'albedo', 'gorou', 'aratakiitto'])
+
+// 2026-11-02 第一批人工核对动作：抽查命中帧、倍率、能量、产球元素与冷却。
+const bennett = geoPack('bennett')
+assert.deepEqual(
+  { frames: bennett.actions['bennett.skill'].timing.frames, atFrame: bennett.actions['bennett.skill'].hits[0].atFrame, mv: bennett.actions['bennett.skill'].hits[0].motionValue, cd: bennett.actions['bennett.skill'].cooldownFrames, particle: bennett.actions['bennett.skill'].particles[0] },
+  { frames: 42, atFrame: 16, mv: 2.4768, cd: 240, particle: { atFrame: 16, count: 2, element: 'pyro', travelFrames: 0 } })
+assert.deepEqual(
+  { mv: bennett.actions['bennett.burst'].hits[0].motionValue, cost: bennett.actions['bennett.burst'].energyCost, cd: bennett.actions['bennett.burst'].cooldownFrames },
+  { mv: 4.1904, cost: 60, cd: 900 })
+const xingqiu = geoPack('xingqiu')
+assert.deepEqual(xingqiu.actions['xingqiu.skill'].hits.map(h => h.atFrame), [12, 31])
+assert.deepEqual(xingqiu.actions['xingqiu.skill'].hits.map(h => h.motionValue), [3.024, 3.4416])
+assert.equal(xingqiu.actions['xingqiu.skill'].cooldownFrames, 1260)
+assert.equal(xingqiu.actions['xingqiu.burst'].hits.length, 0, '行秋爆发施放本身无伤害，hits 必须为空数组')
+assert.equal(xingqiu.actions['xingqiu.burst'].energyCost, 80)
+const kazuha = JSON.parse(fs.readFileSync(new URL('kaedeharakazuha.json', packsDir), 'utf8'))
+assert.deepEqual(
+  { frames: kazuha.actions['kaedeharakazuha.burst'].timing.frames, atFrame: kazuha.actions['kaedeharakazuha.burst'].hits[0].atFrame, mv: kazuha.actions['kaedeharakazuha.burst'].hits[0].motionValue, cost: kazuha.actions['kaedeharakazuha.burst'].energyCost },
+  { frames: 93, atFrame: 82, mv: 4.7232, cost: 60 })
+assert.equal(kazuha.actions['kaedeharakazuha.skill'].particles[0].element, 'anemo')
+// 除已人工核对的角色外，任何包都不该带非普攻动作。
+const curatedKeys = new Set([
+  'zhongli', 'albedo', 'gorou', 'aratakiitto',
+  'bennett', 'xingqiu', 'furina', 'nahida', 'kaedeharakazuha'
+])
 const stray = []
 for (const name of packFiles) {
   const key = name.replace(/\.json$/, '')

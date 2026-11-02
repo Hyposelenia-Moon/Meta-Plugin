@@ -78,6 +78,39 @@
         "type": "frames",
         "frames": 71
       }
+    },
+    "nahida.skill": {
+      "id": "nahida.skill",
+      "actorId": "nahida",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 32
+      },
+      "hits": [
+        {
+          "atFrame": 13,
+          "motionValue": 1.7712,
+          "scaling": "atk",
+          "element": "dendro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 300,
+      "cooldownId": "skill"
+    },
+    "nahida.burst": {
+      "id": "nahida.burst",
+      "actorId": "nahida",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 112
+      },
+      "hits": [],
+      "energyCost": 50,
+      "cooldownFrames": 810,
+      "cooldownId": "burst"
     }
   }
 }
