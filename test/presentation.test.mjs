@@ -75,8 +75,11 @@ const fullBuild = {
   ok('比例 0.84 → 84%', dims.every(d => d.pct === null || d.pct === P.pctOfRatio(d.ratio)))
   // 回归（2026-11-01 现场）：面板条满格显示 100%、右侧却写「未达标」
   const nearFull = P.buildDims([{ key: 'panel', label: '面板', ratio: 0.996, weight: 0.3, detail: '', state: 'below' }])
-  ok('比例 0.996（未达标）显示 99%，不四舍五入成 100%',
-    nearFull[0].pct === 99 && nearFull[0].pctText === '99%')
+  ok('比例 0.996（未达标）显示 99.6%，不四舍五入成 100%',
+    nearFull[0].pct === 99 && nearFull[0].pctText === '99.6%')
+  ok('百分比保留一位小数、整数不带小数',
+    P.pctTextOfRatio(0.97) === '97%' && P.pctTextOfRatio(0.9723) === '97.2%' &&
+    P.pctTextOfRatio(0.9999) === '99.9%' && P.pctTextOfRatio(1) === '100%' && P.pctTextOfRatio(null) === null)
   const fullDim = P.buildDims([{ key: 'panel', label: '面板', ratio: 1, weight: 0.3, detail: '', state: 'met' }])
   ok('比例 1（达标）才显示 100%', fullDim[0].pct === 100 && fullDim[0].pctText === '100%')
   ok('四态文本与图形齐全（颜色之外的两条通道）',

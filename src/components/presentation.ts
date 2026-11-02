@@ -241,6 +241,19 @@ export function pctOfRatio (ratio: number | null): number | null {
 }
 
 /**
+ * 比例 → 展示用百分比文本（2026-11-02 用户定：保留一位小数，整数不带小数）
+ *
+ * 口径同上：只有 `ratio >= 1` 才显示 100%；不足 100% 时最高 99.9%，
+ * 其余四舍五入到一位小数（97 → "97%"、97.23 → "97.2%"、99.96 → "99.9%"）。
+ */
+export function pctTextOfRatio (ratio: number | null): string | null {
+  if (ratio === null || !Number.isFinite(ratio)) return null
+  if (ratio >= 1) return '100%'
+  const value = Math.min(99.9, Math.max(0, Math.round(ratio * 1000) / 10))
+  return Number.isInteger(value) ? `${value}%` : `${value.toFixed(1)}%`
+}
+
+/**
  * 维度视图：四态 + 有效权重 + 不画 0 长度条
  *
  * 2026-11-02 用户定：权重为 0（不计分）的维度**不在页面上显示** ——
@@ -261,8 +274,9 @@ export function buildDims (dims: GradeDim[]): GradeDimView[] {
       ratio: d.ratio,
       pct,
       // 不计分 / 未知都不显示百分数（旧实现显示 0%，等于把缺项说成"一点没做"）；
-      // 数值列写"—"，状态由状态章表达（颜色 + 图形 + 中文三通道）
-      pctText: pct === null ? '—' : `${pct}%`,
+      // 数值列写"—"，状态由状态章表达（颜色 + 图形 + 中文三通道）；
+      // 2026-11-02：百分比保留一位小数，整数不带小数
+      pctText: pctTextOfRatio(d.ratio) ?? '—',
       weight: d.weight,
       weightText: d.weight > 0 ? `${Math.round(d.weight * 100)}%` : '—',
       detail: d.detail
