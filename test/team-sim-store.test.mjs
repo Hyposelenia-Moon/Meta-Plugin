@@ -84,7 +84,8 @@ const shortWindow = S.toRotation({ ...file, measurementEndFrame: 1 }, team.pack)
 assert.equal(shortWindow.status, 'invalid')
 
 // ---------- 4. 没有轴 / 没有永久数据时如实报缺 ----------
-const none = S.findRotation(['10000030', '10000038', '10000055', '10000057'])
+// 2026-11-02：纯岩四人已有示例轴（geo-four.json），这里换一支没有轴的队伍验证「如实报缺」
+const none = S.findRotation(['10000035', '10000036', '10000037', '10000039'])
 assert.equal(none.rotationFile, undefined)
 assert.ok(S.listRotationFiles().every(name => name.endsWith('.json')))
 

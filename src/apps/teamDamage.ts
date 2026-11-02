@@ -16,6 +16,7 @@ import { findRotation, loadPermanentData, loadTeamPack, toRotation } from '../mo
 import {
   DPS_STANDARD,
   buildTeamRunReport,
+  evaluateReleaseGate,
   formatTeamRunReport,
   simulateTeam,
   type CharacterBuild,
@@ -160,7 +161,18 @@ export class MetaTeamDamage extends plugin {
     }
 
     const lines = formatTeamRunReport(buildTeamRunReport(run))
-    await e.reply(`[Meta] ${lines.join('\n')}`)
+    /*
+     * 2026-11-02 用户定：发布闸门先接成**警告**——数字照给，但没过的关必须写在结果里。
+     * 等数据补齐后再改成硬拦截（blocked 时不出数字）。
+     */
+    const gate = evaluateReleaseGate({ result: run })
+    const gateLines = gate.status === 'pass'
+      ? []
+      : [
+          `未过发布闸门（${gate.status}）：以下数字仅供调试，不代表可发布结论`,
+          ...gate.checks.filter(check => check.status !== 'pass').map(check => `  · ${check.id}：${check.detail}`)
+        ]
+    await e.reply(`[Meta] ${[...lines, ...(gateLines.length ? ['', ...gateLines] : [])].join('\n')}`)
     return true
   }
 }

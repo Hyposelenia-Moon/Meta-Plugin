@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "id": "geo-four-basic",
+  "team": [
+    "10000057",
+    "10000055",
+    "10000038",
+    "10000030"
+  ],
+  "measurementEndFrame": 7243,
+  "scheduler": "fixed",
+  "keymap": {
+    "version": "geo-four-v1",
+    "bindings": {
+      "zhongli.skill": {
+        "actorId": "zhongli",
+        "actionId": "zhongli.skill"
+      },
+      "to_albedo": {
+        "actorId": "albedo",
+        "switch": true
+      },
+      "albedo.skill": {
+        "actorId": "albedo",
+        "actionId": "albedo.skill"
+      },
+      "to_aratakiitto": {
+        "actorId": "aratakiitto",
+        "switch": true
+      },
+      "aratakiitto.skill": {
+        "actorId": "aratakiitto",
+        "actionId": "aratakiitto.skill"
+      },
+      "aratakiitto.normal-1": {
+        "actorId": "aratakiitto",
+        "actionId": "aratakiitto.normal-1"
+      },
+      "aratakiitto.normal-2": {
+        "actorId": "aratakiitto",
+        "actionId": "aratakiitto.normal-2"
+      },
+      "aratakiitto.normal-3": {
+        "actorId": "aratakiitto",
+        "actionId": "aratakiitto.normal-3"
+      },
+      "aratakiitto.normal-4": {
+        "actorId": "aratakiitto",
+        "actionId": "aratakiitto.normal-4"
+      },
+      "to_gorou": {
+        "actorId": "gorou",
+        "switch": true
+      },
+      "gorou.skill": {
+        "actorId": "gorou",
+        "actionId": "gorou.skill"
+      }
+    }
+  },
+  "recording": {
+    "schemaVersion": 1,
+    "frameTierId": "fps-60",
+    "keymapVersion": "geo-four-v1",
+    "gameVersion": "7.1",
+    "source": "handmade",
+    "start": {
+      "activeActorId": "zhongli",
+      "actors": [
+        {
+          "actorId": "zhongli",
+          "energy": 0,
+          "energyMax": 40
+        },
+        {
+          "actorId": "albedo",
+          "energy": 0,
+          "energyMax": 40
+        },
+        {
+          "actorId": "gorou",
+          "energy": 0,
+          "energyMax": 80
+        },
+        {
+          "actorId": "aratakiitto",
+          "energy": 0,
+          "energyMax": 70
+        }
+      ]
+    },
+    "events": [
+      {
+        "atMs": 0,
+        "key": "zhongli.skill",
+        "phase": "down"
+      },
+      {
+        "atMs": 32,
+        "key": "zhongli.skill",
+        "phase": "up"
+      },
+      {
+        "atMs": 1590,
+        "key": "to_albedo",
+        "phase": "down"
+      },
+      {
+        "atMs": 1590,
+        "key": "albedo.skill",
+        "phase": "down"
+      },
+      {
+        "atMs": 1622,
+        "key": "to_albedo",
+        "phase": "up"
+      },
+      {
+        "atMs": 1622,
+        "key": "albedo.skill",
+        "phase": "up"
+      },
+      {
+        "atMs": 2154,
+        "key": "to_aratakiitto",
+        "phase": "down"
+      },
+      {
+        "atMs": 2154,
+        "key": "aratakiitto.skill",
+        "phase": "down"
+      },
+      {
+        "atMs": 2186,
+        "key": "to_aratakiitto",
+        "phase": "up"
+      },
+      {
+        "atMs": 2186,
+        "key": "aratakiitto.skill",
+        "phase": "up"
+      },
+      {
+        "atMs": 2850,
+        "key": "aratakiitto.normal-1",
+        "phase": "down"
+      },
+      {
+        "atMs": 2882,
+        "key": "aratakiitto.normal-1",
+        "phase": "up"
+      },
+      {
+        "atMs": 3529,
+        "key": "aratakiitto.normal-2",
+        "phase": "down"
+      },
+      {
+        "atMs": 3561,
+        "key": "aratakiitto.normal-2",
+        "phase": "up"
+      },
+      {
+        "atMs": 4374,
+        "key": "aratakiitto.normal-3",
+        "phase": "down"
+      },
+      {
+        "atMs": 4406,
+        "key": "aratakiitto.normal-3",
+        "phase": "up"
+      },
+      {
+        "atMs": 5318,
+        "key": "aratakiitto.normal-4",
+        "phase": "down"
+      },
+      {
+        "atMs": 5350,
+        "key": "aratakiitto.normal-4",
+        "phase": "up"
+      },
+      {
+        "atMs": 6693,
+        "key": "to_gorou",
+        "phase": "down"
+      },
+      {
+        "atMs": 6693,
+        "key": "gorou.skill",
+        "phase": "down"
+      },
+      {
+        "atMs": 6725,
+        "key": "to_gorou",
+        "phase": "up"
+      },
+      {
+        "atMs": 6725,
+        "key": "gorou.skill",
+        "phase": "up"
+      }
+    ]
+  }
+}
