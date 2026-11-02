@@ -188,3 +188,9 @@ input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); }
 .artifact-subs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 6px 0 0 56px; }
 .sub-pair { display: grid; grid-template-columns: 1fr 84px; gap: 4px; }
 .artifact-main select, .sub-pair select { width: 100%; min-width: 0; }
+
+.w80 { width: 80px; }
+.result-head { font-size: 15px; margin-bottom: 4px; }
+.result-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+.result-table th, .result-table td { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; }
+.result-table th { color: var(--muted); font-weight: 500; }

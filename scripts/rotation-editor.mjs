@@ -32,6 +32,7 @@ const ROSTER = path.join(DATA, 'roster.json')
 export const PAGE_DIR = path.join(ROOT, 'resources', 'editor-rotation')
 
 const libUrl = (rel) => pathToFileURL(path.join(ROOT, 'lib', rel)).href
+const clamp01 = (value) => Math.min(1, Math.max(0, Number(value) || 0))
 
 export function loadRoster (file = ROSTER) {
   const raw = JSON.parse(fs.readFileSync(file, 'utf8'))
@@ -208,6 +209,7 @@ export async function simulatePanel (input) {
     expected,
     targetPresetId: 'ruin-guard-lv110',
     crit,
+    // 常驻减益内核还没建模（会直接判 unsupported），这里固定为 0，等机制窗口支持后再开放
     debuffs: { defenseReduction: 0, defenseIgnore: 0, resistanceReduction: 0 }
   })
   if (run.status !== 'calculated') return { ok: false, status: run.status, issues: run.issues ?? [], stage: 'simulate' }
@@ -334,6 +336,34 @@ export async function saveRotation (file, dir = ROTATIONS) {
   return { ...checked, path: path.join(dir, `${id}.json`) }
 }
 
+const PROFILES = path.join(DATA, 'profiles')
+
+export function listProfiles (dir = PROFILES) {
+  if (!fs.existsSync(dir)) return []
+  return fs.readdirSync(dir).filter(name => name.endsWith('.json')).sort().map(name => {
+    try {
+      const data = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'))
+      return { id: data.id ?? name.replace(/\.json$/, ''), team: Array.isArray(data.panels) ? data.panels.length : 0 }
+    } catch { return { id: name.replace(/\.json$/, ''), team: 0, error: true } }
+  })
+}
+
+export function readProfile (id, dir = PROFILES) {
+  const safe = safeId(id)
+  if (!safe) throw new Error('非法的面板 id')
+  return JSON.parse(fs.readFileSync(path.join(dir, `${safe}.json`), 'utf8'))
+}
+
+export function saveProfile (profile, dir = PROFILES) {
+  const id = safeId(profile?.id)
+  if (!id) return { ok: false, issues: [{ path: 'id', message: '面板 id 只能用字母数字、点、下划线、短横线' }] }
+  const panels = Array.isArray(profile?.panels) ? profile.panels : []
+  if (!panels.length) return { ok: false, issues: [{ path: 'panels', message: '面板里还没有角色' }] }
+  fs.mkdirSync(dir, { recursive: true })
+  const file = { schemaVersion: 1, id, panels, savedAt: new Date().toISOString().slice(0, 10) }
+  fs.writeFileSync(path.join(dir, `${id}.json`), `${JSON.stringify(file, null, 2)}\n`, 'utf8')
+  return { ok: true, id, panels: panels.length, path: path.join(dir, `${id}.json`) }
+}
 /* ------------------------------------------------------------------ *
  * HTTP 服务
  * ------------------------------------------------------------------ */
@@ -390,6 +420,16 @@ export function createServer () {
       if (req.method === 'POST' && url.pathname === '/api/panel') {
         const body = await readBody(req)
         return sendJson(res, 200, await computePanel(body?.build ?? body))
+      }
+      if (req.method === 'GET' && url.pathname === '/api/profiles') {
+        return sendJson(res, 200, { items: listProfiles() })
+      }
+      if (req.method === 'GET' && url.pathname === '/api/profile') {
+        try { return sendJson(res, 200, { profile: readProfile(String(url.searchParams.get('id') ?? '')) }) } catch (err) { return sendJson(res, 404, { error: String(err?.message ?? err) }) }
+      }
+      if (req.method === 'PUT' && url.pathname === '/api/profile') {
+        const body = await readBody(req)
+        return sendJson(res, 200, saveProfile(body?.profile))
       }
       if (req.method === 'POST' && url.pathname === '/api/simulate') {
         const body = await readBody(req)
@@ -521,6 +561,8 @@ if (isMain) {
   })
   listen(basePort)
 }
+
+
 
 
 

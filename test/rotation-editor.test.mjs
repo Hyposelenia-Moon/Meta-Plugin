@@ -180,4 +180,25 @@ fs.rmSync(tmp, { recursive: true, force: true })
   ok('面板 + 轴能跑出 DPS', run.ok === true && run.dps > 0, JSON.stringify(run.issues?.slice(0, 2)))
   ok('结果带逐动作与能量', Array.isArray(run.actions) && run.actions.length > 0 && Array.isArray(run.energy))
 }
+
+// 面板存档与口径旋钮（P4）
+{
+  const prof = E.saveProfile({ id: 'tmp-panel', panels: [{ characterId: '10000032', weaponId: '13407', artifacts: [] }] }, tmp)
+  ok('面板能存成 profile', prof.ok === true && fs.existsSync(path.join(tmp, 'tmp-panel.json')))
+  ok('面板能读回', E.readProfile('tmp-panel', tmp).panels.length === 1)
+  ok('面板列表能看到', E.listProfiles(tmp).some(item => item.id === 'tmp-panel'))
+  ok('非法面板 id 被拒绝', E.saveProfile({ id: '../x', panels: [{ characterId: '1' }] }, tmp).ok === false)
+
+  const artis = ['flower', 'plume', 'sands', 'goblet', 'circlet'].map((slot, i) => ({
+    slot, setId: '400189', level: 20,
+    main: { key: ['hp', 'atk', 'atkPct', 'geo', 'cpct'][i], value: [4780, 311, 0.466, 0.466, 0.311][i] },
+    sub: [{ key: 'cdmg', value: 0.7 }, { key: 'mastery', value: 40 }]
+  }))
+  const rotation = { schemaVersion: 1, id: 'tmp-run', team: ['10000032'], measurementEndFrame: 7243, scheduler: 'asap-sequence', frameTierId: 'fps-60', loop: true, sequence: ['bennett.skill'] }
+  const panel = { characterId: '10000032', weaponId: '13407', refinement: 1, artifacts: artis }
+  const plain = await E.simulatePanel({ rotation, panels: [panel] })
+  const crit = await E.simulatePanel({ rotation, panels: [panel], crit: 'critical' })
+  ok('暴击口径透传到结果', plain.ok && crit.ok && plain.crit === 'expected' && crit.crit === 'critical')
+  ok('全暴击伤害更高', crit.ok && plain.ok && crit.actions.reduce((s, a) => s + a.total, 0) > plain.actions.reduce((s, a) => s + a.total, 0))
+}
 report()

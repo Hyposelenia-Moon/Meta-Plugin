@@ -194,37 +194,115 @@ function panelPayload (team) {
   })
 }
 
+function debuffsNow () {
+  const num = id => Number(document.getElementById(id)?.value) || 0
+  return { resistanceReduction: num('panel-rr') / 100, defenseReduction: num('panel-dr') / 100, defenseIgnore: num('panel-di') / 100 }
+}
+
+function renderResult (body) {
+  const box = document.getElementById('panel-result')
+  if (!body.ok) {
+    box.className = 'status bad'
+    box.textContent = `跑不了：\n${(body.issues || []).map(issue => `· ${issue.path}：${issue.message}`).join('\n')}`
+    return
+  }
+  const nameOf = actorId => P.roster.find(item => item.keys?.[0] === actorId)?.cn ?? actorId
+  const energy = (body.energy || []).map(item => `${nameOf(item.actorId)} ${Math.round(item.end)}/${item.max}`).join(' · ')
+  const rows = (body.actions || []).filter(item => item.total > 0).sort((a, b) => b.total - a.total)
+  const table = rows.map(item => `<tr><td>${nameOf(item.actorId)}</td><td>${item.actionId}</td><td>${item.hits}</td><td>${Math.round(item.total).toLocaleString()}</td></tr>`).join('')
+  box.className = 'status ok'
+  box.innerHTML = `<div class="result-head">DPS <b>${Math.round(body.dps)}</b> · 总伤害 ${Math.round(body.dps * 120).toLocaleString()} · 暴击口径 ${body.crit === 'critical' ? '全暴击' : body.crit === 'non-critical' ? '不暴击' : '期望'}</div>` +
+    `<div class="muted">结束时能量：${energy}</div>` +
+    `<table class="result-table"><thead><tr><th>角色</th><th>动作</th><th>命中</th><th>伤害</th></tr></thead><tbody>${table}</tbody></table>`
+}
+
 async function runPanel () {
   const box = document.getElementById('panel-result')
   const team = window.__rotationState?.team ?? []
   if (!team.length) { box.className = 'status bad'; box.textContent = '先在「拼一条轴」里选好队伍'; return }
   let panels
   try { panels = panelPayload(team) } catch (err) { box.className = 'status bad'; box.textContent = err.message; return }
-  const rotation = window.__rotationFile
   box.className = 'status'
   box.textContent = '正在跑…'
   try {
     const body = await fetch('/api/simulate', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ panels, rotation })
+      body: JSON.stringify({ panels, rotation: window.__rotationFile, crit: document.getElementById('panel-crit')?.value })
     }).then(r => r.json())
-    if (!body.ok) {
-      box.className = 'status bad'
-      box.textContent = `跑不了：\n${(body.issues || []).map(issue => `· ${issue.path}：${issue.message}`).join('\n')}`
-      return
-    }
-    const energy = (body.energy || []).map(item => `${P.roster.find(r => r.keys?.[0] === item.actorId)?.cn ?? item.actorId} ${Math.round(item.end)}/${item.max}`).join(' · ')
-    const acts = (body.actions || []).filter(item => item.hits).slice(0, 8)
-      .map(item => `${item.actionId}（${item.hits} 段）`).join('，')
-    box.className = 'status ok'
-    box.textContent = `DPS ${Math.round(body.dps)}｜命中 ${body.hits?.total ?? body.hits ?? '—'}｜能量结束时：${energy}\n主要动作：${acts}`
+    renderResult(body)
   } catch (err) {
     box.className = 'status bad'
     box.textContent = `请求失败：${err.message}`
   }
 }
 
+function fillExample () {
+  const team = window.__rotationState?.team ?? []
+  for (const charId of team) {
+    const entry = P.roster.find(item => item.charId === charId)
+    const card = cardOf(charId)
+    const elem = entry?.element && ['pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro'].includes(entry.element) ? entry.element : 'geo'
+    const mains = { flower: 'hp', plume: 'atk', sands: 'atkPct', goblet: elem, circlet: 'cpct' }
+    for (const [slot] of SLOTS) {
+      card.slots[slot] = { setId: '400189', level: 20, mainKey: mains[slot], subs: [{ key: 'cdmg', value: 0.7 }, { key: 'mastery', value: 40 }, { key: '', value: '' }, { key: '', value: '' }] }
+    }
+  }
+  renderPanel()
+}
+
+async function loadProfiles () {
+  const list = document.getElementById('panel-profile-list')
+  if (!list) return
+  const body = await fetch('/api/profiles').then(r => r.json())
+  list.innerHTML = '<option value="">载入已保存的面板…</option>' + (body.items || []).map(item => `<option value="${item.id}">${item.id}（${item.team} 人）</option>`).join('')
+}
+
+async function saveProfile () {
+  const name = document.getElementById('panel-profile-name').value.trim()
+  if (!name) { alert('先给面板起个名字'); return }
+  const team = window.__rotationState?.team ?? []
+  let panels
+  try { panels = panelPayload(team) } catch (err) { alert(err.message); return }
+  const body = await fetch('/api/profile', {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ profile: { id: name, panels } })
+  }).then(r => r.json())
+  if (!body.ok) { alert((body.issues || []).map(issue => issue.message).join('；')); return }
+  await loadProfiles()
+  document.getElementById('panel-result').textContent = `面板已保存：${body.path}`
+}
+
+async function loadProfile () {
+  const id = document.getElementById('panel-profile-list').value
+  if (!id) return
+  const body = await fetch(`/api/profile?id=${encodeURIComponent(id)}`).then(r => r.json())
+  if (!body.profile) { alert('读不到这份面板'); return }
+  for (const panel of body.profile.panels) {
+    const card = cardOf(panel.characterId)
+    card.weaponId = panel.weaponId || ''
+    card.refinement = panel.refinement || 1
+    card.slots = Object.fromEntries(SLOTS.map(([slot]) => [slot, { setId: '', level: 20, mainKey: defaultMain(slot), subs: [] }]))
+    for (const artifact of panel.artifacts || []) {
+      const levelIndex = P.tables.levels.indexOf(artifact.level)
+      card.slots[artifact.slot] = {
+        setId: artifact.setId,
+        level: artifact.level,
+        mainKey: artifact.main?.key,
+        subs: (artifact.sub || []).map(sub => ({ key: sub.key, value: sub.value })).concat(Array(4).fill({ key: '', value: '' })).slice(0, 4)
+      }
+      void levelIndex
+    }
+  }
+  renderPanel()
+}
 bootPanel().then(() => {
   document.getElementById('panel-run')?.addEventListener('click', runPanel)
+  document.getElementById('panel-example')?.addEventListener('click', fillExample)
+  document.getElementById('panel-profile-save')?.addEventListener('click', saveProfile)
+  document.getElementById('panel-profile-load')?.addEventListener('click', loadProfile)
+  loadProfiles()
 })
+
+
