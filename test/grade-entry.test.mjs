@@ -79,6 +79,11 @@ try {
   const usage = await query('#练度查询 芙芙 辅助 多余参数')
   assert.equal(readCount, 0)
   assert.match(usage, /用法/)
+  // 2026-11-02 强制兜底：只有一个「通用」预设时，写「辅助」也按辅助口径评分
+  data = { schema: 3, name: '芙宁娜', presets: [{ id: 'general', name: '通用', role: 'dps', meta: { 定位: '输出' }, v2: guide.presets[0].v2 }] }
+  await query('#练度查询 芙芙 辅助')
+  assert.equal(rendered.presetName, '通用')
+  assert.ok(rendered.presetWeightText.includes('面板 45%'), rendered.presetWeightText)
 } finally {
   Object.assign(codexStore, { listAll: backup.listAll, getGuide: backup.getGuide, getSignature: backup.getSignature, getWeaponTags: backup.getWeaponTags })
   atlasRes.resolveAlias = backup.resolveAlias

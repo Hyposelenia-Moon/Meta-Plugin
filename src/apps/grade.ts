@@ -144,7 +144,12 @@ export class MetaGrade extends plugin {
       await e.reply(`[Meta] ${charName} 的攻略预设未能唯一匹配，请指定预设\n可用预设：${names.join('、')}\n用法：#练度查询 ${charName} ${names[0] || '<预设>'}`)
       return true
     }
-    const preset = selection.preset
+    /*
+     * 2026-11-02 用户定：手动写「输出 / 辅助」时**强制按该方向口径评分**。
+     * 攻略预设可能与方向不一致（某角色的预设只有「通用」且 role=dps），
+     * 这里用 forcedRole 覆盖评分角色；预设名与目标数据仍取选中的那一份。
+     */
+    const preset = selection.forcedRole ? { ...selection.preset!, role: selection.forcedRole } : selection.preset
     const guide = selectGuidePreset(sourceGuide, preset)
     const view = buildCodexView(guide, {
       signature: codexStore.getSignature(guide?.name || charName),

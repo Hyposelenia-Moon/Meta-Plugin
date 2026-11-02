@@ -74,6 +74,8 @@ export interface PresetMatch {
   preset: GuidePreset | null
   reason: string
   candidates: GuidePreset[]
+  /** 手动按方向指定、但攻略预设没有同方向项时的强制口径（2026-11-02） */
+  forcedRole?: PresetRole
 }
 
 /** 明确指定 → 规则精确名/正则 → 规则名称方向 → 属性权重 → 单预设；歧义始终返回候选。 */
@@ -86,11 +88,18 @@ export function matchGuidePreset (guide: Guide, input: {
     const exact = presets.filter(p => p.name === input.requested || p.id === input.requested)
     if (exact.length) return choose(exact, '手动指定')
     /*
-     * 2026-11-02：`#练度查询 胡桃 输出 / 辅助` 允许直接按**方向**指定预设，
-     * 不必记角色各自起的预设名；同方向有多份预设时仍按歧义处理（返回候选）。
+     * 2026-11-02：`#练度查询 胡桃 输出 / 辅助` 按**方向**指定，走强制兜底：
+     *   1) 有同方向预设 → 用它；
+     *   2) 没有（例如只有「通用」）且全库只有一份预设 → 用它，并把评分口径强制成该方向；
+     *   3) 多份且都对不上方向 → 交回候选列表，不猜。
      */
     const role = normalizeRuleRole(input.requested)
-    if (role) return choose(presets.filter(p => p.role === role), '手动指定')
+    if (role) {
+      const byRole = presets.filter(p => p.role === role)
+      if (byRole.length) return { ...choose(byRole, '手动指定'), forcedRole: role }
+      if (presets.length === 1) return { ...choose(presets, '手动指定'), forcedRole: role }
+      return { ...choose([], '手动指定'), forcedRole: role }
+    }
     return choose([], '手动指定')
   }
   const title = String(input.ruleTitle || '').trim()

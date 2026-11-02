@@ -30,6 +30,12 @@ const selected = selectGuidePreset(guide, 'utility')
 assert.equal(matchGuidePreset(guide, { requested: '辅助' }).preset.id, 'utility')
 assert.equal(matchGuidePreset(guide, { requested: '输出' }).preset.id, 'damage')
 assert.equal(matchGuidePreset(guide, { requested: 'dps' }).preset.id, 'damage')
+// 强制兜底：只有一份「通用」预设（role=dps）时，写「辅助」也要按辅助口径评分
+const genericOnly = { schema: 3, name: '测试', presets: [{ id: 'general', name: '通用', role: 'dps', meta: {}, v2: {} }] }
+const forced = matchGuidePreset(genericOnly, { requested: '辅助' })
+assert.equal(forced.preset.id, 'general')
+assert.equal(forced.forcedRole, 'support')
+assert.equal(matchGuidePreset(genericOnly, { requested: '输出' }).forcedRole, 'dps')
 assert.equal(selected.v2.weapons[0].items[0].name, '西风剑')
 assert.equal(selected.presets, undefined)
 selected.v2.weapons[0].items[0].name = '修改投影'
