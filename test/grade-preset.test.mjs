@@ -22,7 +22,7 @@ const build = (patch = {}) => ({
   weapon: { name: '推荐剑', affix: 1, level: 90 },
   talent: { E: 10 }, talentOriginal: { E: 10 },
   artis: ['生之花', '死之羽', '时之沙', '空之杯', '理之冠'].map(slot => ({ slot, set: '推荐套', mainName: '攻击力', level: 20 })),
-  artiMark: { total: 240, markClass: 'MAX' }, attrs: { cpct: 80, recharge: 200 },
+  artiMark: { total: 250, markClass: 'MAX' }, attrs: { cpct: 80, recharge: 200 },
   ...patch
 })
 const run = (t = target(), b = build(), p = preset()) => G.gradeBuild(t, b, { preset: p })
@@ -34,12 +34,16 @@ const near = (a, b) => Math.abs(a - b) < 1e-9
   ok('输出预设维度 = 圣遗物/面板/武器/天赋', r.dims.map(d => d.key).join(',') === 'artifact,panel,weapon,talent')
   ok('输出权重 圣遗物45 武器25 天赋25（面板0）', near(dim(r, 'artifact').weight, 0.45) && near(dim(r, 'weapon').weight, 0.25) && near(dim(r, 'talent').weight, 0.25))
   ok('面板权重 0 → 不计分', dim(r, 'panel').ratio === null && dim(r, 'panel').state === 'unscored')
-  ok('满分（套装齐 + 240 分 + 90 级推荐武器 + 天赋满）→ 100 MAX', r.total === 100 && r.rank === 'MAX')
+  ok('满分（套装齐 + 250 分 + 90 级推荐武器 + 天赋满）→ 100 MAX', r.total === 100 && r.rank === 'MAX')
 }
 
 {
-  const r = run(target(), build({ artiMark: { total: 235, markClass: 'ACE' } }))
-  ok('套装齐 + 235 分 → 圣遗物 95% 达标', near(dim(r, 'artifact').ratio, 0.95) && dim(r, 'artifact').state === 'met')
+  const r = run(target(), build({ artiMark: { total: 240, markClass: 'ACE' } }))
+  ok('套装齐 + 240 分 → 圣遗物 95% 达标（240 即达标）', near(dim(r, 'artifact').ratio, 0.95) && dim(r, 'artifact').state === 'met')
+  const r235 = run(target(), build({ artiMark: { total: 235, markClass: 'ACE' } }))
+  ok('235 分 → 30% + 60.625% = 90.6%，未达标', near(dim(r235, 'artifact').ratio, 0.90625) && dim(r235, 'artifact').state === 'below')
+  const r250 = run(target(), build({ artiMark: { total: 250, markClass: 'MAX' } }))
+  ok('250 分 → 70% + 套装 30% = 100%（封顶）', near(dim(r250, 'artifact').ratio, 1))
   const r200 = run(target(), build({ artiMark: { total: 200, markClass: 'S' } }))
   ok('200 分 → 30% + 套装 30% = 60%', near(dim(r200, 'artifact').ratio, 0.6) && dim(r200, 'artifact').state === 'below')
   const r100 = run(target(), build({ artiMark: { total: 100, markClass: 'D' } }))
@@ -50,7 +54,7 @@ const near = (a, b) => Math.abs(a - b) < 1e-9
 {
   const b = build({ artis: build().artis.map(a => ({ ...a, set: '冒险家' })) })
   const r = run(target(), b)
-  ok('套装不符只有评分分（240 分 → 70%）', near(dim(r, 'artifact').ratio, 0.7) && dim(r, 'artifact').state === 'below')
+  ok('套装不符只有评分分（250 分 → 70%）', near(dim(r, 'artifact').ratio, 0.7) && dim(r, 'artifact').state === 'below')
   ok('套装不符有独立证据与建议', r.suggestionRows.some(s => s.evidenceIds.includes('artifact:set')))
   const special = run(target({ artifact: { recommend: ['推荐套'], optional: [], special: ['幽境套'] } }),
     build({ artis: build().artis.map(a => ({ ...a, set: '幽境套' })) }))

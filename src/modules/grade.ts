@@ -62,11 +62,20 @@ export const DIM_MET_FLOORS = { artifact: 0.95, panel: 0.95, weapon: 0.9, talent
 /** 角色等级维度：隐藏维，权重 5%（从圣遗物 / 面板里扣） */
 export const LEVEL_WEIGHT = 0.05
 
-/** 圣遗物：套装占 30%，词条评分占 70%（评分每分 0.15%，240 分封顶） */
+/**
+ * 圣遗物：套装占 30%，词条评分占 70%
+ *
+ * 2026-11-02 用户定：**240 分达标、250 分封顶**。
+ * 套装齐 + 240 分 = 95%（达标线）；套装齐 + 250 分 = 100%。
+ * 于是评分部分：200 分 = 30%，240 分 = 65%，250 分 = 70%。
+ */
 export const ARTIFACT_SET_PART = 0.3
 export const ARTIFACT_MARK_PART = 0.7
 export const ARTIFACT_MARK_BASE = 200
-export const ARTIFACT_MARK_FULL = 240
+export const ARTIFACT_MARK_TARGET = 240
+export const ARTIFACT_MARK_FULL = 250
+/** 240 分时评分部分的目标值：达标线 95% − 套装 30% = 65% */
+export const ARTIFACT_MARK_TARGET_PART = DIM_MET_FLOORS.artifact - ARTIFACT_SET_PART
 
 /** 武器：等级占 30%，符合度占 70% */
 export const WEAPON_LEVEL_PART = 0.3
@@ -80,11 +89,12 @@ export const DEFAULT_RANK_THRESHOLDS: Array<[string, number]> = [
 ]
 
 /**
- * 圣遗物词条评分 → 评分部分（0.30 ~ 0.70）
+ * 圣遗物词条评分 → 评分部分（0 ~ 0.70）
  *
  * ≤200 分：30% 摊在 200 分上，每分 0.15%；
- * 200~240：每分 +1%；
- * ≥240：封顶 70%。
+ * 200~240：线性到 65%（每分 0.875%）；
+ * 240~250：线性到 70%（每分 0.5%）；
+ * ≥250：封顶 70%。
  */
 export function artifactMarkRatio (total: number | null | undefined): number | null {
   if (total === null || total === undefined) return null
@@ -92,8 +102,15 @@ export function artifactMarkRatio (total: number | null | undefined): number | n
   if (!Number.isFinite(s)) return null
   if (s <= 0) return 0
   if (s <= ARTIFACT_MARK_BASE) return ARTIFACT_SET_PART * (s / ARTIFACT_MARK_BASE)
-  if (s >= ARTIFACT_MARK_FULL) return ARTIFACT_MARK_PART
-  return ARTIFACT_SET_PART + (s - ARTIFACT_MARK_BASE) * 0.01
+  if (s <= ARTIFACT_MARK_TARGET) {
+    const slope = (ARTIFACT_MARK_TARGET_PART - ARTIFACT_SET_PART) / (ARTIFACT_MARK_TARGET - ARTIFACT_MARK_BASE)
+    return ARTIFACT_SET_PART + (s - ARTIFACT_MARK_BASE) * slope
+  }
+  if (s <= ARTIFACT_MARK_FULL) {
+    const slope = (ARTIFACT_MARK_PART - ARTIFACT_MARK_TARGET_PART) / (ARTIFACT_MARK_FULL - ARTIFACT_MARK_TARGET)
+    return ARTIFACT_MARK_TARGET_PART + (s - ARTIFACT_MARK_TARGET) * slope
+  }
+  return ARTIFACT_MARK_PART
 }
 
 /** miao 圣遗物评分档位 → 0~1（与 miao `ArtisMark.getMarkClass` 的档位一一对应） */
@@ -1355,7 +1372,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   const setPct = parts.set.ratio !== null && parts.set.ratio! + 1e-9 >= 1 ? ARTIFACT_SET_PART : 0
   const artifactUnknown = markPct === null || (parts.set.state === 'unknown' && !specialSet)
   const artifactRatio = artifactUnknown ? null : clamp01(Math.max(setPct, specialSet ? ARTIFACT_SET_PART : 0) + markPct)
-  if (parts.mark.ratio !== null) parts.mark.state = markPct !== null && markPct + 1e-9 >= ARTIFACT_MARK_PART - 0.05 ? 'met' : 'below'
+  if (parts.mark.ratio !== null) parts.mark.state = markPct !== null && markPct + 1e-9 >= ARTIFACT_MARK_TARGET_PART ? 'met' : 'below'
   const artifact: GradeDim = {
     key: 'artifact', label: '圣遗物', weight: 0,
     ratio: artifactRatio,
@@ -1414,7 +1431,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   add('talent', `天赋：${below('talent:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('talent:'))
   add('mainstat', `主词条：${below('artifact:main:').map(r => `${r.name}换「${r.target}」`).join('、')}`, below('artifact:main:'))
   add('artifact:set', `圣遗物：凑攻略推荐套装（${targets.artifact.recommend[0] || targets.artifact.optional[0] || ''}）`, below('artifact:set'))
-  add('artifact:mark', `圣遗物：提升词条评分（当前 ${markText}，套装齐全时 235 分即达标）`, below('artifact:mark'))
+  add('artifact:mark', `圣遗物：提升词条评分（当前 ${markText}，套装齐全时 240 分即达标）`, below('artifact:mark'))
   add('panel', `面板：${below('panel:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('panel:'))
   add('weapon', `武器：换到推荐档（${targets.weapon.recommend.slice(0, 2).join(' / ')}）`, below('weapon:'))
   add('level', `角色等级：${Number(build.level) || 0} → ${levelTarget}`, levelRatio === 0 ? [{ id: 'level:role', group: '等级', name: '角色等级', target: String(levelTarget), actual: String(Number(build.level) || 0) } as CompareRow] : [])
