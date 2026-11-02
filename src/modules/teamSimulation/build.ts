@@ -156,7 +156,7 @@ export function validateCharacterBuild(input: unknown): { status: 'raw-complete'
 }
 
 export interface PermanentDataExpectation { gameVersion: string; bundleId: string; source: string }
-const statNames: (keyof PermanentStats)[] = ['mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro']
+const statNames: (keyof PermanentStats)[] = ['mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro', 'normalDmg', 'chargedDmg', 'plungeDmg', 'skillDmg', 'burstDmg']
 
 /** 构建永久面板，只计基础白值、经过审计的静态效果和圣遗物属性。 */
 export function buildPermanentStats(input: unknown, dataInput: unknown, expected: PermanentDataExpectation): PermanentBuildResult {

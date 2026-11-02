@@ -75,9 +75,33 @@ export type TimelineDamageResult = {
 
 const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
 
+/** 命中类型（来自动作 id）：技能类型伤害加成按它取键。 */
+type DamageKind = 'normal' | 'charged' | 'plunge' | 'skill' | 'burst'
+
+const DAMAGE_KIND_BONUS: Record<DamageKind, keyof PermanentStats> = {
+  normal: 'normalDmg',
+  charged: 'chargedDmg',
+  plunge: 'plungeDmg',
+  skill: 'skillDmg',
+  burst: 'burstDmg'
+}
+
+/** 动作 id 形如 `itto.normal-1` / `itto.charged-1` / `bennett.skill` / `bennett.burst`。 */
+function damageKindOf (actionId: string): DamageKind | null {
+  if (/\.normal(?:-|$)/.test(actionId)) return 'normal'
+  if (/\.charged(?:-|$)/.test(actionId)) return 'charged'
+  if (/\.plunge(?:-|$)/.test(actionId)) return 'plunge'
+  if (/\.skill$/.test(actionId)) return 'skill'
+  if (/\.burst$/.test(actionId)) return 'burst'
+  return null
+}
+
 /** 元素命中只读该元素的加成键，物理命中只读物理键；`dmg` 是通用元素伤害加成。 */
-function damageBonusFor(element: TimelineHit['element'], stats: PermanentStats): number {
-  return element === 'physical' ? stats.phy : stats.dmg + stats[element]
+function damageBonusFor (element: TimelineHit['element'], stats: PermanentStats, kind: DamageKind | null): number {
+  const base = element === 'physical' ? stats.phy : stats.dmg + stats[element]
+  if (!kind) return base
+  // 4 件套这类「普攻/重击/战技/爆发伤害 +X%」直接加算进 A 乘区。
+  return base + Number(stats[DAMAGE_KIND_BONUS[kind]] ?? 0)
 }
 
 function statFor(scaling: TimelineHit['scaling'], stats: PermanentStats): number {
@@ -224,7 +248,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       targetId: preset.id,
       scaling: [{ stat: statFor(options.scaling, stats), multiplier: options.motionValue }],
       additiveBase: 0,
-      damageBonus: damageBonusFor(options.element, stats),
+      damageBonus: damageBonusFor(options.element, stats, damageKindOf(options.actionId)),
       canCrit: options.canCrit,
       crit: context.crit,
       critRate: stats.cpct,

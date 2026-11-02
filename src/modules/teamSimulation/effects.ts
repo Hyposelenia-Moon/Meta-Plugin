@@ -7,8 +7,11 @@
  */
 import type { Issue, PermanentStats } from './types.js'
 
-/** 面板键：只有这些键可以加到结算面板上，`hpPct` 这类构筑期百分比不在其中。 */
-export const PANEL_STAT_KEYS = ['hp', 'atk', 'def', 'mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro'] as const
+/**
+ * 面板键：只有这些键可以加到结算面板上，`hpPct` 这类构筑期百分比不在其中。
+ * `normalDmg`…`burstDmg` 是技能类型伤害加成（4 件套等静态效果直接加进 A 乘区）。
+ */
+export const PANEL_STAT_KEYS = ['hp', 'atk', 'def', 'mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro', 'normalDmg', 'chargedDmg', 'plungeDmg', 'skillDmg', 'burstDmg'] as const
 export type PanelStatKey = typeof PANEL_STAT_KEYS[number]
 
 /** 面板增量必须与 `PermanentStats` 的键一一对应，类型上防止有人把构筑期百分比当面板加成。 */

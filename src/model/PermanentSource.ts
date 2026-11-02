@@ -83,7 +83,8 @@ function readJson (file: string): unknown | null {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')) } catch { return null }
 }
 
-function findWeaponById (weaponId: string): MiaoWeapon | null {
+/** 按目录类型（sword/claymore/polearm/bow/catalyst）找武器；类型要跟着返回，4 件套条件要用。 */
+function findWeaponById (weaponId: string): { weapon: MiaoWeapon, type: string } | null {
   let types: string[] = []
   try { types = fs.readdirSync(WEAPON_DIR) } catch { return null }
   for (const type of types) {
@@ -91,7 +92,7 @@ function findWeaponById (weaponId: string): MiaoWeapon | null {
     try { names = fs.readdirSync(path.join(WEAPON_DIR, type)) } catch { continue }
     for (const name of names) {
       const raw = readJson(path.join(WEAPON_DIR, type, name, 'data.json'))
-      if (raw && typeof raw === 'object' && String((raw as MiaoWeapon).id) === weaponId) return raw as MiaoWeapon
+      if (raw && typeof raw === 'object' && String((raw as MiaoWeapon).id) === weaponId) return { weapon: raw as MiaoWeapon, type }
     }
   }
   return null
@@ -161,7 +162,28 @@ function constellationName (character: MiaoCharacter, level: number): string | n
 
 type EffectEntry = PermanentData['effects'][string]
 
-function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData): { effects: PermissionlessEffects, notes: string[] } {
+/**
+ * 不依赖触发条件、可直接进面板的 4 件套（2026-11-02 切片 1）。
+ *
+ * `weaponTypes` 为空表示不限武器；有值时按实装武器类型判断，
+ * 条件不成立就不加面板，但要写进 `unmodeled` 披露（否则报告会说「已计入」）。
+ */
+const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTypes?: string[]; note: string }> = {
+  '400089': {
+    key: 'normalDmg',
+    value: 0.35,
+    weaponTypes: ['sword', 'claymore', 'polearm'],
+    note: '4 件套：普通攻击造成的伤害 +35%（单手剑/大剑/长柄武器）'
+  },
+  '400099': {
+    key: 'chargedDmg',
+    value: 0.35,
+    weaponTypes: ['catalyst', 'bow'],
+    note: '4 件套：重击造成的伤害 +35%（法器/弓）'
+  }
+}
+
+function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, notes: string[] } {
   const effects: Record<string, EffectEntry> = {}
   const notes: string[] = []
 
@@ -209,11 +231,28 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
       effects[`artifact-set:${setId}:2pc`] = { status: 'unsupported', modifiers: [], runtimeRequired: false }
     }
     if (typeof four === 'string') {
-      effects[`artifact-set:${setId}:4pc`] = {
-        status: 'verified-static',
-        modifiers: [],
-        runtimeRequired: true,
-        unmodeled: `${set?.name ?? setId} 4 件套未建模：${four.replace(/\s+/g, ' ').slice(0, 80)}`
+      const staticFour = STATIC_FOUR_PIECE[setId]
+      const applies = staticFour !== undefined && (!staticFour.weaponTypes || staticFour.weaponTypes.includes(weaponType))
+      if (staticFour && applies) {
+        effects[`artifact-set:${setId}:4pc`] = {
+          status: 'verified-static',
+          modifiers: [{ key: staticFour.key, value: staticFour.value }],
+          runtimeRequired: false
+        }
+      } else if (staticFour) {
+        effects[`artifact-set:${setId}:4pc`] = {
+          status: 'verified-static',
+          modifiers: [],
+          runtimeRequired: false,
+          unmodeled: `${staticFour.note}；当前武器类型 ${weaponType} 不满足触发条件，未计入`
+        }
+      } else {
+        effects[`artifact-set:${setId}:4pc`] = {
+          status: 'verified-static',
+          modifiers: [],
+          runtimeRequired: true,
+          unmodeled: `${set?.name ?? setId} 4 件套未建模：${four.replace(/\s+/g, ' ').slice(0, 80)}`
+        }
       }
     }
   }
@@ -267,8 +306,9 @@ export function buildRuntimePermanent (input: RuntimePermanentInput): RuntimePer
     return { ok: false, error: `${input.name} 的 miao charId 是 ${character.id}，与配装里的 ${input.characterId} 不一致` }
   }
 
-  const weapon = findWeaponById(String(input.weaponId))
-  if (!weapon) return { ok: false, error: `读不到武器 ${input.weaponId} 的 miao 数据` }
+  const found = findWeaponById(String(input.weaponId))
+  if (!found) return { ok: false, error: `读不到武器 ${input.weaponId} 的 miao 数据` }
+  const { weapon, type: weaponType } = found
 
   const artifactData = readJson(ARTIFACT_FILE) as ArtifactData | null
   if (!artifactData || typeof artifactData !== 'object') return { ok: false, error: `读不到套装表 ${ARTIFACT_FILE}` }
@@ -280,7 +320,7 @@ export function buildRuntimePermanent (input: RuntimePermanentInput): RuntimePer
   const [hp, atk, def] = details
   if (![hp, atk, def].every(value => Number.isFinite(Number(value)))) return { ok: false, error: `${input.name} 的 ${LEVEL} 级白值不是数字` }
 
-  const { effects } = buildEffects(character, weapon, refine, artifactData)
+  const { effects } = buildEffects(character, weapon, refine, artifactData, weaponType)
   const data: PermanentData = {
     gameVersion: GAME_VERSION,
     bundleId: BUNDLE_ID,
