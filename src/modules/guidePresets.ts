@@ -82,7 +82,17 @@ export function matchGuidePreset (guide: Guide, input: {
 } = {}): PresetMatch {
   const presets = listGuidePresets(guide)
   const choose = (hits: GuidePreset[], reason: string): PresetMatch => ({ preset: hits.length === 1 ? hits[0] : null, reason, candidates: hits.length ? hits : presets })
-  if (input.requested) return choose(presets.filter(p => p.name === input.requested || p.id === input.requested), '手动指定')
+  if (input.requested) {
+    const exact = presets.filter(p => p.name === input.requested || p.id === input.requested)
+    if (exact.length) return choose(exact, '手动指定')
+    /*
+     * 2026-11-02：`#练度查询 胡桃 输出 / 辅助` 允许直接按**方向**指定预设，
+     * 不必记角色各自起的预设名；同方向有多份预设时仍按歧义处理（返回候选）。
+     */
+    const role = normalizeRuleRole(input.requested)
+    if (role) return choose(presets.filter(p => p.role === role), '手动指定')
+    return choose([], '手动指定')
+  }
   const title = String(input.ruleTitle || '').trim()
   if (title) {
     const names = presets.filter(p => p.match?.names?.some(n => n === title))

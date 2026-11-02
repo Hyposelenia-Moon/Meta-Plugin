@@ -76,6 +76,12 @@ const near = (a, b) => Math.abs(a - b) < 1e-9
     const r = run(t, build({ weapon: { name: '专用剑', affix: 1, level: 90 } }))
     return near(dim(r, 'weapon').ratio, 1)
   })())
+  // 2026-11-02 用户反馈：武器已在推荐档内，不能再提示「换到推荐档」
+  const lowLevel = run(target(), build({ weapon: { name: '推荐剑', affix: 1, level: 45 } }))
+  ok('推荐武器但等级不足 → 建议提升等级', lowLevel.suggestions.some(s => s.includes('提升等级')) &&
+    !lowLevel.suggestions.some(s => s.includes('换到推荐档')))
+  const offList = run(target(), build({ weapon: { name: '路人剑', affix: 1, level: 90 } }))
+  ok('不在任何档的武器 → 建议换到推荐档', offList.suggestions.some(s => s.includes('换到推荐档')))
 }
 
 {

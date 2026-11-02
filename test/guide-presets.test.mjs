@@ -26,6 +26,10 @@ assert.deepEqual(presetWeights(guide.presets[1]), { artifact: 0, panel: 45, weap
 // 2026-11-02 用户定：权重写死，预设自带的 weights 不再生效
 assert.deepEqual(presetWeights({ role: 'support', weights: { panel: 60, weapon: 0 } }), { artifact: 0, panel: 45, weapon: 25, talent: 25, level: 5 })
 const selected = selectGuidePreset(guide, 'utility')
+// 2026-11-02：`#练度查询 胡桃 输出 / 辅助` 可直接按方向指定预设
+assert.equal(matchGuidePreset(guide, { requested: '辅助' }).preset.id, 'utility')
+assert.equal(matchGuidePreset(guide, { requested: '输出' }).preset.id, 'damage')
+assert.equal(matchGuidePreset(guide, { requested: 'dps' }).preset.id, 'damage')
 assert.equal(selected.v2.weapons[0].items[0].name, '西风剑')
 assert.equal(selected.presets, undefined)
 selected.v2.weapons[0].items[0].name = '修改投影'

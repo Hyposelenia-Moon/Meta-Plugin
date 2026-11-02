@@ -447,7 +447,8 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
             name: String(profile.weapon.name),
             affix: Number(profile.weapon.affix) || 0,
             rarity: Number(profile.weapon.rarity) || 0,
-            level: Number(profile.weapon.level) || 0
+            // 面板来源可能是简版/旧缓存，没带武器等级时回落到 avatar 上的武器对象
+            level: Number(profile.weapon.level ?? avatar?.weapon?.level) || 0
           }
         : null,
       talent: {
