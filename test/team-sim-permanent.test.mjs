@@ -112,11 +112,13 @@ assert.match(wrong.issue.message, /10000030-99999-r1\.json/)
 assert.match(wrong.issue.message, /10000030-13303-r1\.json/)
 assert.match(wrong.issue.message, /武器或精炼对不上/)
 
+// 2026-11-02：没有入库文件的「同武器不同精炼」不再报缺，按玩家精炼现算（r5）。
 const wrongRefine = makeBuild({ ...cases[0] })
 wrongRefine.weapon.refinement = 5
-const refineIssue = loadPermanentData(wrongRefine)
-assert.equal(refineIssue.issue.code, 'missing')
-assert.match(refineIssue.issue.message, /10000030-13303-r5\.json/)
+const refineR5 = loadPermanentData(wrongRefine)
+assert.ok(refineR5.data, JSON.stringify(refineR5.issue))
+assert.equal(refineR5.data.weapon.id, '13303')
+assert.ok(refineR5.data.effects['weapon:13303:r5'])
 
 // data 目录里不能出现带生成时间的报表：那会让入库数据不可复现。
 const raw = readFileSync('data/team-sim/permanent/10000030-13303-r1.json', 'utf8')
