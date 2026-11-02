@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>轴编辑器 · Meta-Plugin</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>轴编辑器</h1>
+    <p class="muted">拼装 <code>data/team-sim/rotations/*.json</code>；保存前用内核同一套 <code>toRotation()</code> 校验。只写动作顺序，帧由 <code>asap-sequence</code> 排。</p>
+  </div>
+  <div class="top-actions">
+    <select id="existing" title="载入已入库的轴"></select>
+    <button id="load" class="btn">载入</button>
+    <button id="fresh" class="btn ghost">新建</button>
+  </div>
+</header>
+
+<main class="grid">
+  <section class="card">
+    <h2>1 · 队伍与窗口</h2>
+    <label class="row"><span>轴 id</span><input id="id" class="grow" placeholder="national-skills"></label>
+    <div class="row"><span>队伍</span><div id="team" class="team"></div></div>
+    <div class="row">
+      <span>窗口</span>
+      <input id="window" type="number" min="1" step="1" value="7243" class="w120">
+      <span class="muted">帧（60 档标准窗口 7243）</span>
+    </div>
+    <label class="row"><span>循环</span><input id="loop" type="checkbox" checked><span class="muted">把动作循环到窗口结束，DPS 才按满窗口算</span></label>
+  </section>
+
+  <section class="card wide">
+    <div class="card-head">
+      <h2>2 · 动作顺序</h2>
+      <div class="tools">
+        <button id="add" class="btn">＋ 动作</button>
+        <button id="add-burst" class="btn ghost" title="可选步骤：能量不够时跳过这一次">＋ 可选爆发</button>
+      </div>
+    </div>
+    <div id="steps" class="steps"></div>
+    <p id="empty" class="empty muted">还没有动作。先选队伍，再点「＋ 动作」。</p>
+  </section>
+
+  <section class="card">
+    <h2>3 · 充能效率</h2>
+    <div id="recharge" class="recharge"></div>
+    <p class="muted small">缺省 1.0；产球按全队共享结算，爆发能不能放出来主要看这里。</p>
+  </section>
+
+  <section class="card">
+    <h2>4 · 校验与保存</h2>
+    <div class="tools">
+      <button id="validate" class="btn ghost">校验</button>
+      <button id="save" class="btn primary">保存</button>
+    </div>
+    <div id="status" class="status muted">尚未校验</div>
+    <textarea id="preview" class="preview" readonly spellcheck="false"></textarea>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
+
