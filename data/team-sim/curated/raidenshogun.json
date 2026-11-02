@@ -16,7 +16,8 @@
     "raidenshogun.burst：愿力加成未建模：10 级每层 +7%（gcsim resolveBaseBonus[9]=0.069984，miao 愿力加成[9]=[7,1.31]），上限 60 层；满层伤害会显著高于本动作的 7.2144",
     "raidenshogun.burst：梦想一心后续普攻/重击不建模；梦想一心能量恢复 10 级每次 2.5 点、最多 5 次、1 秒 ICD，属队友充能，未建模",
     "raidenshogun.burst：命座（C1/C2/C4/C6）与队友充能均未建模",
-    "雷眼产球为近似：gcsim skill.go:85-94 协同攻击命中产 1 颗 Electro（0.8s ICD），本模型按固定帧挂 6 颗，不建模协同攻击命中频率与 E 持续 25 秒"
+    "雷眼产球为近似：gcsim skill.go:85-94 协同攻击命中产 1 颗 Electro（0.8s ICD），本模型按固定帧挂 6 颗，不建模协同攻击命中频率与 E 持续 25 秒",
+    "梦想一心回能按固定帧挂 5 次，A4 按施放者充能效率超过 100% 的部分每 1% 加 0.6% 近似"
   ],
   "actions": {
     "raidenshogun.skill": {
@@ -97,7 +98,40 @@
       ],
       "energyCost": 90,
       "cooldownFrames": 1080,
-      "cooldownId": "burst"
+      "cooldownId": "burst",
+      "energyRestore": [
+        {
+          "atFrame": 8,
+          "amount": 2.5,
+          "target": "team",
+          "rechargeScaling": true
+        },
+        {
+          "atFrame": 68,
+          "amount": 2.5,
+          "target": "team",
+          "rechargeScaling": true
+        },
+        {
+          "atFrame": 128,
+          "amount": 2.5,
+          "target": "team",
+          "rechargeScaling": true
+        },
+        {
+          "atFrame": 188,
+          "amount": 2.5,
+          "target": "team",
+          "rechargeScaling": true
+        },
+        {
+          "atFrame": 248,
+          "amount": 2.5,
+          "target": "team",
+          "rechargeScaling": true
+        }
+      ],
+      "mechanism": "梦想一心回能（近似）：gcsim 每次命中给全队回 2.5 点、1 秒 ICD 最多 5 次；本模型按固定帧挂 5 次"
     }
   }
 }

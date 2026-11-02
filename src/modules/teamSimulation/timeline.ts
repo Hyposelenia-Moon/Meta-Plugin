@@ -124,6 +124,19 @@ export interface ParticleSpec {
 }
 
 /**
+ * 动作直接回能（2026-11-02）：爆发/领域在指定帧给全队（或自己）加能量，不走粒子。
+ * tFrame 相对动作起手，允许超过动作时长（爆发后持续回能）。
+ */
+export interface EnergyRestoreSpec {
+  atFrame: number
+  amount: number
+  /** 缺省 team：全队每人各加 amount；self 只加施放者 */
+  target?: 'team' | 'self'
+  /** 雷神 A4：按施放者充能效率超过 100% 的部分放大（每 1% 加 0.6%） */
+  rechargeScaling?: boolean
+}
+
+/**
  * 动作时长口径。计时器型按帧数给（帧率档位不影响帧号），响应型按现实时长给：
  * `现实时长 = k × 帧生成时间 + bMs`，再按当前档位折算成整数帧——同一动作换档位帧数会变。
  * 两种口径都由数据声明，内核不猜、不插值。
@@ -145,6 +158,11 @@ export interface ActionSpec {
    * `atFrame` 同样相对动作起手，但**允许超过动作时长**；这类事件不会被下一个动作取消。
    */
   delayedParticles?: ParticleSpec[]
+  /**
+   * 动作直接回能（2026-11-02）：爆发/领域在指定帧给全队或自己加能量，不走粒子。
+   * `atFrame` 相对动作起手，允许超过动作时长；事件不会被下一个动作取消。
+   */
+  energyRestore?: EnergyRestoreSpec[]
   energyCost?: number
   cooldownFrames?: number
   cooldownId?: string
@@ -202,7 +220,7 @@ export interface TimelineHit {
   activeEffects: string[]
 }
 
-export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger'
+export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'energy-restore' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger'
 
 export interface TimelineEvent {
   frame: number
@@ -422,6 +440,18 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
       })
     }
   }
+  if (spec.energyRestore !== undefined) {
+    if (!Array.isArray(spec.energyRestore)) add('invalid', `${p}.energyRestore`, '回能必须是数组')
+    else {
+      spec.energyRestore.forEach((restore, i) => {
+        const pp = `${p}.energyRestore.${i}`
+        if (!isInteger(restore?.atFrame) || restore.atFrame < 0) add('invalid', `${pp}.atFrame`, '回能帧必须是非负整数（可超出动作时长）')
+        if (!isFiniteNumber(restore?.amount) || restore.amount < 0) add('invalid', `${pp}.amount`, '回能量必须是非负有限数值')
+        if (restore?.target !== undefined && restore.target !== 'team' && restore.target !== 'self') add('invalid', `${pp}.target`, '回能目标只能是 team 或 self')
+        if (restore?.rechargeScaling !== undefined && typeof restore.rechargeScaling !== 'boolean') add('invalid', `${pp}.rechargeScaling`, 'rechargeScaling 必须是布尔值')
+      })
+    }
+  }
   if (spec.energyCost !== undefined && (!isFiniteNumber(spec.energyCost) || spec.energyCost < 0)) add('invalid', `${p}.energyCost`, '能量消耗必须是非负有限数值')
   if (spec.cooldownFrames !== undefined && (!isInteger(spec.cooldownFrames) || spec.cooldownFrames < 0)) add('invalid', `${p}.cooldownFrames`, '冷却帧数必须是非负整数')
   if (spec.requires !== undefined && !Array.isArray(spec.requires)) add('invalid', `${p}.requires`, '门槛标记必须是数组')
@@ -433,6 +463,7 @@ type QueueItem =
   | { kind: 'action-start'; frame: number; actorId: string; actionId: string }
   | { kind: 'hit'; frame: number; actorId: string; actionId: string; hitIndex: number; hit: HitSpec }
   | { kind: 'particle'; frame: number; actorId: string; actionId: string; particle: ParticleSpec }
+  | { kind: 'energy-restore'; frame: number; actorId: string; actionId: string; restore: EnergyRestoreSpec }
   | { kind: 'action-end'; frame: number; actorId: string; actionId: string }
 
 interface QueuedItem { frame: number; phase: EventPhase; sequence: number; item: QueueItem }
@@ -444,6 +475,7 @@ const phaseOf = (kind: QueueItem['kind']): EventPhase => {
     case 'action-start': return 'action-start'
     case 'hit': return 'hit'
     case 'particle': return 'energy'
+    case 'energy-restore': return 'energy'
     case 'action-end': return 'state'
   }
 }
@@ -523,7 +555,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
    */
   const cancelPending = (frame: number) => {
     queue = queue.filter(queued => queued.frame <= frame || queued.item.kind === 'action-start' ||
-      queued.item.kind === 'particle' || (queued.item.kind === 'hit' && queued.item.hit.delayed === true))
+      queued.item.kind === 'particle' || queued.item.kind === 'energy-restore' || (queued.item.kind === 'hit' && queued.item.hit.delayed === true))
   }
   /**
    * 卡肉：`[atFrame, atFrame + frames)` 内游戏时钟冻结。做法是把排在这之后的一切整体顺延同样帧数——
@@ -594,6 +626,27 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
       record(queued.frame, 'energy', 'particle', item.actorId, item.actionId, { count: item.particle.count, element: item.particle.element, gain: gains })
       return
     }
+    if (item.kind === 'energy-restore') {
+      /*
+       * 动作直接回能（爆发/领域）：与粒子不同，不走充能效率（雷神 A4 是显式倍率）。
+       * `target: 'team'` 时全队每人各加一份；记录里写清实际加了多少。
+       */
+      const restore = item.restore
+      const casterEr = recharge[item.actorId] ?? 1
+      const scale = restore.rechargeScaling === true
+        ? 1 + 0.006 * Math.floor(Math.max(casterEr - 1, 0) * 100)
+        : 1
+      const amount = restore.amount * scale
+      const target = restore.target ?? 'team'
+      const gains: Record<string, number> = {}
+      for (const actor of actors.values()) {
+        if (target === 'self' && actor.actorId !== item.actorId) continue
+        gains[actor.actorId] = amount
+        actor.energy = Math.min(actor.energyMax, actor.energy + amount)
+      }
+      record(queued.frame, 'energy', 'energy-restore', item.actorId, item.actionId, { amount, scale, target, gain: gains })
+      return
+    }
     if (item.kind === 'action-end') {
       record(queued.frame, 'state', 'action-end', item.actorId, item.actionId)
       return
@@ -651,6 +704,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     spec.hits.forEach((hit, hitIndex) => push({ kind: 'hit', frame: frame + hit.atFrame, actorId: step.actorId, actionId: spec.id, hitIndex, hit }))
     for (const particle of spec.particles ?? []) push({ kind: 'particle', frame: frame + particle.atFrame + particle.travelFrames, actorId: step.actorId, actionId: spec.id, particle })
     for (const particle of spec.delayedParticles ?? []) push({ kind: 'particle', frame: frame + particle.atFrame + particle.travelFrames, actorId: step.actorId, actionId: spec.id, particle })
+    for (const restore of spec.energyRestore ?? []) push({ kind: 'energy-restore', frame: frame + restore.atFrame, actorId: step.actorId, actionId: spec.id, restore })
     const earliestCancel = spec.cancelWindows?.length ? Math.min(...spec.cancelWindows.map(w => w.fromFrame)) : frames
     currentFrame = frame + earliestCancel
     return { stepId: step.id, requestedFrame, actualFrame: frame, ok: true }
@@ -804,3 +858,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     }
   }
 }
+
+
+
+

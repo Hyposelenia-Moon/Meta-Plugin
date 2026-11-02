@@ -455,3 +455,36 @@ assert.ok(validateActionSpec({ ...overflowSpec, hits: [{ ...overflowSpec.hits[0]
   assert.equal(sharedRun.actors.find(a => a.actorId === 'gorou').energy, 2)
 }
 
+// 动作直接回能（2026-11-02）：爆发类动作在指定帧给全队或自己加能量，且不会被下一个动作取消。
+{
+  const burst = {
+    id: 'itto.burst2', actorId: 'itto', kind: 'burst', timing: { type: 'frames', frames: 20 }, hits: [],
+    energyRestore: [
+      { atFrame: 5, amount: 2, target: 'team' },
+      // self 且按充能效率放大：ER 2.0 → 1 + 0.006×100 = 1.6 倍
+      { atFrame: 30, amount: 1, target: 'self', rechargeScaling: true }
+    ]
+  }
+  assert.equal(validateActionSpec(burst).length, 0)
+  assert.ok(validateActionSpec({ ...burst, energyRestore: [{ atFrame: 1, amount: 1, target: 'party' }] }).some(issue => issue.path.endsWith('.energyRestore.0.target')), '回能目标只认 team/self')
+  assert.ok(validateActionSpec({ ...burst, energyRestore: [{ atFrame: -1, amount: 1 }] }).some(issue => issue.path.endsWith('.energyRestore.0.atFrame')), '回能帧必须非负')
+
+  const run = simulateTimeline({
+    ...base,
+    actions: { ...actions, 'itto.burst2': burst },
+    energyRecharge: { itto: 2 },
+    actors: [{ actorId: 'itto', energy: 0, energyMax: 60 }, { actorId: 'gorou', energy: 0, energyMax: 80 }],
+    steps: [
+      { id: 'b', kind: 'action', actorId: 'itto', actionId: 'itto.burst2', atFrame: 0 },
+      { id: 'n', kind: 'action', actorId: 'itto', actionId: 'itto.normal-1', atFrame: 25 }
+    ]
+  })
+  assert.equal(run.status, 'simulated', JSON.stringify(run.issues))
+  const restores = run.events.filter(event => event.kind === 'energy-restore')
+  assert.equal(restores.length, 2)
+  assert.equal(restores[0].frame, 5)
+  assert.equal(restores[1].frame, 30, 'self 回能按动作起手 + atFrame 落在 30 帧，且不被 25 帧开始的普攻取消')
+  assert.equal(run.actors.find(a => a.actorId === 'itto').energy, 2 + 1.6)
+  assert.equal(run.actors.find(a => a.actorId === 'gorou').energy, 2)
+}
+

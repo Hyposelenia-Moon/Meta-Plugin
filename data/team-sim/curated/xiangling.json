@@ -14,7 +14,8 @@
     "xiangling.burst：冷却 20*60=1200 帧，SetCDWithDelay(action.ActionBurst, 20*60, 18)",
     "xiangling.burst：旋火轮（召唤物）未建模：施放后 56 帧起持续 10 秒（C4 为 14 秒）、每 73 帧一跳，10 级 201.6%；C6 的 15% 火伤加成也未计入",
     "xiangling.burst：倍率 ← miao talentData.q 一段/二段/三段挥舞伤害[9] = 129.6/158.4/197.28%，与 gcsim pyronadoInitial lv10 的 1.296/1.584/1.9728 一致",
-    "锅巴产球为近似：gcsim guoba.go 每次锅巴攻击 1 颗 Pyro（1s ICD），本模型按固定帧挂 3 颗，不建模锅巴本体与命中次数"
+    "锅巴产球为近似：gcsim guoba.go 每次锅巴攻击 1 颗 Pyro（1s ICD），本模型按固定帧挂 3 颗，不建模锅巴本体与命中次数",
+    "旋火轮 9 段按固定帧挂延迟命中；不建模旋火轮绕圈命中次数与元素附着"
   ],
   "actions": {
     "xiangling.skill": {
@@ -74,16 +75,89 @@
           "canCrit": true
         },
         {
+          "atFrame": 56,
+          "motionValue": 2.016,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true,
+          "delayed": true
+        },
+        {
           "atFrame": 57,
           "motionValue": 1.9728,
           "scaling": "atk",
           "element": "pyro",
           "canCrit": true
+        },
+        {
+          "atFrame": 129,
+          "motionValue": 2.016,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true,
+          "delayed": true
+        },
+        {
+          "atFrame": 202,
+          "motionValue": 2.016,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true,
+          "delayed": true
+        },
+        {
+          "atFrame": 275,
+          "motionValue": 2.016,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true,
+          "delayed": true
+        },
+        {
+          "atFrame": 348,
+          "motionValue": 2.016,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true,
+          "delayed": true
+        },
+        {
+          "atFrame": 421,
+          "motionValue": 2.016,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true,
+          "delayed": true
+        },
+        {
+          "atFrame": 494,
+          "motionValue": 2.016,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true,
+          "delayed": true
+        },
+        {
+          "atFrame": 567,
+          "motionValue": 2.016,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true,
+          "delayed": true
+        },
+        {
+          "atFrame": 640,
+          "motionValue": 2.016,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true,
+          "delayed": true
         }
       ],
       "energyCost": 80,
       "cooldownFrames": 1200,
-      "cooldownId": "burst"
+      "cooldownId": "burst",
+      "mechanism": "旋火轮持续伤害（近似）：gcsim 第 56 帧起每 73 帧跳一次，持续 10 秒；标 delayed 表示不随切人取消"
     }
   }
 }

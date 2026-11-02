@@ -183,7 +183,40 @@
       ],
       "energyCost": 90,
       "cooldownFrames": 1080,
-      "cooldownId": "burst"
+      "cooldownId": "burst",
+      "energyRestore": [
+        {
+          "atFrame": 8,
+          "amount": 2.5,
+          "target": "team",
+          "rechargeScaling": true
+        },
+        {
+          "atFrame": 68,
+          "amount": 2.5,
+          "target": "team",
+          "rechargeScaling": true
+        },
+        {
+          "atFrame": 128,
+          "amount": 2.5,
+          "target": "team",
+          "rechargeScaling": true
+        },
+        {
+          "atFrame": 188,
+          "amount": 2.5,
+          "target": "team",
+          "rechargeScaling": true
+        },
+        {
+          "atFrame": 248,
+          "amount": 2.5,
+          "target": "team",
+          "rechargeScaling": true
+        }
+      ],
+      "mechanism": "梦想一心回能（近似）：gcsim 每次命中给全队回 2.5 点、1 秒 ICD 最多 5 次；本模型按固定帧挂 5 次"
     }
   }
 }

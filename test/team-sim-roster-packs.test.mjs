@@ -61,7 +61,8 @@ for (const name of packFiles) {
       assert.ok(Number(action.cooldownFrames) > 0, `${action.id} 无伤害动作必须有冷却`)
       continue
     }
-    assert.ok(action.hits.at(-1).atFrame < action.timing.frames, `${action.id} 命中帧必须早于动作结束`)
+    // 2026-11-02：延迟命中（`delayed`）允许落在动作结束后（旋火轮/召唤物持续伤害），普通命中仍必须在动作内。
+    for (const hit of action.hits) if (hit.delayed !== true) assert.ok(hit.atFrame < action.timing.frames, `${action.id} 命中帧必须早于动作结束`)
     for (let i = 1; i < action.hits.length; i++) assert.ok(action.hits[i].atFrame >= action.hits[i - 1].atFrame, `${action.id} 命中帧必须递增`)
     if (action.hits.length > 1) multiHitActions++
   }
@@ -148,13 +149,15 @@ assert.equal(kazuha.actions['kaedeharakazuha.skill'].particles[0].element, 'anem
   assert.deepEqual(
     {
       frames: xiangling.actions['xiangling.burst'].timing.frames,
-      atFrame: xiangling.actions['xiangling.burst'].hits.map(h => h.atFrame),
-      mv: xiangling.actions['xiangling.burst'].hits.map(h => h.motionValue),
+      burstHits: xiangling.actions['xiangling.burst'].hits.filter(h => h.delayed !== true).map(h => h.atFrame),
+      spinCount: xiangling.actions['xiangling.burst'].hits.filter(h => h.delayed === true).length,
+      spinMv: xiangling.actions['xiangling.burst'].hits.find(h => h.delayed === true)?.motionValue,
       element: xiangling.actions['xiangling.burst'].hits[0].element,
       cost: xiangling.actions['xiangling.burst'].energyCost,
       cd: xiangling.actions['xiangling.burst'].cooldownFrames
     },
-    { frames: 80, atFrame: [18, 33, 57], mv: [1.296, 1.584, 1.9728], element: 'pyro', cost: 80, cd: 1200 })
+    // 2026-11-02 起补了旋火轮 9 段延迟伤害（第 56 帧起每 73 帧一次，10 秒）
+    { frames: 80, burstHits: [18, 33, 57], spinCount: 9, spinMv: 2.016, element: 'pyro', cost: 80, cd: 1200 })
   const yelan = geoPack('yelan')
   assert.deepEqual(
     { frames: yelan.actions['yelan.skill'].timing.frames, atFrame: yelan.actions['yelan.skill'].hits[0].atFrame, mv: yelan.actions['yelan.skill'].hits[0].motionValue, scaling: yelan.actions['yelan.skill'].hits[0].scaling, particle: yelan.actions['yelan.skill'].particles[0] },
