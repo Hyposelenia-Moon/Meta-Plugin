@@ -40,20 +40,6 @@ export interface LineupRef {
   costDiff: number
 }
 
-export interface TeamDamageView {
-  /** 估算金数 */
-  approxCost: number
-  /** 金数构成说明 */
-  costNote: string
-  /** 同阵容参考（最多 N 条） */
-  refs: LineupRef[]
-  /** 命中的同阵容记录总数 */
-  refTotal: number
-  /** 是否按"同金优先"排过序 */
-  sameCostFirst: boolean
-  notes: string[]
-}
-
 /** 估算队伍金数（5★ 角色 + 命座 + 5★ 武器；精炼不计） */
 export function estimateCost (members: TeamMemberInput[]): number {
   let cost = 0
@@ -110,34 +96,6 @@ export function findLineupRefs (
   // 同金优先（金数差小的在前），其次伤害高的在前
   mapped.sort((a, b) => a.costDiff - b.costDiff || b.damage - a.damage)
   return { refs: mapped.slice(0, Math.max(1, limit)), total: mapped.length }
-}
-
-/** 组装页面视图 */
-export function buildTeamDamageView (
-  members: TeamMemberInput[],
-  teams: TeamRecord[] | undefined,
-  limit = 5
-): TeamDamageView {
-  const approxCost = estimateCost(members)
-  const names = members.map(m => m.charName)
-  const { refs, total } = findLineupRefs(teams, names, approxCost, limit)
-  const notes: string[] = []
-  if (!total) {
-    notes.push('这份榜单里暂时没有这套四人阵容的记录（榜单是匿名投稿，冷门阵容可能没人打）')
-  } else if (!refs.some(r => r.costDiff === 0)) {
-    notes.push(`同阵容共 ${total} 条，但没有正好「约 ${approxCost} 金」的记录 —— 下面按金数最接近排序，注意金数差异`)
-  }
-  if (members.some(m => !m.rows?.length)) {
-    notes.push('有队员没有取到伤害行（该角色可能没有 miao 伤害规则）')
-  }
-  return {
-    approxCost,
-    costNote: costBreakdown(members),
-    refs,
-    refTotal: total,
-    sameCostFirst: true,
-    notes
-  }
 }
 
 /* ------------------------------------------------------------------ *

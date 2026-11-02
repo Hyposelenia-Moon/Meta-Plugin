@@ -57,20 +57,9 @@ const fixture = JSON.parse(readText(path.join(pluginRoot, 'test', 'fixtures', 'd
   ok('没有该阵容时返回空而不是报错', none.total === 0 && none.refs.length === 0)
 }
 
-// ---------- 3. 视图与提示 ----------
+// ---------- 3. 视图与提示已随旧结算模块移除（2026-11-02） ----------
 {
-  const members = [{ charName: '胡桃', rarity: 5, level: 90, cons: 1, weapon: null, rows: [{ title: '半血开E重击', value: 30000 }] }]
-  const v = TD.buildTeamDamageView(members, fixture, 5)
-  ok('视图带估算金数与构成', Number.isFinite(v.approxCost) && v.costNote.length > 0, `${v.approxCost}｜${v.costNote}`)
-  ok('没有对应阵容时给出解释性提示', v.refs.length === 0 ? v.notes.some(n => n.includes('暂时没有')) : true, v.notes.join('｜'))
-
-  // 有同阵容但没有同金 → 提示金数差异
-  const sample = fixture[0]
-  const names = (sample.members || []).map(m => m.charId)
-  const realMembers = names.map(n => ({ charName: n, rarity: 5, level: 90, cons: 0, weapon: null, rows: [] }))
-  const v2 = TD.buildTeamDamageView(realMembers, fixture, 5)
-  ok('有阵容但无同金时提示按金数最接近排序', v2.refTotal > 0 && (v2.refs.some(r => r.costDiff === 0) || v2.notes.some(n => n.includes('没有正好'))), v2.notes.join('｜'))
-  ok('缺伤害行时给出提示', v2.notes.some(n => n.includes('伤害行')))
+  ok('旧的 buildTeamDamageView 已删除（页面改由队伍模拟内核出报告）', typeof TD.buildTeamDamageView === 'undefined')
 }
 
 // ---------- 4. 路由与参数 ----------
@@ -100,25 +89,6 @@ const fixture = JSON.parse(readText(path.join(pluginRoot, 'test', 'fixtures', 'd
   ok('app 产物存在', fs.existsSync(path.join(libDir, 'apps', 'teamDamage.js')))
 }
 
-// ---------- 4b. 序号轴表（配置项 teamDamageAxes） ----------
-{
-  const AX = await load('modules/teamAxes.js')
-  const def = AX.parseAxesConfig('')
-  ok('配置空着也永远有轴 1（保守轴）', def.length === 1 && def[0].no === '1' && def[0].axis.manual === false)
-  ok('不带序号 = 轴 1', AX.axisByNo('', '').no === '1')
-
-  const cfg = '1:保守轴=默认,2:重击轴=重击×8@20s+元素战技×1,3=元素爆发×1+重击×4@15s'
-  const axes = AX.parseAxesConfig(cfg)
-  ok('解析出 3 个轴且按序号排序', axes.map(a => a.no).join(',') === '1,2,3')
-  ok('轴 2 名称与窗口正确', axes[1].name === '重击轴' && axes[1].axis.window === 20 && axes[1].axis.manual === true)
-  ok('轴 2 的两段关键词与次数正确',
-    axes[1].axis.segments.map(s => `${s.keyword}×${s.count}`).join('+') === '重击×8+元素战技×1')
-  ok('没写名称时用轴定义兜底', axes[2].name.includes('元素爆发×1'))
-  ok('取轴：命中 / 未命中', AX.axisByNo('2', cfg)?.name === '重击轴' && AX.axisByNo('9', cfg) === null)
-  const help = AX.axesHelpLines(cfg)
-  ok('帮助清单只给序号+名称+窗口（不暴露关键词写法）',
-    help.length === 3 && help[1].includes('2 = 重击轴') && !help[1].includes('×8'), help.join('｜'))
-}
 
 // ---------- 5. app 与模板接线 ----------
 {
