@@ -130,13 +130,20 @@ export function formatTeamRunReport(report: TeamRunReport): string[] {
   if (report.target) lines.push(`目标：${report.target.id}（Lv${report.target.level}、抗性 ${report.target.resistance}） · 口径 ${report.mode}`)
   if (report.window) {
     const { endFrame, tierId, tickMs, gameMs, realMs } = report.window
-    lines.push(`窗口：${endFrame} 帧 · ${tierId}（${tickMs}ms/帧）· 游戏 ${gameMs}ms · 现实 ${round1(realMs)}ms`)
+    lines.push(`窗口：动作结束于第 ${endFrame} 帧 · ${tierId}（${tickMs}ms/帧）· 游戏 ${gameMs}ms · 现实 ${round1(realMs)}ms`)
+    // 动作没铺满测量窗口时（顺序轴只跑一遍或循环截断），DPS 仍按标准窗口折算，这里必须说清楚，否则会误读。
+    const standardSeconds = report.dps?.windowSeconds
+    if (standardSeconds && Math.abs(realMs / 1000 - standardSeconds) > 1) {
+      lines.push(`DPS 仍按标准 ${round1(standardSeconds)} 秒窗口折算；动作实际只覆盖 ${round1(realMs / 1000)} 秒，未覆盖的时段按 0 伤害计。`)
+    }
   }
   if (report.status === 'calculated') {
     if (report.unmodeled.length) {
-      const shown = report.unmodeled.slice(0, 5).map(item => `${item.actorId} / ${item.id}（${item.reason}）`)
+      // 每条原因可能是整段套装描述，直接拼会把聊天消息顶爆；截断到 32 字并给出剩余条数。
+      const short = (reason: string): string => reason.length > 32 ? `${reason.slice(0, 32)}…` : reason
+      const shown = report.unmodeled.slice(0, 5).map(item => `${item.actorId}/${item.id}（${short(item.reason)}）`)
       const rest = report.unmodeled.length - shown.length
-      lines.push(`未纳入：${shown.join('；')}${rest > 0 ? `；等 ${report.unmodeled.length} 项` : ''}`)
+      lines.push(`未纳入：${shown.join('；')}${rest > 0 ? `；另 ${rest} 项` : ''}`)
       lines.push('以下数字不含上述效果，偏低估；发布闸门会据此拦下。')
     }
     lines.push(`命中：${report.hits} 段，合计 ${round1(report.total)}`)

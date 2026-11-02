@@ -1,10 +1,16 @@
 {
   "schemaVersion": 1,
   "id": "demo-skill-sequence",
-  "team": ["10000023", "10000025", "10000032", "10000060"],
+  "team": [
+    "10000023",
+    "10000025",
+    "10000032",
+    "10000060"
+  ],
   "measurementEndFrame": 7243,
   "scheduler": "asap-sequence",
   "frameTierId": "fps-60",
+  "loop": true,
   "sequence": [
     "bennett.skill",
     "xiangling.skill",

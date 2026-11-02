@@ -1,10 +1,16 @@
 {
   "schemaVersion": 1,
   "id": "national-skills",
-  "team": ["10000052", "10000023", "10000032", "10000025"],
+  "team": [
+    "10000052",
+    "10000023",
+    "10000032",
+    "10000025"
+  ],
   "measurementEndFrame": 7243,
   "scheduler": "asap-sequence",
   "frameTierId": "fps-60",
+  "loop": true,
   "sequence": [
     "bennett.skill",
     "bennett.normal-1",

@@ -58,12 +58,43 @@ const lines = formatTeamRunReport(report)
 assert.equal(lines[0], '队伍模拟：calculated（不可用于正式结论）')
 assert.ok(lines.includes('关：data-pack=ok · versions=ok · rotation=ok · members=ok · timeline=ok · damage=ok'), lines.join('\n'))
 assert.ok(lines.includes('版本：数据包 6.0-synthetic / 面板 6.0-synthetic'), lines.join('\n'))
-assert.ok(lines.includes('窗口：48 帧 · fps-60（17ms/帧）· 游戏 816ms · 现实 795.2ms'), lines.join('\n'))
+assert.ok(lines.includes('窗口：动作结束于第 48 帧 · fps-60（17ms/帧）· 游戏 816ms · 现实 795.2ms'), lines.join('\n'))
 assert.ok(lines.includes('命中：3 段，合计 12000'), lines.join('\n'))
 assert.ok(lines.includes('  角色 itto：2 段 9000'), lines.join('\n'))
 assert.ok(lines.includes('  动作 albedo / albedo.skill：1 段 3000'), lines.join('\n'))
 assert.ok(lines.includes('触发：party-atk×2'), lines.join('\n'))
 assert.ok(lines.includes('近似项：hitlag:6:5'), lines.join('\n'))
+// 2026-11-02：未纳入的原因常是整段套装描述，必须截断；剩余条数要说「另 N 项」而不是总数。
+{
+  const longReason = '华馆梦醒形骸记 4 件套未建模：装备此圣遗物套装的角色在以下情况下，将获得「问答」效果：在场上用岩元素攻击命中敌人后获得一层，每 0.3 秒至多触发一次'
+  const run = structuredClone(calculated)
+  run.damage.total = 100
+  run.damage.rows = []
+  run.unmodeled = [
+    { actorId: 'a', id: 'character:1:a6', reason: longReason },
+    { actorId: 'a', id: 'artifact-set:1:4pc', reason: longReason },
+    { actorId: 'b', id: 'character:2:a6', reason: longReason },
+    { actorId: 'b', id: 'artifact-set:1:4pc', reason: longReason },
+    { actorId: 'c', id: 'character:3:a6', reason: longReason },
+    { actorId: 'c', id: 'artifact-set:1:4pc', reason: longReason }
+  ]
+  const lines = formatTeamRunReport(buildTeamRunReport(run))
+  const line = lines.find(item => item.startsWith('未纳入：')) ?? ''
+  assert.ok(line.includes('另 1 项'), line)
+  assert.ok(!line.includes(longReason), '长原因必须截断')
+  assert.ok(line.includes('…'), line)
+}
+
+// 动作没铺满窗口时，窗口行要说明 DPS 仍按标准窗口折算，避免把 7 秒的伤害当成 120 秒。
+{
+  const run = structuredClone(calculated)
+  run.timeline.endFrame = 433
+  run.timeline.timing = { tierId: 'fps-60', timerTickMs: 17, gameMs: 7361, realMs: 7173.45 }
+  run.dps = { total: 16676, windowSeconds: 120, value: 139 }
+  run.damage.total = 16676
+  const lines = formatTeamRunReport(buildTeamRunReport(run))
+  assert.ok(lines.some(item => item.includes('DPS 仍按标准')), lines.join('\\n'))
+}
 
 // 失败的一轮：不给窗口与版本，问题逐条列出，关状态仍要能看出卡在哪一关。
 const failed = {

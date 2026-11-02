@@ -73,6 +73,15 @@ const baseFile = (patch = {}) => ({
   const converted = S.toRotation(file, pack)
   ok('入库的顺序轴示例能过校验', converted.status === 'ok', JSON.stringify(converted.issues))
   ok('示例轴只写动作顺序（13 条）', file.sequence.length === 13)
+  if (converted.rotation) {
+    // loop: true 要把动作铺到测量窗口，否则 120 秒窗口里只打 7 秒，DPS 会被摊薄十几倍。
+    const frames = converted.rotation.steps.map(step => step.atFrame ?? 0)
+    ok('loop 轴把循环展开到多轮', converted.rotation.steps.filter(step => step.kind === 'action').length > 13)
+    ok('展开后所有步骤仍在 7243 帧窗口内', Math.max(...frames) < 7243)
+    ok('展开后调度仍是 fixed', converted.rotation.scheduler === 'fixed')
+  }
+  const noLoop = S.toRotation({ ...file, loop: false }, pack)
+  ok('loop: false 时只跑一遍（20 步含切人）', noLoop.status === 'ok' && noLoop.rotation?.steps.length === 20)
 }
 
 {
