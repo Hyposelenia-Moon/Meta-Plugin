@@ -99,6 +99,88 @@ export function safeId (id) {
   return /^[A-Za-z0-9._-]{1,64}$/.test(text) ? text : ''
 }
 
+/**
+ * 录制归一化（2026-11-02）：录制器按默认键位表写出 `normal-1 / skill / burst / charged / switch:N`，
+ * 而轴文件要求键位表的键是**绝对键**（`bennett.skill`、`to_albedo`）。
+ * 这里把相对键展开成绝对键，并顺手生成键位表；切人后的动作算到当时的前台角色上。
+ */
+export async function normalizeRecording (recording) {
+  const rec = recording
+  if (!rec || rec.schemaVersion !== 1 || !Array.isArray(rec.events) || !rec.start) {
+    return { ok: false, issues: [{ path: 'recording', message: '这不是录制器输出的格式（缺 schemaVersion / events / start）' }] }
+  }
+  const roster = loadRoster()
+  const byKey = new Map(roster.map(entry => [entry.keys[0], entry]))
+  const issues = []
+  const actors = (Array.isArray(rec.start.actors) ? rec.start.actors : []).map(actor => {
+    const actorId = typeof actor === 'string' ? actor : actor?.actorId
+    let energyMax = Number(actor?.energyMax) || 0
+    if (!energyMax && actorId) {
+      try {
+        const pack = loadPack(actorId)
+        energyMax = Number(pack.actions?.[`${actorId}.burst`]?.energyCost) || 0
+      } catch { /* 没有包就回落到 60 */ }
+    }
+    return { actorId, energy: Number(actor?.energy) || 0, energyMax: energyMax || 60 }
+  })
+  actors.forEach((actor, index) => {
+    if (!actor?.actorId) issues.push({ path: `recording.start.actors.${index}`, message: '录制里有一个角色没有 actorId' })
+    else if (!byKey.has(actor.actorId)) issues.push({ path: `recording.start.actors.${index}`, message: `名录里没有 ${actor.actorId}，这条录制可能来自别的数据集` })
+  })
+  let current = String(rec.start.activeActorId ?? '')
+  if (!current) issues.push({ path: 'recording.start.activeActorId', message: '录制没有记起手角色' })
+
+  const bindings = {}
+  const events = []
+  let switches = 0
+  for (const [index, event] of rec.events.entries()) {
+    if (event?.phase !== 'down') continue
+    const key = String(event.key ?? '')
+    let normalized = ''
+    const switchMatch = key.match(/^switch:(\d+)$/)
+    if (switchMatch) {
+      const actor = actors[Number(switchMatch[1]) - 1]?.actorId
+      if (!actor) { issues.push({ path: `recording.events.${index}.key`, message: `按键 ${key} 对应第 ${switchMatch[1]} 个角色，但录制里没有这个位置` }); continue }
+      normalized = `to_${actor}`
+      bindings[normalized] = { actorId: actor, switch: true }
+      current = actor
+      switches += 1
+    } else if (/^(normal-\d+|skill|burst|charged)$/.test(key)) {
+      if (!current) { issues.push({ path: `recording.events.${index}.key`, message: `还没确定前台角色就出现了 ${key}` }); continue }
+      normalized = `${current}.${key}`
+      bindings[normalized] = { actorId: current, actionId: normalized }
+    } else if (/^[^.]+\./.test(key)) {
+      const actor = key.split('.')[0]
+      normalized = key
+      bindings[normalized] = { actorId: actor, actionId: key }
+    } else {
+      issues.push({ path: `recording.events.${index}.key`, message: `看不懂这个按键：${key}（默认键位表只认 normal-1 / charged / skill / burst / switch:1-4）` })
+      continue
+    }
+    events.push({ ...event, key: normalized })
+  }
+  if (!events.length) issues.push({ path: 'recording.events', message: '没有可识别的按下事件' })
+  if (issues.length) return { ok: false, issues }
+
+  const K = await import(libUrl('modules/teamSimulation/index.js'))
+  const tier = K.FRAME_TIERS[rec.frameTierId]
+  if (!tier) return { ok: false, issues: [{ path: 'recording.frameTierId', message: `未知帧率档位 ${rec.frameTierId}` }] }
+  const lastFrame = Math.max(0, ...events.map(event => Math.round(Number(event.atMs) / (1000 / tier.fps))))
+  const window = Math.max(7243, lastFrame + 600)
+  const team = [...new Set(actors.map(actor => byKey.get(actor.actorId)?.charId).filter(Boolean))]
+  const keymap = { version: String(rec.keymapVersion ?? ''), bindings }
+  return {
+    ok: true,
+    issues: [],
+    keymap,
+    recording: { ...rec, start: { ...rec.start, actors }, events },
+    team,
+    window,
+    lastFrame,
+    summary: { actions: events.filter(event => !event.key.startsWith('to_')).length, switches, lastFrame, window, actors: team.length }
+  }
+}
+
 export function listRotations (dir = ROTATIONS) {
   if (!fs.existsSync(dir)) return []
   return fs.readdirSync(dir).filter(name => name.endsWith('.json')).sort().map(name => {
@@ -197,6 +279,22 @@ export function createServer () {
         const body = await readBody(req)
         return sendJson(res, 200, await validateFile(body?.file))
       }
+      if (req.method === 'POST' && url.pathname === '/api/import-recording') {
+        const body = await readBody(req)
+        const normalized = await normalizeRecording(body?.recording)
+        if (!normalized.ok) return sendJson(res, 200, normalized)
+        const file = {
+          schemaVersion: 1,
+          id: safeId(body?.id) || 'recording',
+          ...(normalized.team.length ? { team: normalized.team } : {}),
+          measurementEndFrame: normalized.window,
+          frameTierId: normalized.recording.frameTierId,
+          keymap: normalized.keymap,
+          recording: normalized.recording
+        }
+        const checked = await validateFile(file)
+        return sendJson(res, 200, { ok: checked.ok, issues: checked.issues, file, summary: normalized.summary })
+      }
       if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
         const html = fs.readFileSync(path.join(PAGE_DIR, 'index.html'))
         res.writeHead(200, { 'content-type': MIME['.html'], 'cache-control': 'no-store' })
@@ -232,6 +330,26 @@ export async function selfCheck () {
   if (bad.ok) problems.push('不存在的动作没有被拒绝')
   const badId = await saveRotation({ ...demo, id: '../escape' })
   if (badId.ok) problems.push('非法 id 没有被拒绝')
+  const normalized = await normalizeRecording({
+    schemaVersion: 1,
+    frameTierId: 'fps-60',
+    keymapVersion: 'gs-default-1',
+    gameVersion: '7.1',
+    source: 'selftest',
+    start: { activeActorId: 'bennett', actors: [{ actorId: 'bennett' }, { actorId: 'xiangling' }] },
+    events: [
+      { atMs: 0, key: 'skill', phase: 'down' },
+      { atMs: 30, key: 'skill', phase: 'up' },
+      { atMs: 100, key: 'switch:2', phase: 'down' },
+      { atMs: 200, key: 'normal-1', phase: 'down' }
+    ]
+  })
+  if (!normalized.ok) problems.push(`录制归一化失败：${JSON.stringify(normalized.issues?.slice(0, 2))}`)
+  else {
+    const keys = normalized.recording.events.map(event => event.key).join(',')
+    if (keys !== 'bennett.skill,to_xiangling,xiangling.normal-1') problems.push(`录制归一化的键不对：${keys}`)
+    if (normalized.team.length !== 2) problems.push(`录制归一化的队伍不对：${JSON.stringify(normalized.team)}`)
+  }
   return { ok: problems.length === 0, problems }
 }
 
@@ -268,4 +386,8 @@ if (isMain) {
   })
   listen(basePort)
 }
+
+
+
+
 

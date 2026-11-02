@@ -3,66 +3,109 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>轴编辑器 · Meta-Plugin</title>
+<title>队伍轴编辑器 · Meta-Plugin</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="top">
   <div>
-    <h1>轴编辑器</h1>
-    <p class="muted">拼装 <code>data/team-sim/rotations/*.json</code>；保存前用内核同一套 <code>toRotation()</code> 校验。只写动作顺序，帧由 <code>asap-sequence</code> 排。</p>
+    <h1>队伍轴编辑器</h1>
+    <p class="muted">选四个角色、按顺序点动作，就能拼出一条队伍输出轴。保存前会自动检查一遍。</p>
   </div>
   <div class="top-actions">
-    <select id="existing" title="载入已入库的轴"></select>
-    <button id="load" class="btn">载入</button>
+    <select id="existing" title="打开已经保存过的轴"></select>
+    <button id="load" class="btn">打开</button>
     <button id="fresh" class="btn ghost">新建</button>
   </div>
 </header>
 
-<main class="grid">
+<nav class="tabs">
+  <button class="tab active" data-tab="build">① 拼一条轴</button>
+  <button class="tab" data-tab="record">② 从录制导入（进阶）</button>
+</nav>
+
+<main id="tab-build" class="tab-panel active">
   <section class="card">
-    <h2>1 · 队伍与窗口</h2>
-    <label class="row"><span>轴 id</span><input id="id" class="grow" placeholder="national-skills"></label>
-    <div class="row"><span>队伍</span><div id="team" class="team"></div></div>
+    <h2>第一步 · 选队伍</h2>
+    <p class="hint">按队伍顺序点四个位置。下拉里可以直接打字搜中文名。</p>
+    <div id="team" class="team"></div>
     <div class="row">
-      <span>窗口</span>
+      <span class="label">打多久</span>
       <input id="window" type="number" min="1" step="1" value="7243" class="w120">
-      <span class="muted">帧（60 档标准窗口 7243）</span>
+      <span class="muted">帧（默认 7243 ≈ 120 秒，不用改）</span>
+      <label class="inline"><input id="loop" type="checkbox" checked> 让这套动作循环到结束</label>
     </div>
-    <label class="row"><span>循环</span><input id="loop" type="checkbox" checked><span class="muted">把动作循环到窗口结束，DPS 才按满窗口算</span></label>
   </section>
 
-  <section class="card wide">
+  <section class="card">
     <div class="card-head">
-      <h2>2 · 动作顺序</h2>
+      <h2>第二步 · 排动作顺序</h2>
       <div class="tools">
-        <button id="add" class="btn">＋ 动作</button>
-        <button id="add-burst" class="btn ghost" title="可选步骤：能量不够时跳过这一次">＋ 可选爆发</button>
+        <button id="add" class="btn">＋ 加一个动作</button>
+        <button id="add-burst" class="btn ghost" title="爆发很吃能量：能量不够时自动跳过这一次，等攒够了再放">＋ 加爆发（能量够了才放）</button>
       </div>
     </div>
+    <p class="hint">从上到下就是出手顺序。轮到别的角色会自动切人，不用手动写“切人”。</p>
     <div id="steps" class="steps"></div>
-    <p id="empty" class="empty muted">还没有动作。先选队伍，再点「＋ 动作」。</p>
+    <p id="empty" class="empty muted">还没有动作。先在上面选好队伍，再点「＋ 加一个动作」。</p>
   </section>
 
   <section class="card">
-    <h2>3 · 充能效率</h2>
+    <h2>第三步 · 充能效率（可选）</h2>
+    <p class="hint">不知道就保持 100%。爆发总是差一点能量时，把它调高或给爆发勾上「能量够了才放」。</p>
     <div id="recharge" class="recharge"></div>
-    <p class="muted small">缺省 1.0；产球按全队共享结算，爆发能不能放出来主要看这里。</p>
   </section>
 
   <section class="card">
-    <h2>4 · 校验与保存</h2>
-    <div class="tools">
-      <button id="validate" class="btn ghost">校验</button>
-      <button id="save" class="btn primary">保存</button>
+    <div class="card-head">
+      <h2>第四步 · 检查并保存</h2>
+      <div class="tools">
+        <button id="validate" class="btn ghost">检查一下</button>
+        <button id="save" class="btn primary">保存这条轴</button>
+      </div>
     </div>
-    <div id="status" class="status muted">尚未校验</div>
-    <textarea id="preview" class="preview" readonly spellcheck="false"></textarea>
+    <div id="status" class="status">还没有检查</div>
+    <details class="advanced">
+      <summary>高级设置（一般不用动）</summary>
+      <div class="row"><span class="label">轴的名字</span><input id="id" class="grow" placeholder="例如 national-bursts"></div>
+      <div class="row"><span class="label">保存位置</span><code>data/team-sim/rotations/&lt;名字&gt;.json</code></div>
+      <textarea id="preview" class="preview" readonly spellcheck="false"></textarea>
+    </details>
+  </section>
+</main>
+
+<main id="tab-record" class="tab-panel">
+  <section class="card">
+    <h2>第一步 · 生成录制命令</h2>
+    <p class="hint">录制器要在游戏里按 F1 开始、F2 结束。选好起手角色，把下面命令复制到命令行运行。</p>
+    <div class="row"><span class="label">起手角色</span><select id="rec-active" class="grow"></select></div>
+    <pre id="rec-command" class="command">先在「拼一条轴」里选好队伍</pre>
+    <button id="rec-copy" class="btn ghost">复制命令</button>
+    <p class="hint">录制器会写出一份 JSON。回到这里，把它粘贴到下面。</p>
+  </section>
+
+  <section class="card">
+    <h2>第二步 · 粘贴录制结果</h2>
+    <textarea id="rec-json" class="preview" placeholder="把录制器输出的 JSON 整个粘进来（以 { 开头）"></textarea>
+    <div class="tools">
+      <button id="rec-parse" class="btn primary">解析并检查</button>
+    </div>
+    <div id="rec-status" class="status">还没有解析</div>
+  </section>
+
+  <section class="card">
+    <h2>第三步 · 确认并保存</h2>
+    <div id="rec-summary" class="summary muted">解析后会显示识别到多少次动作、几次切人。</div>
+    <details class="advanced">
+      <summary>高级设置（一般不用动）</summary>
+      <div class="row"><span class="label">轴的名字</span><input id="rec-id" class="grow" placeholder="例如 my-recording"></div>
+      <textarea id="rec-preview" class="preview" readonly spellcheck="false"></textarea>
+    </details>
+    <button id="rec-save" class="btn primary">保存这条轴</button>
   </section>
 </main>
 
 <script src="app.js"></script>
 </body>
 </html>
-

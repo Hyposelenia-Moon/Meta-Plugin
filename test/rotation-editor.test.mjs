@@ -74,6 +74,39 @@ const demo = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'team-sim', 'rot
     ok('/api/rotation 校验失败时不落盘', bad.ok === false)
     const html = await (await fetch(`${base}/`)).text()
     ok('首页返回编辑器页面', html.includes('轴编辑器') && html.includes('app.js'))
+
+    // 录制导入：录制器默认键位表写的是相对键，导入时展开成绝对键。
+    const imported = await (await fetch(`${base}/api/import-recording`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        id: 'tmp-recording',
+        recording: {
+          schemaVersion: 1,
+          frameTierId: 'fps-60',
+          keymapVersion: 'gs-default-1',
+          gameVersion: '7.1',
+          source: 'record-keys.py@test',
+          start: { activeActorId: 'bennett', actors: [{ actorId: 'bennett' }, { actorId: 'xiangling' }] },
+          events: [
+            { atMs: 0, key: 'skill', phase: 'down' },
+            { atMs: 1000, key: 'switch:2', phase: 'down' },
+            { atMs: 2000, key: 'normal-1', phase: 'down' }
+          ]
+        }
+      })
+    })).json()
+    ok('/api/import-recording 能识别默认键位表', imported.ok === true, JSON.stringify(imported.issues?.slice(0, 2)))
+    ok('录制键被展开成绝对键', imported.ok && imported.file.recording.events.map(e => e.key).join(',') === 'bennett.skill,to_xiangling,xiangling.normal-1')
+    ok('导入会顺带生成键位表', imported.ok && imported.file.keymap.bindings['to_xiangling'].switch === true && imported.file.keymap.version === 'gs-default-1')
+    ok('导入会带上队伍与测量窗口', imported.ok && imported.file.team.length === 2 && imported.file.measurementEndFrame >= 7243)
+
+    const badRecording = await (await fetch(`${base}/api/import-recording`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ recording: { schemaVersion: 1, frameTierId: 'fps-60', keymapVersion: 'x', start: { activeActorId: 'bennett', actors: [{ actorId: 'bennett' }] }, events: [{ atMs: 0, key: 'x', phase: 'down' }] } })
+    })).json()
+    ok('不认识的按键被拒绝并给出中文原因', badRecording.ok === false && /看不懂这个按键/.test(JSON.stringify(badRecording.issues)))
   } finally {
     await new Promise(resolve => server.close(resolve))
   }
@@ -81,3 +114,4 @@ const demo = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'team-sim', 'rot
 
 fs.rmSync(tmp, { recursive: true, force: true })
 report()
+

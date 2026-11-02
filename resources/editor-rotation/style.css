@@ -1,11 +1,11 @@
 :root {
-  --bg: #101418;
+  --bg: #0f1318;
   --card: #171d24;
   --line: #27313c;
   --text: #e6edf3;
-  --muted: #8b98a5;
-  --accent: #6fb3ff;
-  --deep: #0c1014;
+  --muted: #93a1ae;
+  --accent: #79b8ff;
+  --deep: #0b0f13;
 }
 
 * { box-sizing: border-box; }
@@ -14,7 +14,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.6 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  font: 15px/1.65 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
 }
 
 .top {
@@ -22,48 +22,61 @@ body {
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  padding: 20px 24px;
+  padding: 22px 28px 16px;
   border-bottom: 1px solid var(--line);
 }
 
-h1 { margin: 0; font-size: 20px; letter-spacing: .04em; }
-h2 { margin: 0 0 12px; font-size: 14px; color: var(--accent); letter-spacing: .04em; }
+h1 { margin: 0 0 4px; font-size: 21px; letter-spacing: .03em; }
+h2 { margin: 0 0 10px; font-size: 15px; color: var(--accent); }
 code { color: var(--accent); }
 
 .muted { color: var(--muted); }
-.small { font-size: 12px; }
+.hint { margin: -2px 0 12px; color: var(--muted); font-size: 13px; }
 
-.grid {
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(520px, 2fr);
-  gap: 16px;
-  padding: 20px 24px 40px;
-  align-items: start;
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px 28px 0;
 }
+
+.tab {
+  border: 1px solid var(--line);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: #141a21;
+  color: var(--muted);
+  padding: 8px 16px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.tab.active { background: var(--card); color: var(--text); border-color: var(--accent); }
+
+.tab-panel { display: none; padding: 0 28px 48px; }
+.tab-panel.active { display: block; }
 
 .card {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 14px 16px;
+  padding: 16px 18px;
+  margin: 14px 0;
+  max-width: 980px;
 }
 
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.wide { grid-column: 2; }
 
-.row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
-.row > span:first-child { min-width: 48px; color: var(--muted); }
-
-.grow { flex: 1; }
-.w120 { width: 120px; }
+.row { display: flex; align-items: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+.row .label { min-width: 64px; color: var(--muted); }
+.inline { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
 
 input, select, button, textarea {
   font: inherit;
   color: var(--text);
   background: var(--deep);
   border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 6px 8px;
+  border-radius: 7px;
+  padding: 7px 9px;
 }
 
 input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); }
@@ -72,43 +85,89 @@ input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); }
 .btn:hover { border-color: var(--accent); }
 .btn.primary { background: #1b3b5c; border-color: #2b5d8c; }
 .btn.ghost { background: transparent; }
-.btn.mini { padding: 2px 8px; font-size: 12px; }
+.btn.mini { padding: 3px 10px; font-size: 13px; }
 
-.top-actions { display: flex; gap: 8px; align-items: center; }
-.team { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; }
-.team select { width: 100%; }
+.top-actions, .tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.team {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #141a21;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.slot input { border: none; background: transparent; padding: 2px 0; font-size: 16px; }
+.slot-index { font-size: 12px; color: var(--muted); }
 
 .steps { display: flex; flex-direction: column; gap: 8px; }
+
 .step {
   display: grid;
-  grid-template-columns: 28px minmax(120px, 1fr) minmax(180px, 1.6fr) auto auto;
+  grid-template-columns: 28px minmax(120px, 1fr) minmax(200px, 1.8fr) auto auto auto;
   gap: 8px;
   align-items: center;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #141a21;
 }
+
+.step.optional { border-style: dashed; border-color: #5d7a3f; }
 .step .no { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
-.step.optional { border-style: dashed; }
-.step .tag { font-size: 12px; color: #ffd479; }
-.step .tools { display: flex; gap: 4px; }
+.step .step-hint { font-size: 12px; }
+.step .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #ffd479; white-space: nowrap; }
 .step select { width: 100%; }
 
-.recharge { display: grid; grid-template-columns: 1fr 90px; gap: 8px; align-items: center; }
+.recharge { display: grid; grid-template-columns: 1fr 100px; gap: 10px; align-items: center; max-width: 420px; }
 
-.empty { margin: 16px 0 4px; }
+.empty { margin: 18px 0 6px; }
 
-.status { margin: 12px 0; padding: 8px 10px; border-radius: 6px; background: var(--deep); white-space: pre-wrap; }
+.status {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--deep);
+  white-space: pre-wrap;
+  color: var(--muted);
+}
 .status.ok { color: #7fe0a1; }
-.status.bad { color: #ff8f8f; }
+.status.bad { color: #ff9b9b; }
+
+.summary { margin: 6px 0 12px; }
+
+.advanced { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.advanced summary { cursor: pointer; color: var(--muted); }
 
 .preview {
   width: 100%;
-  height: 260px;
+  height: 220px;
   resize: vertical;
-  font: 12px/1.5 Consolas, "Cascadia Mono", monospace;
+  font: 12px/1.55 Consolas, "Cascadia Mono", monospace;
   white-space: pre;
+  margin-top: 8px;
 }
 
-.issue { color: #ffb4b4; }
+.command {
+  background: var(--deep);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: 12px/1.6 Consolas, "Cascadia Mono", monospace;
+  white-space: pre-wrap;
+  color: #c8d6e5;
+}
+
+@media (max-width: 760px) {
+  .step { grid-template-columns: 24px 1fr; }
+  .step .step-hint, .step .tag, .step .tools { grid-column: 2; }
+  .team { grid-template-columns: 1fr; }
+}
