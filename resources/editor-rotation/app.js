@@ -297,6 +297,7 @@ async function render () {
   renderPreview()
   renderRecordActive()
   window.__rotationState = { team: state.file.team }
+  window.__rotationFile = JSON.parse(JSON.stringify(state.file))
   window.dispatchEvent(new CustomEvent('rotation-team-changed'))
 }
 
@@ -500,5 +501,6 @@ async function boot () {
 }
 
 boot()
+
 
 

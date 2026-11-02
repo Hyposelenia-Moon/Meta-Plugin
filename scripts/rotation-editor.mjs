@@ -122,22 +122,18 @@ export function weaponCatalog () {
   }
   return out.sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name, 'zh'))
 }
-/**
- * 面板试算（2026-11-02）：把 UI 的「角色 + 武器 + 圣遗物」拼成 CharacterBuild，
- * 走内核同一套 `buildPermanentStats` 算最终面板；失败时把 issues 原样返回给界面。
- */
-export async function computePanel (input) {
+/** 从面板输入拼 CharacterBuild（只构造，不算面板）。 */
+async function buildMember (input) {
   const roster = loadRoster()
   const entry = roster.find(item => item.charId === String(input?.characterId ?? ''))
   if (!entry) return { ok: false, issues: [{ path: 'characterId', message: '名录里没有这个角色' }] }
   const weaponId = String(input?.weaponId ?? '')
-  if (!weaponId) return { ok: false, issues: [{ path: 'weaponId', message: '先选武器' }] }
+  if (!weaponId) return { ok: false, issues: [{ path: 'weaponId', message: `${entry.cn} 还没选武器` }] }
   const refinement = Math.min(5, Math.max(1, Number(input?.refinement) || 1))
   const BUILT = await import(libUrl('modules/teamSimulation/build.js'))
   const PS = await import(libUrl('model/PermanentSource.js'))
   const runtime = PS.buildRuntimePermanent({ characterId: entry.charId, name: entry.cn, weaponId, refinement })
   if (!runtime.ok) return { ok: false, issues: [{ path: 'weaponId', message: runtime.error }] }
-
   const artifacts = (Array.isArray(input?.artifacts) ? input.artifacts : []).map(artifact => ({
     slot: String(artifact?.slot ?? ''),
     name: String(artifact?.setId ?? artifact?.slot ?? ''),
@@ -163,11 +159,62 @@ export async function computePanel (input) {
     provenance: { provider: 'rotation-editor', providerVersion: null, sourceTime: null }
   }
   build.requiredEffects = BUILT.requiredEffectSources(build)
+  return { ok: true, entry, build, runtime, BUILT }
+}
+
+/**
+ * 面板试算（2026-11-02）：把 UI 的「角色 + 武器 + 圣遗物」拼成 CharacterBuild，
+ * 走内核同一套 `buildPermanentStats` 算最终面板；失败时把 issues 原样返回给界面。
+ */
+export async function computePanel (input) {
+  const member = await buildMember(input)
+  if (!member.ok) return member
+  const { build, runtime, BUILT } = member
   const expected = { gameVersion: runtime.data.gameVersion, bundleId: runtime.data.bundleId, source: runtime.data.source }
   const result = BUILT.buildPermanentStats(build, runtime.data, expected)
   if (result.status !== 'permanent-ready') return { ok: false, status: result.status, issues: result.issues ?? [] }
   return { ok: true, status: result.status, stats: result.stats, unmodeled: result.unmodeled ?? [], issues: result.issues ?? [] }
 }
+
+/** 用当前面板 + 当前轴真跑一次 DPS 标准（固定 110 级小宝）。 */
+export async function simulatePanel (input) {
+  const S = await import(libUrl('model/TeamSimStore.js'))
+  const K = await import(libUrl('modules/teamSimulation/index.js'))
+  const rotation = input?.rotation
+  if (!rotation) return { ok: false, issues: [{ path: 'rotation', message: '先在「拼一条轴」里拼一条轴' }] }
+  const panels = Array.isArray(input?.panels) ? input.panels : []
+  if (!panels.length) return { ok: false, issues: [{ path: 'panels', message: '面板里还没有角色' }] }
+  const members = []
+  for (const panel of panels) {
+    const member = await buildMember(panel)
+    if (!member.ok) return member
+    const permanent = S.loadPermanentData(member.build)
+    if (!permanent?.data) return { ok: false, issues: [{ path: `panels.${panel.characterId}`, message: `取不到 ${member.entry.cn} 的永久数据` }] }
+    members.push({ build: member.build, permanentData: permanent.data })
+  }
+  const keys = members.map(member => member.build.actorId)
+  const merged = await composePack(keys)
+  if (merged.status !== 'ok') return { ok: false, issues: merged.issues ?? [] }
+  const converted = S.toRotation(rotation, merged.pack)
+  if (converted.status !== 'ok') return { ok: false, issues: converted.issues, stage: 'rotation' }
+  const first = members[0].permanentData
+  const expected = { gameVersion: first.gameVersion, bundleId: first.bundleId, source: first.source }
+  const crit = input?.crit === 'critical' || input?.crit === 'non-critical' ? input.crit : 'expected'
+  const run = K.simulateTeam({
+    mode: 'dps-standard',
+    pack: merged.pack,
+    rotation: converted.rotation,
+    members,
+    expected,
+    targetPresetId: 'ruin-guard-lv110',
+    crit,
+    debuffs: { defenseReduction: 0, defenseIgnore: 0, resistanceReduction: 0 }
+  })
+  if (run.status !== 'calculated') return { ok: false, status: run.status, issues: run.issues ?? [], stage: 'simulate' }
+  const report = K.buildTeamRunReport(run)
+  return { ok: true, status: run.status, dps: report.dps?.value ?? null, hits: report.hits ?? null, energy: report.energy ?? [], actions: report.perAction ?? [], crit }
+}
+
 /**
  * 录制归一化（2026-11-02）：录制器按默认键位表写出 `normal-1 / skill / burst / charged / switch:N`，
  * 而轴文件要求键位表的键是**绝对键**（`bennett.skill`、`to_albedo`）。
@@ -344,6 +391,10 @@ export function createServer () {
         const body = await readBody(req)
         return sendJson(res, 200, await computePanel(body?.build ?? body))
       }
+      if (req.method === 'POST' && url.pathname === '/api/simulate') {
+        const body = await readBody(req)
+        try { return sendJson(res, 200, await simulatePanel(body)) } catch (err) { return sendJson(res, 500, { ok: false, issues: [{ path: 'server', message: String(err?.message ?? err) }] }) }
+      }
       if (req.method === 'GET' && url.pathname === '/api/actions') {
         const key = String(url.searchParams.get('key') ?? '')
         if (!/^[A-Za-z0-9_-]+$/.test(key)) return sendJson(res, 400, { error: '缺少 key' })
@@ -470,6 +521,8 @@ if (isMain) {
   })
   listen(basePort)
 }
+
+
 
 
 

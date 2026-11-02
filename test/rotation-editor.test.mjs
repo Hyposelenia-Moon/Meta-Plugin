@@ -163,4 +163,21 @@ fs.rmSync(tmp, { recursive: true, force: true })
     await new Promise(resolve => server.close(resolve))
   }
 }
+
+// 跑一次 DPS（P3）：面板 + 轴 → simulateTeam。
+{
+  const artis = ['flower', 'plume', 'sands', 'goblet', 'circlet'].map((slot, i) => ({
+    slot, setId: '400189', level: 20,
+    main: { key: ['hp', 'atk', 'hpPct', 'geo', 'cpct'][i], value: [4780, 311, 0.466, 0.466, 0.311][i] },
+    sub: [{ key: 'cdmg', value: 0.7 }]
+  }))
+  const rotation = { schemaVersion: 1, id: 'tmp-run', team: ['10000032'], measurementEndFrame: 7243, scheduler: 'asap-sequence', frameTierId: 'fps-60', loop: true, sequence: ['bennett.skill', 'bennett.normal-1'] }
+  const missingWeapon = await E.simulatePanel({ rotation, panels: [{ characterId: '10000032', artifacts: artis }] })
+  ok('没选武器时跑不了并指出是谁', missingWeapon.ok === false && JSON.stringify(missingWeapon.issues).includes('还没选武器'))
+  const noRotation = await E.simulatePanel({ panels: [{ characterId: '10000032', weaponId: '13407', artifacts: artis }] })
+  ok('没轴时给出提示', noRotation.ok === false && JSON.stringify(noRotation.issues).includes('拼一条轴'))
+  const run = await E.simulatePanel({ rotation, panels: [{ characterId: '10000032', weaponId: '13407', refinement: 1, artifacts: artis }] })
+  ok('面板 + 轴能跑出 DPS', run.ok === true && run.dps > 0, JSON.stringify(run.issues?.slice(0, 2)))
+  ok('结果带逐动作与能量', Array.isArray(run.actions) && run.actions.length > 0 && Array.isArray(run.energy))
+}
 report()

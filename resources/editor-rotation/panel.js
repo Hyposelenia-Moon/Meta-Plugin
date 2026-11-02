@@ -173,6 +173,58 @@ function renderPanel () {
   }
 }
 
-bootPanel()
 
 
+
+
+function panelPayload (team) {
+  return team.map(charId => {
+    const card = P.cards.get(charId)
+    if (!card?.weaponId) throw new Error(`${P.roster.find(r => r.charId === charId)?.cn ?? charId} 还没选武器`)
+    const artifacts = SLOTS.map(([slot]) => ({ slot, item: card.slots[slot] })).filter(({ item }) => item.setId)
+      .map(({ slot, item }) => ({
+        slot,
+        setId: item.setId,
+        level: item.level,
+        main: { key: item.mainKey, value: P.tables.mainStats[item.mainKey]?.[P.tables.levels.indexOf(item.level)] ?? 0 },
+        sub: item.subs.filter(sub => sub.key && sub.value).map(sub => ({ key: sub.key, value: Number(sub.value) }))
+      }))
+    if (!artifacts.length) throw new Error(`${P.roster.find(r => r.charId === charId)?.cn ?? charId} 还没有填圣遗物`)
+    return { characterId: charId, weaponId: card.weaponId, refinement: card.refinement, artifacts }
+  })
+}
+
+async function runPanel () {
+  const box = document.getElementById('panel-result')
+  const team = window.__rotationState?.team ?? []
+  if (!team.length) { box.className = 'status bad'; box.textContent = '先在「拼一条轴」里选好队伍'; return }
+  let panels
+  try { panels = panelPayload(team) } catch (err) { box.className = 'status bad'; box.textContent = err.message; return }
+  const rotation = window.__rotationFile
+  box.className = 'status'
+  box.textContent = '正在跑…'
+  try {
+    const body = await fetch('/api/simulate', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ panels, rotation })
+    }).then(r => r.json())
+    if (!body.ok) {
+      box.className = 'status bad'
+      box.textContent = `跑不了：\n${(body.issues || []).map(issue => `· ${issue.path}：${issue.message}`).join('\n')}`
+      return
+    }
+    const energy = (body.energy || []).map(item => `${P.roster.find(r => r.keys?.[0] === item.actorId)?.cn ?? item.actorId} ${Math.round(item.end)}/${item.max}`).join(' · ')
+    const acts = (body.actions || []).filter(item => item.hits).slice(0, 8)
+      .map(item => `${item.actionId}（${item.hits} 段）`).join('，')
+    box.className = 'status ok'
+    box.textContent = `DPS ${Math.round(body.dps)}｜命中 ${body.hits?.total ?? body.hits ?? '—'}｜能量结束时：${energy}\n主要动作：${acts}`
+  } catch (err) {
+    box.className = 'status bad'
+    box.textContent = `请求失败：${err.message}`
+  }
+}
+
+bootPanel().then(() => {
+  document.getElementById('panel-run')?.addEventListener('click', runPanel)
+})

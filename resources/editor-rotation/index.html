@@ -109,6 +109,11 @@
   <section class="card">
     <h2>面板与词条</h2>
     <p class="hint">按游戏里的圣遗物一件件填：套装、等级、主词条、四条副词条（档位下拉）。填完这里会实时算出最终面板。</p>
+    <div class="row">
+      <button id="panel-run" class="btn primary">用当前轴跑一次</button>
+      <span class="muted">目标固定：110 级小宝、10% 抗、120 秒、0 初始能量</span>
+    </div>
+    <div id="panel-result" class="status">还没有跑过</div>
     <div id="panel-members"></div>
   </section>
 </main>
@@ -117,5 +122,7 @@
 <script src="panel.js"></script>
 </body>
 </html>
+
+
 
 
