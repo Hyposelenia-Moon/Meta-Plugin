@@ -1346,6 +1346,8 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
    *   主词条只提示、不计分。
    */
   const markTotal = build.artiMark && Number.isFinite(Number(build.artiMark.total)) ? Number(build.artiMark.total) : null
+  /** 展示用：miao `_mark` 是长小数，统一保留一位（2026-11-02 用户反馈） */
+  const markText = markTotal === null ? '未知' : `${(Math.round(markTotal * 10) / 10).toFixed(1)} 分`
   const markPct = artifactMarkRatio(markTotal)
   const specialSetList = targets.artifact.special || []
   const specialSet = specialSetList.length > 0 &&
@@ -1358,7 +1360,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
     key: 'artifact', label: '圣遗物', weight: 0,
     ratio: artifactRatio,
     state: artifactRatio === null ? 'unknown' : artifactRatio + 1e-9 >= DIM_MET_FLOORS.artifact ? 'met' : 'below',
-    detail: `套装：${specialSet ? '幽境危战专用' : parts.set.detail}；评分：${markTotal === null ? '未知' : `${markTotal} 分（${Math.round((markPct || 0) * 100)}%）`}`,
+    detail: `套装：${specialSet ? '幽境危战专用' : parts.set.detail}；评分：${markText}（${Math.round((markPct || 0) * 100)}%）`,
     ...(artifactRatio === null ? { reason: 'data-missing' as const } : {})
   }
   const panel: GradeDim = { ...parts.panel, key: 'panel', label: '面板', weight: 0 }
@@ -1412,7 +1414,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   add('talent', `天赋：${below('talent:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('talent:'))
   add('mainstat', `主词条：${below('artifact:main:').map(r => `${r.name}换「${r.target}」`).join('、')}`, below('artifact:main:'))
   add('artifact:set', `圣遗物：凑攻略推荐套装（${targets.artifact.recommend[0] || targets.artifact.optional[0] || ''}）`, below('artifact:set'))
-  add('artifact:mark', `圣遗物：提升词条评分（当前 ${markTotal === null ? '未知' : `${markTotal} 分`}，套装齐全时 235 分即达标）`, below('artifact:mark'))
+  add('artifact:mark', `圣遗物：提升词条评分（当前 ${markText}，套装齐全时 235 分即达标）`, below('artifact:mark'))
   add('panel', `面板：${below('panel:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('panel:'))
   add('weapon', `武器：换到推荐档（${targets.weapon.recommend.slice(0, 2).join(' / ')}）`, below('weapon:'))
   add('level', `角色等级：${Number(build.level) || 0} → ${levelTarget}`, levelRatio === 0 ? [{ id: 'level:role', group: '等级', name: '角色等级', target: String(levelTarget), actual: String(Number(build.level) || 0) } as CompareRow] : [])

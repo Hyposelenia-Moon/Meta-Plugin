@@ -240,9 +240,14 @@ export function pctOfRatio (ratio: number | null): number | null {
   return Math.min(99, Math.max(0, Math.round(ratio * 100)))
 }
 
-/** 维度视图：四态 + 有效权重 + 不画 0 长度条 */
+/**
+ * 维度视图：四态 + 有效权重 + 不画 0 长度条
+ *
+ * 2026-11-02 用户定：权重为 0（不计分）的维度**不在页面上显示** ——
+ * 输出类不再显示「面板」、辅助类不再显示「圣遗物」等；未知数据但仍有权重的维度照常显示。
+ */
 export function buildDims (dims: GradeDim[]): GradeDimView[] {
-  return dims.map(d => {
+  return dims.filter(d => d.weight > 0 || d.state === 'unknown').map(d => {
     const state: AssessmentState = d.state
     const pct = pctOfRatio(d.ratio)
     return {
