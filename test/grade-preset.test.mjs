@@ -109,6 +109,25 @@ const near = (a, b) => Math.abs(a - b) < 1e-9
   ok('攻略没写建议等级 → 等级维不参与，其余权重重归一', (() => { const r = run(target({ levelMin: null })); return near(dim(r, 'artifact').weight, 45 / 95) })())
 }
 
+// 2026-11-02：面板目标的「非X」条件 —— 武器命中该词时目标不适用（茜特菈莉「精通 800（非讨龙）」）
+{
+  const condTarget = target({
+    panel: [
+      { raw: '元素精通:800（非讨龙）', name: '元素精通', attrKey: 'mastery', min: 800, max: 800, groups: ['辅助向'], percent: false, cond: { name: '800', mark: '（非讨龙）', note: '非讨龙' } },
+      { raw: '元素充能效率:220%', name: '元素充能效率', attrKey: 'recharge', min: 220, max: 220, groups: ['辅助向'], percent: true }
+    ],
+    weapon: { recommend: ['讨龙英杰谭'], optional: [], transition: [], special: [] }
+  })
+  const attrs = { mastery: 663, recharge: 223.7 }
+  const withTaolong = run(condTarget, build({ attrs, weapon: { name: '讨龙英杰谭', affix: 5, level: 90 } }), preset('support'))
+  ok('带讨龙时「非讨龙」目标不计分：面板只看充能 → 100% 达标', near(dim(withTaolong, 'panel').ratio, 1) && dim(withTaolong, 'panel').state === 'met')
+  ok('带讨龙时不再提示元素精通', !withTaolong.suggestions.some(s => s.includes('元素精通')))
+  ok('该目标行降级为参考（info）', withTaolong.rows.find(r => r.attrKey === 'mastery' || String(r.name).includes('元素精通'))?.verdict === 'info')
+  const other = run(condTarget, build({ attrs, weapon: { name: '祭星者之望', affix: 1, level: 90 } }), preset('support'))
+  ok('换别的武器时目标恢复计分：91.4% 未达标', near(dim(other, 'panel').ratio, 0.914375) && dim(other, 'panel').state === 'below')
+  ok('换别的武器时提示元素精通', other.suggestions.some(s => s.includes('元素精通')))
+}
+
 {
   const wrongMain = run(target(), build({ artis: build().artis.map(a => a.slot === '时之沙' ? { ...a, mainName: '防御力' } : a) }))
   ok('主词条不计分：换错主词条不影响总分', wrongMain.total === 100)

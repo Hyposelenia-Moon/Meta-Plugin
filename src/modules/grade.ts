@@ -396,11 +396,26 @@ export function parseCondMark (raw: unknown): CondMark {
   return { name, mark, note: inner }
 }
 
-/** 条件是否满足（没有命座门槛即视为满足；无法判定的条件不做惩罚） */
-export function condSatisfied (view: CondMark | undefined, cons: number): boolean {
+/**
+ * 条件是否满足（没有命座门槛即视为满足；无法判定的条件不做惩罚）
+ *
+ * 2026-11-02：除命座门槛外，面板目标上的「非XX」备注也参与判定 ——
+ * 当前装备命中该词时目标不适用（例：茜特菈莉「元素精通 800（非讨龙）」带讨龙英杰谭时不计分）。
+ * 只认「非X」这一种写法；匹配用包含，`非专武` 这类匹配不到具体武器名的备注不会误杀。
+ */
+export function condSatisfied (view: CondMark | undefined, cons: number, weaponName = ''): boolean {
   const need = Number(view?.consMin)
-  if (!Number.isFinite(need) || need <= 0) return true
-  return Number(cons) >= need
+  if (Number.isFinite(need) && need > 0 && Number(cons) < need) return false
+  const note = String(view?.note || '').trim()
+  if (note && weaponName) {
+    const m = note.match(/^非\s*(.+)$/)
+    if (m) {
+      const token = m[1].replace(/[（(].*?[）)]/g, '').trim()
+      const equipped = String(weaponName).trim()
+      if (token && equipped && (equipped.includes(token) || token.includes(equipped))) return false
+    }
+  }
+  return true
 }
 
 /** 主词条是否可接受：命中某个候选名 **且** 该候选的命座条件满足 */
@@ -1048,10 +1063,11 @@ export function panelAssessment (
   const list = targets.panel || []
   if (!list.length) return { ratio: null, direction: [], met: 0, total: 0, detail: '攻略没有面板目标' }
   const cons = Number(build.cons) || 0
+  const weaponName = String(build.weapon?.name || '')
   const groups = new Map<string, { met: number, total: number, sum: number }>()
   let usable = 0
   for (const t of list) {
-    if (!condSatisfied(t.cond, cons)) continue
+    if (!condSatisfied(t.cond, cons, weaponName)) continue
     const actual = Number(build.attrs?.[t.attrKey])
     if (!Number.isFinite(actual)) continue
     const score = t.min > 0 ? clamp01(actual / t.min) : 1
@@ -1346,8 +1362,9 @@ export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: G
 /** 预设目标已隔离：所有适用面板目标参与，不跨方向择优。 */
 function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: GradeOptions & { preset: GuidePreset }): GradeResult {
   const weights = presetWeights(opts.preset)
-  const applicable = targets.panel.filter(t => condSatisfied(t.cond, Number(build.cons) || 0))
-  const applicableMain = targets.mainStats.filter(t => (t.optionViews?.length ? t.optionViews : t.options.map(parseCondMark)).some(v => condSatisfied(v, Number(build.cons) || 0)))
+  const equippedWeaponName = String(build.weapon?.name || '')
+  const applicable = targets.panel.filter(t => condSatisfied(t.cond, Number(build.cons) || 0, equippedWeaponName))
+  const applicableMain = targets.mainStats.filter(t => (t.optionViews?.length ? t.optionViews : t.options.map(parseCondMark)).some(v => condSatisfied(v, Number(build.cons) || 0, equippedWeaponName)))
   const parts = scoreParts({ ...targets, mainStats: applicableMain, panel: applicable.map(t => ({ ...t, groups: [] })) }, build, opts)
   const missing = (key: PartKey, detail: string): void => { parts[key] = partNull(key, 'data-missing', detail) }
   if (build.hasMark === false) missing('mark', '未取到圣遗物词条评分')
@@ -1417,7 +1434,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
     } else if (id.startsWith('panel:')) {
       const t = targets.panel.find(t => `panel:${(t.groups.length ? t.groups : ['参考']).join('+')}:${t.attrKey}` === id)
       const actual = t ? build.attrs?.[t.attrKey] : undefined
-      row.verdict = !t || !condSatisfied(t.cond, Number(build.cons) || 0) ? 'info' : !Number.isFinite(actual) ? 'off' : Number(actual) + 1e-9 >= t.min ? 'ok' : 'warn'
+      row.verdict = !t || !condSatisfied(t.cond, Number(build.cons) || 0, equippedWeaponName) ? 'info' : !Number.isFinite(actual) ? 'off' : Number(actual) + 1e-9 >= t.min ? 'ok' : 'warn'
     }
     row.state = row.verdict === 'ok' ? 'met' : row.verdict === 'warn' ? 'below' : row.verdict === 'off' ? 'unknown' : 'unscored'
     row.scored = row.verdict !== 'info'
@@ -1604,7 +1621,7 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot, o
      * 否则 C0 玩家会被要求达成「充能 185%（满命）」——维度已 met、差在哪却列一条不适用的 warn。
      * 不适用的目标保留条件标注、降级为参考行（`info`）。
      */
-    const applicable = condSatisfied(t.cond, panelCons)
+    const applicable = condSatisfied(t.cond, panelCons, String(build.weapon?.name || ''))
     const condMark = String(t.cond?.mark || '').trim()
     let verdict: CompareRow['verdict'] = 'info'
     if (panelScored && inDirection && applicable) {
@@ -1704,7 +1721,7 @@ export function buildSuggestionRows (targets: GuideTargets, build: BuildSnapshot
         const cons = Number(build.cons) || 0
         const gaps: Array<{ text: string, id: string }> = []
         for (const t of targets.panel) {
-          if (!condSatisfied(t.cond, cons)) continue
+          if (!condSatisfied(t.cond, cons, String(build.weapon?.name || ''))) continue
           const actual = Number(build.attrs?.[t.attrKey])
           if (!Number.isFinite(actual)) continue
           const dirs = t.groups.length ? t.groups : ['参考']
