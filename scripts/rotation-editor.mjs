@@ -100,6 +100,52 @@ export function safeId (id) {
 }
 
 /**
+ * 面板试算（2026-11-02）：把 UI 的「角色 + 武器 + 圣遗物」拼成 CharacterBuild，
+ * 走内核同一套 `buildPermanentStats` 算最终面板；失败时把 issues 原样返回给界面。
+ */
+export async function computePanel (input) {
+  const roster = loadRoster()
+  const entry = roster.find(item => item.charId === String(input?.characterId ?? ''))
+  if (!entry) return { ok: false, issues: [{ path: 'characterId', message: '名录里没有这个角色' }] }
+  const weaponId = String(input?.weaponId ?? '')
+  if (!weaponId) return { ok: false, issues: [{ path: 'weaponId', message: '先选武器' }] }
+  const refinement = Math.min(5, Math.max(1, Number(input?.refinement) || 1))
+  const BUILT = await import(libUrl('modules/teamSimulation/build.js'))
+  const PS = await import(libUrl('model/PermanentSource.js'))
+  const runtime = PS.buildRuntimePermanent({ characterId: entry.charId, name: entry.cn, weaponId, refinement })
+  if (!runtime.ok) return { ok: false, issues: [{ path: 'weaponId', message: runtime.error }] }
+
+  const artifacts = (Array.isArray(input?.artifacts) ? input.artifacts : []).map(artifact => ({
+    slot: String(artifact?.slot ?? ''),
+    name: String(artifact?.setId ?? artifact?.slot ?? ''),
+    setId: String(artifact?.setId ?? ''),
+    rarity: 5,
+    level: Number(artifact?.level) || 20,
+    main: { key: String(artifact?.main?.key ?? ''), value: Number(artifact?.main?.value) || 0 },
+    sub: (Array.isArray(artifact?.sub) ? artifact.sub : []).map(stat => ({ key: String(stat?.key ?? ''), value: Number(stat?.value) || 0 }))
+  }))
+  const build = {
+    schemaVersion: 1,
+    actorId: entry.keys[0],
+    characterId: entry.charId,
+    name: entry.cn,
+    element: entry.element,
+    level: Number(input?.level) || 90,
+    ascension: 6,
+    constellation: Number(input?.constellation) || 0,
+    talents: { normal: 10, skill: 10, burst: 10, ...(input?.talents ?? {}) },
+    weapon: { id: weaponId, name: weaponId, level: 90, ascension: 6, refinement },
+    artifacts,
+    requiredEffects: [],
+    provenance: { provider: 'rotation-editor', providerVersion: null, sourceTime: null }
+  }
+  build.requiredEffects = BUILT.requiredEffectSources(build)
+  const expected = { gameVersion: runtime.data.gameVersion, bundleId: runtime.data.bundleId, source: runtime.data.source }
+  const result = BUILT.buildPermanentStats(build, runtime.data, expected)
+  if (result.status !== 'permanent-ready') return { ok: false, status: result.status, issues: result.issues ?? [] }
+  return { ok: true, status: result.status, stats: result.stats, unmodeled: result.unmodeled ?? [], issues: result.issues ?? [] }
+}
+/**
  * 录制归一化（2026-11-02）：录制器按默认键位表写出 `normal-1 / skill / burst / charged / switch:N`，
  * 而轴文件要求键位表的键是**绝对键**（`bennett.skill`、`to_albedo`）。
  * 这里把相对键展开成绝对键，并顺手生成键位表；切人后的动作算到当时的前台角色上。
@@ -260,6 +306,15 @@ export function createServer () {
         })
         return sendJson(res, 200, { items })
       }
+      if (req.method === 'GET' && url.pathname === '/api/stat-tables') {
+        const file = path.join(DATA, 'stat-tables.json')
+        if (!fs.existsSync(file)) return sendJson(res, 404, { error: 'stat-tables.json 还没生成，先跑 node scripts/gen-stat-tables.mjs' })
+        return sendJson(res, 200, JSON.parse(fs.readFileSync(file, 'utf8')))
+      }
+      if (req.method === 'POST' && url.pathname === '/api/panel') {
+        const body = await readBody(req)
+        return sendJson(res, 200, await computePanel(body?.build ?? body))
+      }
       if (req.method === 'GET' && url.pathname === '/api/actions') {
         const key = String(url.searchParams.get('key') ?? '')
         if (!/^[A-Za-z0-9_-]+$/.test(key)) return sendJson(res, 400, { error: '缺少 key' })
@@ -386,6 +441,7 @@ if (isMain) {
   })
   listen(basePort)
 }
+
 
 
 

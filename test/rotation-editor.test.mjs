@@ -113,5 +113,37 @@ const demo = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'team-sim', 'rot
 }
 
 fs.rmSync(tmp, { recursive: true, force: true })
-report()
 
+
+// 面板试算（P1）：词条档位表 + 内核 buildPermanentStats。
+{
+  const tables = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'team-sim', 'stat-tables.json'), 'utf8'))
+  ok('词条档位表含五星主词条与副词条', Array.isArray(tables.levels) && tables.levels.length === 6 && tables.mainStats.cpct[5] === 0.311)
+  ok('副词条总和覆盖 1–6 条强化', tables.subValues.cpct.length >= 12 && tables.subValues.cpct.includes(0.039) && tables.subValues.cpct.at(-1) === 0.234)
+  ok('部位主词条与内核一致', tables.slots.sands.includes('recharge') && !tables.slots.circlet.includes('pyro') && tables.slots.flower.join() === 'hp')
+
+  const panel = await E.computePanel({
+    characterId: '10000030',
+    weaponId: '13303',
+    refinement: 1,
+    artifacts: ['flower', 'plume', 'sands', 'goblet', 'circlet'].map((slot, i) => ({
+      slot,
+      setId: '400189',
+      level: 20,
+      main: { key: ['hp', 'atk', 'hpPct', 'geo', 'cdmg'][i], value: [4780, 311, 0.466, 0.466, 0.622][i] },
+      sub: [{ key: 'cpct', value: 0.35 }]
+    }))
+  })
+  ok('面板试算成功', panel.ok === true, JSON.stringify(panel.issues?.slice(0, 2)))
+  ok('面板数值符合手算（防御 737.81×1.3、伤害加成 0.288+0.466）',
+    Math.abs(panel.stats.def - 959.153) < 1e-3 && Math.abs(panel.stats.geo - 0.754) < 1e-9, JSON.stringify({ def: panel.stats.def, geo: panel.stats.geo }))
+  ok('未建模的套装/天赋如实列出', panel.unmodeled.some(item => item.id.includes('artifact-set:400189:4pc')))
+
+  const bad = await E.computePanel({
+    characterId: '10000030',
+    weaponId: '13303',
+    artifacts: [{ slot: 'circlet', setId: '400189', level: 20, main: { key: 'cpct', value: 0.311 }, sub: [{ key: 'cpct', value: 0.039 }] }]
+  })
+  ok('副词条与主词条同属性被拒绝', bad.ok === false && JSON.stringify(bad.issues).includes('副词条不能与主词条同属性'))
+}
+report()
