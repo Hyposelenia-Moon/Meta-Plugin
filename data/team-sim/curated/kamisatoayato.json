@@ -1,0 +1,62 @@
+{
+  "key": "kamisatoayato",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/ayato/skill.go:17（skillFrames = frames.InitAbilSlice(21)（动画 21 帧））；out/gcsim/internal/characters/ayato/skill.go:23（delay := max(p[illusion_delay], 35)（默认水影 35 帧后爆炸，上限 360））；out/gcsim/internal/characters/ayato/skill.go:42-45（Tasks.Add(..., delay) 内 QueueAttack(ai, 半径 3.5)，水影伤害在此结算）；out/gcsim/internal/characters/ayato/skill.go:35（Element: attributes.Hydro）；out/gcsim/internal/characters/ayato/skill.go:53（SetCD(action.ActionSkill, 12*60) = 720 帧）；out/gcsim/internal/characters/ayato/attack.go:114-122（瞬水剑 QueueAttack 才挂 particleCB/skillStacks（产球只在普攻态））",
+  "notes": [
+    "skill：默认点按分支（镜花）。gcsim 的 E 本体不直接出伤，唯一直接伤害是 35 帧的水影爆炸（skill.go:23 delay=max(p[illusion_delay],35)；skill.go:42-45 在 Tasks.Add 里 QueueAttack）；倍率 2.006 ← miao e 水影伤害[9]=200.6%，与 gcsim skill 表 lv10=2.006 一致",
+    "skill：瞬水剑属普攻态，不放进 E 动作。miao e 一段/二段/三段瞬水剑[9]=104.55/116.45/128.35%（gcsim shunsuiken lv10=1.0455/1.1645/1.2835），浪闪[9]=1.11% 生命上限/层（gcsim skillpp lv10=0.011091）；本文件只建模 E/Q，故这些倍率未入库",
+    "skill：动画 21 帧（skill.go:17 frames.InitAbilSlice(21)）；水影在 35 帧爆炸，晚于动画 14 帧（≤30），按约定 frames 后移到 36（35+1），比真实动画多锁 15 帧站场；illusion_delay 可调、（>6 秒截 360）未建模",
+    "skill：E 本体不产球。particleCB 只挂在瞬水剑命中（attack.go:114-122），1 颗水微粒、50% 概率 2 颗、1.9 秒 ICD（skill.go:63-77）；水影爆炸与 Q 均不产球，故 particles 省略",
+    "skill：冷却 720 帧 ← skill.go:53 SetCD(action.ActionSkill, 12*60)，无延迟；元素 hydro ← skill.go:35 attributes.Hydro；scaling 记 atk（水影伤害按攻击力结算）",
+    "skill：瞬水剑状态 6 秒（skill.go:48 AddStatus(skillBuffKey, 6*60)）、浪闪层数（A1 起手 2 层、水影爆炸后满层 4/5 层，asc.go:10-28）、C6 两段 450%、离场清状态（skill.go:87-99）、水影嘲讽/位移均未建模",
+    "burst：动画 123 帧（burst.go:21-27 InitAbilSlice(123)，Q→N1 123、Q→E/D 122、Q→J 122、Q→Swap 120）；水囿在 101 帧成形（burstStart），首跳在 101+38=139 帧（burst.go:50-67 每 30 帧排队、QueueAttackWithSnap 延迟 38），晚于动画 16 帧（≤30），按约定 frames 后移到 140（139+1），比真实动画多锁 17 帧",
+    "burst：只保留首跳 1.1962 ← miao q 水花剑伤害[9]=119.62%（gcsim burst lv10=1.196208，一致）作为 Q 本体伤害；水囿持续 18 秒、每 30 帧一跳共 36 跳（139…1181），其余 35 跳属场地伤害未建模",
+    "burst：领域增伤未建模：每次 tick 给当前场上角色 90 帧普攻增伤 20%（burst.go:47-83、miao q 普通攻击伤害提升[9]=20%）；C4 全队攻速 +15% 持续 15 秒（burst.go:86-98）也未建模",
+    "burst：能量 80 ← ayato.go:29 c.EnergyMax = 80；burst.go:102 ConsumeEnergy(5) 的 5 是扣能延迟帧数不是耗能量，内核起手扣能、该延迟未建模；冷却 1200 帧 ← burst.go:100 SetCD(action.ActionBurst, 20*60)",
+    "burst：落点/范围随机：每跳在半径 10 的圆内选一个当前未被 ayato-burst-mark 标记的敌人，标记 1.45 秒内不重复；无敌人时在 1.5~9.5 半径随机落点（burst.go:50-67），未建模",
+    "通用：只建模 E 点按与 Q 默认分支；普攻、重击、下落攻击、天赋、命座均未建模；E 无长按分支（gcsim 只有 illusion_delay 参数，没有 hold）"
+  ],
+  "actions": {
+    "kamisatoayato.skill": {
+      "id": "kamisatoayato.skill",
+      "actorId": "kamisatoayato",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 36
+      },
+      "hits": [
+        {
+          "atFrame": 35,
+          "motionValue": 2.006,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 720,
+      "cooldownId": "skill"
+    },
+    "kamisatoayato.burst": {
+      "id": "kamisatoayato.burst",
+      "actorId": "kamisatoayato",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 140
+      },
+      "hits": [
+        {
+          "atFrame": 139,
+          "motionValue": 1.1962,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
+    }
+  }
+}

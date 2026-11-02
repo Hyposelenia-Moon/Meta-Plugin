@@ -125,6 +125,53 @@
         "type": "frames",
         "frames": 70
       }
+    },
+    "xiangling.skill": {
+      "id": "xiangling.skill",
+      "actorId": "xiangling",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 39
+      },
+      "hits": [],
+      "cooldownFrames": 720,
+      "cooldownId": "skill"
+    },
+    "xiangling.burst": {
+      "id": "xiangling.burst",
+      "actorId": "xiangling",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 80
+      },
+      "hits": [
+        {
+          "atFrame": 18,
+          "motionValue": 1.296,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 33,
+          "motionValue": 1.584,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 57,
+          "motionValue": 1.9728,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
     }
   }
 }

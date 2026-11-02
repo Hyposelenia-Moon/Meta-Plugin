@@ -59,6 +59,62 @@
         "type": "frames",
         "frames": 70
       }
+    },
+    "ororon.skill": {
+      "id": "ororon.skill",
+      "actorId": "ororon",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      },
+      "hits": [
+        {
+          "atFrame": 41,
+          "motionValue": 3.5568,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 41,
+          "count": 3,
+          "element": "electro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 900,
+      "cooldownId": "skill"
+    },
+    "ororon.burst": {
+      "id": "ororon.burst",
+      "actorId": "ororon",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 62
+      },
+      "hits": [
+        {
+          "atFrame": 36,
+          "motionValue": 3.1389,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 60,
+          "motionValue": 0.5976,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
     }
   }
 }

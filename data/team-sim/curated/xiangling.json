@@ -1,0 +1,67 @@
+{
+  "key": "xiangling",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/xiangling/skill.go:20（skillFrames = frames.InitAbilSlice(39)（动画 39 帧））；out/gcsim/internal/characters/xiangling/skill.go:21-23（Dash/Jump = 14、Swap = 38（最早取消帧））；out/gcsim/internal/characters/xiangling/skill.go:50-59（第 13 帧生成 Guoba（c.newGuoba(ai)），施放本身无命中）；out/gcsim/internal/characters/xiangling/skill.go:61（SetCDWithDelay(action.ActionSkill, 12*60, 13)（CD 720 帧））；out/gcsim/internal/characters/xiangling/skill.go:79（particleCB：QueueParticle 1 颗 Pyro，1 秒 ICD（锅巴产球，未建模））；out/gcsim/internal/characters/xiangling/zz_xiangling.dm.go:269-285（guobaTick lv10 = 2.00304（锅巴喷火倍率））",
+  "notes": [
+    "xiangling.skill：施放本身不造成伤害——锅巴属于召唤物，伤害由锅巴喷火结算（skill.go:50-59 在第 13 帧生成 Guoba，倍率 guobaTick 挂在 Guoba 内部）；按约定召唤物不建模，故 hits 为空数组",
+    "xiangling.skill：动画 39 帧（skillFrames = frames.InitAbilSlice(39)）；冲刺/跳跃最早 14 帧、切人 38 帧可取消，内核只记总时长，取消窗口未建模",
+    "xiangling.skill：冷却 12*60=720 帧，SetCDWithDelay(action.ActionSkill, 12*60, 13) 里的 13 是延迟帧，不改变 CD 长度",
+    "xiangling.skill：产球同样来自锅巴（particleCB：每次喷火 1 颗火微粒、1 秒 ICD），随召唤物一并未建模，故无 particles 字段",
+    "xiangling.skill：未建模的锅巴本体：存在 7.3 秒、每 100 帧喷火一次，10 级喷火伤害 200.3%（miao talentData.e.喷火伤害[9]），与 gcsim guobaTick[9]=2.00304 一致；喷火命中帧在 guoba 实现内部，未取",
+    "xiangling.skill：A4 辣椒（锅巴消失后留下，拾取 +10% 攻击力 10 秒）未建模；gcsim 默认 a4_delay=-1 即不触发",
+    "xiangling.burst：3 段挥舞为施放本身的直接伤害，命中帧 18/33/57（burstHitmarks），动画 80 帧（InitAbilSlice(80)），切人最早 79 帧",
+    "xiangling.burst：能量取 EnergyMax=80；gcsim 的 ConsumeEnergy(24) 里 24 是扣能延迟帧数，不是耗能量；内核起手扣能，延迟未建模",
+    "xiangling.burst：冷却 20*60=1200 帧，SetCDWithDelay(action.ActionBurst, 20*60, 18)",
+    "xiangling.burst：旋火轮（召唤物）未建模：施放后 56 帧起持续 10 秒（C4 为 14 秒）、每 73 帧一跳，10 级 201.6%；C6 的 15% 火伤加成也未计入",
+    "xiangling.burst：倍率 ← miao talentData.q 一段/二段/三段挥舞伤害[9] = 129.6/158.4/197.28%，与 gcsim pyronadoInitial lv10 的 1.296/1.584/1.9728 一致"
+  ],
+  "actions": {
+    "xiangling.skill": {
+      "id": "xiangling.skill",
+      "actorId": "xiangling",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 39
+      },
+      "hits": [],
+      "cooldownFrames": 720,
+      "cooldownId": "skill"
+    },
+    "xiangling.burst": {
+      "id": "xiangling.burst",
+      "actorId": "xiangling",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 80
+      },
+      "hits": [
+        {
+          "atFrame": 18,
+          "motionValue": 1.296,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 33,
+          "motionValue": 1.584,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 57,
+          "motionValue": 1.9728,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
+    }
+  }
+}

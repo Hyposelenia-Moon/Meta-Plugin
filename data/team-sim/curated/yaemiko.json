@@ -1,0 +1,52 @@
+{
+  "key": "yaemiko",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/yaemiko/skill.go:14（skillStart = 34（第 34 帧生成杀生樱））；out/gcsim/internal/characters/yaemiko/skill.go:19（skillFrames = frames.InitAbilSlice(37)（动画 37 帧））；out/gcsim/internal/characters/yaemiko/skill.go:20-24（Dash/Jump/Swap = 20、Charge/Burst = 36（最早取消帧））；out/gcsim/internal/characters/yaemiko/skill.go:28（c.Core.Tasks.Add(makeKitsune, skillStart)：只生成杀生樱，无 QueueAttack）；out/gcsim/internal/characters/yaemiko/skill.go:29（SetCDWithDelay(action.ActionSkill, 4*60, 16)（CD 240 帧））；out/gcsim/internal/characters/yaemiko/skill.go:46-47（particleCB：2.5 秒 ICD、QueueParticle 1 颗 Electro（杀生樱落雷产球））",
+  "notes": [
+    "yaemiko.skill：施放本身无直接伤害——gcsim Skill 只注册 makeKitsune()（第 34 帧生成杀生樱），未 QueueAttack；按约定杀生樱及其后续伤害不建模，故 hits 为空数组",
+    "yaemiko.skill：动画 37 帧（skillFrames = frames.InitAbilSlice(37)）；冲刺/跳跃/切人最早 20 帧、蓄力与爆发 36 帧可取消，内核只记总时长，取消窗口未建模",
+    "yaemiko.skill：冷却 4*60=240 帧，SetCDWithDelay(action.ActionSkill, 4*60, 16) 里的 16 是延迟帧，不改变 CD 长度",
+    "yaemiko.skill：产球来自杀生樱落雷而非施放——particleCB 挂在杀生樱的攻击回调上（kitsune.go:147）：1 颗雷微粒、2.5 秒 ICD；随杀生樱一并未建模，故无 particles 字段",
+    "yaemiko.skill：miao talentData.e 为杀生樱四阶伤害（10 级 109.21/136.51/170.64/213.3%），对应 gcsim 的杀生樱伤害表；因杀生樱不建模故未写入 hits",
+    "yaemiko.burst：直接伤害 burst[0] 于第 100 帧命中，10 级倍率 4.68（miao 技能伤害[9]=468%），与 gcsim burst[0][9]=4.68 一致",
+    "yaemiko.burst：天狐霆雷（burst[1]，第 154 帧命中，10 级 600.87%）是消耗杀生樱的追加伤害，随杀生樱不建模；本动作只建模 100 帧这一击",
+    "yaemiko.burst：动画 114 帧（burstFrames = frames.InitAbilSlice(114)），切人最早 101 帧、冲刺 103、跳跃 104、普攻 112、战技 113 可取消",
+    "yaemiko.burst：能量取 EnergyMax=90；gcsim 的 ConsumeEnergy(2) 里 2 是扣能延迟帧数，不是耗能量；内核起手扣能，延迟未建模",
+    "yaemiko.burst：冷却 22*60=1320 帧（SetCD(action.ActionBurst, 22*60)，无延迟参数）"
+  ],
+  "actions": {
+    "yaemiko.skill": {
+      "id": "yaemiko.skill",
+      "actorId": "yaemiko",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 37
+      },
+      "hits": [],
+      "cooldownFrames": 240,
+      "cooldownId": "skill"
+    },
+    "yaemiko.burst": {
+      "id": "yaemiko.burst",
+      "actorId": "yaemiko",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 114
+      },
+      "hits": [
+        {
+          "atFrame": 100,
+          "motionValue": 4.68,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 90,
+      "cooldownFrames": 1320,
+      "cooldownId": "burst"
+    }
+  }
+}

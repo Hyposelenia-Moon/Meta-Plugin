@@ -1,0 +1,69 @@
+{
+  "key": "chevreuse",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/chevreuse/skill.go:16（skillPressHitmark = 25（点按命中帧））；out/gcsim/internal/characters/chevreuse/skill.go:36（skillPressFrames = frames.InitAbilSlice(31)（动画 31 帧，dash 最早 23））；out/gcsim/internal/characters/chevreuse/skill.go:81（SetCDWithDelay(ActionSkill, 15*60, 18)（CD 900 帧））；out/gcsim/internal/characters/chevreuse/skill.go:239（QueueParticle 4 颗火元素微粒）；out/gcsim/internal/characters/chevreuse/skill.go:66（Element: attributes.Pyro）；out/gcsim/internal/characters/chevreuse/skill.go:17（skillPressArkheHitmark = 59（超出动画 31，未入 hits））",
+  "notes": [
+    "chevreuse.skill：按点按分支结算（gcsim Skill() 里 p[\"hold\"]==0 走 skillPress）；长按瞄准未建模：命中帧 19+hold（hold 1..301，最晚 319）、动画 26+hold，超量装药弹头（Overcharged Ball）只在队伍触发超载后生效一次，lv10 倍率 5.0832",
+    "chevreuse.skill：命中帧 25、动画 31（skillPressFrames = frames.InitAbilSlice(31)，dash 最早 23 帧可取消）",
+    "chevreuse.skill：CD 900 帧 ← SetCDWithDelay(ActionSkill, 15*60, 18)，18 是延迟起算帧；长按分支同样 900 帧（C4 期间长按不进 CD，未建模）",
+    "chevreuse.skill：流涌之刃（Surging Blade / arkhe）在点按时于第 59 帧触发，超出点按动画 31 帧，按硬约束（atFrame < timing.frames）未入 hits；lv10 倍率 0.5184，火元素、耐久 0、10 秒 ICD",
+    "chevreuse.skill：产球取 particleCB：4 颗火元素微粒（10 秒 ICD，只对可攻击敌人生效）；内核 ParticleSpec 默认延迟 100 帧未建模，travelFrames 记 0，与 bennett.json 处理一致",
+    "chevreuse.skill：治疗未建模：持续治疗 12 秒，首跳在 120 帧后、之后每 120 帧一次，lv10 为生命值上限 4.8% + 564.98；这是该技能唯一的生命值上限结算项（所有伤害均吃攻击力）",
+    "chevreuse.burst：命中帧 59、动画 61（burstFrames = frames.InitAbilSlice(61)，swap 最早 56 帧）",
+    "chevreuse.burst：能量 60 ← EnergyMax = 60；gcsim 的 ConsumeEnergy(4) 里 4 是扣能延迟帧数，不是耗能量",
+    "chevreuse.burst：二重毁伤弹（8 枚地雷分 5 组，延迟 24/33/42/51/60）全部落在动画之后（最早 83 帧 > 61），未入 hits；单发 lv10 倍率 0.883584，火元素、耐久 25；CD 900 帧 ← SetCD(ActionBurst, 15*60)",
+    "chevreuse.burst：超载/协同战法相关增益未建模：A1 触发超载后火/雷抗性 -40%（6 秒）、A4 按生命值上限每 1000 点给火/雷角色 +1% 攻击力（至多 40%，30 秒）、C6 每层 +20% 火/雷伤（8 秒，至多 3 层）；C2 连锁殉爆（120% 攻击力 ×2）与 C4 状态亦未建模",
+    "元素统一取 gcsim attributes.Pyro；倍率取 miao 天赋10级（下标 9），与 gcsim 表 lv10 数值一致（E 点按 207.36% → 2.0736，Q 662.69% → 6.62688）"
+  ],
+  "actions": {
+    "chevreuse.skill": {
+      "id": "chevreuse.skill",
+      "actorId": "chevreuse",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      },
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 2.0736,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 25,
+          "count": 4,
+          "element": "pyro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 900,
+      "cooldownId": "skill"
+    },
+    "chevreuse.burst": {
+      "id": "chevreuse.burst",
+      "actorId": "chevreuse",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 61
+      },
+      "hits": [
+        {
+          "atFrame": 59,
+          "motionValue": 6.62688,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

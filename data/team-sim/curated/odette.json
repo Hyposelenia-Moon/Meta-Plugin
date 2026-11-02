@@ -1,0 +1,93 @@
+{
+  "key": "odette",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿，未人工核对。证据：out/gcsim/internal/characters/odette/skill.go:18（skillHitmark = 23（命中帧））；out/gcsim/internal/characters/odette/skill.go:34（skillFrames = frames.InitAbilSlice(42)，AnimationLength=42，swap 40）；out/gcsim/internal/characters/odette/skill.go:99（SetCDWithDelay(action.ActionSkill, 15*60, 14)（CD 900 帧））；out/gcsim/internal/characters/odette/skill.go:78（Element: attributes.Cryo）；out/gcsim/internal/characters/odette/skill.go:263-274（particleCB：QueueParticle 5 颗 Cryo，particleICDKey 12*60）；out/gcsim/internal/characters/odette/skill.go:93-95, 175-179（23 帧召唤 Dance Double，首跳 23+134=157 帧（超出动画））",
+  "notes": [
+    "odette.skill：只建模默认分支（Adagio: Phantom Night Dancers）。施放后 394 帧内（skillRecastKey，skill.go:97）E 会变成 Adagio: Coda at Dawn's Tolling（skill.go:113-173：动画 76 帧、DoT 在 11/20/28 帧各 172.512%、终结段 62 帧 550.368%/825.552%、独立 CD 900），属非默认分支，未建模",
+    "odette.skill：倍率 1.94544 ← gcsim skill 表 lv10（zz_odette.dm.go:212），与 miao E 技能伤害[9]=194.54% 一致；未设 UseHP/UseDef，按攻击力结算",
+    "odette.skill：命中 23 帧（skill.go:18），动画 42 帧（skill.go:34，swap 最早 40）",
+    "odette.skill：Solo Dance Double 在 23 帧召唤（skill.go:93-95），首跳在 23+134=157 帧，之后 Plume 0.77472 / Wing 0.926352 交替、间隔 109/125 帧、持续 1262 帧（skill.go:175-221）——全部超出 42 帧动画，未建模；其余段会被下一个动作取消",
+    "odette.skill：产球取 particleCB（skill.go:263-274）：5 颗冰元素微粒，12 秒 ICD（720 帧），挂在 23 帧命中上；recast 的 DoT 也复用同一回调，但 12 秒 ICD 内不会重复产球",
+    "odette.skill：travelFrames 记 0（gcsim ParticleDelay 默认 100 帧未建模，与既有 albedo/bennett 草稿一致）",
+    "odette.skill：冷却取 SetCDWithDelay(ActionSkill, 15*60, 14)=900 帧，挂 CD 的 14 帧延迟未建模；天赋/命座无缩减",
+    "odette.skill：A1/A4/C1/C2/C4 与星超导/星扩散（stellar.go）未建模",
+    "odette.burst：能量取 EnergyMax=60（odette.go:25）；ConsumeEnergy(7) 的 7 是扣能延迟帧数，不是耗能量",
+    "odette.burst：gcsim 有 3 段斩击（112/128/140 帧，各 1.983168）＋终结段（144 帧，3.064896），与 miao 斩击伤害[9]=594.96%（=198.32%×3）、斩击最终段伤害[9]=306.49% 对应；但动画只有 126 帧（burst.go:27），仅 112 帧那段在动画内，128/140/144 三段超出动画，按硬约束未建模——它们会被下一个动作取消",
+    "odette.burst：Solo Dance Double 在 1 帧召唤（burst.go:99），首跳在 1+252=253 帧，超出 126 帧动画，未建模",
+    "odette.burst：雪鹄之梦在 144 帧施加（burst.go:89、113-129），20 秒内星烁反应伤害 +50%（burstBuff[9]=0.5，miao=50%），超出动画且属增益，未建模",
+    "odette.burst：冷却取 SetCDWithDelay(ActionBurst, 15*60, 0)=900 帧；C4 与该增益的联动未建模",
+    "odette.burst：动画 126 帧，但三段斩击在 112/128/140、终结段 144 帧，全部晚于动画；若按 126 帧建模会在下一个动作开始时丢掉约 76% 爆发伤害，故把时长记到 145 帧以保留全部 4 段 —— 这是已知偏差（角色实际可行动更早），不是 gcsim 的动画值"
+  ],
+  "actions": {
+    "odette.skill": {
+      "id": "odette.skill",
+      "actorId": "odette",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      },
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 1.94544,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 23,
+          "count": 5,
+          "element": "cryo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 900,
+      "cooldownId": "skill"
+    },
+    "odette.burst": {
+      "id": "odette.burst",
+      "actorId": "odette",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 145
+      },
+      "hits": [
+        {
+          "atFrame": 112,
+          "motionValue": 1.983168,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 128,
+          "motionValue": 1.983168,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 140,
+          "motionValue": 1.983168,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 144,
+          "motionValue": 3.064896,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "key": "iansan",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/iansan/skill.go:13（skillHitmark = 9（命中帧））；out/gcsim/internal/characters/iansan/skill.go:20-26（动画 137 帧（InitAbilSlice(137)）；attack 32 / burst 31 / dash 27 / jump 32 / walk 38 / swap 33 可取消）；out/gcsim/internal/characters/iansan/skill.go:46-57（QueueAttack(ai, NewCircleHit(...,0.8), 9, 9, particleCB)：快照与伤害同为 9 帧，命中半径 0.8）；out/gcsim/internal/characters/iansan/skill.go:38,64（Element = attributes.Electro；SetCD(action.ActionSkill, 16*60) → 960 帧）；out/gcsim/internal/characters/iansan/skill.go:74-85（particleCB：count := 4.0，QueueParticle(4, attributes.Electro, c.ParticleDelay)）；out/gcsim/internal/characters/iansan/skill.go:59-62,87-91（fastSkill 状态 5*60；3 帧后 enterNightsoul(MaxPoints)，夜魂加持 16*60）",
+  "notes": [
+    "iansan.skill：命中帧 9 ← skillHitmark=9，QueueAttack(ai, NewCircleHit(...,0.8), skillHitmark, skillHitmark)（快照与伤害同为 9 帧）；动画 137 帧（skillFrames = frames.InitAbilSlice(137)，即 E→E 的最长分支），最早取消 dash 27 / burst 31 / attack 32 / jump 32 / swap 33 未建模（内核 timing 只支持单一总帧数）",
+    "iansan.skill：冷却 960 帧 ← SetCD(action.ActionSkill, 16*60)，无延迟参数；cooldownId = \"skill\"",
+    "iansan.skill：倍率 5.1552 ← miao talentData.e.技能伤害[9]=515.52%；Electro（attributes.Electro）、scaling atk、可暴击、ICDTagNone（无 ICD）。gcsim 的 info.AttackInfo 无防御力结算字段，此处按攻击力结算，与 gcsim 一致",
+    "iansan.skill：产球 ← particleCB：4 颗 Electro 微粒（count := 4.0，确定性，非概率），挂在命中回调上，故记 9 帧；travelFrames 记 0（角色默认 ParticleDelay=100 帧未建模，与 data/team-sim/curated/bennett.json 的处理一致）",
+    "iansan.skill：形态/状态未建模——施放后 3 帧 enterNightsoul(MaxPoints)（夜魂加持 16 秒，每 6 帧耗 0.6 点），另加 fastSkill 状态 5 秒；长按冲刺的切换分支与 IsDeployable 均不进动作，只建默认点按分支",
+    "iansan.burst：能量 70 ← iansan.go:37 EnergyMax = 70；ConsumeEnergy(6) 的 6 是扣能延迟帧数（template/character/energy.go → ConsumeEnergyPartial(..., EnergyMax)），不是耗能量，内核起手扣能、延迟未建模",
+    "iansan.burst：命中帧 38 ← burstHitmark=38（QueueAttack 快照=伤害=38），动画 45 帧（burstFrames = frames.InitAbilSlice(45)），主伤害在动画内，无偏差标注；最早取消 swap 41 / skill 42 / attack·jump 43 / dash 44 未建模",
+    "iansan.burst：冷却 1080 帧 ← SetCD(action.ActionBurst, 18*60)；cooldownId = \"burst\"",
+    "iansan.burst：倍率 7.7472 ← miao talentData.q.技能伤害[9]=774.72%；Electro、scaling atk、可暴击、ICDTagNone、StrikeTypeBlunt（削韧 180，内核未建模削韧）",
+    "iansan.burst：动画后场地段只留动画内——12 秒爆发状态（duration = 12*60 + C6 延长，720 帧起）在动画（45 帧）之后：每 60 帧回复夜魂值（burstRestoreNS*0.67 + a1Points + c4Points）、攻击力加成（min(自身攻击力*rate, maxATK[10]=690)，每 0.3 秒刷新）均未建模；40 帧 +15 夜魂点、C2/C4 亦未建模",
+    "倍率与 gcsim 天赋表口径：gcsim 以 talentData 同源倍率结算（skill[lv10]、burst[lv10]），miao 与 gcsim 两处数值一致，故 motionValue 直接记 5.1552 / 7.7472"
+  ],
+  "actions": {
+    "iansan.skill": {
+      "id": "iansan.skill",
+      "actorId": "iansan",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 137
+      },
+      "hits": [
+        {
+          "atFrame": 9,
+          "motionValue": 5.1552,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 9,
+          "count": 4,
+          "element": "electro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 960,
+      "cooldownId": "skill"
+    },
+    "iansan.burst": {
+      "id": "iansan.burst",
+      "actorId": "iansan",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 45
+      },
+      "hits": [
+        {
+          "atFrame": 38,
+          "motionValue": 7.7472,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 70,
+      "cooldownFrames": 1080,
+      "cooldownId": "burst"
+    }
+  }
+}

@@ -104,6 +104,55 @@
         "type": "frames",
         "frames": 49
       }
+    },
+    "shenhe.skill": {
+      "id": "shenhe.skill",
+      "actorId": "shenhe",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 38
+      },
+      "hits": [
+        {
+          "atFrame": 4,
+          "motionValue": 2.5056,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 4,
+          "count": 3,
+          "element": "cryo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 600,
+      "cooldownId": "skill"
+    },
+    "shenhe.burst": {
+      "id": "shenhe.burst",
+      "actorId": "shenhe",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 100
+      },
+      "hits": [
+        {
+          "atFrame": 78,
+          "motionValue": 1.8144,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
     }
   }
 }

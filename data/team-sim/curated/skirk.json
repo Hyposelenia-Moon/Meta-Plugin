@@ -1,0 +1,88 @@
+{
+  "key": "skirk",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/skirk/skill.go:33-39（skillFrames[InvalidAction]=43，Attack/Charge 21、Burst 31、Dash/Swap 29、Jump 30）；out/gcsim/internal/characters/skirk/skill.go:57-66（skillTap 只 QueueCharTask(enterSkillState)@skillDelay=19，无 QueueAttack，点按 E 无伤害）；out/gcsim/internal/characters/skirk/skill.go:78-89（exitSkillState 里 SetCD(action.ActionSkill, 8*60)=480，冷却从退出七相一闪起算）；out/gcsim/internal/characters/skirk/burst.go:17-18,74-80（burstHitmarks=[109,111,114,125,135]，burstHitmarkFinal=158（109+2+3+11+10+23））；out/gcsim/internal/characters/skirk/burst.go:28-35,86（burstFrames[InvalidAction]=151、Attack 100；SetCDWithDelay(action.ActionBurst, 15*60, 0)=900）；out/gcsim/internal/characters/skirk/burst.go:56-66（Element: attributes.Cryo；Mult=(burstDoT+bonus*burstBonus)*a4MultBurst，按攻击力结算）",
+  "notes": [
+    "skill：点按 E 本身不造成伤害——gcsim skillTap 只 QueueCharTask(enterSkillState)@19，没有 QueueAttack，故战技动作 hits 为空；miao 战技表下标 9 的数值（一段 262.56%、二段 236.81%、三段 299.38%、五段 388.68%、重击 264.18%）是七相一闪模式下普攻/重击的倍率，不是 E 的伤害，未计入本动作",
+    "skill：时长取 skillFrames[InvalidAction]=43（最早取消 Q→Attack 21、Q→Burst 31、Q→Dash/Swap 29）；进入七相一闪在 19 帧（skillDelay）",
+    "skill：冷却 480 帧（8 秒）由 exitSkillState 的 SetCD(ActionSkill, 8*60) 设置，但起点是退出七相一闪时（模式最长 skillDur=754 帧=12.57 秒，或蛇之狡谋耗尽提前退出），不是施放瞬间；实际最短再施放间隔远大于 480 帧，这里只记 480",
+    "skill：长按未建模：skillHoldFrames 18 帧、CD 480 且延迟 extraDuration+19 帧起算、长按期间持续汲取虚境裂隙；默认分支按点按（gcsim 的 hold 缺省为 0）",
+    "skill：产球不挂在 E 上：gcsim particleInit 在「造成冰元素伤害且 15*60 帧 ICD 就绪」时 QueueParticle 4 颗冰元素微粒；点按 E 无命中，故不产球，本动作不带 particles",
+    "skill：蛇之狡谋（SS）机制未建模：点按 +45 点、上限 100、每 12 帧 -1.4（7 点/秒）、汲取虚境裂隙的 0.3 秒内暂停消耗；SS 与七相一闪持续时间共同决定 E 的实际节奏",
+    "burst：能量记 0——极恶技·灭 不使用元素能量，改为消耗蛇之狡谋（≥50 点可施放、消耗全部、超出 50 的部分每点 +34.78% 伤害，最多计 12 点）；gcsim BurstRuin 里没有 ConsumeEnergy，只有 ConsumeSerpentsSubtlety(7)",
+    "burst：倍率按「无 SS 加成」记：每段 2.2097 ← miao 斩击伤害[9]=220.97%（×5 段，合计 11.0485=1104.85%），末段 3.6828 ← 斩击最终段[9]=368.28%；gcsim 的 bonusSerpentsSubtlety 最多 12 点 × 34.78% 会同时抬高这 6 段（每段 +417.36%），未计入",
+    "burst：帧数偏差：gcsim AnimationLength=151（Q→N1 最早 100 帧取消），但末段命中在 158 帧（109+2+3+11+10+23）已超出动画；按「主伤害在动画后则 frames 记到最后一段命中之后」的约定，frames 记 159，比 gcsim 动画长 8 帧",
+    "burst：5 段斩击命中帧 109/111/114/125/135 全在动画内，无需裁剪；元素冰、按攻击力结算（miao「蛇之狡谋加成」单位为攻击力，gcsim AttackInfo 未用 FlatDmg/UseHP）",
+    "burst：极恶技·尽（七相一闪模式下的替换爆发，burstSkillFrames 41 帧、无命中、给普攻 10 次凋尽增伤）未建模；C2/C4/C6 对 SS 与爆发的加成未建模"
+  ],
+  "actions": {
+    "skirk.skill": {
+      "id": "skirk.skill",
+      "actorId": "skirk",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 43
+      },
+      "hits": [],
+      "cooldownFrames": 480,
+      "cooldownId": "skill"
+    },
+    "skirk.burst": {
+      "id": "skirk.burst",
+      "actorId": "skirk",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 159
+      },
+      "hits": [
+        {
+          "atFrame": 109,
+          "motionValue": 2.2097,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 111,
+          "motionValue": 2.2097,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 114,
+          "motionValue": 2.2097,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 125,
+          "motionValue": 2.2097,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 135,
+          "motionValue": 2.2097,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 158,
+          "motionValue": 3.6828,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 0,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

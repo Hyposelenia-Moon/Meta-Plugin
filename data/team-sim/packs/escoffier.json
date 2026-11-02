@@ -66,6 +66,55 @@
         "type": "frames",
         "frames": 62
       }
+    },
+    "escoffier.skill": {
+      "id": "escoffier.skill",
+      "actorId": "escoffier",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 35
+      },
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 0.9072,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 23,
+          "count": 4,
+          "element": "cryo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 900,
+      "cooldownId": "skill"
+    },
+    "escoffier.burst": {
+      "id": "escoffier.burst",
+      "actorId": "escoffier",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 110
+      },
+      "hits": [
+        {
+          "atFrame": 92,
+          "motionValue": 10.6704,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
     }
   }
 }

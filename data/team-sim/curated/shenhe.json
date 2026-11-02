@@ -1,0 +1,73 @@
+{
+  "key": "shenhe",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/shenhe/skill.go:21（命中帧 4（skillPressHitmark = 4），Tasks.Add 在该帧结算伤害与冰翎）；out/gcsim/internal/characters/shenhe/skill.go:30-36（动画 38 帧（frames.InitAbilSlice(38)），dash/jump 21、attack/skill/burst/swap 27 帧取消）；out/gcsim/internal/characters/shenhe/skill.go:97（冷却 600 帧（SetCDWithDelay(action.ActionSkill, 10*60, skillPressCDStart=2)））；out/gcsim/internal/characters/shenhe/skill.go:64,117（元素 attributes.Cryo；QueueParticle 3 颗冰元素微粒）；out/gcsim/internal/characters/shenhe/burst.go:20-21（命中帧 78（burstHitmark = 78），首段 Initial 在此帧结算）；out/gcsim/internal/characters/shenhe/burst.go:26-31（动画 100 帧（frames.InitAbilSlice(100)），dash 78 帧最早取消）",
+  "notes": [
+    "shenhe.skill：只建模点按 E（gcsim Skill() 里 p[\"hold\"] != 0 走 skillHold，缺省为 0），命中帧 4（skillPressHitmark），伤害随 Tasks.Add 在该帧结算（QueueAttackWithSnap 的 delay 记 0）",
+    "shenhe.skill：长按 E 未建模：命中 33 帧、动画 78 帧（dash 最早 38 取消）、冷却 15*60=900 帧、7 层翎羽、4 颗冰元素微粒（0.5 秒 ICD），见 skill.go:20-47、121-174",
+    "shenhe.skill：动画 38 帧 ← frames.InitAbilSlice(38)（walk），dash/jump 21 帧即可取消，attack/skill/burst/swap 27 帧；帧表见 skill.go:28-47",
+    "shenhe.skill：冷却 600 帧（10 秒）← SetCDWithDelay(action.ActionSkill, 10*60, skillPressCDStart=2)，2 帧的起算延迟未建模",
+    "shenhe.skill：3 颗冰元素微粒（QueueParticle 3, attributes.Cryo），随命中回调结算；gcsim 注释说明 E 会让角色位移、实际拾取约 90-110 帧（取 100 均值），travelFrames 仍记 0，与 bennett/albedo 草稿处理一致",
+    "shenhe.skill：倍率 2.5056 ← miao 点按技能伤害[9]=250.56%，与 gcsim lv10 skillPress[9] 一致；元素 cryo；按申鹤攻击力结算（scaling atk），C4 的 DamageP 加成（snap.Stats[attributes.DmgP] += c.c4()）未建模",
+    "shenhe.skill：点按的冰翎增伤（E 天赋核心）未建模：全队 10 秒 / 5 层，每层每次冰伤命中附加 82.18% 申鹤攻击力（miao 伤害值提升[9]=82.18% → 0.821808，skillpp[9]），C6 不消耗层数，见 skill.go:89-95、176-223",
+    "shenhe.skill：QueueAttack 用的 IsDeployable: true + 半径 0.8 的圆形判定，判定位置跟随玩家/主目标；位移与判定位移未建模",
+    "shenhe.burst：能量 80（EnergyMax，shenhe.go:24）；gcsim 的 ConsumeEnergy(4) 里 4 是扣能延迟帧数（不是耗能量），内核起手扣，延迟未建模",
+    "shenhe.burst：冷却 1200 帧（20 秒）← SetCD(action.ActionBurst, 20*60)（burst.go:126），无起算延迟",
+    "shenhe.burst：动画 100 帧 ← frames.InitAbilSlice(100)（Q->E），dash 78 帧即可取消，N1 99、jump 79、walk/swap 98；帧表见 burst.go:25-32",
+    "shenhe.burst：首段「Divine Maiden's Deliverance (Initial)」命中 78 帧（burstHitmark），在本体动画 100 帧内，故 hits 记 78 / 1.8144 ← miao 技能伤害[9]=181.44%，与 gcsim lv10 burst[9] 一致；元素 cryo，钝击（StrikeTypeBlunt，削韧 250）",
+    "shenhe.burst：领域 DoT 未建模：C0 共 6 次（count=6，C2 加到 9 次、持续 12→18 秒），每次两段（j=0,1），首段 82 帧、第二段 82+30=112 帧，之后每次 +117 帧：82/112、199/229、316/346、433/463、550/580、667/697；只有 82 帧的首段落在动画 100 帧内，其余全在动画之后，按「动画后的场地段只留动画内」的规则整段不写入 actions，倍率 0.59616 ← miao 持续伤害[9]=59.62%（burstdot[9]）",
+    "shenhe.burst：领域辅助效果未建模：冰抗/物抗降低 15%（burstrespp[9]=0.15，C0 固定 15%），每 18 帧刷新一次、buff 36 帧；A1 领域内当前角色 +15% 冰伤（burstBuff）；C2 领域内 +15% 冰暴击伤害并延长 6 秒",
+    "shenhe.burst：DoT 快照在 burstStart=47 帧、早于 A1 加成（源码注释 “DoT snapshot before A1”），首段 78 帧的 Initial 伤害同样在 47 帧后结算，领域加成不回溯到本次 Q 自身"
+  ],
+  "actions": {
+    "shenhe.skill": {
+      "id": "shenhe.skill",
+      "actorId": "shenhe",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 38
+      },
+      "hits": [
+        {
+          "atFrame": 4,
+          "motionValue": 2.5056,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 4,
+          "count": 3,
+          "element": "cryo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 600,
+      "cooldownId": "skill"
+    },
+    "shenhe.burst": {
+      "id": "shenhe.burst",
+      "actorId": "shenhe",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 100
+      },
+      "hits": [
+        {
+          "atFrame": 78,
+          "motionValue": 1.8144,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
+    }
+  }
+}

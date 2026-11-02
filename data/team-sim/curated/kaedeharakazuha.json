@@ -1,21 +1,21 @@
 {
   "key": "kaedeharakazuha",
   "gameVersion": "7.1",
-  "source": "倍率=miao 天赋 10 级；帧/冷却/能量=gcsim fcc117b。证据：out/gcsim/internal/characters/kazuha/skill.go:18（skillPressHitmark = 10）；out/gcsim/internal/characters/kazuha/skill.go:31（skillPressFrames[0] = frames.InitAbilSlice(77)）；out/gcsim/internal/characters/kazuha/skill.go:86（Element: attributes.Anemo）；out/gcsim/internal/characters/kazuha/skill.go:95（makeParticleCB(3)）；out/gcsim/internal/characters/kazuha/skill.go:101-113（cd := 360（C1 → 324）；SetCDWithDelay(action.ActionSkill, cd, 8)）；out/gcsim/internal/characters/kazuha/zz_kaedeharakazuha.dm.go:270（skill lv10 = 3.456）",
+  "source": "gcsim 源码 + miao 天赋10级；子代理草稿，未人工核对。证据：out/gcsim/internal/characters/kazuha/skill.go:18（skillPressHitmark = 10）；out/gcsim/internal/characters/kazuha/skill.go:31（skillPressFrames[0] = frames.InitAbilSlice(77)）；out/gcsim/internal/characters/kazuha/skill.go:86（Element: attributes.Anemo）；out/gcsim/internal/characters/kazuha/skill.go:95（makeParticleCB(3)）；out/gcsim/internal/characters/kazuha/skill.go:101-113（cd := 360（C1 → 324）；SetCDWithDelay(action.ActionSkill, cd, 8)）；out/gcsim/internal/characters/kazuha/zz_kaedeharakazuha.dm.go:270（skill lv10 = 3.456）",
   "notes": [
-    "kazuha.skill：按点按结算（gcsim 的 hold 缺省为 0，glide_cancel 缺省为 0）；动画 77 帧是「所有后续动作的平均」，最短可取消是高空下落 24 帧",
-    "kazuha.skill：长按未建模：命中 33、动画 175、CD 540、4 颗粒子、范围 9",
-    "kazuha.skill：glide_cancel 变体未建模：点按动画 69、长按 160",
-    "kazuha.skill：A1 元素吸收（按吸收元素给对应增伤）与 C1 冷却 -10%（324 帧）、C6 附魔/风伤未建模",
-    "kazuha.skill：点按后的下落攻击伤害未建模（本包只记 E 本体）",
-    "kazuha.skill：产球取 makeParticleCB(3)：3 颗风元素微粒（0.2 秒 ICD）；travelFrames 记 0，gcsim 默认粒子延迟 100 帧未建模",
-    "kazuha.skill：内核 ParticleSpec 的 element 目前只接受 geo/physical/clear，anemo 需扩枚举后才能直接入库",
-    "kazuha.burst：只结算初始斩击。领域持续伤害未建模：140 帧起、间隔 117 帧、共 5 段、每段 216% 风伤，超出 93 帧动作长度",
-    "kazuha.burst：附着元素追加伤害未建模：每段额外 64.8% 对应元素伤害（吸收判定在 82 帧前完成）",
-    "kazuha.burst：Q 领域与 A1/A4 增伤、C2 领域内精通 +200 未建模；爆发本身不产球",
-    "kazuha.burst：C1 重置 E 冷却未建模",
-    "kazuha.burst：能量取 EnergyMax=60；gcsim 的 ConsumeEnergy(4) 里 4 是扣能延迟帧数，不是耗能量",
-    "kazuha.burst：倍率 4.7232 ← miao 斩击伤害[9]=472.32%，与 gcsim burstSlash 表 lv10 值一致"
+    "skill：按点按结算（gcsim 的 hold 缺省为 0，glide_cancel 缺省为 0）；动画 77 帧是「所有后续动作的平均」，最短可取消是高空下落 24 帧",
+    "skill：长按未建模：命中 33、动画 175、CD 540、4 颗粒子、范围 9",
+    "skill：glide_cancel 变体未建模：点按动画 69、长按 160",
+    "skill：A1 元素吸收（按吸收元素给对应增伤）与 C1 冷却 -10%（324 帧）、C6 附魔/风伤未建模",
+    "skill：点按后的下落攻击伤害未建模（本包只记 E 本体）",
+    "skill：产球取 makeParticleCB(3)：3 颗风元素微粒（0.2 秒 ICD）；travelFrames 记 0，gcsim 默认粒子延迟 100 帧未建模",
+    "skill：内核 ParticleSpec 的 element 目前只接受 geo/physical/clear，anemo 需扩枚举后才能直接入库",
+    "burst：只结算初始斩击。领域持续伤害未建模：140 帧起、间隔 117 帧、共 5 段、每段 216% 风伤，超出 93 帧动作长度",
+    "burst：附着元素追加伤害未建模：每段额外 64.8% 对应元素伤害（吸收判定在 82 帧前完成）",
+    "burst：Q 领域与 A1/A4 增伤、C2 领域内精通 +200 未建模；爆发本身不产球",
+    "burst：C1 重置 E 冷却未建模",
+    "burst：能量取 EnergyMax=60；gcsim 的 ConsumeEnergy(4) 里 4 是扣能延迟帧数，不是耗能量",
+    "burst：倍率 4.7232 ← miao 斩击伤害[9]=472.32%，与 gcsim burstSlash 表 lv10 值一致"
   ],
   "actions": {
     "kaedeharakazuha.skill": {

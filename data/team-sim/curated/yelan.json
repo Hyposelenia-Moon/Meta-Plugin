@@ -1,0 +1,67 @@
+{
+  "key": "yelan",
+  "gameVersion": "7.1",
+  "source": "gcsim 源码 + miao 天赋10级；子代理草稿，未人工核对。证据：out/gcsim/internal/characters/yelan/skill.go:19（命中帧 skillHitmark = 35）；out/gcsim/internal/characters/yelan/skill.go:27（动作时长 skillFrames = frames.InitAbilSlice(42)）；out/gcsim/internal/characters/yelan/skill.go:151（冷却 SetCDWithDelay(action.ActionSkill, 600, skillHitmark-2)）；out/gcsim/internal/characters/yelan/skill.go:48-51（Element: attributes.Hydro；FlatDmg = skill[lv] * MaxHP()（生命值上限结算））；out/gcsim/internal/characters/yelan/skill.go:161-169（particleCB：0.3 秒 ICD，QueueParticle 4 颗水元素微粒）；out/gcsim/internal/characters/yelan/burst.go:20（命中帧 burstHitmark = 76）",
+  "notes": [
+    "yelan.skill：倍率 0.407 ← miao e 技能伤害[9]=40.7%（gcsim skill 表 lv10=0.407045，一致）；夜兰技能明确按生命值上限结算，scaling 记 hp",
+    "yelan.skill：只取默认（点按）分支；长按在 gcsim 里尚未实现（skill.go:22 skillHoldDuration = \"hold_length\" // not yet implemented），差异只在标记与位移时长，伤害倍率相同，未单独建模",
+    "yelan.skill：命中时 34% 概率获得破局矢（skill.go:99）、C4 按标记数给生命上限加成（skill.go:131-148）、处于爆发状态时命中会触发一次玄掷玲珑协同攻击（skill.go:104-107），均未建模",
+    "yelan.skill：冷却 600 帧 ← SetCDWithDelay(action.ActionSkill, 600, skillHitmark-2)，即命中前 2 帧起算",
+    "yelan.skill：产球取 particleCB：4 颗水元素微粒，0.3 秒 ICD（skill.go:165-169），这里按单次命中 4 颗记；travelFrames 记 0（粒子飞行延迟未建模，默认 ParticleDelay=100）",
+    "yelan.burst：能量 70 ← yelan.go:35 c.EnergyMax = 70；burst.go:77 的 ConsumeEnergy(6) 里 6 是扣能延迟帧数，不是耗能量",
+    "yelan.burst：miao q 有 3 行（技能伤害 13.15% / 玄掷玲珑 26.31% / 玄掷玲珑伤害2 [8.77,3]），只有第 1 行对应爆发的 1 次本体命中；后两行是玄掷玲珑协同攻击，按约定不建模，所以 hits 只保留 1 条而不是按 3 行铺开",
+    "yelan.burst：玄掷玲珑协同攻击（burst.go:92-119，每轮 3 发）、C2 追加伤害（14% 生命上限，burst.go:120-138）、C6 状态、A4 生命上限加成均未建模；爆发本身有直接伤害（初始命中），故 hits 非空",
+    "yelan.burst：冷却 1080 帧 ← SetCD(action.ActionBurst, 18*60)"
+  ],
+  "actions": {
+    "yelan.skill": {
+      "id": "yelan.skill",
+      "actorId": "yelan",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      },
+      "hits": [
+        {
+          "atFrame": 35,
+          "motionValue": 0.407,
+          "scaling": "hp",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 35,
+          "count": 4,
+          "element": "hydro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 600,
+      "cooldownId": "skill"
+    },
+    "yelan.burst": {
+      "id": "yelan.burst",
+      "actorId": "yelan",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 93
+      },
+      "hits": [
+        {
+          "atFrame": 76,
+          "motionValue": 0.1315,
+          "scaling": "hp",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 70,
+      "cooldownFrames": 1080,
+      "cooldownId": "burst"
+    }
+  }
+}

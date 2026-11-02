@@ -104,6 +104,47 @@
         "type": "frames",
         "frames": 50
       }
+    },
+    "raidenshogun.skill": {
+      "id": "raidenshogun.skill",
+      "actorId": "raidenshogun",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 52
+      },
+      "hits": [
+        {
+          "atFrame": 51,
+          "motionValue": 2.1096,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 600,
+      "cooldownId": "skill"
+    },
+    "raidenshogun.burst": {
+      "id": "raidenshogun.burst",
+      "actorId": "raidenshogun",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 112
+      },
+      "hits": [
+        {
+          "atFrame": 98,
+          "motionValue": 7.2144,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 90,
+      "cooldownFrames": 1080,
+      "cooldownId": "burst"
     }
   }
 }

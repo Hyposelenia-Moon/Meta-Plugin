@@ -1,0 +1,89 @@
+{
+  "key": "zibai",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：undefined（undefined）；undefined（undefined）；undefined（undefined）；undefined（undefined）；undefined（undefined）；undefined（undefined）",
+  "notes": [
+    "skill：建模对象是「灵驹飞踏」（「天地忽然身」在月转时隙模式下的替换技），不是起手「天地忽然身」；起手本身 0 伤害（AttackTagNone 占位）、动画 52 帧、命中帧 18、并挂 18 秒 CD，未单列",
+    "skill：灵驹飞踏的前提是处于月转时隙模式且「时隙浮光」≥70，每次消耗 70 点，一个模式内至多 4 次，模式最长 15 秒（gcsim AddStatus(skillKey, 15*60+18)）；这些前提只记录，未进动作",
+    "skill：冷却 1080 帧沿用起手的 SetCDWithDelay(action.ActionSkill, 18*60, 18)；灵驹飞踏 自身在 gcsim 不设 CD，此处把 1080 记成「每 18 秒一次 E」的近似，模式内多次灵驹飞踏与浮光消耗未建模",
+    "skill：时隙浮光积攒未建模——模式内每 6 帧 +1（gcsim）、普攻命中 +5（0.5 秒 ICD）、队友触发月结晶 +35（4 秒 ICD）",
+    "skill：第二段是月结晶反应伤害（AttackTagDirectLunarCrystallize、Durability=0、IgnoreDefPercent=1 即无视防御），本模型只按普通 geo 直伤记，无视防御与月结晶反应本体未建模",
+    "skill：倍率 3.1055 / 2.5374 ← miao 灵驹飞踏第一段/第二段伤害[9]（310.55% / 253.74% 防御力），与 gcsim skillStride lv10（3.105504 / 2.537424）一致",
+    "skill：产球取 particleCB——1 颗岩元素微粒、67% 概率（Rand>0.67 直接 return）、2 秒 ICD，两段命中合计只可能出 1 颗；这里按 1 颗记，不算期望值",
+    "skill：travelFrames 记 0（gcsim ParticleDelay 默认 100 未建模），与既有 curated 文件处理一致",
+    "skill / burst：均为防御力加成（gcsim UseDef: true），元素岩（attributes.Geo）",
+    "burst：两段命中同在 95 帧（burstHitmarks = {95, 95}，QueueAttack 的 hitmark 与 delay 都传 95），动画 103 帧；95 < 103，主伤害在动画内",
+    "burst：第二段同为月结晶反应伤害（Durability=0、IgnoreDefPercent=1），未建模",
+    "burst：能量取 EnergyMax=60；gcsim 的 ConsumeEnergy(7) 里 7 是扣能延迟帧数，不是耗能量（内核为起手扣能，延迟未建模）",
+    "burst：冷却 900 帧（15 秒，SetCD(action.ActionBurst, 15*60)）",
+    "burst：施放时延长月转时隙 1.7 秒（ExtendStatus(skillKey, 1.7*60)），未建模",
+    "burst：倍率 2.2853 / 3.1994 ← miao 技能第一段/第二段伤害[9]（228.53% / 319.94% 防御力），与 gcsim burst lv10（2.28528 / 3.199392）一致",
+    "未建模：普攻/重击/下坠（月转时隙一~四段、重击、下坠）、月兆满辉的第四段额外伤害（miao 月转时隙第四段额外伤害[9]=53.02%）、命座（C1 每模式灵驹飞踏次数、C4 命中/切人、C6 浮光效率与岩伤）",
+    "形态类机制（月转时隙：E 起手进入、4 次灵驹飞踏或 15 秒超时退出）只作为前提写在这里，未进动作"
+  ],
+  "actions": {
+    "zibai.skill": {
+      "id": "zibai.skill",
+      "actorId": "zibai",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 61
+      },
+      "hits": [
+        {
+          "atFrame": 30,
+          "motionValue": 3.1055,
+          "scaling": "def",
+          "element": "geo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 34,
+          "motionValue": 2.5374,
+          "scaling": "def",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 30,
+          "count": 1,
+          "element": "geo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 1080,
+      "cooldownId": "skill"
+    },
+    "zibai.burst": {
+      "id": "zibai.burst",
+      "actorId": "zibai",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 103
+      },
+      "hits": [
+        {
+          "atFrame": 95,
+          "motionValue": 2.2853,
+          "scaling": "def",
+          "element": "geo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 95,
+          "motionValue": 3.1994,
+          "scaling": "def",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

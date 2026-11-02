@@ -1,0 +1,76 @@
+{
+  "key": "flins",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：undefined（undefined）；undefined（undefined）；undefined（undefined）；undefined（undefined）；undefined（undefined）；undefined（undefined）",
+  "notes": [
+    "skill：E 本体「古律·孤灯遗秘」是 0 伤害的形态切换（gcsim 只排一个 0 伤害的 PJWS 叠层攻击，skill.go:67-77），命中 19 帧、动画 44 帧、CD 16 秒（960 帧，skill.go:84），进入「幽焰显迹」10 秒（skill.go:79）；这一按本体未建模",
+    "skill：草稿建模的是幽焰显迹模式下替换 E 的「北国枪阵」（skill.go:94-129），命中 23 帧、动画 42 帧、CD 6 秒（无 C1 时 c1SkillCD()=6*60，cons.go:39-44；C1 的 4 秒未计入）；它需要先按一次 0 伤害 E 起手，起手时间未计入",
+    "skill：长按/蓄力分支 gcsim 未实现（Skill() 不读参数，无 hold 分支），游戏内也没有独立的长按 E；未建模",
+    "skill：E/Q 本身不产球。particleCB（1 颗雷元素微粒、2 秒 ICD，skill.go:131-142）只挂在幽焰显迹下强化普攻的 QueueAttack 上（attack.go:136），故 actions 里不写 particles",
+    "skill：倍率 3.2112 ← miao 北国枪阵伤害[9]=321.12%（天赋10级）",
+    "skill：北国枪阵命中后 6 秒内 Q 被替换为「雷霆交响」（skill.go:121），特殊 Q 未建模",
+    "burst：能量取 EnergyMax=80（flins.go:21，miao 元素能量 80 一致）；burst.go:93 的 ConsumeEnergy(4) 里 4 是扣能延迟帧数，不是耗能量；内核起手扣能，4 帧延迟未建模",
+    "burst：CD 取 gcsim SetCD(action.ActionBurst, 15*60)=900 帧（burst.go:91）；miao 表写 20 秒，两者冲突，按任务要求取 gcsim 的 15 秒，属缺口",
+    "burst：默认 Q「旧仪·夜客致访」= 初始段 467.71% + 中间段 29.23%×2（满辉 4 次，菲林斯自带 Moonsign=1，默认 2 次）+ 最终段 210.47%；初始 93 帧、中间 110/119 帧、最终 164 帧（burst.go:18-24、76-88）",
+    "burst：最终段 164 帧在动画 130 帧之后 34 帧，超过 30 帧上限，按场地/延迟伤害不建模（少算 210.47%，约占默认 Q 倍率 27%）；中间段 110/119 帧仍在动画内，照建",
+    "burst：中间段/最终段是「视为月感电反应伤害」（AttackTagDirectLunarCharged、IgnoreDefPercent=1，burst.go:66-74）；内核没有月感电反应与无视防御，这里按普通雷伤近似并标 canCrit=false（反应伤害不暴击），会低估无视防御的收益",
+    "burst：雷霆交响（特殊 Q：128.62% + 满辉额外 187.08%，耗能 30）以及 C1 回能、C2/C4/C6 均未建模"
+  ],
+  "actions": {
+    "flins.skill": {
+      "id": "flins.skill",
+      "actorId": "flins",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      },
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 3.2112,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 360,
+      "cooldownId": "skill"
+    },
+    "flins.burst": {
+      "id": "flins.burst",
+      "actorId": "flins",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 130
+      },
+      "hits": [
+        {
+          "atFrame": 93,
+          "motionValue": 4.6771,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 110,
+          "motionValue": 0.2923,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": false
+        },
+        {
+          "atFrame": 119,
+          "motionValue": 0.2923,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": false
+        }
+      ],
+      "energyCost": 80,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

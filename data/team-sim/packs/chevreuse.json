@@ -85,6 +85,55 @@
         "type": "frames",
         "frames": 67
       }
+    },
+    "chevreuse.skill": {
+      "id": "chevreuse.skill",
+      "actorId": "chevreuse",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 31
+      },
+      "hits": [
+        {
+          "atFrame": 25,
+          "motionValue": 2.0736,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 25,
+          "count": 4,
+          "element": "pyro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 900,
+      "cooldownId": "skill"
+    },
+    "chevreuse.burst": {
+      "id": "chevreuse.burst",
+      "actorId": "chevreuse",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 61
+      },
+      "hits": [
+        {
+          "atFrame": 59,
+          "motionValue": 6.62688,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
     }
   }
 }

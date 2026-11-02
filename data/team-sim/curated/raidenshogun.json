@@ -1,0 +1,63 @@
+{
+  "key": "raidenshogun",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/raiden/skill.go:23（skillHitmark = 51（E 命中帧））；out/gcsim/internal/characters/raiden/skill.go:29（skillFrames = frames.InitAbilSlice(37)（动画 37 帧；命中 51 晚于动画，故 timing.frames 取 52））；out/gcsim/internal/characters/raiden/skill.go:75（SetCDWithDelay(action.ActionSkill, 600, 6)（CD 600 帧，6 为延迟帧））；out/gcsim/internal/characters/raiden/skill.go:43（Element: attributes.Electro）；out/gcsim/internal/characters/raiden/skill.go:93-95（particleCB：50% 概率 1 颗雷微粒（0.8 秒 ICD））；out/gcsim/internal/characters/raiden/skill.go:68-69（E 的爆发增伤 = skillBurstBonus[lv] × EnergyMax（10 级 0.003×90=27%））",
+  "notes": [
+    "raidenshogun.skill：命中帧 51（skillHitmark），但 gcsim 动画只有 37 帧（skillFrames = frames.InitAbilSlice(37)），命中晚于动画；按 atFrame < timing.frames 硬约束，timing.frames 取 52（命中帧+1），而非 gcsim 的 37。实际施放动画仍是 37 帧，第 51 帧是施放后延迟结算的雷罚恶曜之眼碎片伤害",
+    "raidenshogun.skill：冷却 600 帧（SetCDWithDelay(action.ActionSkill, 600, 6)：600 是 CD 长度，6 是延迟帧），即 10 秒；无 A1/A4 类减 CD",
+    "raidenshogun.skill：倍率 2.1096 ← gcsim skill[9]=2.1096，与 miao talentData.e.技能伤害[9]=210.96% 一致",
+    "raidenshogun.skill：元素 electro，取 gcsim Element: attributes.Electro",
+    "raidenshogun.skill：产球为 50% 概率 1 颗雷微粒（particleCB，0.8 秒 ICD），非必产；按基础值记 0 颗，故不写 particles 字段（班尼特是按基础 2 颗记，这里基础就是 0）",
+    "raidenshogun.skill：E 无长按分支（游戏内只有点按，gcsim Skill 也未解析 params）；协同攻击（skillTick 10 级 75.6%、0.9 秒一次）与「元素爆发伤害提高 27% = 0.003×90 能量、持续 1500 帧」均未建模",
+    "raidenshogun.burst：命中帧 98（burstHitmark），动画 112 帧（burstFrames = frames.InitAbilSlice(112)）；切人最早 110、普攻/战技/冲刺 111 可取消，内核只记总时长",
+    "raidenshogun.burst：能量 90 取 EnergyMax（raiden.go:30）；gcsim ConsumeEnergy(8) 的 8 是扣能延迟帧数，不是耗能量",
+    "raidenshogun.burst：冷却 1080 帧（SetCD(action.ActionBurst, 18*60)），即 18 秒",
+    "raidenshogun.burst：倍率 7.2144 = 梦想一刀基础伤害[9]=721.44%（gcsim burstBase[9]=7.2144）；愿力按 0 层默认分支（gcsim 起始 stacks=0，靠队友爆发能量叠层），加成 +0，未计入",
+    "raidenshogun.burst：愿力加成未建模：10 级每层 +7%（gcsim resolveBaseBonus[9]=0.069984，miao 愿力加成[9]=[7,1.31]），上限 60 层；满层伤害会显著高于本动作的 7.2144",
+    "raidenshogun.burst：梦想一心后续普攻/重击不建模；梦想一心能量恢复 10 级每次 2.5 点、最多 5 次、1 秒 ICD，属队友充能，未建模",
+    "raidenshogun.burst：命座（C1/C2/C4/C6）与队友充能均未建模"
+  ],
+  "actions": {
+    "raidenshogun.skill": {
+      "id": "raidenshogun.skill",
+      "actorId": "raidenshogun",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 52
+      },
+      "hits": [
+        {
+          "atFrame": 51,
+          "motionValue": 2.1096,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 600,
+      "cooldownId": "skill"
+    },
+    "raidenshogun.burst": {
+      "id": "raidenshogun.burst",
+      "actorId": "raidenshogun",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 112
+      },
+      "hits": [
+        {
+          "atFrame": 98,
+          "motionValue": 7.2144,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 90,
+      "cooldownFrames": 1080,
+      "cooldownId": "burst"
+    }
+  }
+}

@@ -104,6 +104,61 @@
         "type": "frames",
         "frames": 68
       }
+    },
+    "flins.skill": {
+      "id": "flins.skill",
+      "actorId": "flins",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      },
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 3.2112,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 360,
+      "cooldownId": "skill"
+    },
+    "flins.burst": {
+      "id": "flins.burst",
+      "actorId": "flins",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 130
+      },
+      "hits": [
+        {
+          "atFrame": 93,
+          "motionValue": 4.6771,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 110,
+          "motionValue": 0.2923,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": false
+        },
+        {
+          "atFrame": 119,
+          "motionValue": 0.2923,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": false
+        }
+      ],
+      "energyCost": 80,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
     }
   }
 }

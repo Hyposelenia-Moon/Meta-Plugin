@@ -1,0 +1,71 @@
+{
+  "key": "citlali",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/citlali/skill.go:15（命中帧 obsidianTzitzimitlHitmark = 20（< 动画 50））；out/gcsim/internal/characters/citlali/skill.go:24（动画时长 skillFrames = frames.InitAbilSlice(50)）；out/gcsim/internal/characters/citlali/skill.go:58（冷却 SetCD(action.ActionSkill, 16*60) = 960 帧（触发延迟 18 帧，skill.go:70））；out/gcsim/internal/characters/citlali/skill.go:43（Element: attributes.Cryo）；out/gcsim/internal/characters/citlali/skill.go:186（产球 QueueParticle(..., 5, attributes.Cryo, c.ParticleDelay)）；out/gcsim/internal/characters/citlali/skill.go:14（itzpapaInterval = 59（霜陨风暴场地段间隔，动画外，未建模））",
+  "notes": [
+    "skill：只建模黑曜星魔首段命中（20 帧）；施放后 18 帧才 SetCD 并进入夜魂祝福（20 秒、24 点），未建模",
+    "skill：白曜护盾在 37 帧生成（shield.go:15 按元素精通结算：shieldEM[lv]×EM + shieldFlat[lv]），属减伤/生存段，未建模",
+    "skill：伊兹帕帕霜陨风暴为动画后场地段：每 59 帧一次（itzpapaInterval=59），倍率 frostfall[lv10]=0.3064，A4 额外 +0.9×EM 固定伤害；未建模",
+    "skill：冷却 960 帧（16×60），由 18 帧延迟任务触发；本表按起手记 960，延迟 18 帧未建模",
+    "skill：产球取 particleCB：5 颗冰元素微粒、0.3 秒内置 CD；travelFrames 记 0（gcsim 默认 ParticleDelay=100 帧未建模）",
+    "skill：命座未建模：C1 星刃 10 层（每层按 EM 200% 加伤）、C6 秘律之数",
+    "burst：主伤害命中 118 帧晚于动画 113 帧（+5 帧），frames 按硬约束记到最后一段命中之后（118），属刻意偏差",
+    "burst：宿灵之髑为动画后召唤段：命中 = 118 + 57 + 30 + rand(0..30) = 205–235 帧，随机且最多 3 个目标，未建模；每次回 3 点夜魂值",
+    "burst：115 帧回 24 点夜魂值未建模；能量按起手扣 60，gcsim 的 ConsumeEnergy(8) 中 8 是扣能延迟帧数（非耗能量），未建模",
+    "burst：A4 冰风暴 +12×EM 固定加伤未建模（内核 hits 无 FlatDmg 字段）",
+    "结算口径：游戏内 E/Q 伤害基于元素精通（miao 亦按 EM 记百分比，护盾同源）；但 gcsim 源码只写 Mult、未设 UseEM（pkg/core/info/combat.go:46），即 gcsim 侧实际按 ATK 结算 —— 本草稿按游戏取 em，若以 gcsim 为准需把 scaling 改为 atk",
+    "元素：两者均为 attributes.Cryo → cryo；倍率取 miao 天赋 10 级下标 9，与 gcsim 表 lv10 数值一致",
+    "citlali：游戏与 miao 按元素精通结算，但 gcsim 只写 Mult 未设 UseEM（按攻击力），内核也只支持 atk/hp/def 三种 scaling，故两动作记 atk —— 数值口径有偏差，已披露"
+  ],
+  "actions": {
+    "citlali.skill": {
+      "id": "citlali.skill",
+      "actorId": "citlali",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 50
+      },
+      "hits": [
+        {
+          "atFrame": 20,
+          "motionValue": 1.3133,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 20,
+          "count": 5,
+          "element": "cryo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 960,
+      "cooldownId": "skill"
+    },
+    "citlali.burst": {
+      "id": "citlali.burst",
+      "actorId": "citlali",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 119
+      },
+      "hits": [
+        {
+          "atFrame": 118,
+          "motionValue": 9.6768,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

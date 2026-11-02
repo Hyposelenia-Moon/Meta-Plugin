@@ -104,6 +104,47 @@
         "type": "frames",
         "frames": 63
       }
+    },
+    "kamisatoayato.skill": {
+      "id": "kamisatoayato.skill",
+      "actorId": "kamisatoayato",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 36
+      },
+      "hits": [
+        {
+          "atFrame": 35,
+          "motionValue": 2.006,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 720,
+      "cooldownId": "skill"
+    },
+    "kamisatoayato.burst": {
+      "id": "kamisatoayato.burst",
+      "actorId": "kamisatoayato",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 140
+      },
+      "hits": [
+        {
+          "atFrame": 139,
+          "motionValue": 1.1962,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
     }
   }
 }

@@ -1,0 +1,70 @@
+{
+  "key": "xilonen",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/xilonen/skill.go:19（命中帧 skillHitmarks = 6）；out/gcsim/internal/characters/xilonen/skill.go:29-33（动作时长 skillFrames = frames.InitAbilSlice(20)，dash/jump 15 最早取消）；out/gcsim/internal/characters/xilonen/skill.go:179-183（Element: attributes.Geo；Mult: skillDMG[...]；UseDef: true）；out/gcsim/internal/characters/xilonen/skill.go:82（冷却 SetCD(action.ActionSkill, 7*60)=420 帧（退出夜魂时））；out/gcsim/internal/characters/xilonen/skill.go:213-221（产球 QueueParticle 4 颗 attributes.Geo）；out/gcsim/internal/characters/xilonen/zz_xilonen.dm.go:248-264（skillDMG[9]=3.0464（倍率数值））",
+  "notes": [
+    "xilonen.skill：只建模点按分支（gcsim Skill 无 hold 参数）；点按即进入夜魂状态，命中 skillHitmarks=6，动画 20 帧，最早取消 dash/jump 15 帧、attack/swap 19 帧",
+    "xilonen.skill：冷却取 exitNightsoul 里的 SetCD(action.ActionSkill, 7*60)=420 帧；注意技能本身施放时不设 CD，420 帧是在夜魂结束（EnterTimedBlessing 45,9*60,540 帧后）才起算；另有 skilRecastCD 60 帧控制重按退出，未建模",
+    "xilonen.skill：产球取 particleCB：4 颗岩元素微粒，0.5s（30 帧）触发 ICD；travelFrames 记 0，gcsim 默认 ParticleDelay=100 未建模（与 albedo/bennett 的简化一致）",
+    "xilonen.skill：倍率 3.0464 ← miao 突进伤害[9]=304.64%，与 gcsim skillDMG[9]=3.0464 一致；scaling=def 因 gcsim UseDef: true 且伤害走 Mult（无 FlatDmg）",
+    "xilonen.skill：减抗未建模：skillShred[9]=33%（miao 元素抗性降低[9]=33%），gcsim 由 sampler 每 0.3s（18 帧）刷新、持续 60 帧，作用于范围内敌人",
+    "xilonen.skill：夜魂状态本身未建模：持续 9*60=540 帧、夜魂值每 6 帧 -0.5，期间普攻改为 roller 段数并带夜魂附魔",
+    "xilonen.burst：默认分支取 samplersConverted < 2 → burstDamage（若转化≥2 则走 burstHeal，未建模）",
+    "xilonen.burst：burstDamageHitmarks=[96,128,164]，动画仅 101 帧；按硬约束只保留 96 帧首段，128 与 164 帧两段（Follow-Up Beat）超出动画、被取消，未建模",
+    "xilonen.burst：倍率 4.7818 ← miao 技能伤害[9]=478.18%（gcsim burstDMG[9]=4.78176，差 0.00004 为 miao 两位小数四舍五入）；scaling=def 因 UseDef: true",
+    "xilonen.burst：能量取 EnergyMax=60；ConsumeEnergy(16) 的 16 是扣能延迟帧数，不是耗能量，延迟未建模；CD=15*60=900 帧",
+    "xilonen.burst：miao「追加节拍伤害」行与「技能伤害」行数值完全相同（478.18%），而 gcsim burstFollowDMG[9]=5.06304（506.30%），miao 该行疑似重复有误；因该段超动画已取消，不影响本次输出",
+    "xilonen.burst：治疗分支未建模：burstHealHitmarks=[185,274,362,450,539,627,716,805]，每 1.5s 一次，治疗量 = burstHealBase + 防御力×burstHealPer"
+  ],
+  "actions": {
+    "xilonen.skill": {
+      "id": "xilonen.skill",
+      "actorId": "xilonen",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 20
+      },
+      "hits": [
+        {
+          "atFrame": 6,
+          "motionValue": 3.0464,
+          "scaling": "def",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 6,
+          "count": 4,
+          "element": "geo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 420,
+      "cooldownId": "skill"
+    },
+    "xilonen.burst": {
+      "id": "xilonen.burst",
+      "actorId": "xilonen",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 101
+      },
+      "hits": [
+        {
+          "atFrame": 96,
+          "motionValue": 4.7818,
+          "scaling": "def",
+          "element": "geo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

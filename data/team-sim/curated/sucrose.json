@@ -1,0 +1,60 @@
+{
+  "key": "sucrose",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/sucrose/skill.go:52-59（命中帧 42（QueueAttack 的 travel=42），particleCB 随命中结算）；out/gcsim/internal/characters/sucrose/skill.go:17（动画 68 帧（frames.InitAbilSlice(68)））；out/gcsim/internal/characters/sucrose/skill.go:62（冷却 900 帧（SetCDWithDelay(action.ActionSkill, 900, 9)））；out/gcsim/internal/characters/sucrose/burst.go:15（动画 65 帧（frames.InitAbilSlice(65)））；out/gcsim/internal/characters/sucrose/burst.go:77（伤害 tick 从 137 帧起、每 113 帧（137/250/363））；out/gcsim/internal/characters/sucrose/burst.go:91（冷却 1200 帧（SetCDWithDelay(action.ActionBurst, 1200, 18)））",
+  "notes": [
+    "sucrose.skill：只建模点按 E（gcsim 的 Skill() 忽略输入参数、没有长按分支；游戏内也无独立长按动作），命中帧 42（QueueAttack delay 0 + travel 42），动画 68 帧（dash/jump 11 帧即可取消）",
+    "sucrose.skill：冷却 900 帧（15 秒）← SetCDWithDelay(action.ActionSkill, 900, 9)；9 帧的起算延迟未建模",
+    "sucrose.skill：4 颗风元素微粒，随命中在 42 帧结算（particleICD 0.4 秒只影响连续施放，单次不触发）；travelFrames 记 0，gcsim 默认 ParticleDelay=100 未建模，与 bennett/albedo 草稿的处理一致",
+    "sucrose.skill：倍率 3.8016 ← miao 技能伤害[9]=380.16%，与 gcsim lv10 表一致；元素 anemo",
+    "sucrose.burst：能量 80（EnergyMax，sucrose.go:28）；gcsim 的 ConsumeEnergy(21) 里 21 是扣能延迟帧数，不是耗能量，内核起手扣，延迟未建模",
+    "sucrose.burst：冷却 1200 帧（20 秒）← SetCDWithDelay(action.ActionBurst, 1200, 18)；18 帧的起算延迟未建模",
+    "sucrose.burst：动画 65 帧，但首段伤害在 137 帧（之后每 113 帧：137/250/363，C0 持续 360 帧），全部晚于动画；按 atFrame<frames 硬约束整段取消，hits 留空",
+    "sucrose.burst：持续伤害倍率 2.664 ← miao 持续伤害[9]=266.4%，与 gcsim lv10 表一致；元素 anemo（gcsim DoT 的 Element 为 attributes.Anemo），即风灵作成/禁风瓶的蝴蝶风伤",
+    "sucrose.burst：吸附追加伤害 0.792 ← miao 附加元素伤害[9]=79.2%，未建模；gcsim 该段 Element 为 NoElement，由 AbsorbCheck 转成 pyro/hydro/electro/cryo，无附着时该段不产生，故 Q 按纯风伤记",
+    "sucrose.burst：领域（蝴蝶）持续 tick 未建模，与 bennett 爆发领域的处理一致；C2 持续 480 帧、C6 加成、天赋扩散/精通加成均未建模"
+  ],
+  "actions": {
+    "sucrose.skill": {
+      "id": "sucrose.skill",
+      "actorId": "sucrose",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 68
+      },
+      "hits": [
+        {
+          "atFrame": 42,
+          "motionValue": 3.8016,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 42,
+          "count": 4,
+          "element": "anemo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 900,
+      "cooldownId": "skill"
+    },
+    "sucrose.burst": {
+      "id": "sucrose.burst",
+      "actorId": "sucrose",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 65
+      },
+      "hits": [],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
+    }
+  }
+}

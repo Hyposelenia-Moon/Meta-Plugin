@@ -1,0 +1,57 @@
+{
+  "key": "mona",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/mona/skill.go:14（skillHitmarks = []int{86, 101}（点按/长按首个 DoT 命中帧））；out/gcsim/internal/characters/mona/skill.go:22-27（skillFrames[0] = frames.InitAbilSlice(50)（点按动画 50 帧），Q 28 / D 36 / Swap 43）；out/gcsim/internal/characters/mona/skill.go:61-79（DoT 每 59 帧一跳至 <300（点按 86/145/204/263）；爆裂 dmgDelay = hitmark+243 = 329；SetCDWithDelay(ActionSkill, 12*60, 24)）；out/gcsim/internal/characters/mona/skill.go:89-103（particleCB：3 颗水元素微粒，33% → 4 颗，attributes.Hydro）；out/gcsim/internal/characters/mona/burst.go:19-28（burstHitmark = 107；burstFrames = InitAbilSlice(127)，J 104 / E,D 115 / CA 118 / N1 121）；out/gcsim/internal/characters/mona/burst.go:36-80（107 帧泡影挂载 Mult: 0（无伤害，只挂 bubble）；SetCD(Burst, 15*60)；ConsumeEnergy(5)）",
+  "notes": [
+    "skill：只建点按（gcsim 的 hold 缺省为 0）；长按未建模：动画 80 帧、最早取消 58、首击 101 帧（skillHitmarks[1]），DoT/爆裂倍率与冷却与点按相同",
+    "skill：skillHitmarks = [86, 101]，点按取 [0]=86；DoT 每 59 帧一跳、<300 停，共 4 跳 86/145/204/263 帧，每跳 0.576 ← miao 持续伤害[9]=57.6%（gcsim lv10 0.576 一致）；4 跳全在动画 50 帧之后，按『动画后场地段只留动画内』未建模，要补就加这 4 个 hit",
+    "skill：主伤害是爆裂 2.3904 ← miao 爆裂伤害[9]=239.04%（gcsim lv10 2.3904），在 86+243=329 帧，远迟于动画 50 帧；为满足 hits.atFrame < timing.frames，frames 记 330（329+1）而不是 gcsim 的 AnimationLength=50，属刻意偏差，会把莫娜站场时间高估 280 帧",
+    "skill：产球在爆裂命中回调 particleCB：3 颗水微粒，33% 概率 4 颗；这里按 3 颗记、不算期望；travelFrames 记 0（默认 ParticleDelay=100 未建模）",
+    "skill：冷却 SetCDWithDelay(ActionSkill, 12*60, 24) = 720 帧，且从施放后 24 帧才开始计，实际最早再施放 744 帧；cooldownFrames 只记 720",
+    "burst：命中帧 107 ← burstHitmark；动画 127 帧，最早取消 104（jump），Q→E/D 115、Q→CA 118、Q→N1 121、Q→Swap 127",
+    "burst：107 帧那一击在 gcsim 里是 0 伤害的泡影挂载（Mult: 0），Q 本体不出伤；Q 的倍率是泡影破裂伤害 7.9632 ← miao 泡影破裂伤害[9]=796.32%（gcsim lv10 7.9632）",
+    "burst：泡影破裂的真实时点未建模：泡影要被后续任意伤害命中才破（triggerBubbleBurst，触发后 dmgDelay=1 帧排队），破裂帧由队友触发时机决定；这里把 796.32% 近似放在 107 帧以保住主伤害，偏差 ≥1 帧且可能明显偏早；要从严就删掉该 hit 并把 frames 改回 127",
+    "burst：破裂后给敌人挂星异，增伤 60%（miao 伤害加成[9]、gcsim dmgBonus lv10=0.6）、持续 5 秒（miao 星异持续时间[9]、omenDuration lv10=5.0）；全队增伤与 debuff 未建模",
+    "burst：泡影 8 秒自然破裂（状态 481 帧），0 伤害的 Break 攻击排在 107+480=587 帧，未建模",
+    "burst：能量取 EnergyMax=60；ConsumeEnergy(5) 的 5 是扣能延迟帧数不是耗能量（与 bennett 草稿对 template/character/energy.go 的判读一致），内核起手扣能、该延迟未建模；CD 900 帧（15*60，无延迟）",
+    "burst：默认 hexerei 开启（hex 参数缺省 1），Q 后 5 秒内可接特殊重击（c2HexereiPostBurstCAKey，300 帧），未建模",
+    "通用：本文件只含 E/Q 默认分支；普攻/重击/天赋/命座，以及 E 的虚影（嘲讽幻影实体）均未建模",
+    "mona.skill：幻影爆裂在 329 帧、倍率 239.04%，属于动画后的场地/召唤物伤害，不建模（若按 329 帧记时长会让莫娜在场上多锁 280 帧，代价远大于伤害收益）；动作用 50 帧动画，hits 为空",
+    "mona.skill：产球 3 颗水元素微粒（gcsim 挂在幻影相关回调上），原草稿记在 329 帧、超出 50 帧动画，按「粒子到达才结算」的模型会永远取消，故不写入 particles；产球期望缺失已在报告中披露"
+  ],
+  "actions": {
+    "mona.skill": {
+      "id": "mona.skill",
+      "actorId": "mona",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 50
+      },
+      "hits": [],
+      "cooldownFrames": 720,
+      "cooldownId": "skill"
+    },
+    "mona.burst": {
+      "id": "mona.burst",
+      "actorId": "mona",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 127
+      },
+      "hits": [
+        {
+          "atFrame": 107,
+          "motionValue": 7.9632,
+          "scaling": "atk",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

@@ -78,6 +78,47 @@
         "type": "frames",
         "frames": 65
       }
+    },
+    "sucrose.skill": {
+      "id": "sucrose.skill",
+      "actorId": "sucrose",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 68
+      },
+      "hits": [
+        {
+          "atFrame": 42,
+          "motionValue": 3.8016,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 42,
+          "count": 4,
+          "element": "anemo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 900,
+      "cooldownId": "skill"
+    },
+    "sucrose.burst": {
+      "id": "sucrose.burst",
+      "actorId": "sucrose",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 65
+      },
+      "hits": [],
+      "energyCost": 80,
+      "cooldownFrames": 1200,
+      "cooldownId": "burst"
     }
   }
 }

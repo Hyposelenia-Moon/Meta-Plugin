@@ -1,0 +1,85 @@
+{
+  "key": "durin",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/durin/skill.go:59-73（E 首按：AddStatus(skillWindowKey, 6*60) + SetCD(ActionSkill, 12*60)，全程无 QueueAttack）；out/gcsim/internal/characters/durin/skill.go:60-61（skillWindowKey 激活时 Skill 只走 skillRecastWhite()，E 键无黑化分支）；out/gcsim/internal/characters/durin/skill.go:23（skillWhiteHitmarks = 35（命中帧））；out/gcsim/internal/characters/durin/skill.go:41-47（skillRecastWhiteFrames = InitAbilSlice(83)，AnimationLength=83，dash 46）；out/gcsim/internal/characters/durin/skill.go:76-86（Element: attributes.Pyro；Mult: skillWhite[TalentLvlSkill()]；无 UseHP/UseDEF → atk）；out/gcsim/internal/characters/durin/zz_durin.dm.go:143-159（skillWhite lv10 = 1.9008（miao e[9]=190.08% 一致））",
+  "notes": [
+    "durin.skill：只建模默认分支——E 首按本身不产生伤害（skill.go:59-73 只 AddStatus(skillWindowKey, 6*60) 开 6 秒转变窗口并 SetCD，无 QueueAttack），伤害来自窗口内二次 E 的「转变·白化之是」（skillRecastWhite，skill.go:75-107）；本动作即按该 white 重击段建模：命中 35 帧、动画 83 帧",
+    "durin.skill：黑化分支未建模——窗口内改用普通攻击会触发「转变·黑度之否」（attack.go:46-47 → skillRecastBlack，skill.go:109-142），三段命中 32/37/42 帧（skillBlackHitmarks）、动画 67 帧、总倍率 3.42144（1.30032+0.9576+1.16352）；属同一转变窗口的另一分支，非默认",
+    "durin.skill：冷却 720 帧来自首按（skill.go:65 SetCD(action.ActionSkill, 12*60)）；white/black 两次重击自身不设 CD，故本动作的 CD 实际挂在首按上，此处合并记录",
+    "durin.skill：倍率 1.9008 ← miao talentData.e「转变·白化之是伤害」[9]=190.08%，与 gcsim skillWhite lv10 = 1.9008（zz_durin.dm.go:143-159）一致",
+    "durin.skill：结算属性按攻击力——skill/burst 的 info.AttackInfo 均未设 UseHP/UseDEF（skill.go:76-86、burst.go:60-70），Mult 默认走 ATK；元素统一 attributes.Pyro",
+    "durin.skill：产球取 particleCB（skill.go:144-155）：每次命中固定 4 颗火元素微粒，0.3 秒（18 帧）ICD；white 段只有一次攻击判定，故记 4 颗；travelFrames 记 0（粒子飞行延迟未建模，与既有 bennett/albedo 草稿口径一致）",
+    "durin.skill：能量回复 AddEnergy(skillEnergy[9]=33)，6 秒 ICD（skill.go:96-99）；这是回能不是耗能，内核 schema 无回能字段，只记 notes",
+    "durin.burst：只建模默认白化分支——burst.go:47-57 在 blackKey 未激活时走 burstWhite；黑化分支「黑度法·如星阴燃」三段 2.25792/1.83168/2.01312 与黑蚀之龙 DoT 2.33712 均未建模",
+    "durin.burst：硬约束偏差——动画 104 帧（burstFrames = InitAbilSlice(104)，burst.go:33-41），但主伤害三段命中在 97/121/154（burstInitHitmark，burst.go:16），后两段在动画结束后；按约束把 timing.frames 记到最后一段命中之后（157），比真实动画长 53 帧",
+    "durin.burst：三段命中倍率 2.14128/1.7352/2.01312（合计 5.8896 = 588.96%），← miao talentData.q「白化法·如光流变伤害」[9]=588.96% 与「…伤害2」[9]=[214.13,173.52,201.31]，与 gcsim burstWhiteInitial lv10 一致（zz_durin.dm.go:231-283）",
+    "durin.burst：场地 DoT 未建模——白焰之龙 20 跳（burstTicksWhite=20）、首跳 ceil(154+60-58.8)=156 帧、间隔 58.8 帧、每跳 1.70352×a4Dmg（burst.go:19-25、122-124）；首跳已在 104 帧动画之后，按硬约束只留动画内段落，故整段不进 actions",
+    "durin.burst：能量取 EnergyMax=70（durin.go:22）；gcsim 的 ConsumeEnergy(10) 里 10 是扣能延迟帧数，不是耗能量，内核起手扣、延迟未建模；CD 1080 帧（burst.go:26 burstCD=18*60，burst.go:98 SetCD）",
+    "durin.burst：命座与固有天赋未建模——A1 元素抗性 -20%、A4 DoT 增伤与 a4 层数、C1/C2/C4/C6（burst.go:69,90-96 的 a1OnBurst/a4OnBurst/c1OnBurst/c6DefIgnore）"
+  ],
+  "actions": {
+    "durin.skill": {
+      "id": "durin.skill",
+      "actorId": "durin",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 83
+      },
+      "hits": [
+        {
+          "atFrame": 35,
+          "motionValue": 1.9008,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 35,
+          "count": 4,
+          "element": "pyro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 720,
+      "cooldownId": "skill"
+    },
+    "durin.burst": {
+      "id": "durin.burst",
+      "actorId": "durin",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 157
+      },
+      "hits": [
+        {
+          "atFrame": 97,
+          "motionValue": 2.14128,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 121,
+          "motionValue": 1.7352,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 154,
+          "motionValue": 2.01312,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 70,
+      "cooldownFrames": 1080,
+      "cooldownId": "burst"
+    }
+  }
+}

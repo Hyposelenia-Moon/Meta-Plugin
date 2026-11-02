@@ -1,0 +1,67 @@
+{
+  "key": "mavuika",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿，未人工核对。证据：out/gcsim/internal/characters/mavuika/skill.go:24（skillHitmark = 16（点按命中帧））；out/gcsim/internal/characters/mavuika/skill.go:31（skillFrames = frames.InitAbilSlice(28)（点按动画 28 帧；E→Swap 24、E→N1 18））；out/gcsim/internal/characters/mavuika/skill.go:241-243（QueueAttack(ai, ap, skillHitmark, skillHitmark, c.particleCB)；SetCDWithDelay(action.ActionSkill, 15*60, 18)）；out/gcsim/internal/characters/mavuika/skill.go:203（Element: attributes.Pyro）；out/gcsim/internal/characters/mavuika/skill.go:340（QueueParticle(..., 5, attributes.Pyro, c.ParticleDelay)（5 颗火微粒））；out/gcsim/internal/characters/mavuika/zz_mavuika.dm.go:182-192（skill 表 lv10（下标 9）= 1.3392，与 miao E[9]=133.92% 一致）",
+  "notes": [
+    "skill：只建模点按（gcsim 的 hold 缺省为 0）。长按「Flamestrider」命中帧同为 16、动画 43 帧、CD 900，未建模；骑乘/夜魂形态（bike/ring 切换、E 重按 24/38 帧、bike refresh 39 帧）也未建模",
+    "skill：命中 16 < 动画 28，主伤害在动画内。动画后 exitBike() 启动「焚曜之环」，每 120 帧（2 秒）一跳、每跳消耗 3 点夜魂，首跳约在施放后 120 帧，已超出本动作动画，未建模",
+    "skill：冷却 900 帧 ← SetCDWithDelay(action.ActionSkill, 15*60, 18)；这里的 18 是 CD 延迟参数，未额外加进 cooldownFrames（与本目录 bennett 的处理口径一致）",
+    "skill：产球 ← particleCB：QueueParticle 5 颗火元素微粒（0.5 秒 ICD），按 5 颗记，不算期望；travelFrames 记 0（ParticleDelay 延迟未建模）",
+    "burst：命中 106 < 动画 141，主伤害在动画内，无需在 notes 标注 frames 偏差",
+    "burst：EnergyMax=0（mavuika.go:50），gcsim Burst 也不调用 ConsumeEnergy，能量项省略；爆发靠战斗意志（Fighting Spirit）而非元素能量",
+    "burst：FlatDmg 未建模：gcsim 在 burst 命中时追加 c.burstBuffSunfell() + c.c2BikeQ()，按战斗意志层数 × 2.88% 攻击力（miao 10 级「坠日斩伤害提升」），默认满 200 层即 +576% 攻击力；本文件 8.0064 只是倍率部分，实际爆发伤害显著更高",
+    "burst：Q 后 420 帧（7 秒）的夜魂/驰轮车形态及普攻/重击附伤（每层 0.51%/1.02% 攻击力）只影响后续动作，不在本动作内建模",
+    "burst：冷却 1080 帧 ← SetCD(action.ActionBurst, 18*60)；Q 不产球",
+    "元素 pyro ← gcsim attributes.Pyro；E/Q 均按攻击力结算（scaling=atk），无生命/防御倍率"
+  ],
+  "actions": {
+    "mavuika.skill": {
+      "id": "mavuika.skill",
+      "actorId": "mavuika",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 28
+      },
+      "hits": [
+        {
+          "atFrame": 16,
+          "motionValue": 1.3392,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 16,
+          "count": 5,
+          "element": "pyro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 900,
+      "cooldownId": "skill"
+    },
+    "mavuika.burst": {
+      "id": "mavuika.burst",
+      "actorId": "mavuika",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 141
+      },
+      "hits": [
+        {
+          "atFrame": 106,
+          "motionValue": 8.0064,
+          "scaling": "atk",
+          "element": "pyro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 1080,
+      "cooldownId": "burst"
+    }
+  }
+}

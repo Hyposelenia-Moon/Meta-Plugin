@@ -104,6 +104,74 @@
         "type": "frames",
         "frames": 72
       }
+    },
+    "skirk.skill": {
+      "id": "skirk.skill",
+      "actorId": "skirk",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 43
+      },
+      "hits": [],
+      "cooldownFrames": 480,
+      "cooldownId": "skill"
+    },
+    "skirk.burst": {
+      "id": "skirk.burst",
+      "actorId": "skirk",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 159
+      },
+      "hits": [
+        {
+          "atFrame": 109,
+          "motionValue": 2.2097,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 111,
+          "motionValue": 2.2097,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 114,
+          "motionValue": 2.2097,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 125,
+          "motionValue": 2.2097,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 135,
+          "motionValue": 2.2097,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 158,
+          "motionValue": 3.6828,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 0,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
     }
   }
 }

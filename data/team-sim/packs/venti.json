@@ -130,6 +130,47 @@
         "type": "frames",
         "frames": 98
       }
+    },
+    "venti.skill": {
+      "id": "venti.skill",
+      "actorId": "venti",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 98
+      },
+      "hits": [
+        {
+          "atFrame": 51,
+          "motionValue": 4.692,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 51,
+          "count": 3,
+          "element": "anemo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 360,
+      "cooldownId": "skill"
+    },
+    "venti.burst": {
+      "id": "venti.burst",
+      "actorId": "venti",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 95
+      },
+      "hits": [],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
     }
   }
 }

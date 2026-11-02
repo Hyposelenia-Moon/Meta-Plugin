@@ -59,6 +59,55 @@
         "type": "frames",
         "frames": 55
       }
+    },
+    "iansan.skill": {
+      "id": "iansan.skill",
+      "actorId": "iansan",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 137
+      },
+      "hits": [
+        {
+          "atFrame": 9,
+          "motionValue": 5.1552,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 9,
+          "count": 4,
+          "element": "electro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 960,
+      "cooldownId": "skill"
+    },
+    "iansan.burst": {
+      "id": "iansan.burst",
+      "actorId": "iansan",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 45
+      },
+      "hits": [
+        {
+          "atFrame": 38,
+          "motionValue": 7.7472,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 70,
+      "cooldownFrames": 1080,
+      "cooldownId": "burst"
     }
   }
 }

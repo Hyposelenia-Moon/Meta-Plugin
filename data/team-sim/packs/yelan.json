@@ -85,6 +85,55 @@
         "type": "frames",
         "frames": 67
       }
+    },
+    "yelan.skill": {
+      "id": "yelan.skill",
+      "actorId": "yelan",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      },
+      "hits": [
+        {
+          "atFrame": 35,
+          "motionValue": 0.407,
+          "scaling": "hp",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 35,
+          "count": 4,
+          "element": "hydro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 600,
+      "cooldownId": "skill"
+    },
+    "yelan.burst": {
+      "id": "yelan.burst",
+      "actorId": "yelan",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 93
+      },
+      "hits": [
+        {
+          "atFrame": 76,
+          "motionValue": 0.1315,
+          "scaling": "hp",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 70,
+      "cooldownFrames": 1080,
+      "cooldownId": "burst"
     }
   }
 }

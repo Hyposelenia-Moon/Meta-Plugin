@@ -1,0 +1,66 @@
+{
+  "key": "escoffier",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/escoffier/skill.go:17（skillInitHitmark = 23（起手命中帧））；out/gcsim/internal/characters/escoffier/skill.go:30-34（skillFrames = frames.InitAbilSlice(35)（动画 35 帧；Attack/Burst/Walk 32、Swap 31 最早取消））；out/gcsim/internal/characters/escoffier/skill.go:58-60（QueueAttack(..., skillInitHitmark, skillInitHitmark, particleCB, makeA4CB)，Mult: skillInital[lv]，Element: attributes.Cryo）；out/gcsim/internal/characters/escoffier/skill.go:26（skillCD = 15 * 60）；out/gcsim/internal/characters/escoffier/skill.go:95（SetCDWithDelay(action.ActionSkill, skillCD, 22)）；out/gcsim/internal/characters/escoffier/skill.go:16-25（skillTicks = 21、skillInterval = 58.5、skillFirstTickDelay = 148、skillAlignedHitmark = 83（场地段与流涌之刃均在动画后））",
+  "notes": [
+    "skill：只建模起手一击（23 帧）。21 段「冻霜芭菲」场地伤害（首段 148 帧、间隔 ceil(58.5*i) 帧、共 21 段至约 1318 帧）与 83 帧的「流涌之刃」（Arkhe，60.48%）全部落在 35 帧动画之后，按硬约束 hits.atFrame < timing.frames 不计入 hits，仅记于此",
+    "skill：E 无长按分支，默认分支唯一；冷却取 SetCDWithDelay(action.ActionSkill, skillCD, 22)，skillCD = 15*60 = 900 帧（15s），22 帧的起扣延迟未建模（内核起手扣）",
+    "skill：产球取 particleCB → QueueParticle 4 颗冰元素微粒，粒子 ICD 0.2*60 = 12 帧；travelFrames 记 0（角色默认 ParticleDelay=100 未建模，沿用既有 curated 处理）",
+    "skill：击中的 QueueAttack 还挂了 A4 回调（makeA4CB）与冰冻/抗性相关效果，A4 的 hydro/cryo 队友计数加成未建模",
+    "burst：治疗未建模 —— 97 帧初始治疗（burstHealFlat + burstHealPer*TotalAtk，天赋10级 2682.6 + 309.66% 攻击力），gcsim 注释 initialHeal 依赖 ping",
+    "burst：能量 60 取 EnergyMax=60 / burstEnergy=60；gcsim 的 ConsumeEnergy(5) 里 5 是扣能延迟帧数，不是耗能量，内核起手扣，延迟未建模",
+    "burst：命座未建模 —— C1（冰伤加成/治疗强化）与 c2()/c6() 的效果；本文件只按 0 命、天赋10级、ATK 结算",
+    "倍率来源：miao talentData.e.技能伤害[9] = 90.72% → 0.9072、q.技能伤害[9] = 1067.04% → 10.6704，与 gcsim skillInital / burst 表 lv10 一致"
+  ],
+  "actions": {
+    "escoffier.skill": {
+      "id": "escoffier.skill",
+      "actorId": "escoffier",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 35
+      },
+      "hits": [
+        {
+          "atFrame": 23,
+          "motionValue": 0.9072,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 23,
+          "count": 4,
+          "element": "cryo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 900,
+      "cooldownId": "skill"
+    },
+    "escoffier.burst": {
+      "id": "escoffier.burst",
+      "actorId": "escoffier",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 110
+      },
+      "hits": [
+        {
+          "atFrame": 92,
+          "motionValue": 10.6704,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

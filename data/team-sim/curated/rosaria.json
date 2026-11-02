@@ -1,0 +1,85 @@
+{
+  "key": "rosaria",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/rosaria/skill.go:15（命中帧 24（skillHitmark = 24））；out/gcsim/internal/characters/rosaria/skill.go:80-91（二段在 QueueCharTask(skillHitmark+14) = 38 帧结算，源码注释「second hit is 14 frames after the first (if we exclude hitlag)」）；out/gcsim/internal/characters/rosaria/skill.go:20-24（动画 51 帧（frames.InitAbilSlice(51)）；dash 38、jump 40、swap 50）；out/gcsim/internal/characters/rosaria/skill.go:93（冷却 360 帧（SetCDWithDelay(action.ActionSkill, 360, 23)），23 帧起算延迟）；out/gcsim/internal/characters/rosaria/skill.go:103-111（particleCB：QueueParticle(3, attributes.Cryo)，0.6 秒 ICD）；out/gcsim/internal/characters/rosaria/skill.go:38,73（元素 attributes.Cryo，Mult 直接取 skill[0]/skill[1]（攻击力结算））",
+  "notes": [
+    "rosaria.skill：两段命中，首段 24 帧（skillHitmark），二段在首段之后 14 帧 = 38 帧（skillHitmark+14，源码注明该 14 帧已排除 hitlag）；两段都早于动画 51 帧",
+    "rosaria.skill：动画 51 帧 ← frames.InitAbilSlice(51)；dash 38 帧最早取消（与二段命中同帧）、jump 40、swap 50",
+    "rosaria.skill：冷却 360 帧（6 秒）← SetCDWithDelay(action.ActionSkill, 360, 23)；23 帧的起算延迟未建模",
+    "rosaria.skill：产球在二段命中的 particleCB 里：3 颗冰元素微粒（0.6 秒 ICD）；gcsim 默认 ParticleDelay=100，travelFrames 仍记 0，与 bennett/albedo/shenhe 草稿处理一致",
+    "rosaria.skill：倍率 1.0512（105.12%）/ 2.448（244.8%）← miao talentData.e.技能伤害2[9]=[105.12,244.8]（技能伤害[9]=349.92% 是两段之和）；与 gcsim lv10（zz_rosaria.dm.go:245 的 1.0512、:262 的 2.448）一致",
+    "rosaria.skill：E 无长按分支；A1 绕后命中暴击率 +12%（5 秒 = 300 帧）、C1 暴击后攻速 +10% 与普攻伤害 +10%（4 秒）、C4 暴击回 5 点能量（每次施放 1 次）均未建模；gcsim 缺省 p[\"nobehind\"]=0，即按 A1 触发处理",
+    "rosaria.burst：能量 60（EnergyMax，rosaria.go:18）；gcsim 的 ConsumeEnergy(6) 里 6 是扣能延迟帧数（不是耗能量），内核起手扣，延迟未建模",
+    "rosaria.burst：动画 70 帧 ← frames.InitAbilSlice(70)；dash 57、jump 59、swap 69",
+    "rosaria.burst：两段主伤害 15 帧（Rites of Termination Initial 1）与 56 帧（Initial 2，冰枪落地；源码注明 56 帧已排除 hitlag，含 hitlag 为 60 帧）都在动画 70 帧内，故 frames 不后移、无偏差标注",
+    "rosaria.burst：冷却 900 帧（15 秒）← SetCD(action.ActionBurst, 15*60)，无起算延迟",
+    "rosaria.burst：领域 DoT 未建模：冰枪落地后每 120 帧一跳，首跳 56+120=176 帧，之后 296/416/536（C0 dur=510 帧 → 4 跳；C2 再 +240 帧 → 6 跳）；全部在动画 70 帧之后，按「动画后的场地段只留动画内」的规则不写入 actions，倍率 2.376 ← miao 冰枪持续伤害[9]=237.6%（gcsim burstDot，zz_rosaria.dm.go:317）",
+    "rosaria.burst：辅助效果未建模：A4 施放时把罗莎莉亚暴击率的 15%（上限 15%）分给队友 10 秒（600 帧）；C2 冰枪持续 +4 秒；C6 降物抗 20% 持续 10 秒",
+    "both：倍率按攻击力结算（scaling atk）：gcsim 的 Mult 直接取天赋表，无生命/防御转模；元素取 attributes.Cryo → cryo"
+  ],
+  "actions": {
+    "rosaria.skill": {
+      "id": "rosaria.skill",
+      "actorId": "rosaria",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 51
+      },
+      "hits": [
+        {
+          "atFrame": 24,
+          "motionValue": 1.0512,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 38,
+          "motionValue": 2.448,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 38,
+          "count": 3,
+          "element": "cryo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 360,
+      "cooldownId": "skill"
+    },
+    "rosaria.burst": {
+      "id": "rosaria.burst",
+      "actorId": "rosaria",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 70
+      },
+      "hits": [
+        {
+          "atFrame": 15,
+          "motionValue": 1.872,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        },
+        {
+          "atFrame": 56,
+          "motionValue": 2.736,
+          "scaling": "atk",
+          "element": "cryo",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

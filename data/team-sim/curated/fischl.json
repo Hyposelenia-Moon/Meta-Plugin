@@ -1,0 +1,60 @@
+{
+  "key": "fischl",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/fischl/skill.go:20-23（帧常量 skillOzSpawn=18（奥兹生成/快照）、skillOzHitmark=38（命中））；out/gcsim/internal/characters/fischl/skill.go:32-35（动画 43 帧，dash 14 / jump 16 / swap 42 可取消）；out/gcsim/internal/characters/fischl/skill.go:67-76（QueueAttack 快照延迟 18、伤害延迟 38；SetCD 25*60+18=1518）；out/gcsim/internal/characters/fischl/burst.go:15,23-27（burstHitmark=18；动画 148 帧）；out/gcsim/internal/characters/fischl/burst.go:43-48,79-80（起手落雷命中；ConsumeEnergy(6)；SetCD 15*60=900）；out/gcsim/internal/characters/fischl/fischl.go:30（EnergyMax = 60）",
+  "notes": [
+    "fischl.skill：只建模默认施放。gcsim 里 E 施放召唤奥兹时确有瞬时伤害（Abil \"Oz (Summon)\"）：倍率 birdSum[lv10]=1.96248（196.248%），miao 召唤伤害[9]=196.25%，两者一致；Electro、scaling atk、可暴击、ICDTagNone（无 ICD）",
+    "fischl.skill：命中帧 38 ← QueueAttack(ai, pattern, skillOzSpawn=18, skillOzHitmark=38)，即快照延迟 18 帧、伤害延迟 38 帧；源码注释写的是 \"hitmark is 5 frames after oz spawns\"，与常量 18+? 对不上，这里以时序常量 38 为准",
+    "fischl.skill：动作时长 43 帧（skillFrames = frames.InitAbilSlice(43)）；最早取消 dash 14 / jump 16 / swap 42 未建模（内核 timing 只支持单一总帧数）",
+    "fischl.skill：冷却 1518 帧 ← SetCD(action.ActionSkill, 25*60+skillOzSpawn)：字面 25 秒=1500 帧，gcsim 把 18 帧 CD 延迟加到时长里（注释：CD 延迟 18 帧，但 Delay > CanQueueAfter 会出问题），这里照抄 gcsim 的 1518；cooldownId = \"skill\"",
+    "fischl.skill：不建模的部分——奥兹在 18 帧生成、首 tick 64 帧、之后每 59 帧一跳（Oz 攻击倍率 159.84%），以及重按分支 skillRecast（动画 37 帧、2 帧 CD 延迟）和 C2 的半径 3 / 倍率 +2 加成",
+    "fischl.skill：粒子省略——gcsim 的 particleCB 挂在奥兹每次攻击的快照上（67% 概率 1 颗 Electro，0.1 秒 ICD），E 施放命中本身不产球；真实游戏里这部分产球由奥兹攻击承担，本动作不建模",
+    "fischl.burst：能量 60 ← fischl.go:30 EnergyMax = 60；SetCD 为 15*60 = 900 帧；ConsumeEnergy(6) 的 6 是扣能延迟帧数，不是耗能量",
+    "fischl.burst：命中帧 18 ← QueueAttack(ai, pattern, burstHitmark, burstHitmark)（快照与伤害同为 18 帧）；动作时长 148 帧（burstFrames = frames.InitAbilSlice(148)），最早 swap 24 / dash·jump 115 未建模",
+    "fischl.burst：倍率 3.744 ← miao 落雷伤害[9]=374.4%，与 gcsim burst[9]=3.744 一致；Electro、scaling atk、可暴击、StrikeTypeBlunt（削韧 150，内核未建模削韧）",
+    "fischl.burst：不建模的部分——爆发本身不召唤即战奥兹，奥兹在 113 帧生成（首 tick 69），换人时改为 swap 结束后 1 帧生成（首 tick 63）；C4 的 8 帧前置 222% 伤害与治疗（默认 C0）"
+  ],
+  "actions": {
+    "fischl.skill": {
+      "id": "fischl.skill",
+      "actorId": "fischl",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 43
+      },
+      "hits": [
+        {
+          "atFrame": 38,
+          "motionValue": 1.96248,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 1518,
+      "cooldownId": "skill"
+    },
+    "fischl.burst": {
+      "id": "fischl.burst",
+      "actorId": "fischl",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 148
+      },
+      "hits": [
+        {
+          "atFrame": 18,
+          "motionValue": 3.744,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

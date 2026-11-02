@@ -1,0 +1,60 @@
+{
+  "key": "columbina",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿，未人工核对。证据：out/gcsim/internal/characters/columbina/skill.go:25（skillHitmark = 21（施放命中帧））；out/gcsim/internal/characters/columbina/skill.go:42-48（skillFrames = InitAbilSlice(41)，AnimationLength=41，swap 26）；out/gcsim/internal/characters/columbina/skill.go:278（SetCDWithDelay(ActionSkill, 17*60, 20)（CD 1020 帧））；out/gcsim/internal/characters/columbina/skill.go:249-263（Element: attributes.Hydro，UseHP: true，Mult: skill[TalentLvlSkill()]）；out/gcsim/internal/characters/columbina/zz_columbina.dm.go:123-133（skill lv10 = 0.30096）；out/gcsim/internal/characters/columbina/skill.go:288-301（particleCB：1 颗 67%、2 颗 33%，3 秒 ICD，挂在 DoT tick 上）",
+  "notes": [
+    "columbina.skill：只建模默认（短按）分支；gcsim 的 Skill(p) 无长按/形态参数分支，长按与形态切换无对应实现，未建模",
+    "columbina.skill：倍率 0.30096 ← gcsim skill lv10（zz_columbina.dm.go:123-133），与 miao E 技能伤害[9]=30.1% 一致；UseHP=true，按生命上限结算",
+    "columbina.skill：场地持续伤害（skillDoT，每 117 帧一跳，首跳约 138 帧）与 25 秒 skillKey 状态全部超出 41 帧动画，未建模：其余段会在下一个动作开始时被内核取消",
+    "columbina.skill：引力干涉（月感电/月绽放/月结晶）需队友触发月曜反应累积 gravity≥60 才触发，非默认单人分支，未建模（skill.go:120-123、gravityTick）",
+    "columbina.skill：gcsim 把产球挂在 DoT tick 的 particleCB 上（1 颗 67%、2 颗 33%，3 秒 ICD），首跳约 138 帧已超出动画，故 particles 缺省",
+    "columbina.skill：冷却取 SetCDWithDelay(ActionSkill, 17*60, 20)：字面 1020 帧，挂 CD 延迟 20 帧未建模；天赋/命座无缩减",
+    "columbina.burst：倍率 0.58032 ← gcsim burst lv10（zz_columbina.dm.go:213-229），与 miao Q 技能伤害[9]=58.03% 一致；UseHP=true，按生命上限结算",
+    "columbina.burst：能量取 EnergyMax=60；gcsim 的 ConsumeEnergy(6) 里 6 是扣能延迟帧数，不是耗能量，内核起手扣，延迟未建模",
+    "columbina.burst：领域在 86 帧（burstField）生成，每 48 帧（0.8 秒）给月曜反应伤害加成 40%（lv10，burstBuff[9]=0.40），持续 20 秒；属增益非伤害，未建模",
+    "columbina.burst：命座与固有天赋加成未建模（A1 引力层数、A4 月露、C1/C2/C4/C6）"
+  ],
+  "actions": {
+    "columbina.skill": {
+      "id": "columbina.skill",
+      "actorId": "columbina",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 41
+      },
+      "hits": [
+        {
+          "atFrame": 21,
+          "motionValue": 0.30096,
+          "scaling": "hp",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "cooldownFrames": 1020,
+      "cooldownId": "skill"
+    },
+    "columbina.burst": {
+      "id": "columbina.burst",
+      "actorId": "columbina",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 131
+      },
+      "hits": [
+        {
+          "atFrame": 110,
+          "motionValue": 0.58032,
+          "scaling": "hp",
+          "element": "hydro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

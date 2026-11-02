@@ -1,0 +1,77 @@
+{
+  "key": "ororon",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿，未人工核对。倍率取 miao talentData：e.宿灵球伤害[9]=355.68%、q.秘仪伤害[9]=313.89%、q.音波碰撞伤害[9]=59.76%。证据：out/gcsim/internal/characters/ororon/skill.go:14（skillHitmark = 31（宿灵球起手命中帧））；out/gcsim/internal/characters/ororon/skill.go:17-23（frames.InitAbilSlice(31)（动画 31 帧；Attack/Charge 30、Walk 30、Swap 29 为最早取消））；out/gcsim/internal/characters/ororon/skill.go:26-31,56-68（travel 缺省 10 → QueueAttack(..., skillHitmark, skillHitmark+travel*(i+1)) = 41 帧落地；maxHits=3+c1ExtraBounce()；SetCDWithDelay(action.ActionSkill, 15*60, 14)）；out/gcsim/internal/characters/ororon/skill.go:78-87（particleCB：一次施放只 QueueParticle 3 颗 attributes.Electro（particlesGenerated 去重））；out/gcsim/internal/characters/ororon/burst.go:18-27,41-62（burstHitmark=36、burstTickHitmark=60、InitAbilSlice(62)；Mult=burst[lv]、Element=attributes.Electro、ICDTagNone；AddStatus 9*60；SetCD 900；ConsumeEnergy(22)）；out/gcsim/internal/characters/ororon/ororon.go:27 与 cons.go:105-109（EnergyMax=60；c4BurstInterval 无 C4 返回 1.0（有 C4 为 0.75）→ 音波间隔 60 帧）",
+  "notes": [
+    "skill：只建模点按单一分支（gcsim 的 Skill() 无长按参数）。倍率 3.5568 ← miao 宿灵球伤害[9]=355.68%，与 gcsim spiritOrb 表 lv10 一致",
+    "skill：命中帧偏差：gcsim 动画 31 帧（frames.InitAbilSlice(31)，swap 最早 29），但宿灵球 travel 缺省 10 → 初击落地在 31+10=41 帧，晚于动画结束。为满足 atFrame < frames，frames 记 42（= 41+1），比 gcsim 动画实际长 11 帧",
+    "skill：只建模单目标（1 跳）。宿灵球最多弹跳 3 次、C1 再 +2（maxHits = 3 + c1ExtraBounce()），第 i 跳命中帧为 31+10*(i+1)，每个敌人只能被选中一次；多目标弹跳未建模",
+    "skill：产球 3 颗雷元素微粒（particleCB 只触发一次，particlesGenerated 置位）；gcsim 角色 ParticleDelay 默认 100 帧，这里 travelFrames 记 0 属刻意简化（与 bennett.json、albedo.json 一致）",
+    "skill：冷却 900 帧（SetCDWithDelay(action.ActionSkill, 15*60, 14)），15 秒与 miao 冷却时间一致；CD 起算延迟 14 帧未建模",
+    "skill：伤害带 AdditionalTags AttackTagNightsoul（夜魂性质的雷元素伤害）；夜魂值/夜魂加持/燃素机制未建模",
+    "burst：倍率 3.1389 ← miao 秘仪伤害[9]=313.89%；音波 0.5976 ← miao 音波碰撞伤害[9]=59.76%，与 gcsim burst/soundwave 表 lv10 一致",
+    "burst：动画 62 帧（frames.InitAbilSlice(62)，dash 59 / jump 60 / swap 61），初击 36 帧在动画内，无偏差；主伤害未越界，frames 保持 62",
+    "burst：超音灵眼未建模：9 秒（AddStatus 540 帧）内每 60 帧一发音波，共 9 发（60…540 帧；C4 转速 +25% 时 ×0.75 → 45 帧间隔）。按「只留动画内」规则仅保留第 60 帧那一发（作为第二个 hit 记 0.5976），120–540 帧的 8 发全部舍去",
+    "burst：能量：EnergyMax=60（ororon.go:27）；ConsumeEnergy(22) 的 22 是扣能延迟帧数（同 bennett 结论，template/character/energy.go:9 → ConsumeEnergyPartial(..., EnergyMax)），不是耗能量，按起手扣 60 记",
+    "burst：初击 ICDTagNone（无 ICD，范围内全体命中），音波用 attacks.ICDTagOroronElmentalBurst / ICDGroupOroronElementalBurst；单目标下每发都结算，未做 ICD 抑制",
+    "burst：命座与天赋未建模：C1 弹跳 +2 与「夜暝」（显象超感 +50%）、C2 灵式超感 +8% 雷伤（多目标至多再 +32%）、C4 灵眼转速 +25% 与自身回能 8 点、C6 攻击力 +10%×3 层与 200% 显象超感，以及 A1 显象超感（160% 攻击力雷伤，1.8 秒一次）、A4 灵相之印回能 3 点×3 次"
+  ],
+  "actions": {
+    "ororon.skill": {
+      "id": "ororon.skill",
+      "actorId": "ororon",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 42
+      },
+      "hits": [
+        {
+          "atFrame": 41,
+          "motionValue": 3.5568,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 41,
+          "count": 3,
+          "element": "electro",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 900,
+      "cooldownId": "skill"
+    },
+    "ororon.burst": {
+      "id": "ororon.burst",
+      "actorId": "ororon",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 62
+      },
+      "hits": [
+        {
+          "atFrame": 36,
+          "motionValue": 3.1389,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        },
+        {
+          "atFrame": 60,
+          "motionValue": 0.5976,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

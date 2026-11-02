@@ -1,0 +1,65 @@
+{
+  "key": "venti",
+  "gameVersion": "7.1",
+  "source": "gcsim + miao 天赋10级；子代理草稿。证据：out/gcsim/internal/characters/venti/skill.go:54-57（点按命中帧 hitmark = 51、半径 3、count = 3（长按 74 / 半径 6 / 4 颗））；out/gcsim/internal/characters/venti/skill.go:19-25（skillPressFrames = frames.InitAbilSlice(98)，dash/jump/attack 22 帧可取消）；out/gcsim/internal/characters/venti/skill.go:52-53,77（cd = 360、cdstart = 21，SetCDWithDelay(action.ActionSkill, 360, 21)）；out/gcsim/internal/characters/venti/burst.go:14-20,61-65,73-74（动画 95 帧（swap 93）；20 跳风伤 106 + 24i（末跳 562）；CD 900 延迟 81；ConsumeEnergy 延迟 84）；out/gcsim/internal/characters/venti/venti.go:25（c.EnergyMax = 60）；plugins/miao-plugin/resources/meta-gs/character/温迪/data.json talentData.e.点按伤害[9] / q.持续伤害[9] / q.附加元素伤害[9]（469.2% / 63.92% / 31.96%（天赋 10 级），与 gcsim lv10 表一致）",
+  "notes": [
+    "venti.skill：只建模点按 E（gcsim 的 Skill() 按 p[\"hold\"] 分支，缺省 0 即点按）；长按未建模：命中 74 帧、动画 289 帧（skill.go:28 skillHoldFrames = frames.InitAbilSlice(289)）、冷却 900 帧（cdstart 34）、半径 6、4 颗微粒、倍率 6.46（miao 长按伤害[9]=646%）",
+    "venti.skill：命中帧 51 ← skill.go:54 hitmark = 51（press 分支）；动画 98 帧 ← skill.go:19 frames.InitAbilSlice(98)，attack/aim/skill/burst/dash/jump 均 22 帧可取消（skill.go:20-25）",
+    "venti.skill：冷却 360 帧（6 秒）← skill.go:52 cd = 360、skill.go:53 cdstart = 21，SetCDWithDelay(action.ActionSkill, 360, 21)；21 帧的起算延迟未建模",
+    "venti.skill：3 颗风元素微粒，随命中结算（skill.go:57 count = 3、skill.go:75 makeParticleCB），done 标记保证一次施放只产一次；travelFrames 记 0，gcsim 默认 ParticleDelay = 100 未建模，与 bennett/albedo/sucrose 草稿一致",
+    "venti.skill：倍率 4.692 ← miao 点按伤害[9] = 469.2%，与 gcsim skillPress lv10 一致（zz_venti.dm.go:234-250）；元素 anemo（skill.go:40 attributes.Anemo），StrikeTypePierce、Durability 50；伤害判定为 PrimaryTarget 半径 3（skill.go:55-56），单体（吸附/聚怪一并进风场）",
+    "venti.skill：C2 的减风抗回调随命中触发（skill.go:75 的 c.c2），C0 无效果；未建模",
+    "venti.skill：内核 ParticleSpec 的 element 目前只接受 geo/physical/clear，anemo 需扩枚举后才能直接入库。以上两条亦适用于爆发",
+    "venti.burst：能量 60 ← venti.go:25 c.EnergyMax = 60；gcsim 的 ConsumeEnergy(84)（burst.go:74）里 84 是扣能延迟帧数，不是耗能量（template/character/energy.go 按 EnergyMax 扣），内核起手扣，延迟未建模",
+    "venti.burst：冷却 900 帧（15 秒）← burst.go:73 SetCDWithDelay(action.ActionBurst, 15*60, 81)；81 帧的起算延迟未建模",
+    "venti.burst：动画 95 帧（burst.go:17 frames.InitAbilSlice(95)，swap 93、jump 94 可取消），但 Q 没有任何动画内命中：20 跳风伤从 106 帧起、每 24 帧一跳（burst.go:61-65，106/130/…/562，共 20 跳），全部晚于动画；按 hits.atFrame < timing.frames 硬约束整段取消，hits 留空（与 sucrose.burst 同处理）",
+    "venti.burst：风场持续伤害倍率 0.6392/跳 ← miao 持续伤害[9] = 63.92%，与 gcsim burstDot lv10 一致（zz_venti.dm.go:270-286）；20 跳合计 12.784 ATK、跨 456 帧（8 秒风场），未计入本动作，要进模拟需另建 field 动作（v1 口径：动画后场地段只留动画内，本例动画内为 0 段）",
+    "venti.burst：吸附追加伤害 0.3196/跳 ← miao 附加元素伤害[9] = 31.96%（burst.go:45 burstAbsorbDot）；gcsim 该段 Element 初值 NoElement，由 absorbCheckQ（burst.go:97-121，178 帧起每 18 帧查一次，截至 480-24*4 帧）转成 pyro/hydro/electro/cryo，吸附成功后另起 15 跳（24 帧间隔，burstAbsorbTicks burst.go:84-95）；无附着时整段不产生，故 Q 按纯风伤记，未建模",
+    "venti.burst：快照点在 104 帧（burst.go:50-53），晚于动画末帧 95，即 Q 的伤害快照在 swap 之后才落地；动画内无命中，对本次 hits 为空无影响，其余动作若在此期间切人不会丢快照",
+    "venti.burst：A4 天赋在风场结束（480 + burstStart 94 = 574 帧）回 15 点能量，若发生了吸附则同元素队友各回 15（asc.go:12-22）；未建模",
+    "venti.burst：风场生成在角色头顶 +5（burst.go:26-27），半径 4（风伤）/ 6（吸附伤）；C6 减抗回调（burst.go:56-59、84-88）未建模"
+  ],
+  "actions": {
+    "venti.skill": {
+      "id": "venti.skill",
+      "actorId": "venti",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 98
+      },
+      "hits": [
+        {
+          "atFrame": 51,
+          "motionValue": 4.692,
+          "scaling": "atk",
+          "element": "anemo",
+          "canCrit": true
+        }
+      ],
+      "particles": [
+        {
+          "atFrame": 51,
+          "count": 3,
+          "element": "anemo",
+          "travelFrames": 0
+        }
+      ],
+      "cooldownFrames": 360,
+      "cooldownId": "skill"
+    },
+    "venti.burst": {
+      "id": "venti.burst",
+      "actorId": "venti",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 95
+      },
+      "hits": [],
+      "energyCost": 60,
+      "cooldownFrames": 900,
+      "cooldownId": "burst"
+    }
+  }
+}

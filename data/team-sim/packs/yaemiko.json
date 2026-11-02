@@ -59,6 +59,39 @@
         "type": "frames",
         "frames": 79
       }
+    },
+    "yaemiko.skill": {
+      "id": "yaemiko.skill",
+      "actorId": "yaemiko",
+      "kind": "skill",
+      "timing": {
+        "type": "frames",
+        "frames": 37
+      },
+      "hits": [],
+      "cooldownFrames": 240,
+      "cooldownId": "skill"
+    },
+    "yaemiko.burst": {
+      "id": "yaemiko.burst",
+      "actorId": "yaemiko",
+      "kind": "burst",
+      "timing": {
+        "type": "frames",
+        "frames": 114
+      },
+      "hits": [
+        {
+          "atFrame": 100,
+          "motionValue": 4.68,
+          "scaling": "atk",
+          "element": "electro",
+          "canCrit": true
+        }
+      ],
+      "energyCost": 90,
+      "cooldownFrames": 1320,
+      "cooldownId": "burst"
     }
   }
 }
