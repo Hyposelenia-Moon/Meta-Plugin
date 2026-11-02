@@ -99,6 +99,29 @@ export function safeId (id) {
   return /^[A-Za-z0-9._-]{1,64}$/.test(text) ? text : ''
 }
 
+const MIAO_META = process.env.MIAO_ROOT || 'D:/Program Files/Yunzai/Yunzai/plugins/miao-plugin/resources/meta-gs'
+
+/** 圣遗物套装清单（id/名称）给面板下拉用。 */
+export function artifactSets () {
+  const raw = JSON.parse(fs.readFileSync(path.join(MIAO_META, 'artifact', 'data.json'), 'utf8'))
+  return Object.entries(raw).map(([id, set]) => ({ id, name: String(set?.name ?? id) })).sort((a, b) => a.name.localeCompare(b.name, 'zh'))
+}
+
+/** 武器清单（id/名称/星级/类型）。 */
+export function weaponCatalog () {
+  const base = path.join(MIAO_META, 'weapon')
+  const out = []
+  for (const type of fs.readdirSync(base, { withFileTypes: true }).filter(entry => entry.isDirectory())) {
+    const dir = path.join(base, type.name)
+    for (const sub of fs.readdirSync(dir, { withFileTypes: true }).filter(entry => entry.isDirectory())) {
+      try {
+        const data = JSON.parse(fs.readFileSync(path.join(dir, sub.name, 'data.json'), 'utf8'))
+        out.push({ id: String(data.id), name: String(data.name ?? sub.name), star: Number(data.star) || 4, type: type.name })
+      } catch { /* 坏文件跳过 */ }
+    }
+  }
+  return out.sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name, 'zh'))
+}
 /**
  * 面板试算（2026-11-02）：把 UI 的「角色 + 武器 + 圣遗物」拼成 CharacterBuild，
  * 走内核同一套 `buildPermanentStats` 算最终面板；失败时把 issues 原样返回给界面。
@@ -306,6 +329,12 @@ export function createServer () {
         })
         return sendJson(res, 200, { items })
       }
+      if (req.method === 'GET' && url.pathname === '/api/sets') {
+        try { return sendJson(res, 200, { items: artifactSets() }) } catch (err) { return sendJson(res, 500, { error: String(err?.message ?? err) }) }
+      }
+      if (req.method === 'GET' && url.pathname === '/api/weapons') {
+        try { return sendJson(res, 200, { items: weaponCatalog() }) } catch (err) { return sendJson(res, 500, { error: String(err?.message ?? err) }) }
+      }
       if (req.method === 'GET' && url.pathname === '/api/stat-tables') {
         const file = path.join(DATA, 'stat-tables.json')
         if (!fs.existsSync(file)) return sendJson(res, 404, { error: 'stat-tables.json 还没生成，先跑 node scripts/gen-stat-tables.mjs' })
@@ -441,6 +470,7 @@ if (isMain) {
   })
   listen(basePort)
 }
+
 
 
 

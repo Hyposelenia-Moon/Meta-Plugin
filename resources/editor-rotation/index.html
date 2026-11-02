@@ -22,7 +22,7 @@
 
 <nav class="tabs">
   <button class="tab active" data-tab="build">① 拼一条轴</button>
-  <button class="tab" data-tab="record">② 从录制导入（进阶）</button>
+  <button class="tab" data-tab="panel">② 面板与词条</button>
 </nav>
 
 <main id="tab-build" class="tab-panel active">
@@ -30,12 +30,7 @@
     <h2>第一步 · 选队伍</h2>
     <p class="hint">按队伍顺序点四个位置。下拉里可以直接打字搜中文名。</p>
     <div id="team" class="team"></div>
-    <div class="row">
-      <span class="label">打多久</span>
-      <input id="window" type="number" min="1" step="1" value="7243" class="w120">
-      <span class="muted">帧（默认 7243 ≈ 120 秒，不用改）</span>
-      <label class="inline"><input id="loop" type="checkbox" checked> 让这套动作循环到结束</label>
-    </div>
+
   </section>
 
   <section class="card">
@@ -69,7 +64,11 @@
     <details class="advanced">
       <summary>高级设置（一般不用动）</summary>
       <div class="row"><span class="label">轴的名字</span><input id="id" class="grow" placeholder="例如 national-bursts"></div>
-      <div class="row"><span class="label">保存位置</span><code>data/team-sim/rotations/&lt;名字&gt;.json</code></div>
+      <div class="row"><span class="label">保存位置</span><code>data/team-sim/rotations/&lt;名字&gt;.json</code></div>      <div class="row">
+        <span class="label">打多久</span>
+        <input id="window" type="number" min="1" step="1" value="7243" class="w120">
+        <label class="inline"><input id="loop" type="checkbox" checked> 循环到结束</label>
+      </div>
       <textarea id="preview" class="preview" readonly spellcheck="false"></textarea>
     </details>
   </section>
@@ -106,6 +105,17 @@
   </section>
 </main>
 
+<main id="tab-panel" class="tab-panel">
+  <section class="card">
+    <h2>面板与词条</h2>
+    <p class="hint">按游戏里的圣遗物一件件填：套装、等级、主词条、四条副词条（档位下拉）。填完这里会实时算出最终面板。</p>
+    <div id="panel-members"></div>
+  </section>
+</main>
+
 <script src="app.js"></script>
+<script src="panel.js"></script>
 </body>
 </html>
+
+

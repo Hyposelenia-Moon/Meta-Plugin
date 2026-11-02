@@ -146,4 +146,21 @@ fs.rmSync(tmp, { recursive: true, force: true })
   })
   ok('副词条与主词条同属性被拒绝', bad.ok === false && JSON.stringify(bad.issues).includes('副词条不能与主词条同属性'))
 }
+
+// 面板页依赖的清单接口（P2）
+{
+  const server = E.createServer()
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
+  const base = `http://127.0.0.1:${server.address().port}`
+  try {
+    const sets = await (await fetch(`${base}/api/sets`)).json()
+    ok('/api/sets 返回 60+ 套装', Array.isArray(sets.items) && sets.items.length >= 60 && sets.items.some(s => s.id === '400189'))
+    const weapons = await (await fetch(`${base}/api/weapons`)).json()
+    ok('/api/weapons 返回 200+ 武器且带星级', Array.isArray(weapons.items) && weapons.items.length >= 200 && weapons.items.every(w => w.id && w.name && w.star))
+    const tables = await (await fetch(`${base}/api/stat-tables`)).json()
+    ok('/api/stat-tables 有主副词条档位', tables.mainStats.cpct[5] === 0.311 && tables.subValues.cdmg.includes(0.078))
+  } finally {
+    await new Promise(resolve => server.close(resolve))
+  }
+}
 report()

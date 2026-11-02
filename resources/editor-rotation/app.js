@@ -296,6 +296,8 @@ async function render () {
   renderRecharge()
   renderPreview()
   renderRecordActive()
+  window.__rotationState = { team: state.file.team }
+  window.dispatchEvent(new CustomEvent('rotation-team-changed'))
 }
 
 /* ---------------- 校验与保存 ---------------- */
@@ -498,4 +500,5 @@ async function boot () {
 }
 
 boot()
+
 
