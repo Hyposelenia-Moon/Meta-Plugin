@@ -34,7 +34,8 @@ assert.deepEqual(below.belowDims, ['圣遗物'])
 assert.match(below.belowDimsText, /未达标.*圣遗物/)
 assert.equal(P.buildPresentation({ result: { assessable: true, dims: [{ key: 'weapon', label: '武器', state: 'met', ratio: 1, weight: 1, detail: '' }], rows: [], suggestionRows: [] } }).belowDimsText, '')
 assert.ok(/mx\.belowDimsText[^}]*\}\}[\s\S]*均已满足/.test(tpl), '04 空态先判 belowDimsText')
-for (const key of ['presetName', 'presetMatchReason', 'presetWeightText', 'mx.improvements', 'mx.consNote']) assert.ok(tpl.includes(key))
+for (const key of ['presetName', 'presetMatchReason', 'presetWeightText', 'mx.improvements']) assert.ok(tpl.includes(key))
+assert.ok(!tpl.includes('mx.consNote') && !tpl.includes('关键命座'), '关键命座字段 2026-11-02 全页移除')
 assert.ok(!tpl.includes('mx.references') && !tpl.includes('参考项'), '05 参考项整块移除')
 assert.ok(!tpl.includes('grid-template-columns: 132px'))
 
@@ -61,19 +62,14 @@ const setNote = P.buildPresentation({ result: { assessable: true, dims: [], rows
 assert.equal(setNote.improvements[0].note, '当前：角斗士×5')
 assert.equal(merged.pending.length, 1, '未绑定建议的数据缺失进入待补区')
 assert.equal(merged.pending[0].name, '裁叶萃光')
-assert.deepEqual(merged.consNote, { name: '关键命座', actual: 'C2', target: '6' })
+assert.equal(merged.consNote, undefined, '2026-11-02 起投影不再输出 key 命座字段')
 assert.equal(merged.sectionIndex.suggestions, '03')
 assert.equal(merged.sectionIndex.refDps, '04')
 
-// 未达标命座并入新 03；达标命座不再提示。
+// 命座行已从业务层移除：即使构造了 cons:key 行，也不再投影出 consNote。
 const consBelow = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
   { id: 'cons:key', group: '命座', name: '关键命座', actual: 'C1', target: '2 / 6', verdict: 'info' }
 ], suggestionRows: [] } })
-assert.equal(consBelow.references.length, 1)
-assert.deepEqual(consBelow.consNote, { name: '关键命座', actual: 'C1', target: '2 / 6' })
+assert.equal(consBelow.consNote, undefined)
 assert.equal(consBelow.sectionIndex.suggestions, '03')
-const consMet = P.buildPresentation({ result: { assessable: true, dims: [], rows: [
-  { id: 'cons:key', group: '命座', name: '关键命座', actual: 'C6', target: '2 / 6', verdict: 'info' }
-], suggestionRows: [] } })
-assert.equal(consMet.consNote, null, '命座已达标时不再提示')
-console.log('presentation-reference: 全部契约通过（四维标题/01+02/04+06合并/05移除/命座并入）')
+console.log('presentation-reference: 全部契约通过（四维标题/01+02/04+06合并/05移除/命座字段移除）')

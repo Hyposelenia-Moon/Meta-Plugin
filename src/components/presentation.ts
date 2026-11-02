@@ -149,13 +149,6 @@ export interface PendingEvidenceView {
   reasonText: string
 }
 
-/** 未达标关键命座：05 移除后并入新的 03，只提示、不计分 */
-export interface ConsNoteView {
-  name: string
-  actual: string
-  target: string
-}
-
 /** 从参考文本里取第一个数字（`C6` → 6、`2 / 6` → 2、`180%` → 180） */
 function firstNumber (text: string): number | null {
   const m = String(text || '').match(/-?\d+(?:\.\d+)?/)
@@ -207,8 +200,6 @@ export interface PresentationMeta {
   improvements: ImprovementView[]
   /** 未绑定建议、仍缺数据的证据 */
   pending: PendingEvidenceView[]
-  /** 未达标关键命座（原 05 唯一保留信息） */
-  consNote: ConsNoteView | null
   /** 参考项里是否有方向（辅助/输出…）；无方向时不渲染方向列 */
   refHasDir: boolean
   /** 兼容字段：参考项是否只有「命座」（2026-10-29 起不再据此隐藏整块） */
@@ -438,10 +429,6 @@ export function buildPresentation (input: {
   const pending: PendingEvidenceView[] = evidence
     .filter(e => e.state === 'unknown' && !referenced.has(e.id))
     .map(e => ({ group: String(e.group || ''), name: String(e.name || ''), reasonText: String(e.reasonText || '未取到数据') }))
-  const consRow = references.find(r => r.id === 'cons:key')
-  const consNote: ConsNoteView | null = consRow
-    ? { name: consRow.name, actual: consRow.actual, target: consRow.target }
-    : null
   const metCount = evidence.filter(e => e.state === 'met').length
   // 维度已判 below 但没有逐项证据时（合成/缺明细数据），收尾文案必须如实说明，不能写"均已满足"。
   const belowDims = input.result.dims.filter(d => d.state === 'below').map(d => d.label)
@@ -461,7 +448,6 @@ export function buildPresentation (input: {
     referenceGroups: buildReferenceGroups(references),
     improvements,
     pending,
-    consNote,
     dims,
     evidence,
     references,

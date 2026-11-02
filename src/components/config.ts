@@ -124,7 +124,8 @@ export const defaultConfig: MetaConfig = {
   gradeRule: 'auto',
   gradeRuleOverrides: '',
   teamDamageAxes: '1:保守轴=默认',
-  gradeRankThresholds: 'MAX:100,ACE:88,SSS:80,SS:72,S:64,A:55,B:45,C:30'
+  /** 2026-11-02 用户定：九档阈值写死，本项已废弃（保留字段只为旧配置可读，不再生效） */
+  gradeRankThresholds: 'MAX:100,ACE:90,SSS:80,SS:70,S:60,A:50,B:40,C:30,D:20'
 }
 
 /** 运行时配置文件路径（`META_CONFIG_FILE` 优先） */
@@ -356,9 +357,9 @@ function parseSpecSafe (spec: unknown): Record<string, number> {
   return out
 }
 
-/** 九档顺序与兜底值；MAX 一档固定 100（配置写别的值也按 100 处理） */
+/** 九档顺序与兜底值（2026-11-02 写死）；MAX 一档固定 100（配置写别的值也按 100 处理） */
 const RANK_ORDER: Array<[string, number]> = [
-  ['MAX', 100], ['ACE', 88], ['SSS', 80], ['SS', 72], ['S', 64], ['A', 55], ['B', 45], ['C', 30]
+  ['MAX', 100], ['ACE', 90], ['SSS', 80], ['SS', 70], ['S', 60], ['A', 50], ['B', 40], ['C', 30], ['D', 20]
 ]
 
 function parseRankThresholdsSafe (spec: unknown): Array<[string, number]> {

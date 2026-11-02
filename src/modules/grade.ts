@@ -51,20 +51,50 @@ export const LEGACY_WEIGHT_KEYS = ['panel', 'artifact'] as const
 export const COMPREHENSIVE_MET_RATIO = 0.95
 
 /**
- * 维度达标线（2026-11-01 用户定）：面板 / 圣遗物 95%，武器 / 天赋 90%
+ * 维度达标线（2026-11-02 用户定）：圣遗物 / 面板 95%，武器 90%，天赋 100%
  *
  * 低于阈值判未达标；到达阈值即算达标（含正好 95% / 90%）。
- * 圣遗物仍按分量判（词条 95% + 套装 80% + 主词条 100%），因为它由四个分量组成，
- * 单看加权比值会让一个 0 分主词条被其它分量掩盖。
+ * 圣遗物改为「套装 30% + 评分 70%」直接相加，不再按分量加权；
+ * 角色等级是隐藏维度（不出口进度条），达标 100%、不达标 0%。
  */
-export const DIM_MET_FLOORS = { artifact: 0.95, panel: 0.95, weapon: 0.9, talent: 0.9 } as const
+export const DIM_MET_FLOORS = { artifact: 0.95, panel: 0.95, weapon: 0.9, talent: 1 } as const
+
+/** 角色等级维度：隐藏维，权重 5%（从圣遗物 / 面板里扣） */
+export const LEVEL_WEIGHT = 0.05
+
+/** 圣遗物：套装占 30%，词条评分占 70%（评分每分 0.15%，240 分封顶） */
+export const ARTIFACT_SET_PART = 0.3
+export const ARTIFACT_MARK_PART = 0.7
+export const ARTIFACT_MARK_BASE = 200
+export const ARTIFACT_MARK_FULL = 240
+
+/** 武器：等级占 30%，符合度占 70% */
+export const WEAPON_LEVEL_PART = 0.3
+export const WEAPON_CHOICE_PART = 0.7
 
 export const DEFAULT_PANEL_TIERS = { big: 0.9, normal: 0.6, small: 0.3 }
 
-/** 九档阈值：分数 ≥ 阈值即该档（配置项 `gradeRankThresholds` 可覆盖） */
+/** 九档阈值（2026-11-02 用户定，写死；配置项 `gradeRankThresholds` 已废弃） */
 export const DEFAULT_RANK_THRESHOLDS: Array<[string, number]> = [
-  ['MAX', 100], ['ACE', 88], ['SSS', 80], ['SS', 72], ['S', 64], ['A', 55], ['B', 45], ['C', 30]
+  ['MAX', 100], ['ACE', 90], ['SSS', 80], ['SS', 70], ['S', 60], ['A', 50], ['B', 40], ['C', 30], ['D', 20]
 ]
+
+/**
+ * 圣遗物词条评分 → 评分部分（0.30 ~ 0.70）
+ *
+ * ≤200 分：30% 摊在 200 分上，每分 0.15%；
+ * 200~240：每分 +1%；
+ * ≥240：封顶 70%。
+ */
+export function artifactMarkRatio (total: number | null | undefined): number | null {
+  if (total === null || total === undefined) return null
+  const s = Number(total)
+  if (!Number.isFinite(s)) return null
+  if (s <= 0) return 0
+  if (s <= ARTIFACT_MARK_BASE) return ARTIFACT_SET_PART * (s / ARTIFACT_MARK_BASE)
+  if (s >= ARTIFACT_MARK_FULL) return ARTIFACT_MARK_PART
+  return ARTIFACT_SET_PART + (s - ARTIFACT_MARK_BASE) * 0.01
+}
 
 /** miao 圣遗物评分档位 → 0~1（与 miao `ArtisMark.getMarkClass` 的档位一一对应） */
 export const MIAO_MARK_SCORE: Record<string, number> = {
@@ -378,12 +408,12 @@ export interface GuideTargets {
   levelMin: number | null
   levelText: string
   panel: PanelTarget[]
-  weapon: { recommend: string[], optional: string[], transition: string[] }
-  artifact: { recommend: string[], optional: string[] }
+  /** `special` = 幽境危战专用带法：命中即按满值计（武器符合度 70%） */
+  weapon: { recommend: string[], optional: string[], transition: string[], special: string[] }
+  /** `special` = 幽境危战专用带法：命中即按满值计（套装 30%） */
+  artifact: { recommend: string[], optional: string[], special: string[] }
   mainStats: MainStatTarget[]
   talent: TalentTarget[]
-  /** 关键命座（只提示） */
-  consKeys: number[]
 }
 
 /** `buildCodexView` 产物的最小结构（只声明用到的字段，避免耦合渲染层） */
@@ -449,11 +479,10 @@ export function extractTargets (view: CodexLikeView, charName = '', guide?: Guid
     levelMin: null,
     levelText: '',
     panel: [],
-    weapon: { recommend: [], optional: [], transition: [] },
-    artifact: { recommend: [], optional: [] },
+    weapon: { recommend: [], optional: [], transition: [], special: [] },
+    artifact: { recommend: [], optional: [], special: [] },
     mainStats: [],
-    talent: [],
-    consKeys: []
+    talent: []
   }
 
   // 建议等级（门槛）
@@ -514,6 +543,9 @@ export function extractTargets (view: CodexLikeView, charName = '', guide?: Guid
 
   // 武器（优先读结构化 v2：档位序号 / 自定义方向标签都能定位，避免只认「推荐/可选」丢整段目标）
   const v2Weapons = Array.isArray(guide?.v2?.weapons) ? guide.v2.weapons : null
+  /** 幽境危战专用行：命中即按满值计（不是档位，不进推荐/可选/过渡）；编辑器写档位 4 或 kind=special */
+  const isSpecialRow = (label: string, kind: string, tier = 0): boolean =>
+    kind === 'special' || tier === 4 || /幽境危战|幽境|危战/.test(label)
   const weaponBucketOf = (label: string, tier: number): string[] | null => {
     if (tier === 1) return targets.weapon.recommend
     if (tier === 2) return targets.weapon.optional
@@ -535,7 +567,12 @@ export function extractTargets (view: CodexLikeView, charName = '', guide?: Guid
         .map(item => String((item as { name?: string })?.name ?? item ?? '').trim()).filter(Boolean)
       if (!names.length) continue
       const label = String(row?.label ?? '').trim()
+      const kind = String((row as { kind?: string })?.kind ?? '').trim()
       const tier = Number(row?.tier) || 0
+      if (isSpecialRow(label, kind, tier)) {
+        for (const name of names) targets.weapon.special.push(name)
+        continue
+      }
       const bucket = weaponBucketOf(label, tier) || targets.weapon.recommend
       for (const name of names) bucket.push(name)
     }
@@ -545,6 +582,10 @@ export function extractTargets (view: CodexLikeView, charName = '', guide?: Guid
       const label = String(row.label || '').trim()
       const names = (row.items || []).map(item => String(item.text || '').trim()).filter(Boolean)
       if (!names.length) continue
+      if (isSpecialRow(label, '')) {
+        for (const name of names) targets.weapon.special.push(name)
+        continue
+      }
       const bucket = weaponBucketOf(label, 0) || targets.weapon.recommend
       for (const name of names) bucket.push(name)
     }
@@ -559,6 +600,14 @@ export function extractTargets (view: CodexLikeView, charName = '', guide?: Guid
         const kind = String(row?.kind || '').trim()
         const sets = Array.isArray(row?.sets) ? row.sets : []
         const sep = String(row?.sep || '')
+        const label = String((row as { label?: string })?.label ?? '').trim()
+        if (kind === 'special' || /幽境危战|幽境|危战/.test(label)) {
+          for (const s of sets) {
+            const name = String((s as Record<string, any>)?.name ?? s ?? '').trim()
+            if (name) targets.artifact.special.push(name)
+          }
+          continue
+        }
         if (sets.length && ['preferred', 'optional', 'transition', ''].includes(kind)) {
           const bucket = kind === 'preferred' || kind === '' ? targets.artifact.recommend : targets.artifact.optional
           /*
@@ -638,12 +687,6 @@ export function extractTargets (view: CodexLikeView, charName = '', guide?: Guid
     }
   }
 
-  // 关键命座（只提示）
-  for (const row of section('命座')?.rows || []) {
-    const m = String(row.label || '').match(/(\d+)/)
-    if (m) targets.consKeys.push(Number(m[1]))
-  }
-
   /*
    * 兜底分档（2026-10-27）：读 `meta.定位` + 已解析的面板/主词条。
    * 真正生效的口径来自 miao 面板当前激活的评分规则（`charWeight`），
@@ -673,7 +716,7 @@ export interface BuildSnapshot {
   charName: string
   level: number
   cons: number
-  weapon: { name: string, affix: number, rarity?: number } | null
+  weapon: { name: string, affix: number, rarity?: number, level?: number } | null
   talent: { A: number, E: number, Q: number }
   /** 天赋**原始**等级（miao `talent.original`：现等级 − 命座加成）；面板的 `talent-plus` / `talent-crown` 判据 */
   talentOriginal?: { A: number, E: number, Q: number }
@@ -1102,21 +1145,41 @@ function comprehensiveDimFromParts (parts: PartScores, rule: GradeRule): GradeDi
 
 function scoreWeapon (targets: GuideTargets, build: BuildSnapshot): GradeDim {
   const label = '武器'
-  const all = [...targets.weapon.recommend, ...targets.weapon.optional, ...targets.weapon.transition]
+  const weaponSpecial = targets.weapon.special || []
+  const all = [...targets.weapon.recommend, ...targets.weapon.optional, ...targets.weapon.transition, ...weaponSpecial]
   if (!all.length) return { key: 'weapon', label, ratio: null, weight: 0, detail: '该角色攻略没有武器目标', state: 'unscored', reason: 'target-missing' }
   const name = String(build.weapon?.name || '')
   // 没读到武器是**数据缺失**，不是"用的是差武器"（旧实现给 0 分，页面显示成未达标 0%）
   if (!name) return { key: 'weapon', label, ratio: null, weight: 0, detail: '未读取到武器', state: 'unknown', reason: 'data-missing' }
 
-  const inBucket = (list: string[]) => list.some(w => w === name || w.includes(name) || name.includes(w))
-  const met = (r: number, detail: string): GradeDim => ({ key: 'weapon', label, ratio: r, weight: 0, detail, state: r + 1e-9 >= DIM_MET_FLOORS.weapon ? 'met' : 'below' })
-  if (inBucket(targets.weapon.recommend)) {
-    const sig = targets.weapon.recommend[0] === name
-    return met(1, `推荐档：${name}${sig ? '（专武，不加分）' : ''}`)
+  /*
+   * 2026-11-02 用户定：武器 = 等级 30% + 符合度 70%。
+   *   等级：90 级满分，按 level/90 折算；
+   *   符合度：推荐 70 / 可选 60 / 过渡 50 / 都不在 0；
+   *   缺档兜底：缺「可选」档 → 过渡按 60%；缺「过渡」档 → 可选按 60%；
+   *   幽境危战专用：命中即 70%（等价推荐档）。
+   */
+  const level = Number(build.weapon?.level) || 0
+  const levelPart = WEAPON_LEVEL_PART * clamp01(level / 90)
+  const inBucket = (list: string[]) => list.some(w => matchesGuideName(name, [w]))
+  let choicePart = 0
+  let bucketText = '不在攻略推荐内'
+  if (inBucket(weaponSpecial)) {
+    choicePart = WEAPON_CHOICE_PART
+    bucketText = '幽境危战专用'
+  } else if (inBucket(targets.weapon.recommend)) {
+    choicePart = WEAPON_CHOICE_PART
+    bucketText = '推荐档'
+  } else if (inBucket(targets.weapon.optional)) {
+    choicePart = 0.6
+    bucketText = '可选档'
+  } else if (inBucket(targets.weapon.transition)) {
+    choicePart = targets.weapon.optional.length ? 0.5 : 0.6
+    bucketText = '过渡档'
   }
-  if (inBucket(targets.weapon.optional)) return { ...met(0.75, `可选档：${name}`), state: 'met' as const }   // 可选档 = 达标（用户 2026-10-16 口径：只有过渡才是未达标）
-  if (inBucket(targets.weapon.transition)) return met(0.5, `过渡档：${name}`)
-  return met(0.25, `不在攻略推荐内：${name}`)
+  const ratio = clamp01(levelPart + choicePart)
+  const detail = `${bucketText}：${name}（等级 ${level || '未知'}）`
+  return { key: 'weapon', label, ratio, weight: 0, detail, state: ratio + 1e-9 >= DIM_MET_FLOORS.weapon ? 'met' : 'below' }
 }
 
 function scoreTalent (targets: GuideTargets, build: BuildSnapshot): GradeDim {
@@ -1126,23 +1189,46 @@ function scoreTalent (targets: GuideTargets, build: BuildSnapshot): GradeDim {
   if (build.hasTalent === false) {
     return { key: 'talent', label, ratio: null, weight: 0, detail: '未读取到天赋等级', state: 'unknown', reason: 'data-missing' }
   }
-  let got = 0
-  let want = 0
-  const miss: string[] = []
-  for (const t of targets.talent) {
-    const actual = Number(build.talent?.[t.key]) || 0
-    got += Math.min(actual, t.target)
-    want += t.target
-    if (actual < t.target) miss.push(`${t.key} ${actual}→${t.target}`)
+  /*
+   * 2026-11-02 用户定：按皇冠数量分配权重。
+   *   皇冠 = 攻略目标 10 级；高等级 = 8–9 级；
+   *   无皇冠、无高等级 → 直接 100%，不看实际等级；
+   *   参与项按 min(原始等级/目标等级,1) 加权。
+   */
+  const crowns = targets.talent.filter(t => t.target >= 10)
+  const highs = targets.talent.filter(t => t.target >= 8 && t.target < 10)
+  const picked: Array<{ key: 'A' | 'E' | 'Q', weight: number }> = []
+  if (crowns.length >= 2) {
+    picked.push({ key: crowns[0].key, weight: 0.5 }, { key: crowns[1].key, weight: 0.5 })
+  } else if (crowns.length === 1) {
+    if (highs.length >= 1) picked.push({ key: crowns[0].key, weight: 0.6 }, { key: highs[0].key, weight: 0.4 })
+    else picked.push({ key: crowns[0].key, weight: 1 })
+  } else if (highs.length >= 2) {
+    picked.push({ key: highs[0].key, weight: 0.5 }, { key: highs[1].key, weight: 0.5 })
+  } else if (highs.length === 1) {
+    picked.push({ key: highs[0].key, weight: 1 })
+  } else {
+    // 无皇冠、无高等级：攻略没要求点天赋，直接给满
+    return { key: 'talent', label, ratio: 1, weight: 0, detail: '攻略未要求皇冠，按满额计', state: 'met' }
   }
-  const ratio = want > 0 ? clamp01(got / want) : null
+  const original = (build.talentOriginal || build.talent) as Record<string, number> | undefined
+  let ratio = 0
+  const miss: string[] = []
+  for (const item of picked) {
+    const target = targets.talent.find(t => t.key === item.key)?.target ?? 0
+    const actual = Number(original?.[item.key]) || 0
+    const part = target > 0 ? clamp01(actual / target) : 0
+    ratio += part * item.weight
+    if (part + 1e-9 < 1) miss.push(`${item.key} ${actual}→${target}`)
+  }
+  ratio = clamp01(ratio)
   return {
     key: 'talent',
     label,
     ratio,
     weight: 0,
     detail: miss.length ? `未达标：${miss.join('、')}` : '全部达标',
-    state: ratio !== null && ratio + 1e-9 >= DIM_MET_FLOORS.talent ? 'met' : 'below'
+    state: ratio + 1e-9 >= DIM_MET_FLOORS.talent ? 'met' : 'below'
   }
 }
 
@@ -1227,7 +1313,7 @@ export function gradeBuild (targets: GuideTargets, build: BuildSnapshot, opts: G
   return {
     charName: targets.charName || build.charName,
     total: Number(total.toFixed(1)),
-    rank: rankOf(total, opts.rankThresholds),
+    rank: rankOf(total),
     dims,
     panelTier: panelInfo.tier,
     rows,
@@ -1251,18 +1337,29 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   if ((targets.artifact.recommend.length || targets.artifact.optional.length) && (!build.artis?.length || build.artis.some(a => !a.set))) missing('set', '套装数据不全')
   if (applicableMain.some(t => !build.artis?.find(a => a.slot === t.slot)?.mainName)) missing('main', '主词条数据不全')
   if (applicable.some(t => !Number.isFinite(build.attrs?.[t.attrKey]))) missing('panel', '面板数据不全')
-  const floors = { mark: DIM_MET_FLOORS.artifact, set: 0.8, main: 1, panel: DIM_MET_FLOORS.panel }
+  const floors = { mark: 1, set: 1, main: 1, panel: DIM_MET_FLOORS.panel }
   for (const k of PART_KEYS) if (parts[k].ratio !== null) parts[k].state = parts[k].ratio! + 1e-9 >= floors[k] ? 'met' : 'below'
-  const artifactWeights: Partial<Record<PartKey, number>> = { mark: 60, set: 25, main: 15 }
-  const required = (['mark', 'set', 'main'] as PartKey[]).filter(k => parts[k].state !== 'unscored')
-  const unknown = required.some(k => parts[k].state === 'unknown')
-  const sum = required.reduce((s, k) => s + artifactWeights[k]!, 0)
+  /*
+   * 圣遗物（2026-11-02 用户定）：套装 30% + 词条评分 70%，相加。
+   *   套装：攻略推荐 4 件套齐 / 攻略 2+2 / 幽境危战专用 → 30%，其余 0；
+   *   评分：≤200 分每分 0.15%，200~240 每分 +1%，240 封顶 70%；
+   *   主词条只提示、不计分。
+   */
+  const markTotal = build.artiMark && Number.isFinite(Number(build.artiMark.total)) ? Number(build.artiMark.total) : null
+  const markPct = artifactMarkRatio(markTotal)
+  const specialSetList = targets.artifact.special || []
+  const specialSet = specialSetList.length > 0 &&
+    (build.artis || []).some(a => matchesGuideName(String(a.set || ''), specialSetList))
+  const setPct = parts.set.ratio !== null && parts.set.ratio! + 1e-9 >= 1 ? ARTIFACT_SET_PART : 0
+  const artifactUnknown = markPct === null || (parts.set.state === 'unknown' && !specialSet)
+  const artifactRatio = artifactUnknown ? null : clamp01(Math.max(setPct, specialSet ? ARTIFACT_SET_PART : 0) + markPct)
+  if (parts.mark.ratio !== null) parts.mark.state = markPct !== null && markPct + 1e-9 >= ARTIFACT_MARK_PART - 0.05 ? 'met' : 'below'
   const artifact: GradeDim = {
     key: 'artifact', label: '圣遗物', weight: 0,
-    ratio: unknown || !sum ? null : required.reduce((s, k) => s + parts[k].ratio! * artifactWeights[k]!, 0) / sum,
-    state: unknown ? 'unknown' : !sum ? 'unscored' : required.some(k => parts[k].state === 'below') ? 'below' : 'met',
-    detail: required.map(k => `${PART_LABEL[k]}：${parts[k].detail}`).join('；'),
-    ...(unknown ? { reason: 'data-missing' as const } : !sum ? { reason: 'target-missing' as const } : {})
+    ratio: artifactRatio,
+    state: artifactRatio === null ? 'unknown' : artifactRatio + 1e-9 >= DIM_MET_FLOORS.artifact ? 'met' : 'below',
+    detail: `套装：${specialSet ? '幽境危战专用' : parts.set.detail}；评分：${markTotal === null ? '未知' : `${markTotal} 分（${Math.round((markPct || 0) * 100)}%）`}`,
+    ...(artifactRatio === null ? { reason: 'data-missing' as const } : {})
   }
   const panel: GradeDim = { ...parts.panel, key: 'panel', label: '面板', weight: 0 }
   const weapon = scoreWeapon(targets, build)
@@ -1272,11 +1369,16 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   const dims = [...(opts.preset.role === 'dps' || weights.artifact > 0 ? [artifact] : []), panel, weapon, talent]
   const weightOf = (key: GradeDimKey): number => key === 'comprehensive' ? 0 : weights[key]
   for (const d of dims) if (weightOf(d.key) === 0) Object.assign(d, { ratio: null, state: 'unscored', detail: `${d.detail}（权重为 0，仅供参考）` })
+  /* 角色等级：隐藏维度，不出口进度条；攻略写了建议等级才参与，达标 100%、不达标 0% */
+  const levelWeight = Number(weights.level) || 0
+  const levelTarget = Number(targets.levelMin) || 0
+  const levelRatio = levelWeight > 0 && levelTarget > 0 ? (Number(build.level) >= levelTarget ? 1 : 0) : null
   const scored = dims.filter(d => d.ratio !== null && weightOf(d.key) > 0)
-  const weightSum = scored.reduce((s, d) => s + weightOf(d.key), 0)
-  for (const d of scored) d.weight = weightOf(d.key) / weightSum
-  const total = scored.reduce((s, d) => s + d.ratio! * d.weight * 100, 0)
-  const rows = buildCompareRows(targets, build, { ...opts, parts, rule: { weights: { ...artifactWeights, panel: 30 }, floors } })
+  const weightSum = scored.reduce((s, d) => s + weightOf(d.key), 0) + (levelRatio !== null ? levelWeight : 0)
+  for (const d of scored) d.weight = weightSum ? weightOf(d.key) / weightSum : 0
+  const rawTotal = scored.reduce((s, d) => s + d.ratio! * weightOf(d.key), 0) + (levelRatio ?? 0) * (levelRatio !== null ? levelWeight : 0)
+  const total = weightSum ? rawTotal / weightSum * 100 : 0
+  const rows = buildCompareRows(targets, build, { ...opts, parts, rule: { weights: { panel: weights.panel }, floors: { panel: DIM_MET_FLOORS.panel } } })
   if (!rows.some(r => r.id === 'artifact:mark')) rows.push({ id: 'artifact:mark', group: '圣遗物', name: '词条评分', target: 'ACE', actual: '—', verdict: 'off' })
   if (!rows.some(r => r.id === 'weapon:choice') && targets.weapon.transition.length) rows.push({ id: 'weapon:choice', group: '武器', name: '武器', target: targets.weapon.transition.join(' / '), actual: build.weapon?.name || '—', verdict: 'off' })
   for (const row of rows) {
@@ -1310,9 +1412,10 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   add('talent', `天赋：${below('talent:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('talent:'))
   add('mainstat', `主词条：${below('artifact:main:').map(r => `${r.name}换「${r.target}」`).join('、')}`, below('artifact:main:'))
   add('artifact:set', `圣遗物：凑攻略推荐套装（${targets.artifact.recommend[0] || targets.artifact.optional[0] || ''}）`, below('artifact:set'))
-  add('artifact:mark', '圣遗物：提升有效词条至 ACE', below('artifact:mark'))
+  add('artifact:mark', `圣遗物：提升词条评分（当前 ${markTotal === null ? '未知' : `${markTotal} 分`}，套装齐全时 235 分即达标）`, below('artifact:mark'))
   add('panel', `面板：${below('panel:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('panel:'))
   add('weapon', `武器：换到推荐档（${targets.weapon.recommend.slice(0, 2).join(' / ')}）`, below('weapon:'))
+  add('level', `角色等级：${Number(build.level) || 0} → ${levelTarget}`, levelRatio === 0 ? [{ id: 'level:role', group: '等级', name: '角色等级', target: String(levelTarget), actual: String(Number(build.level) || 0) } as CompareRow] : [])
   const assessable = scored.length > 0 && !dims.some(d => d.state === 'unknown' && weightOf(d.key) > 0)
   if (!suggestionRows.length) {
     add('data-gap', '数据不全：先补齐缺失数据再评估，暂不判定达标', rows.filter(r => r.state === 'unknown' && r.scored))
@@ -1331,7 +1434,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   const panelInfo = panelTierOf(assessable ? total / 100 : null, build, targets, opts.panelTiers)
   const notes = dims.filter(d => d.ratio === null).map(d => `${d.label}：${d.detail}（${d.state === 'unknown' ? '数据待补齐，暂不显示总分' : '不计入总分'}）`)
   if (panelInfo.capped) notes.push(`等级 ${build.level} 未达建议等级 ${targets.levelText}（毕业档按门槛最高「小毕业」）`)
-  return { charName: targets.charName || build.charName, total: Number(total.toFixed(1)), rank: rankOf(total, opts.rankThresholds), dims,
+  return { charName: targets.charName || build.charName, total: Number(total.toFixed(1)), rank: rankOf(total), dims,
     panelTier: panelInfo.tier, rows, suggestionRows, suggestions: suggestionRows.map(s => s.text), assessable, notes,
     ruleName: opts.ruleName ?? opts.preset.name, ruleSource: opts.ruleSource }
 }
@@ -1443,17 +1546,10 @@ export function buildCompareRows (targets: GuideTargets, build: BuildSnapshot, o
     })
   }
 
-  // 命座（只提示，不计分）
-  if (targets.consKeys.length) {
-    push({
-      id: 'cons:key',
-      group: '命座',
-      name: '关键命座',
-      target: targets.consKeys.join(' / '),
-      actual: `C${Number(build.cons) || 0}`,
-      verdict: 'info'
-    })
-  }
+  /*
+   * 2026-11-02 用户定：整页不再显示关键命座字段（建议、对比行、页面字段全部移除）。
+   * 面板目标上的命座条件仍由 `condSatisfied(t.cond, build.cons)` 决定是否计分。
+   */
 
   /*
    * 面板（2026-10-25：**由规则决定是否计分**）

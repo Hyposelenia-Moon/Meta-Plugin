@@ -65,8 +65,8 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
   const t = CFG.getGradePanelTiers()
   ok('面板档阈值读到了覆盖值', t.big === 0.95 && t.normal === 0.5 && t.small === 0.2, JSON.stringify(t))
   const ranks = CFG.getGradeRankThresholds()
-  ok('九档阈值读到了覆盖值且顺序不变；MAX 一档固定 100 不被配置改小',
-    ranks[0][0] === 'MAX' && ranks[0][1] === 100 && ranks[1][1] === 80 && ranks.length === 8, JSON.stringify(ranks))
+  ok('阈值解析函数仍在（配置项已废弃，仅供旧配置可读）；MAX 固定 100',
+    ranks[0][0] === 'MAX' && ranks[0][1] === 100 && ranks.length === 9, JSON.stringify(ranks))
   ok('默认配置三项齐全', ['gradeWeights', 'gradePanelTiers', 'gradeRankThresholds'].every(k => typeof CFG.defaultConfig[k] === 'string'))
 
   // 非法配置回落
@@ -97,7 +97,7 @@ const CFG = await import(pathToFileURL(path.join(libDir, 'components', 'config.j
   ok('app 元数据取自 COMMANDS', src.includes('COMMANDS.find(') && src.includes('META.priorityOffset'))
   ok('app 首个导出是插件类', /^export class \w+ extends plugin/m.test(src))
   ok('app 用评分器与 miao 桥（不自己算）', src.includes("from '../modules/grade.js'") && src.includes("from '../model/MiaoProfile.js'"))
-  ok('app 权重来自选中预设，档位/阈值保留配置读取', src.includes('presetWeights(preset)') && src.includes('getGradePanelTiers()') && src.includes('getGradeRankThresholds()'))
+  ok('app 权重来自选中预设，档位保留配置读取，九档阈值已废弃', src.includes('presetWeights(preset)') && src.includes('getGradePanelTiers()') && !src.includes('getGradeRankThresholds'))
   ok('app 先解析别名再读取攻略', src.indexOf('await resolveCharacterMatch(') < src.indexOf('codexStore.getGuide(charName)'))
   ok('app 面板只读取一次', (src.match(/await readProfile\(/g) || []).length === 1)
   ok('app 先选预设再提取目标', src.indexOf('selectGuidePreset(sourceGuide, preset)') < src.indexOf('extractTargets(view,'))

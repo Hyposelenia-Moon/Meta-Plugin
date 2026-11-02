@@ -45,7 +45,7 @@ ok('抽到圣遗物推荐套装', targets.artifact.recommend.length > 0)
 ok('抽到主词条部位与可接受集', targets.mainStats.length > 0 && targets.mainStats.every(m => m.slot && m.options.length > 0))
 ok('抽到天赋目标（含皇冠标记）', targets.talent.length === 3 && targets.talent.some(t => t.crown))
 ok('抽到建议等级（门槛）', Number.isFinite(targets.levelMin) && targets.levelMin >= 80)
-ok('抽到关键命座（只提示）', targets.consKeys.length >= 1)
+ok('2026-11-02 起不再解析关键命座字段', targets.consKeys === undefined)
 ok('parseTargetRange 容错（全角/波浪号/无数字）',
   G.parseTargetRange('70~80%')?.max === 80 && G.parseTargetRange('81-90级')?.min === 81 && G.parseTargetRange('没有数字') === null)
 
@@ -61,7 +61,7 @@ const good = {
   charName: '胡桃',
   level: 90,
   cons: 1,
-  weapon: { name: targets.weapon.recommend[0], affix: 1 },
+  weapon: { name: targets.weapon.recommend[0], affix: 1, level: 90 },
   talent: { A: 10, E: 8, Q: 1 },
   artis: goodArtis,
   artiMark: { total: 58, markClass: 'ACE' },
@@ -114,12 +114,13 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
 
 // ---------- 3. 对比表口径（2026-10-15：面板与圣遗物合并为「综合」，面板行降级为参考） ----------
 {
-  ok('对比表含武器/综合/主词条/天赋/命座/参考各行',
-    ['武器', '综合', '主词条', '天赋', '命座', '参考'].every(g => rBad.rows.some(r => r.group === g)),
+  ok('对比表含武器/综合/主词条/天赋/参考各行（命座行 2026-11-02 起移除）',
+    ['武器', '综合', '主词条', '天赋', '参考'].every(g => rBad.rows.some(r => r.group === g)) &&
+    !rBad.rows.some(r => r.group === '命座'),
     [...new Set(rBad.rows.map(r => r.group))].join(','))
   ok('主词条只列沙/杯/冠这类部位（不含副词条名）',
     rBad.rows.filter(r => r.group === '主词条').every(r => targets.mainStats.some(m => m.slot === r.name)))
-  ok('命座行只作提示（verdict=info）', rBad.rows.filter(r => r.group === '命座').every(r => r.verdict === 'info'))
+  ok('页面不再出现关键命座行', !rBad.rows.some(r => r.name === '关键命座' || r.id === 'cons:key'))
   ok('面板行只作参考（verdict=info，不判未达标）',
     rBad.rows.filter(r => r.group === '参考').every(r => r.verdict === 'info'))
   ok('词条评分走 miao 规则并进了对比表',
@@ -130,7 +131,7 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
 {
   const thin = G.extractTargets({ metaRows: [], sections: [{ title: '武器', rows: [{ label: '推荐', items: [{ text: '护摩之杖' }] }] }] }, '测试角色')
   // 没有圣遗物数据时「综合」也无从评分 → 只剩武器一个可评维度
-  const r = G.gradeBuild(thin, { ...good, weapon: { name: '护摩之杖', affix: 1 }, artis: [], artiMark: null })
+  const r = G.gradeBuild(thin, { ...good, weapon: { name: '护摩之杖', affix: 1, level: 90 }, artis: [], artiMark: null })
   ok('攻略只有武器（且无圣遗物数据）时，其它维度标为不计分', r.dims.filter(d => d.ratio === null).length === 2)
   ok('可评维度权重被归一为 1', Math.abs(r.dims.find(d => d.key === 'weapon').weight - 1) < 1e-6)
   ok('只按武器算：命中推荐档 → 100 分', Math.abs(r.total - 100) < 1e-6, String(r.total))
@@ -275,7 +276,7 @@ ok('建议不超过 4 条', rBad.suggestions.length <= 4)
     G.panelTierOf(0.6, good, targets).tier === '毕业' &&
     G.panelTierOf(0.3, good, targets).tier === '小毕业' &&
     G.panelTierOf(0.29, good, targets).tier === '未毕业')
-  ok('rankOf 阈值（含 D 兜底；MAX 必须满分 100）', G.rankOf(100) === 'MAX' && G.rankOf(99.9) === 'ACE' && G.rankOf(88) === 'ACE' && G.rankOf(64) === 'S' && G.rankOf(29) === 'D')
+  ok('rankOf 阈值（2026-11-02 九档；MAX 必须满分 100）', G.rankOf(100) === 'MAX' && G.rankOf(99.9) === 'ACE' && G.rankOf(90) === 'ACE' && G.rankOf(88) === 'SSS' && G.rankOf(60) === 'S' && G.rankOf(19) === 'D')
   ok('阈值把 MAX 写成 95 时，97.2 仍判 ACE（不足 100 不给 MAX）',
     G.rankOf(97.2, [['MAX', 95], ['ACE', 88], ['SSS', 80]]) === 'ACE' &&
     G.rankOf(100, [['MAX', 95], ['ACE', 88], ['SSS', 80]]) === 'MAX')

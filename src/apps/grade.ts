@@ -7,7 +7,7 @@
  * ⚠ 本文件只导出插件类：`src/index.ts` 的加载器取「模块首个导出」当插件类。
  */
 import { setsWithEffect } from '../model/artiEffect.js'
-import { getGradePanelTiers, getGradeRankThresholds, getGradeRule, getGradeRuleOverrides, getPluginConfig, getProxy } from '../components/config.js'
+import { getGradePanelTiers, getGradeRule, getGradeRuleOverrides, getPluginConfig, getProxy } from '../components/config.js'
 import { COMMANDS, DPS_COPYRIGHT, RULES } from '../components/constants.js'
 import { botRoot } from '../dir.js'
 import fs from 'node:fs'
@@ -170,7 +170,7 @@ export class MetaGrade extends plugin {
     const result = gradeBuild(targets, profile.build, {
       preset,
       panelTiers: getGradePanelTiers(),
-      rankThresholds: getGradeRankThresholds(),
+      // 2026-11-02 用户定：九档阈值写死，配置项 `gradeRankThresholds` 已废弃（不再读取）
       // 效果型套装（`2精通+2精通` 等）要读 miao 的两件套效果表 —— 由 app 注入，评分器保持纯函数
       effectSets: setsWithEffect,
       rule: ruleResolution.rule,
@@ -360,8 +360,6 @@ export class MetaGrade extends plugin {
       .map(r => ({ ...r, deltaText: deltaTextOf(r) }))
     const okRows = result.rows.filter(r => r.verdict === 'ok')
     const okLine = okRows.map(r => `${r.name}${r.group === '综合' ? ` ${r.actual}` : ''}`).join('、')
-    // 关键命座：直接取攻略「命座」模块的目标序列（2026-10-15 用户定：表述为 `关键命座：2/6`，当前命座见「当前配装」的等级行）
-    const consLine = targets.consKeys.length ? `关键命座：${targets.consKeys.join('/')}` : ''
 
     /*
      * 元素样式（照抄 miao `resources/common/layout/elem.html:15-16`）：
@@ -390,7 +388,7 @@ export class MetaGrade extends plugin {
      * 规则来源说明（文本回退与图片共用 notes；图片上规则标题已写在「词条」detail 里）。
      * 2026-10-27：练度口径直接跟随 miao 面板——把用的是哪条规则、怎么分档说清楚，不让人以为是插件自定。
      */
-    const weightNames = { artifact: '圣遗物', panel: '面板', weapon: '武器', talent: '天赋' }
+     const weightNames = { artifact: '圣遗物', panel: '面板', weapon: '武器', talent: '天赋', level: '角色等级' }
     const weightSum = Object.values(weights).reduce((sum, value) => sum + value, 0)
     const weightText = Object.entries(weights).filter(([, value]) => value > 0)
       .map(([key, value]) => `${weightNames[key as keyof typeof weightNames]} ${weightSum ? Math.round(value / weightSum * 100) : 0}%`).join(' · ')
@@ -413,7 +411,6 @@ export class MetaGrade extends plugin {
         return { label: d.label, pct: pct ?? 0, pctText: pct === null ? '不计分' : `${pct}%` }
       }),
       missRows,
-      consLine,
       suggestions: result.suggestions,
       buildInfo,
       panelRows,

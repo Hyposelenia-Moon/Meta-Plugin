@@ -21,9 +21,10 @@ const duplicateRole = { ...guide, presets: [...guide.presets, { ...guide.presets
 assert.equal(matchGuidePreset(duplicateRole, { ruleTitle: '辅助' }).preset, null)
 const invalidPattern = { ...guide, presets: guide.presets.map(p => ({ ...p, match: { patterns: ['['] } })) }
 assert.equal(matchGuidePreset(invalidPattern, { ruleTitle: '通用' }).preset, null)
-assert.deepEqual(presetWeights(guide.presets[0]), { artifact: 30, panel: 30, weapon: 20, talent: 20 })
-assert.deepEqual(presetWeights(guide.presets[1]), { artifact: 0, panel: 50, weapon: 25, talent: 25 })
-assert.deepEqual(presetWeights({ role: 'support', weights: { panel: 60, weapon: 0 } }), { artifact: 0, panel: 60, weapon: 0, talent: 25 })
+assert.deepEqual(presetWeights(guide.presets[0]), { artifact: 45, panel: 0, weapon: 25, talent: 25, level: 5 })
+assert.deepEqual(presetWeights(guide.presets[1]), { artifact: 0, panel: 45, weapon: 25, talent: 25, level: 5 })
+// 2026-11-02 用户定：权重写死，预设自带的 weights 不再生效
+assert.deepEqual(presetWeights({ role: 'support', weights: { panel: 60, weapon: 0 } }), { artifact: 0, panel: 45, weapon: 25, talent: 25, level: 5 })
 const selected = selectGuidePreset(guide, 'utility')
 assert.equal(selected.v2.weapons[0].items[0].name, '西风剑')
 assert.equal(selected.presets, undefined)
@@ -45,7 +46,7 @@ const singleSupport = {
   }]
 }
 assert.equal(listGuidePresets(singleSupport)[0].role, 'support')
-assert.deepEqual(presetWeights(listGuidePresets(singleSupport)[0]), { artifact: 20, panel: 40, weapon: 20, talent: 20 })
+assert.deepEqual(presetWeights(listGuidePresets(singleSupport)[0]), { artifact: 0, panel: 45, weapon: 25, talent: 25, level: 5 })
 assert.equal(selectGuidePreset(singleSupport, 'only').presetRole, 'support')
 assert.equal(matchGuidePreset(singleSupport, { requested: '默认' }).preset.id, 'only')
 // 全库审计：独立预设内不得再出现与 preset.role 同义的武器/圣遗物/面板方向标签。

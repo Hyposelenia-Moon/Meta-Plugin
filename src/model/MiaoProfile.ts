@@ -443,7 +443,12 @@ export async function readProfile (e: YunzaiEvent, charName: string, explicitUid
       level: Number(avatar?.level ?? profile.level) || 0,
       cons: Number(avatar?.cons ?? profile.cons) || 0,
       weapon: profile.weapon?.name
-        ? { name: String(profile.weapon.name), affix: Number(profile.weapon.affix) || 0, rarity: Number(profile.weapon.rarity) || 0 }
+        ? {
+            name: String(profile.weapon.name),
+            affix: Number(profile.weapon.affix) || 0,
+            rarity: Number(profile.weapon.rarity) || 0,
+            level: Number(profile.weapon.level) || 0
+          }
         : null,
       talent: {
         A: talentLevel(profile.talent?.a),
@@ -529,7 +534,7 @@ export interface TeamMemberDamage {
   rarity: number
   level: number
   cons: number
-  weapon: { name: string, affix: number, rarity: number } | null
+  weapon: { name: string, affix: number, rarity: number, level?: number } | null
   talent: { A: number, E: number, Q: number }
   /** 关键伤害行（title + avg；治疗/护盾也在这里） */
   rows: Array<{ title: string, value: number }>
@@ -707,7 +712,12 @@ export async function readTeamDamage (
         level: Number(avatar.level) || 0,
         cons: Number(avatar.cons) || 0,
         weapon: avatar.weapon?.name
-          ? { name: String(avatar.weapon.name), affix: Number(avatar.weapon.affix) || 0, rarity: Number(avatar.weapon.rarity) || 0 }
+          ? {
+              name: String(avatar.weapon.name),
+              affix: Number(avatar.weapon.affix) || 0,
+              rarity: Number(avatar.weapon.rarity) || 0,
+              level: Number(avatar.weapon.level) || 0
+            }
           : null,
         talent: { A: talentLevel(avatar.talent?.a), E: talentLevel(avatar.talent?.e), Q: talentLevel(avatar.talent?.q) },
         rows: damageRowsOf(dmgRaw),

@@ -32,7 +32,7 @@ globalThis.__metaGradeEntry = {
   readProfile: async (_event, name) => {
     readCount++; assert.equal(name, '芙宁娜')
     return { ok: true, uid: '100000000', notes: [], build: { charName: name, level: 90, cons: 0, artiRuleTitle: ruleTitle,
-      charWeight: { cpct: 100, cdmg: 100 }, weapon: { name: '西风剑', affix: 5 }, talent: { A: 1, E: 10, Q: 10 },
+      charWeight: { cpct: 100, cdmg: 100 }, weapon: { name: '西风剑', affix: 5, level: 90 }, talent: { A: 1, E: 10, Q: 10 },
       artis: [], artiMark: null, attrs: { recharge: 220, cdmg: 210 } } }
   },
   respond: async (_event, template, result) => { assert.equal(template, 'grade'); rendered = result; return true }

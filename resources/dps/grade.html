@@ -389,9 +389,6 @@
           {{if mx.pending.length > 0}}
           <div class="mx-pending"><strong>待补数据：</strong>{{each mx.pending p}}<span>{{p.group}} {{p.name}}{{if p.reasonText}}（{{p.reasonText}}）{{/if}}</span>{{/each}}</div>
           {{/if}}
-          {{if mx.consNote}}
-          <div class="mx-cons-note">关键命座：{{mx.consNote.actual}} → {{mx.consNote.target}}（仅提示，不计分）</div>
-          {{/if}}
           {{if mx.improvements.length > 0 && mx.metText}}<div class="mx-empty">{{mx.metText}}</div>{{/if}}
           </div>
         </section>

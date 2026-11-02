@@ -60,7 +60,7 @@ for (const tpl of ['rank', 'raid', 'char-dps', 'tiers']) {
   ok('grade 模板：05 参考项已移除', !tplGrade.includes('mx.references') && !tplGrade.includes('mx.referenceGroups') && !tplGrade.includes('参考项'))
   ok('grade 模板：章节重编号为 01–04', tplGrade.includes('mx.sectionIndex.suggestions') && tplGrade.includes('mx.sectionIndex.refDps') && !tplGrade.includes('sectionIndex.references'))
   ok('grade 模板：合并卡使用统一 body 容器', tplGrade.includes('mx-section__body') && tplGrade.includes('gd-grade'))
-  ok('grade 模板：未达标关键命座并入 03', tplGrade.includes('mx.consNote') && tplGrade.includes('关键命座'))
+  ok('grade 模板：关键命座字段 2026-11-02 全页移除', !tplGrade.includes('mx.consNote') && !tplGrade.includes('关键命座'))
 }
 
 // 2026-10-30 用户定：练度页顶栏标题并入页脚，页脚标题/口径/版权各自不超过两行

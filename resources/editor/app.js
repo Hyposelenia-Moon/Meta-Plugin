@@ -4,7 +4,7 @@
 /* ============================================================ 常量 / 状态 */
 
 var TALENTS = ['A', 'E', 'Q']
-var TIERS = [1, 2, 3]
+var TIERS = [1, 2, 3, 4]
 var CN_NUM = { 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六' }
 
 /**
@@ -20,6 +20,7 @@ var ARTIFACT_KINDS = [
   { value: 'preferred', label: '推荐' },
   { value: 'optional', label: '可选' },
   { value: 'transition', label: '过渡' },
+  { value: 'special', label: '幽境危战' },
   { value: 'main', label: '主词条' },
   { value: 'sub', label: '副词条' },
   { value: 'text', label: '文本' },
@@ -35,8 +36,8 @@ var ARTIFACT_KINDS = [
  * 认不出的自定义词（`输出向`）走 parse-docx 的兜底 → `kind: 'preferred'`。
  * 编辑器按同一规则联动下拉，保证「保存 → 写文档 → 再解析」不会漂移。
  */
-var ARTIFACT_WORD_KIND = { 推荐: 'preferred', 首选: 'preferred', 套装: 'preferred', 可选: 'optional', 次选: 'optional', 过渡: 'transition' }
-var ARTIFACT_KIND_WORD = { preferred: '推荐', transition: '过渡', optional: '可选' }
+var ARTIFACT_WORD_KIND = { 推荐: 'preferred', 首选: 'preferred', 套装: 'preferred', 可选: 'optional', 次选: 'optional', 过渡: 'transition', 幽境危战: 'special' }
+var ARTIFACT_KIND_WORD = { preferred: '推荐', transition: '过渡', optional: '可选', special: '幽境危战' }
 
 /**
  * 武器档位下拉：与面板 / 网页版同一套术语 —— 1/2/3 → 推荐 / 可选 / 过渡。
@@ -49,7 +50,8 @@ function tierLabel (tier) {
   if (n === 1) return '推荐'
   if (n === 2) return '可选'
   if (n === 3) return '过渡'
-  if (Number.isInteger(n) && n > 3) return '第' + n + '档'
+  if (n === 4) return '幽境危战专用'
+  if (Number.isInteger(n) && n > 4) return '第' + n + '档'
   return String(tier == null ? '' : tier)
 }
 
@@ -450,7 +452,7 @@ function normalizeData (data) {
   if (Array.isArray(d.presets)) {
     var models = d.presets.map(function (p) {
       var model = normalizeData(Object.assign({}, p, { name: d.name, game: d.game, source: d.source }))
-      model.presetConfig = clone({ id: p.id, name: p.name, role: p.role || 'dps', match: p.match || {}, weights: Object.assign({}, p.role === 'support' ? { artifact: 0, panel: 50, weapon: 25, talent: 25 } : { artifact: 30, panel: 30, weapon: 20, talent: 20 }, p.weights || {}) })
+      model.presetConfig = clone({ id: p.id, name: p.name, role: p.role || 'dps', match: p.match || {}, weights: Object.assign({}, p.role === 'support' ? { artifact: 0, panel: 45, weapon: 25, talent: 25, level: 5 } : { artifact: 45, panel: 0, weapon: 25, talent: 25, level: 5 }, p.weights || {}) })
       return model
     })
     if (!models.length) throw new Error('至少保留一份攻略预设')
@@ -1523,7 +1525,7 @@ function renderWeapons () {
       '<span class="box-title">行 ' + (i + 1) + '</span>' +
       '<input type="text" class="w-sm" data-path="' + p + '.label" value="' + esc(row.label) + '" placeholder="标签（可空）" title="' + esc(LABEL_TIP) + '">' +
       selectBox(p + '.tier', row.tier === null ? '' : row.tier, [{ value: '', label: '档位：不标' }].concat(TIERS.map(function (t) { return { value: t, label: tierLabel(t) } })), 'w-sm') +
-      (Number(row.tier) > 3 ? '<span class="warn-chip" title="数据里出现了第 ' + row.tier + ' 档：面板 / 网页版只认 1~3 档（推荐 / 可选 / 过渡），请确认是否该并档">⚠ 第 ' + row.tier + ' 档</span>' : '') +
+      (Number(row.tier) > 4 ? '<span class="warn-chip" title="数据里出现了第 ' + row.tier + ' 档：面板 / 网页版只认 1~4 档（推荐 / 可选 / 过渡 / 幽境危战专用），请确认是否该并档">⚠ 第 ' + row.tier + ' 档</span>' : '') +
       resolvedHint(row) +
       fitHintSlot(p) +
       '<span class="spacer"></span>' +
@@ -1928,9 +1930,9 @@ function renderPresets () {
   var list = m._presets.map(function (p, i) { return '<option value="' + i + '"' + (i === m._presetAt ? ' selected' : '') + '>' + esc(i === m._presetAt ? c.name : p.presetConfig.name) + '</option>' }).join('')
   return '<section class="card"><h2>攻略预设</h2><div class="row"><select aria-label="切换攻略预设" data-preset-switch>' + list + '</select> ' +
     ['add', 'copy', 'rename', 'delete'].map(function (act, i) { return '<button type="button" class="btn mini" data-act="preset-' + act + '"' + (act === 'delete' && m._presets.length === 1 ? ' disabled' : '') + '>' + ['新增', '复制', '重命名', '删除'][i] + '</button>' }).join(' ') + '</div>' +
-    '<p class="muted">切换会保留草稿；保存写入全部预设。最后一份不能删除。权重为相对值，0 表示不计分。复制会先让你命名，建议用“辅助-西风”这类能区分用途的名称。单预设也可设为辅助；辅助默认不计圣遗物，把圣遗物权重改为大于 0 即可纳入评分。</p>' +
+    '<p class="muted">切换会保留草稿；保存写入全部预设。最后一份不能删除。复制会先让你命名，建议用“辅助-西风”这类能区分用途的名称。综合权重自 2026-11-02 起写死（输出：圣遗物 45 / 武器 25 / 天赋 25 / 角色等级 5；辅助：面板 45 / 武器 25 / 天赋 25 / 角色等级 5），下面输入框只作存档、不再参与计分。</p>' +
     '<label>评分模板 <select data-preset-role><option value="dps"' + (c.role === 'dps' ? ' selected' : '') + '>输出</option><option value="support"' + (c.role === 'support' ? ' selected' : '') + '>辅助</option></select></label> ' +
-    ['artifact', 'panel', 'weapon', 'talent'].map(function (k, i) { return '<label>' + ['圣遗物', '面板', '武器', '天赋'][i] + ' <input type="number" min="0" step="any" style="width:70px" data-preset-weight="' + k + '" value="' + esc(c.weights[k]) + '"></label> ' }).join('') +
+    ['artifact', 'panel', 'weapon', 'talent', 'level'].map(function (k, i) { return '<label>' + ['圣遗物', '面板', '武器', '天赋', '角色等级'][i] + ' <input type="number" min="0" step="any" style="width:70px" data-preset-weight="' + k + '" value="' + esc(c.weights[k]) + '" disabled title="已写死，不再参与计分"></label> ' }).join('') +
     '<p><label>匹配规则名称（每行一个）<textarea data-preset-match="names">' + esc(asArray(c.match.names).join('\n')) + '</textarea></label></p><p><label>匹配正则（每行一个）<textarea data-preset-match="patterns">' + esc(asArray(c.match.patterns).join('\n')) + '</textarea></label></p></section>'
 }
 function switchPreset (at) {
@@ -3692,7 +3694,7 @@ function formEvents () {
     if (el.hasAttribute('data-preset-role')) {
       var c = state.model.presetConfig
       c.role = el.value
-      c.weights = c.role === 'support' ? { artifact: 0, panel: 50, weapon: 25, talent: 25 } : { artifact: 30, panel: 30, weapon: 20, talent: 20 }
+      c.weights = c.role === 'support' ? { artifact: 0, panel: 45, weapon: 25, talent: 25, level: 5 } : { artifact: 45, panel: 0, weapon: 25, talent: 25, level: 5 }
       markDirty(true); renderForm(); return
     }
     if (el.hasAttribute('data-preset-weight')) { state.model.presetConfig.weights[el.getAttribute('data-preset-weight')] = Math.max(0, Number(el.value) || 0); markDirty(true); return }

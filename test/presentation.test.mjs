@@ -170,8 +170,8 @@ const fullBuild = {
     if (isComponent && !selector.includes('.mx-content')) unscoped.push(selector.replace(/\s+/g, ' ').slice(0, 60))
   }
   push('组件规则全部限定在 .mx-content 内（令牌块除外）', unscoped, [])
-  ok('数据区章节消费 mx 投影（dims/improvements/pending/consNote）',
-    ['mx.dims', 'mx.improvements', 'mx.pending', 'mx.consNote'].every(k => tpl.includes(k)))
+  ok('数据区章节消费 mx 投影（dims/improvements/pending；命座字段 2026-11-02 移除）',
+    ['mx.dims', 'mx.improvements', 'mx.pending'].every(k => tpl.includes(k)) && !tpl.includes('mx.consNote'))
   ok('meta-ui.css 已随模板引用', tpl.includes('{{_res_path}}/common/meta-ui.css') && fs.existsSync(path.join(pluginRoot, 'resources', 'common', 'meta-ui.css')))
 }
 

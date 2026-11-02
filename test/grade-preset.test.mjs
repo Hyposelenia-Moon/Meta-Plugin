@@ -1,174 +1,115 @@
-/** 可选攻略预设评分：纯合成数据行为测试，不读写攻略、不联网。 */
+/** 可选攻略预设评分（2026-11-02 毕业标准重构后的口径）：纯合成数据行为测试，不读写攻略、不联网。 */
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createChecks, libDir } from './_helper.mjs'
 
 const { ok, report } = createChecks('练度 · 独立预设四维评分')
-// 临时编译验证可显式指向 test/.test-tmp 中的产物；正常套件仍使用 lib。
 const root = process.env.META_GRADE_TEST_LIB || libDir
 const G = await import(pathToFileURL(path.join(root, 'modules/grade.js')).href)
-const preset = (role = 'dps', weights) => ({ id: role, name: role, role, weights, meta: {}, v2: {} })
-const panel = (attrKey, min, groups = ['输出向'], cond) => ({ raw: `${attrKey}:${min}`, name: attrKey, attrKey, min, max: min, groups, percent: true, cond })
-const target = () => ({
+const preset = (role = 'dps') => ({ id: role, name: role, role, meta: {}, v2: {} })
+const panel = (attrKey, min) => ({ raw: `${attrKey}:${min}`, name: attrKey, attrKey, min, max: min, groups: ['输出向'], percent: true })
+const target = (patch = {}) => ({
   charName: '测试角色', gradeRole: 'dps', levelMin: 80, levelText: '80',
-  artifact: { recommend: ['推荐套'], optional: ['可选套'] },
+  artifact: { recommend: ['推荐套'], optional: ['可选套'], special: [] },
   mainStats: [{ slot: '时之沙', options: ['攻击力'], optionViews: [{ name: '攻击力', mark: '' }] }],
   panel: [panel('cpct', 80), panel('recharge', 200)],
-  weapon: { recommend: ['推荐剑'], optional: ['可选剑'], transition: ['过渡剑'] },
-  talent: [{ key: 'E', target: 10, crown: false }], consKeys: []
+  weapon: { recommend: ['推荐剑'], optional: ['可选剑'], transition: ['过渡剑'], special: [] },
+  talent: [{ key: 'E', target: 10, crown: true }],
+  ...patch
 })
-const build = () => ({
+const build = (patch = {}) => ({
   charName: '测试角色', level: 90, cons: 0,
-  weapon: { name: '推荐剑', affix: 1 }, talent: { E: 10 },
+  weapon: { name: '推荐剑', affix: 1, level: 90 },
+  talent: { E: 10 }, talentOriginal: { E: 10 },
   artis: ['生之花', '死之羽', '时之沙', '空之杯', '理之冠'].map(slot => ({ slot, set: '推荐套', mainName: '攻击力', level: 20 })),
-  artiMark: { total: 240, markClass: 'ACE' }, attrs: { cpct: 80, recharge: 200 }
+  artiMark: { total: 240, markClass: 'MAX' }, attrs: { cpct: 80, recharge: 200 },
+  ...patch
 })
 const run = (t = target(), b = build(), p = preset()) => G.gradeBuild(t, b, { preset: p })
 const dim = (r, key) => r.dims.find(d => d.key === key)
-const row = (r, id) => r.rows.find(d => d.id === id)
 const near = (a, b) => Math.abs(a - b) < 1e-9
 
 {
   const r = run()
-  ok('输出预设真实四维且无 comprehensive', r.dims.map(d => d.key).join(',') === 'artifact,panel,weapon,talent')
-  ok('输出默认外层权重 30/30/20/20', r.dims.map(d => d.weight).join(',') === '0.3,0.3,0.2,0.2')
-  ok('artifact 按 60/25/15 组合', near(dim(r, 'artifact').ratio, 0.97))
-  ok('ACE 词条计分/证据/建议一致达标', dim(r, 'artifact').state === 'met' && row(r, 'artifact:mark').state === 'met' && !r.suggestions.some(s => s.includes('提升有效词条')))
-  ok('总分使用真实四维', r.total === 99.1 && r.assessable)
-  ok('不传 preset 仍是旧三维', G.gradeBuild(target(), build()).dims.map(d => d.key).join(',') === 'comprehensive,weapon,talent')
+  ok('输出预设维度 = 圣遗物/面板/武器/天赋', r.dims.map(d => d.key).join(',') === 'artifact,panel,weapon,talent')
+  ok('输出权重 圣遗物45 武器25 天赋25（面板0）', near(dim(r, 'artifact').weight, 0.45) && near(dim(r, 'weapon').weight, 0.25) && near(dim(r, 'talent').weight, 0.25))
+  ok('面板权重 0 → 不计分', dim(r, 'panel').ratio === null && dim(r, 'panel').state === 'unscored')
+  ok('满分（套装齐 + 240 分 + 90 级推荐武器 + 天赋满）→ 100 MAX', r.total === 100 && r.rank === 'MAX')
 }
+
 {
-  const b = build(); b.artiMark.markClass = 'SS'
+  const r = run(target(), build({ artiMark: { total: 235, markClass: 'ACE' } }))
+  ok('套装齐 + 235 分 → 圣遗物 95% 达标', near(dim(r, 'artifact').ratio, 0.95) && dim(r, 'artifact').state === 'met')
+  const r200 = run(target(), build({ artiMark: { total: 200, markClass: 'S' } }))
+  ok('200 分 → 30% + 套装 30% = 60%', near(dim(r200, 'artifact').ratio, 0.6) && dim(r200, 'artifact').state === 'below')
+  const r100 = run(target(), build({ artiMark: { total: 100, markClass: 'D' } }))
+  ok('100 分 → 15% + 套装 30% = 45%（每分 0.15%）', near(dim(r100, 'artifact').ratio, 0.45))
+  ok('词条分不足 → 建议绑定词条证据', r100.suggestionRows.some(s => s.evidenceIds.includes('artifact:mark')))
+}
+
+{
+  const b = build({ artis: build().artis.map(a => ({ ...a, set: '冒险家' })) })
   const r = run(target(), b)
-  ok('SS .8 不得以旧阈值误判词条达标', dim(r, 'artifact').state === 'below' && row(r, 'artifact:mark').state === 'below')
-  ok('词条低于 .95 提建议并绑定真实证据', r.suggestionRows.some(s => s.evidenceIds.includes('artifact:mark')))
-  const legacy = G.gradeBuild(target(), b)
-  ok('旧路径 mark 证据同样修复至 .95', row(legacy, 'artifact:mark').state === 'below')
-  b.artiMark.markClass = 'SSS'
-  ok('SSS .9 仍未达 ACE 线', row(run(target(), b), 'artifact:mark').state === 'below')
+  ok('套装不符只有评分分（240 分 → 70%）', near(dim(r, 'artifact').ratio, 0.7) && dim(r, 'artifact').state === 'below')
+  ok('套装不符有独立证据与建议', r.suggestionRows.some(s => s.evidenceIds.includes('artifact:set')))
+  const special = run(target({ artifact: { recommend: ['推荐套'], optional: [], special: ['幽境套'] } }),
+    build({ artis: build().artis.map(a => ({ ...a, set: '幽境套' })) }))
+  ok('幽境危战专用套装 → 直接 +30%', near(dim(special, 'artifact').ratio, 1))
 }
+
 {
-  const b = build(); b.artis.forEach(a => { a.set = '可选套' })
-  let r = run(target(), b)
-  ok('可选套 .8 计分证据均达标', dim(r, 'artifact').state === 'met' && row(r, 'artifact:set').state === 'met')
-  b.artis.forEach(a => { a.set = '冒险家' })
-  r = run(target(), b)
-  ok('不推荐套有独立未达标证据与建议', dim(r, 'artifact').state === 'below' && row(r, 'artifact:set').state === 'below' && r.suggestionRows.some(s => s.evidenceIds.includes('artifact:set')))
-  b.artis[2].mainName = '防御力'
-  r = run(target(), b)
-  ok('错误主词条独立证据与建议', row(r, 'artifact:main:时之沙').state === 'below' && r.suggestionRows.some(s => s.evidenceIds.includes('artifact:main:时之沙')))
+  ok('武器 90 级推荐 = 100%', near(dim(run(), 'weapon').ratio, 1) && dim(run(), 'weapon').state === 'met')
+  ok('武器 45 级推荐 = 30%×0.5 + 70% = 85%（未达 90% 线）', near(dim(run(target(), build({ weapon: { name: '推荐剑', affix: 1, level: 45 } })), 'weapon').ratio, 0.85))
+  ok('可选武器 + 90 级 = 90% 达标', (() => { const r = run(target(), build({ weapon: { name: '可选剑', affix: 1, level: 90 } })); return near(dim(r, 'weapon').ratio, 0.9) && dim(r, 'weapon').state === 'met' })())
+  ok('过渡武器 + 90 级 = 80% 未达标', (() => { const r = run(target(), build({ weapon: { name: '过渡剑', affix: 1, level: 90 } })); return near(dim(r, 'weapon').ratio, 0.8) && dim(r, 'weapon').state === 'below' })())
+  ok('缺「可选」档时过渡按 60% → 90% 达标', (() => {
+    const t = target({ weapon: { recommend: ['推荐剑'], optional: [], transition: ['过渡剑'], special: [] } })
+    const r = run(t, build({ weapon: { name: '过渡剑', affix: 1, level: 90 } }))
+    return near(dim(r, 'weapon').ratio, 0.9) && dim(r, 'weapon').state === 'met'
+  })())
+  ok('幽境危战专用武器 = 70% + 等级 30%', (() => {
+    const t = target({ weapon: { recommend: [], optional: [], transition: [], special: ['专用剑'] } })
+    const r = run(t, build({ weapon: { name: '专用剑', affix: 1, level: 90 } }))
+    return near(dim(r, 'weapon').ratio, 1)
+  })())
 }
+
 {
-  const t = target(); t.artifact = { recommend: [], optional: [] }; t.mainStats = []
-  const r = run(t)
-  ok('artifact 缺攻略分量按可评分量重归一', near(dim(r, 'artifact').ratio, .95))
-  t.panel = []; t.weapon = { recommend: [], optional: [], transition: [] }; t.talent = []
-  const only = run(t)
-  ok('缺目标 unscored 不扣分，外层可评权重重归一', dim(only, 'panel').state === 'unscored' && dim(only, 'weapon').state === 'unscored' && dim(only, 'talent').state === 'unscored' && dim(only, 'artifact').weight === 1 && only.total === 95)
+  const t = target({ talent: [{ key: 'A', target: 10, crown: true }, { key: 'E', target: 10, crown: true }, { key: 'Q', target: 1, crown: false }] })
+  const r = run(t, build({ talent: { A: 10, E: 8, Q: 1 }, talentOriginal: { A: 10, E: 8, Q: 1 } }))
+  ok('2 皇冠各 50%，E 8/10 → 天赋 90% 未达标', near(dim(r, 'talent').ratio, 0.9) && dim(r, 'talent').state === 'below')
+  const easy = run(target({ talent: [{ key: 'E', target: 6, crown: false }] }), build({ talent: { E: 1 }, talentOriginal: { E: 1 } }))
+  ok('无皇冠、无高等级 → 直接 100%（不看实际等级）', near(dim(easy, 'talent').ratio, 1) && dim(easy, 'talent').state === 'met')
+  const high = run(target({ talent: [{ key: 'E', target: 9, crown: false }] }), build({ talent: { E: 9 }, talentOriginal: { E: 9 } }))
+  ok('无皇冠有高等级（9 级）→ 高等级当皇冠，100%', near(dim(high, 'talent').ratio, 1))
 }
-for (const [name, mutate, key] of [
-  ['miao 评分缺失', b => { b.artiMark = null }, 'artifact'],
-  ['主词条部位缺失', b => { b.artis = b.artis.filter(a => a.slot !== '时之沙') }, 'artifact'],
-  ['主词条名称缺失', b => { b.artis[2].mainName = '' }, 'artifact'],
-  ['面板部分缺失', b => { delete b.attrs.recharge }, 'panel'],
-  ['面板全部缺失', b => { b.attrs = {} }, 'panel'],
-  ['武器缺失', b => { b.weapon = null }, 'weapon'],
-  ['天赋部分缺失', b => { b.talent = {} }, 'talent'],
-  ['天赋标记缺失', b => { b.hasTalent = false }, 'talent'],
-  ['武器标记缺失', b => { b.hasWeapon = false }, 'weapon'],
-  ['评分标记缺失', b => { b.hasMark = false }, 'artifact']
-]) {
-  const b = build(); mutate(b)
-  const r = run(target(), b)
-  ok(`${name}：unknown 且必需未知待评`, dim(r, key).state === 'unknown' && dim(r, key).ratio === null && !r.assessable)
-  ok(`${name}：不得谎称均达标`, !r.suggestions.some(s => s.includes('均已达标')))
-}
+
 {
-  const b = build(); b.attrs = { cpct: 80, recharge: 0 }
-  const t = target(); t.panel[1].groups = ['辅助向']
-  const r = run(t, b)
-  ok('预设面板不跨方向择优，真实 0 是 below 非 unknown', near(dim(r, 'panel').ratio, .5) && dim(r, 'panel').state === 'below' && row(r, 'panel:辅助向:recharge').state === 'below' && r.assessable)
-  ok('面板未满目标时计分/证据/建议一致', r.suggestionRows.some(s => s.evidenceIds.includes('panel:辅助向:recharge')))
-  b.attrs.recharge = 199
-  const close = run(t, b)
-  ok('面板 99.5% 按 95% 线达标（逐项证据仍指出差 1 点）',
-    dim(close, 'panel').state === 'met' && row(close, 'panel:辅助向:recharge').state === 'below' && close.suggestionRows.some(s => s.id === 'panel'))
-  b.attrs.recharge = 179
-  const below95 = run(t, b)
-  ok('面板 94.75%（两项均值）低于 95% 线仍判未达标', dim(below95, 'panel').state === 'below')
-  b.attrs.recharge = 180
-  const exact95 = run(t, b)
-  ok('面板正好 95%（(100%+90%)/2）算达标（含边界）', dim(exact95, 'panel').state === 'met')
-  t.panel = [panel('recharge', 200, ['辅助向'], { name: '', mark: '（满命）', consMin: 6 })]
-  delete b.attrs.recharge
-  const conditional = run(t, b)
-  ok('不适用命座目标 unscored 而非数据缺失', dim(conditional, 'panel').state === 'unscored' && conditional.assessable && row(conditional, 'panel:辅助向:recharge').state === 'unscored')
+  const t = target({ levelMin: 90 })
+  ok('角色等级达标 → 100%（权重 5% 计入总分）', run(t).total === 100)
+  const low = run(t, build({ level: 70 }))
+  ok('角色等级不达标 → 0%，总分少 5 分', near(low.total, 95))
+  ok('等级不足写进建议', low.suggestionRows.some(s => s.text.includes('角色等级')))
+  ok('攻略没写建议等级 → 等级维不参与，其余权重重归一', (() => { const r = run(target({ levelMin: null })); return near(dim(r, 'artifact').weight, 45 / 95) })())
 }
+
 {
-  const b = build(); b.artiMark = null; b.artis = []
-  const r = run(target(), b, preset('support'))
-  ok('辅助真实三维且无需 artifact 数据', r.dims.map(d => d.key).join(',') === 'panel,weapon,talent' && r.assessable)
-  ok('辅助默认 50/25/25', r.dims.map(d => d.weight).join(',') === '0.5,0.25,0.25')
-  ok('辅助圣遗物证据仅参考，不产生改善建议', r.rows.filter(r => r.id.startsWith('artifact:')).every(r => !r.scored && r.state === 'unscored') && !r.suggestions.some(s => /圣遗物|主词条/.test(s)))
+  const wrongMain = run(target(), build({ artis: build().artis.map(a => a.slot === '时之沙' ? { ...a, mainName: '防御力' } : a) }))
+  ok('主词条不计分：换错主词条不影响总分', wrongMain.total === 100)
+  ok('但主词条仍出现在对比表', wrongMain.rows.some(r => r.id?.startsWith('artifact:main:')))
 }
+
 {
-  const b = build(); b.artiMark = null; b.attrs = {}; b.weapon = null; b.talent = {}
-  const p = preset('dps', { artifact: 0, panel: 0, weapon: 0, talent: 0 })
-  const r = run(target(), b, p)
-  ok('全零权重不计分不制造未知或未达标', !r.assessable && r.total === 0 && r.dims.every(d => d.weight === 0 && d.ratio === null && d.state === 'unscored') && r.rows.every(r => !r.scored))
-  ok('全零权重建议不能催改善', r.suggestionRows.every(s => !s.evidenceIds.length) && !r.suggestions.some(s => /提升|换|补齐|均已达标/.test(s)))
-  const mixed = run(target(), b, preset('dps', { artifact: 0, panel: 0, weapon: 0, talent: 20 }))
-  ok('只对正权重未知判断待评', !mixed.assessable && dim(mixed, 'talent').state === 'unknown' && dim(mixed, 'panel').state === 'unscored')
+  const sp = run(target(), build(), preset('support'))
+  ok('辅助预设维度不含圣遗物，面板权重 45%', sp.dims.map(d => d.key).join(',') === 'panel,weapon,talent' && near(dim(sp, 'panel').weight, 0.45))
+  ok('辅助满分 → 100 MAX', sp.total === 100 && sp.rank === 'MAX')
 }
+
 {
-  const b = build(); b.weapon.name = '可选剑'
-  const optional = run(target(), b)
-  ok('可选武器 .75 但达标，不给换武器建议', dim(optional, 'weapon').ratio === .75 && row(optional, 'weapon:choice').state === 'met' && !optional.suggestionRows.some(s => s.id === 'weapon'))
-  b.weapon.name = '陌生剑'
-  const other = run(target(), b)
-  ok('不推荐武器为 below 非 unknown，计分证据建议一致', dim(other, 'weapon').state === 'below' && row(other, 'weapon:choice').state === 'below' && other.suggestionRows.some(s => s.id === 'weapon'))
+  ok('档位阈值写死：100 MAX / 90 ACE / 80 SSS / 60 S / 20 D',
+    G.rankOf(100) === 'MAX' && G.rankOf(90) === 'ACE' && G.rankOf(80) === 'SSS' && G.rankOf(60) === 'S' && G.rankOf(20) === 'D')
+  ok('不传 preset 仍是旧三维路径', G.gradeBuild(target(), build()).dims.map(d => d.key).join(',') === 'comprehensive,weapon,talent')
+  ok('对比表不再有命座行', !run().rows.some(r => r.id === 'cons:key' || r.group === '命座'))
 }
-{
-  const input = { charName: '测试角色', ruleTitle: '西风纯辅', charWeight: { atk: 100, cpct: 100, cdmg: 100 }, role: 'dps' }
-  ok('西风纯辅名称优先于暴击属性比例', G.resolveGradeRule(input).name === 'support' && G.resolveGradeRule(input).source === 'miao-title')
-  ok('输出标题优先于辅助属性比例', G.resolveGradeRule({ ruleTitle: '站场输出', charWeight: { hp: 100 } }).name === 'dps')
-  ok('override 高于标题及 global', G.resolveGradeRule({ ...input, globalRule: 'dps', overrides: { 测试角色: 'subdps' } }).name === 'subdps')
-  ok('global 高于标题', G.resolveGradeRule({ ...input, globalRule: 'dps' }).source === 'global')
-  ok('未知标题仍回退属性比例兼容', G.resolveGradeRule({ ...input, ruleTitle: '自定义规则' }).source === 'miao')
-}
-{
-  const b = build(); b.attrs = {}; b.artiMark = null; b.artis = []; b.talent = { E: 5 }
-  const r = run(target(), b, preset('dps', { artifact: 0, panel: 0, weapon: 0, talent: 100 }))
-  ok('正权重天赋独评，关闭维度缺数据不影响可评', r.assessable && r.total === 50 && dim(r, 'talent').weight === 1)
-  ok('关闭维度证据及建议不得成为缺口', r.rows.filter(r => !r.id.startsWith('talent:')).every(r => !r.scored) && r.suggestionRows.every(s => s.evidenceIds.every(id => id.startsWith('talent:'))))
-  const t = target(); t.mainStats[0].optionViews[0].consMin = 6; t.mainStats[0].optionViews[0].mark = '（满命）'
-  const c = build(); c.artis = c.artis.filter(a => a.slot !== '时之沙')
-  const conditional = run(t, c)
-  ok('不适用主词条无数据不影响可评，仅保留参考', conditional.assessable && row(conditional, 'artifact:main:时之沙').state === 'unscored')
-  const custom = run(target(), build(), preset('dps', { artifact: 10, panel: 20, weapon: 30, talent: 40 }))
-  ok('每预设自定义权重原样归一', custom.dims.map(d => d.weight).join(',') === '.1,.2,.3,.4'.split(',').map(Number).join(','))
-  const customSupport = run(target(), build(), preset('support', { artifact: 10, panel: 40, weapon: 25, talent: 25 }))
-  ok('辅助可显式启用圣遗物维度，权重不被模板角色吞掉', customSupport.dims.length === 4 && dim(customSupport, 'artifact').weight === .1 && customSupport.rows.some(r => r.id === 'artifact:mark' && r.scored))
-}
-{
-  // 2026-10-29 用户反馈：4+1 配装只展示成型 4 件套，散件不进参考项当前列。
-  const b = build(); b.artis[4] = { ...b.artis[4], set: '散件' }
-  const r = run(target(), b)
-  ok('套装当前值只显示 4 件套，不带散件', row(r, 'artifact:set').actual === '推荐套×4', row(r, 'artifact:set').actual)
-  const pair = build(); pair.artis = pair.artis.map((a, i) => ({ ...a, set: i < 2 ? '甲套' : i < 4 ? '乙套' : '散件' }))
-  ok('无 4 件套时保留 2+2 展示', row(run(target(), pair), 'artifact:set').actual === '甲套×2 / 乙套×2')
-}
-{
-  // 2026-10-29 用户反馈：预设内的方向词标签（输出/辅助/循环…）也是武器目标，不能整段丢弃。
-  const view = { metaRows: [], sections: [] }
-  const support = { schema: 3, name: '芙宁娜', v2: { weapons: [{ label: '辅助', tier: null, items: [{ name: '西风剑' }] }] } }
-  const t = G.extractTargets(view, '芙宁娜', support)
-  ok('自定义方向标签的武器行进入推荐桶', t.weapon.recommend.join(',') === '西风剑', JSON.stringify(t.weapon))
-  const tiers = { v2: { weapons: [{ label: '', tier: 1, items: [{ name: '甲剑' }] }, { label: '', tier: 2, items: [{ name: '乙剑' }] }, { label: '', tier: 3, items: [{ name: '丙剑' }] }] } }
-  const tt = G.extractTargets(view, 'X', tiers)
-  ok('档位序号仍按 1/2/3 分推荐/可选/过渡', tt.weapon.recommend[0] === '甲剑' && tt.weapon.optional[0] === '乙剑' && tt.weapon.transition[0] === '丙剑')
-  const multi = { v2: { weapons: [{ label: '循环', items: [{ name: 'A' }] }, { label: '满拐', items: [{ name: 'B' }] }] } }
-  const tm = G.extractTargets(view, 'X', multi)
-  ok('多流派自定义标签都进推荐桶（任一搭配均达标）', tm.weapon.recommend.join(',') === 'A,B' && tm.weapon.transition.length === 0, JSON.stringify(tm.weapon))
-}
-process.exit(report() ? 1 : 0)
+
+report()

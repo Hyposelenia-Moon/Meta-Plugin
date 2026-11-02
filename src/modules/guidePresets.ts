@@ -2,7 +2,7 @@
 import type { Guide, GuideV2 } from '../model/CodexStore.js'
 
 export type PresetRole = 'dps' | 'support'
-export type PresetWeightKey = 'artifact' | 'panel' | 'weapon' | 'talent'
+export type PresetWeightKey = 'artifact' | 'panel' | 'weapon' | 'talent' | 'level'
 export type PresetWeights = Record<PresetWeightKey, number>
 export interface GuidePreset {
   id: string
@@ -18,9 +18,13 @@ export interface GuidePreset {
   [key: string]: unknown
 }
 
+/**
+ * 综合权重（2026-11-02 用户定，写死）：输出类看圣遗物、辅助类看面板，
+ * 天赋与武器两类同权；预设自带的 `weights` 不再生效。
+ */
 export const PRESET_WEIGHTS: Record<PresetRole, PresetWeights> = {
-  dps: { artifact: 30, panel: 30, weapon: 20, talent: 20 },
-  support: { artifact: 0, panel: 50, weapon: 25, talent: 25 }
+  dps: { artifact: 45, panel: 0, weapon: 25, talent: 25, level: 5 },
+  support: { artifact: 0, panel: 45, weapon: 25, talent: 25, level: 5 }
 }
 
 /** 名称信号先于属性比例；西风辅助的暴击需求不能把它分类为输出。 */
@@ -31,13 +35,8 @@ export function normalizeRuleRole (value: unknown): PresetRole | null {
   return null
 }
 
-export function presetWeights (preset: Pick<GuidePreset, 'role' | 'weights'>): PresetWeights {
-  const weights = { ...PRESET_WEIGHTS[preset.role] }
-  for (const key of Object.keys(weights) as PresetWeightKey[]) {
-    const value = preset.weights?.[key]
-    if (value !== undefined && Number.isFinite(Number(value)) && Number(value) >= 0) weights[key] = Number(value)
-  }
-  return weights
+export function presetWeights (preset: Pick<GuidePreset, 'role'>): PresetWeights {
+  return { ...PRESET_WEIGHTS[preset.role] }
 }
 
 export function listGuidePresets (guide: Guide): GuidePreset[] {
