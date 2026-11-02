@@ -231,7 +231,8 @@ export async function simulatePanel (input) {
       triggers: report.triggers,
       effectUsage: report.effectUsage,
       reactions: report.reactions,
-      problems: report.problems
+      problems: report.problems,
+      unmodeled: report.unmodeled ?? []
     }
   }
 }
@@ -440,8 +441,69 @@ export function createServer () {
         const body = await readBody(req)
         return sendJson(res, 200, await computePanel(body?.build ?? body))
       }
+      if (req.method === 'GET' && url.pathname === '/api/miao/uids') {
+        try {
+          const M = await import(libUrl('model/MiaoPanelSource.js'))
+          return sendJson(res, 200, { items: M.listCachedUids() })
+        } catch (err) { return sendJson(res, 500, { ok: false, error: String(err?.message ?? err) }) }
+      }
+      if (req.method === 'GET' && url.pathname === '/api/miao/characters') {
+        try {
+          const M = await import(libUrl('model/MiaoPanelSource.js'))
+          const result = await M.readMiaoPanels(String(url.searchParams.get('uid') ?? ''))
+          if (!result.ok) return sendJson(res, 400, result)
+          return sendJson(res, 200, {
+            ok: true,
+            uid: result.uid,
+            cachedAt: result.cachedAt,
+            items: result.characters.map(c => ({
+              charId: c.charId,
+              name: c.name,
+              level: c.level,
+              weapon: c.weapon,
+              pieces: c.artis.length
+            }))
+          })
+        } catch (err) { return sendJson(res, 500, { ok: false, error: String(err?.message ?? err) }) }
+      }
+      if (req.method === 'GET' && url.pathname === '/api/miao/panel') {
+        try {
+          const M = await import(libUrl('model/MiaoPanelSource.js'))
+          const result = await M.readMiaoPanels(String(url.searchParams.get('uid') ?? ''))
+          if (!result.ok) return sendJson(res, 400, result)
+          const charId = String(url.searchParams.get('charId') ?? '')
+          const character = result.characters.find(c => c.charId === charId)
+          if (!character) return sendJson(res, 404, { ok: false, error: '这个 uid 的缓存里没有该角色' })
+          return sendJson(res, 200, { ok: true, uid: result.uid, cachedAt: result.cachedAt, character })
+        } catch (err) { return sendJson(res, 500, { ok: false, error: String(err?.message ?? err) }) }
+      }
       if (req.method === 'GET' && url.pathname === '/api/profiles') {
         return sendJson(res, 200, { items: listProfiles() })
+      }
+      if (req.method === 'GET' && url.pathname === '/api/miao/exports') {
+        const dir = path.join(DATA, 'panel-exports')
+        const items = []
+        if (fs.existsSync(dir)) {
+          for (const file of fs.readdirSync(dir).filter(name => name.endsWith('.json'))) {
+            try {
+              const raw = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'))
+              items.push({
+                charId: String(raw.charId ?? file.replace(/\.json$/, '')),
+                charName: String(raw.charName ?? ''),
+                uid: String(raw.uid ?? ''),
+                pieces: Array.isArray(raw.artis) ? raw.artis.length : 0,
+                exportedAt: String(raw.exportedAt ?? '')
+              })
+            } catch { /* 坏文件跳过 */ }
+          }
+        }
+        return sendJson(res, 200, { items })
+      }
+      if (req.method === 'GET' && url.pathname === '/api/miao/export') {
+        const charId = String(url.searchParams.get('charId') ?? '').replace(/[^\d]/g, '')
+        const file = path.join(DATA, 'panel-exports', `${charId}.json`)
+        if (!charId || !fs.existsSync(file)) return sendJson(res, 404, { ok: false, error: '没有这个角色的导出文件；先在群里发「#练度查询 <角色> 导出」' })
+        return sendJson(res, 200, { ok: true, panel: JSON.parse(fs.readFileSync(file, 'utf8')) })
       }
       if (req.method === 'GET' && url.pathname === '/api/profile') {
         try { return sendJson(res, 200, { profile: readProfile(String(url.searchParams.get('id') ?? '')) }) } catch (err) { return sendJson(res, 404, { error: String(err?.message ?? err) }) }
@@ -580,6 +642,7 @@ if (isMain) {
   })
   listen(basePort)
 }
+
 
 
 

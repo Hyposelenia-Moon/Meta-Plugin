@@ -335,6 +335,9 @@ async function save () {
   }
   const checked = await validate()
   if (!checked.ok) return
+  // 2026-11-02：如果面板页存过面板，把它的 id 带进轴文件，打开这条轴时能自动恢复同一份面板。
+  if (window.__panelProfileId) state.file.profileId = window.__panelProfileId
+  else delete state.file.profileId
   try {
     const body = await api('/api/rotation', {
       method: 'PUT',
@@ -367,6 +370,7 @@ async function loadOne (id) {
     $('id').value = state.file.id || ''
     setStatus($('status'), '', `已打开 ${id}`)
     await render()
+    if (state.file.profileId) window.dispatchEvent(new CustomEvent('rotation-profile', { detail: state.file.profileId }))
   } catch (err) {
     setStatus($('status'), 'bad', `打开失败：${err.message}`)
   }

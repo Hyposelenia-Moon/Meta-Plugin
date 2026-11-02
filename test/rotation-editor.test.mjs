@@ -58,6 +58,10 @@ const demo = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'team-sim', 'rot
     ok('/api/actions 返回该角色动作', Array.isArray(actions.items) && actions.items.some(a => a.id === 'bennett.skill'))
     const missing = await fetch(`${base}/api/actions?key=not-a-key`)
     ok('未知角色动作包返回 404', missing.status === 404)
+    const exportsList = await (await fetch(`${base}/api/miao/exports`)).json()
+    ok('/api/miao/exports 返回数组（没导出时为空）', Array.isArray(exportsList.items))
+    const noExport = await fetch(`${base}/api/miao/export?charId=10000002`)
+    ok('没有导出文件时返回 404 且给出中文提示', noExport.status === 404 && /导出/.test((await noExport.json()).error || ''))
 
     const validate = await (await fetch(`${base}/api/validate`, {
       method: 'POST',

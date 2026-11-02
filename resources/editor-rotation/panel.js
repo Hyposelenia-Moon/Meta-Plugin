@@ -6,6 +6,7 @@ const P = {
   sets: [],
   weapons: [],
   tables: null,
+  uids: [],
   cards: new Map() // charId -> { weaponId, refinement, slots: { slot: { setId, level, mainKey, subs: [{key,value}] } } }
 }
 
@@ -44,18 +45,129 @@ function selectBox (options, value, onChange) {
 }
 
 async function bootPanel () {
-  const [roster, sets, weapons, tables] = await Promise.all([
+  const [roster, sets, weapons, tables, uids] = await Promise.all([
     fetch('/api/roster').then(r => r.json()),
     fetch('/api/sets').then(r => r.json()),
     fetch('/api/weapons').then(r => r.json()),
-    fetch('/api/stat-tables').then(r => r.json())
+    fetch('/api/stat-tables').then(r => r.json()),
+    fetch('/api/miao/uids').then(r => r.json()).catch(() => ({ items: [] }))
   ])
   P.roster = roster.items
   P.sets = sets.items
   P.weapons = weapons.items
   P.tables = tables
+  P.uids = Array.isArray(uids.items) ? uids.items : []
   window.addEventListener('rotation-team-changed', renderPanel)
   renderPanel()
+}
+
+/** miao 缓存的 uid 列表里挑一个（默认第一个），供「从 miao 读取」使用 */
+function miaoUid () {
+  return window.__miaoUid || (P.uids[0] && P.uids[0].uid) || ''
+}
+
+/** 把 miao 解出来的数值对齐到界面的「档位」下拉（取最接近的合法总和） */
+function nearestSubValue (key, value) {
+  const list = P.tables?.subValues?.[key] ?? []
+  if (!list.length) return ''
+  let best = list[0]
+  for (const item of list) if (Math.abs(item - value) < Math.abs(best - value)) best = item
+  return String(best)
+}
+
+/** 从 miao 把某个角色的面板填进卡片（套装/主词条/词条档位/武器都按名字对齐） */
+async function fillFromMiao (charId, entry) {
+  const uid = miaoUid()
+  if (!uid) { window.alert('没有找到 miao 的玩家缓存：先在 miao 里查一次面板'); return }
+  try {
+    const list = await fetch(`/api/miao/characters?uid=${encodeURIComponent(uid)}`).then(r => r.json())
+    if (!list.ok) { window.alert(list.error || '读取 miao 失败'); return }
+    const hit = (list.items || []).find(item => item.name === entry.cn)
+    if (!hit) { window.alert(`miao 缓存里没有「${entry.cn}」的面板`); return }
+    const body = await fetch(`/api/miao/panel?uid=${encodeURIComponent(uid)}&charId=${encodeURIComponent(hit.charId)}`).then(r => r.json())
+    if (!body.ok) { window.alert(body.error || '读取 miao 失败'); return }
+    const card = cardOf(charId)
+    const weaponName = String(body.character.weapon?.name || '')
+    const weapon = P.weapons.find(w => w.name === weaponName)
+    if (weapon) card.weaponId = weapon.id
+    card.refinement = Number(body.character.weapon?.affix) || 1
+    for (const piece of body.character.artis || []) {
+      const item = card.slots[piece.slot]
+      if (!item) continue
+      const setId = (P.sets.find(s => s.name === piece.set) || {}).id || ''
+      item.setId = setId
+      item.level = Number(piece.level) || 20
+      item.mainKey = piece.mainKey || defaultMain(piece.slot)
+      // miao 给的是「每条词条的值」（一件 8~9 条），界面按「同属性合计」四档展示：
+      // 先按属性把单条值相加，再对齐到 subValues 里最接近的合法总和。
+      const sums = new Map()
+      for (const sub of (piece.subs || [])) {
+        if (!SUB_KEYS.includes(sub.key)) continue
+        sums.set(sub.key, (sums.get(sub.key) || 0) + Number(sub.value || 0))
+      }
+      item.subs = [...sums.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([key, total]) => ({ key, value: nearestSubValue(key, total) }))
+      while (item.subs.length < 4) item.subs.push({ key: '', value: '' })
+    }
+    // 重画以后卡片是新节点：先算面板，再把「已从 miao 读取」与「未建模」两段提示拼在一起
+    renderPanel()
+    await recompute(charId, card)
+    const note = document.querySelector('[data-panel-note="' + charId + '"]')
+    if (note) {
+      const stamp = body.cachedAt ? String(body.cachedAt).slice(0, 19).replace('T', ' ') : '时间未知'
+      const head = `已从 miao 读取（缓存 ${stamp}；4 星主词条按 5 星表近似）`
+      note.textContent = note.textContent ? `${head}｜${note.textContent}` : head
+    }
+  } catch (err) {
+    window.alert(`读取 miao 失败：${err.message}`)
+  }
+}
+
+/**
+ * 从 bot 导出载入：群里发「#练度查询 <角色> 导出」后，bot 用与查询同一条 miao 路径
+ * （消息事件里的绑定 → Player → avatar）写出 JSON，这里只读文件。
+ */
+async function fillFromExport (charId, entry) {
+  try {
+    const list = await fetch('/api/miao/exports').then(r => r.json())
+    const hit = (list.items || []).find(item => item.charName === entry.cn)
+    if (!hit) { window.alert(`还没有「${entry.cn}」的导出：先在群里发「#练度查询 ${entry.cn} 导出」`); return }
+    const body = await fetch(`/api/miao/export?charId=${encodeURIComponent(hit.charId)}`).then(r => r.json())
+    if (!body.ok) { window.alert(body.error || '读取导出失败'); return }
+    const panel = body.panel
+    const card = cardOf(charId)
+    const weapon = P.weapons.find(w => w.name === String(panel.weapon?.name || ''))
+    if (weapon) card.weaponId = weapon.id
+    card.refinement = Number(panel.weapon?.affix) || 1
+    for (const piece of panel.artis || []) {
+      const item = card.slots[piece.slot]
+      if (!item) continue
+      const setId = (P.sets.find(s => s.name === piece.set) || {}).id || piece.setId || ''
+      item.setId = setId
+      item.level = Number(piece.level) || 20
+      item.mainKey = piece.mainKey || defaultMain(piece.slot)
+      const sums = new Map()
+      for (const sub of (piece.subs || [])) {
+        if (!SUB_KEYS.includes(sub.key)) continue
+        sums.set(sub.key, (sums.get(sub.key) || 0) + Number(sub.value || 0))
+      }
+      item.subs = [...sums.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4)
+        .map(([key, total]) => ({ key, value: nearestSubValue(key, total) }))
+      while (item.subs.length < 4) item.subs.push({ key: '', value: '' })
+    }
+    renderPanel()
+    await recompute(charId, card)
+    const note = document.querySelector('[data-panel-note="' + charId + '"]')
+    if (note) {
+      const stamp = panel.exportedAt ? String(panel.exportedAt).slice(0, 19).replace('T', ' ') : '时间未知'
+      const head = `已从 bot 导出载入（${stamp}）`
+      note.textContent = note.textContent ? `${head}｜${note.textContent}` : head
+    }
+  } catch (err) {
+    window.alert(`读取导出失败：${err.message}`)
+  }
 }
 
 function cardOf (charId) {
@@ -104,6 +216,11 @@ async function recompute (charId, card) {
     const extra = order.filter(key => !s[key]).map(key => `${label(key)} 0`).slice(0, 3)
     box.textContent = [...parts, ...extra].join(' · ')
     box.className = 'panel-stats ok'
+    const note = document.querySelector('[data-panel-note="' + charId + '"]')
+    if (note) {
+      const unmodeled = (body.unmodeled || []).map(item => item.id).join('、')
+      note.textContent = unmodeled ? '未建模：' + unmodeled : ''
+    }
   } catch (err) {
     box.textContent = `计算失败：${err.message}`
     box.className = 'panel-stats bad'
@@ -115,7 +232,27 @@ function renderPanel () {
   if (!host || !P.tables) return
   const team = window.__rotationState?.team ?? []
   host.innerHTML = ''
-  if (!team.length) { host.innerHTML = '<p class="muted">先在「① 拼一条轴」里选好队伍。</p>'; return }
+  const bar = el('div', { className: 'miao-bar' })
+  if (!P.uids.length) {
+    bar.innerHTML = '<span class="muted">没有读到 miao 的玩家缓存；面板仍可手动选。</span>'
+  } else {
+    const tip = el('span', { className: 'muted' })
+    tip.textContent = 'miao 账号：'
+    bar.appendChild(tip)
+    bar.appendChild(selectBox(
+      P.uids.map(u => ({
+        value: u.uid,
+        label: `${u.uid}${u.name ? ' ' + u.name : ''}${u.cachedAt ? '（' + u.cachedAt.slice(0, 10) + ' 缓存）' : ''}`
+      })),
+      miaoUid(),
+      value => { window.__miaoUid = value }
+    ))
+    const note = el('span', { className: 'muted' })
+    note.textContent = '只读本地缓存，不联网刷新'
+    bar.appendChild(note)
+  }
+  host.appendChild(bar)
+  if (!team.length) { host.insertAdjacentHTML('beforeend', '<p class="muted">先在「① 拼一条轴」里选好队伍。</p>'); return }
   for (const charId of team) {
     const entry = P.roster.find(item => item.charId === charId)
     if (!entry) continue
@@ -133,6 +270,16 @@ function renderPanel () {
       card.refinement,
       value => { card.refinement = Number(value); recompute(charId, card) }
     ))
+    const miaoBtn = el('button', { type: 'button', className: 'btn mini' })
+    miaoBtn.textContent = '从 miao 读取'
+    miaoBtn.title = '按 miao 缓存的当前面板，自动填武器与五件圣遗物'
+    miaoBtn.addEventListener('click', () => { void fillFromMiao(charId, entry) })
+    head.appendChild(miaoBtn)
+    const exportBtn = el('button', { type: 'button', className: 'btn mini' })
+    exportBtn.textContent = '读取导出'
+    exportBtn.title = '读取 bot 导出的面板（群里发「#练度查询 角色 导出」）'
+    exportBtn.addEventListener('click', () => { void fillFromExport(charId, entry) })
+    head.appendChild(exportBtn)
     box.appendChild(head)
 
     for (const [slot, slotLabel] of SLOTS) {
@@ -168,6 +315,9 @@ function renderPanel () {
     const stats = el('div', { className: 'panel-stats muted' })
     stats.dataset.panelStats = charId
     stats.textContent = '填一件圣遗物后这里显示面板'
+    const note = el('div', { className: 'panel-note muted' })
+    note.dataset.panelNote = charId
+    box.appendChild(note)
     box.appendChild(stats)
     host.appendChild(box)
   }
@@ -226,6 +376,7 @@ function renderResult (body) {
     `<div class="muted">阶段：</div><ul class="report-list">${stageRows}</ul>` +
     `<div class="muted">反应：</div><ul class="report-list">${reactionRows}</ul>` +
     `<div class="muted">触发：</div><ul class="report-list">${triggerRows}</ul>` +
+    `<div class="muted">未建模：</div><ul class="report-list">${list(detail.unmodeled, item => `<li>${item.actorId} / ${item.id}：${item.reason}</li>`, '无')}</ul>` +
     `<div class="muted">资源告警：</div><ul class="report-list">${resourceRows}</ul>` +
     `<div class="muted">问题：</div><ul class="report-list">${problemRows}</ul>` +
     `</details>`
@@ -285,6 +436,7 @@ async function saveProfile () {
     body: JSON.stringify({ profile: { id: name, panels } })
   }).then(r => r.json())
   if (!body.ok) { alert((body.issues || []).map(issue => issue.message).join('；')); return }
+  window.__panelProfileId = body.id
   await loadProfiles()
   document.getElementById('panel-result').textContent = `面板已保存：${body.path}`
 }
