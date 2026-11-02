@@ -214,7 +214,26 @@ export async function simulatePanel (input) {
   })
   if (run.status !== 'calculated') return { ok: false, status: run.status, issues: run.issues ?? [], stage: 'simulate' }
   const report = K.buildTeamRunReport(run)
-  return { ok: true, status: run.status, dps: report.dps?.value ?? null, hits: report.hits ?? null, energy: report.energy ?? [], actions: report.perAction ?? [], crit }
+  return {
+    ok: true,
+    status: run.status,
+    dps: report.dps?.value ?? null,
+    hits: report.hits ?? null,
+    energy: report.energy ?? [],
+    actions: report.perAction ?? [],
+    crit,
+    detail: {
+      target: report.target,
+      mode: report.mode,
+      versions: report.versions,
+      stages: report.stages,
+      resources: report.resources,
+      triggers: report.triggers,
+      effectUsage: report.effectUsage,
+      reactions: report.reactions,
+      problems: report.problems
+    }
+  }
 }
 
 /**
@@ -561,6 +580,7 @@ if (isMain) {
   })
   listen(basePort)
 }
+
 
 
 

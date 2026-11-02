@@ -179,6 +179,9 @@ fs.rmSync(tmp, { recursive: true, force: true })
   const run = await E.simulatePanel({ rotation, panels: [{ characterId: '10000032', weaponId: '13407', refinement: 1, artifacts: artis }] })
   ok('面板 + 轴能跑出 DPS', run.ok === true && run.dps > 0, JSON.stringify(run.issues?.slice(0, 2)))
   ok('结果带逐动作与能量', Array.isArray(run.actions) && run.actions.length > 0 && Array.isArray(run.energy))
+
+  const detail = run.detail || {}
+  ok('结果带完整报告字段', Array.isArray(detail.stages) && Array.isArray(detail.reactions) && detail.target?.id === 'ruin-guard-lv110')
 }
 
 // 面板存档与口径旋钮（P4）

@@ -210,10 +210,25 @@ function renderResult (body) {
   const energy = (body.energy || []).map(item => `${nameOf(item.actorId)} ${Math.round(item.end)}/${item.max}`).join(' · ')
   const rows = (body.actions || []).filter(item => item.total > 0).sort((a, b) => b.total - a.total)
   const table = rows.map(item => `<tr><td>${nameOf(item.actorId)}</td><td>${item.actionId}</td><td>${item.hits}</td><td>${Math.round(item.total).toLocaleString()}</td></tr>`).join('')
+  const detail = body.detail || {}
+  const list = (items, render, empty) => (items && items.length ? items.map(render).join('') : `<li>${empty}</li>`)
+  const reactionRows = list(detail.reactions, item => `<li>${item.kind}：${item.hits} 段，反应贡献 ${Math.round(item.total).toLocaleString()}</li>`, '无')
+  const triggerRows = list(detail.triggers, item => `<li>${item.effectId} × ${item.count}</li>`, '无')
+  const resourceRows = list((detail.resources || []).filter(item => item.status !== 'ok'), item => `<li>${item.id}：${item.status}${item.message ? `（${item.message}）` : ''}</li>`, '无')
+  const problemRows = list(detail.problems, item => `<li>${item.path}：${item.message}</li>`, '无')
+  const stageRows = list(detail.stages, item => `<li>${item.stage}：${item.status}${item.issues ? `（${item.issues} 个问题）` : ''}</li>`, '无')
   box.className = 'status ok'
   box.innerHTML = `<div class="result-head">DPS <b>${Math.round(body.dps)}</b> · 总伤害 ${Math.round(body.dps * 120).toLocaleString()} · 暴击口径 ${body.crit === 'critical' ? '全暴击' : body.crit === 'non-critical' ? '不暴击' : '期望'}</div>` +
     `<div class="muted">结束时能量：${energy}</div>` +
-    `<table class="result-table"><thead><tr><th>角色</th><th>动作</th><th>命中</th><th>伤害</th></tr></thead><tbody>${table}</tbody></table>`
+    `<table class="result-table"><thead><tr><th>角色</th><th>动作</th><th>命中</th><th>伤害</th></tr></thead><tbody>${table}</tbody></table>` +
+    `<details class="advanced"><summary>完整报告（口径 / 阶段 / 反应 / 触发 / 资源 / 问题）</summary>` +
+    `<div class="muted">口径：${detail.target?.id ?? '—'}（Lv${detail.target?.level ?? '—'}、抗性 ${detail.target?.resistance ?? '—'}）· 版本：${detail.versions?.pack ?? '—'} / ${detail.versions?.panels ?? '—'}</div>` +
+    `<div class="muted">阶段：</div><ul class="report-list">${stageRows}</ul>` +
+    `<div class="muted">反应：</div><ul class="report-list">${reactionRows}</ul>` +
+    `<div class="muted">触发：</div><ul class="report-list">${triggerRows}</ul>` +
+    `<div class="muted">资源告警：</div><ul class="report-list">${resourceRows}</ul>` +
+    `<div class="muted">问题：</div><ul class="report-list">${problemRows}</ul>` +
+    `</details>`
 }
 
 async function runPanel () {

@@ -194,3 +194,5 @@ input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); }
 .result-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
 .result-table th, .result-table td { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; }
 .result-table th { color: var(--muted); font-weight: 500; }
+.report-list { margin: 2px 0 8px 18px; padding: 0; font-size: 13px; }
+.report-list li { margin: 2px 0; }
