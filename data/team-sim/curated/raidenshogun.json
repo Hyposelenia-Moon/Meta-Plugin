@@ -15,7 +15,8 @@
     "raidenshogun.burst：倍率 7.2144 = 梦想一刀基础伤害[9]=721.44%（gcsim burstBase[9]=7.2144）；愿力按 0 层默认分支（gcsim 起始 stacks=0，靠队友爆发能量叠层），加成 +0，未计入",
     "raidenshogun.burst：愿力加成未建模：10 级每层 +7%（gcsim resolveBaseBonus[9]=0.069984，miao 愿力加成[9]=[7,1.31]），上限 60 层；满层伤害会显著高于本动作的 7.2144",
     "raidenshogun.burst：梦想一心后续普攻/重击不建模；梦想一心能量恢复 10 级每次 2.5 点、最多 5 次、1 秒 ICD，属队友充能，未建模",
-    "raidenshogun.burst：命座（C1/C2/C4/C6）与队友充能均未建模"
+    "raidenshogun.burst：命座（C1/C2/C4/C6）与队友充能均未建模",
+    "雷眼产球为近似：gcsim skill.go:85-94 协同攻击命中产 1 颗 Electro（0.8s ICD），本模型按固定帧挂 6 颗，不建模协同攻击命中频率与 E 持续 25 秒"
   ],
   "actions": {
     "raidenshogun.skill": {
@@ -36,7 +37,46 @@
         }
       ],
       "cooldownFrames": 600,
-      "cooldownId": "skill"
+      "cooldownId": "skill",
+      "delayedParticles": [
+        {
+          "atFrame": 60,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 110,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 160,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 210,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 260,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 310,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        }
+      ],
+      "mechanism": "雷眼产球（近似）：协同攻击 0.8 秒 ICD，每颗 1 点雷元素粒子；本模型按施放后 6 颗近似，不建模协同攻击本体"
     },
     "raidenshogun.burst": {
       "id": "raidenshogun.burst",

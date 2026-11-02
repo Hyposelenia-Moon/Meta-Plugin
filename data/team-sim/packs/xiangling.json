@@ -136,7 +136,28 @@
       },
       "hits": [],
       "cooldownFrames": 720,
-      "cooldownId": "skill"
+      "cooldownId": "skill",
+      "delayedParticles": [
+        {
+          "atFrame": 60,
+          "count": 1,
+          "element": "pyro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 138,
+          "count": 1,
+          "element": "pyro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 216,
+          "count": 1,
+          "element": "pyro",
+          "travelFrames": 100
+        }
+      ],
+      "mechanism": "锅巴产球（近似）：锅巴按 1 秒 ICD 产 3 颗火元素粒子，挂在施放动作后 60/138/216 帧"
     },
     "xiangling.burst": {
       "id": "xiangling.burst",

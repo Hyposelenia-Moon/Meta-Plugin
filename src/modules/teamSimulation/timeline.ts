@@ -140,6 +140,11 @@ export interface ActionSpec {
   hits: HitSpec[]
   cancelWindows?: CancelWindow[]
   particles?: ParticleSpec[]
+  /**
+   * 延迟产球（2026-11-02）：召唤物/持续效果在动作结束后产出的粒子。
+   * `atFrame` 同样相对动作起手，但**允许超过动作时长**；这类事件不会被下一个动作取消。
+   */
+  delayedParticles?: ParticleSpec[]
   energyCost?: number
   cooldownFrames?: number
   cooldownId?: string
@@ -148,7 +153,7 @@ export interface ActionSpec {
 }
 
 export type TimelineStep =
-  | { id: string; kind: 'action'; actorId: string; actionId: string; atFrame?: number }
+  | { id: string; kind: 'action'; actorId: string; actionId: string; atFrame?: number; optional?: boolean }
   | { id: string; kind: 'switch'; actorId: string; atFrame?: number }
   | { id: string; kind: 'wait'; frames: number }
 
@@ -404,6 +409,19 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
       })
     }
   }
+  if (spec.delayedParticles !== undefined) {
+    if (!Array.isArray(spec.delayedParticles)) add('invalid', `${p}.delayedParticles`, '延迟产球必须是数组')
+    else {
+      spec.delayedParticles.forEach((particle, i) => {
+        const pp = `${p}.delayedParticles.${i}`
+        // 延迟产球允许超出动作时长（召唤物在动作结束后仍会产球），但仍要与动作起手帧相对、非负。
+        if (!isInteger(particle?.atFrame) || particle.atFrame < 0) add('invalid', `${pp}.atFrame`, '延迟产球帧必须是非负整数（可超出动作时长）')
+        if (!isInteger(particle?.count) || particle.count <= 0) add('invalid', `${pp}.count`, '产球数量必须是正整数')
+        if (![...HIT_ELEMENTS, 'clear'].includes(particle?.element)) add('unsupported', `${pp}.element`, `未知粒子元素 ${String(particle?.element)}`)
+        if (!isInteger(particle?.travelFrames) || particle.travelFrames < 0) add('invalid', `${pp}.travelFrames`, '粒子飞行帧数必须是非负整数')
+      })
+    }
+  }
   if (spec.energyCost !== undefined && (!isFiniteNumber(spec.energyCost) || spec.energyCost < 0)) add('invalid', `${p}.energyCost`, '能量消耗必须是非负有限数值')
   if (spec.cooldownFrames !== undefined && (!isInteger(spec.cooldownFrames) || spec.cooldownFrames < 0)) add('invalid', `${p}.cooldownFrames`, '冷却帧数必须是非负整数')
   if (spec.requires !== undefined && !Array.isArray(spec.requires)) add('invalid', `${p}.requires`, '门槛标记必须是数组')
@@ -498,9 +516,14 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const record = (frame: number, phase: EventPhase, kind: TimelineEventKind, actorId?: string, actionId?: string, detail?: Record<string, unknown>) => {
     events.push({ frame, phase, sequence: sequence++, kind, ...(actorId ? { actorId } : {}), ...(actionId ? { actionId } : {}), ...(detail ? { detail } : {}) })
   }
-  /** 新动作开始时取消上一个动作尚未发生的命中、产球与收尾。 */
+  /**
+   * 新动作开始时取消上一个动作尚未发生的命中与收尾。
+   * 产球**不取消**：粒子已经发出（或召唤物会在之后产出），换人/接下一个动作不会让它消失，
+   * 只按 `travelFrames` 延迟到账。2026-11-02 起由 `delayedParticles` 承载召唤物产球。
+   */
   const cancelPending = (frame: number) => {
-    queue = queue.filter(queued => queued.frame <= frame || queued.item.kind === 'action-start' || (queued.item.kind === 'hit' && queued.item.hit.delayed === true))
+    queue = queue.filter(queued => queued.frame <= frame || queued.item.kind === 'action-start' ||
+      queued.item.kind === 'particle' || (queued.item.kind === 'hit' && queued.item.hit.delayed === true))
   }
   /**
    * 卡肉：`[atFrame, atFrame + frames)` 内游戏时钟冻结。做法是把排在这之后的一切整体顺延同样帧数——
@@ -557,10 +580,18 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
       return
     }
     if (item.kind === 'particle') {
-      const actor = actors.get(item.actorId)
-      const gain = item.particle.count * (recharge[item.actorId] ?? 1)
-      if (actor) actor.energy = Math.min(actor.energyMax, actor.energy + gain)
-      record(queued.frame, 'energy', 'particle', item.actorId, item.actionId, { count: item.particle.count, element: item.particle.element, gain })
+      /*
+       * 2026-11-02：产球按队伍共享结算（游戏里粒子是全队回能，不只是发出者）。
+       * 每名角色按自己的充能效率结算 `count × ER`；暂不区分前台/后台折扣，也不做同元素加成，
+       * 这两点都写进近似说明，不假装比实测更准。
+       */
+      const gains: Record<string, number> = {}
+      for (const actor of actors.values()) {
+        const gain = item.particle.count * (recharge[actor.actorId] ?? 1)
+        gains[actor.actorId] = gain
+        actor.energy = Math.min(actor.energyMax, actor.energy + gain)
+      }
+      record(queued.frame, 'energy', 'particle', item.actorId, item.actionId, { count: item.particle.count, element: item.particle.element, gain: gains })
       return
     }
     if (item.kind === 'action-end') {
@@ -619,6 +650,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     push({ kind: 'action-end', frame: frame + frames, actorId: step.actorId, actionId: spec.id })
     spec.hits.forEach((hit, hitIndex) => push({ kind: 'hit', frame: frame + hit.atFrame, actorId: step.actorId, actionId: spec.id, hitIndex, hit }))
     for (const particle of spec.particles ?? []) push({ kind: 'particle', frame: frame + particle.atFrame + particle.travelFrames, actorId: step.actorId, actionId: spec.id, particle })
+    for (const particle of spec.delayedParticles ?? []) push({ kind: 'particle', frame: frame + particle.atFrame + particle.travelFrames, actorId: step.actorId, actionId: spec.id, particle })
     const earliestCancel = spec.cancelWindows?.length ? Math.min(...spec.cancelWindows.map(w => w.fromFrame)) : frames
     currentFrame = frame + earliestCancel
     return { stepId: step.id, requestedFrame, actualFrame: frame, ok: true }
@@ -682,13 +714,25 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     if (input.scheduler === 'asap-sequence') {
       let attempt = 0
       let request = Math.max(frame, currentFrame, hitlagUntil)
+      /*
+       * 可选步骤（`optional: true`）：攒不够能量/冷却没转好时**跳过这一步继续往下排**，
+       * 而不是把整份轴判死。典型用途是 0 能量起手的循环轴里放爆发——前几轮放不出就跳过，
+       * 后面攒够了自然会打出去；非 optional 的步骤仍按原口径报错。
+       */
+      const skipOptional = (reason: string): void => {
+        requests.push({ stepId: node.id ?? '<unknown>', requestedFrame: request, actualFrame: null, ok: false, reason })
+      }
       for (;;) {
         const problems = checkAction(node, spec, request)
         if (!problems.length) { requests.push(perform(node, spec, request, frame)); break }
         const deferrable = problems.every(problem => problem.path.endsWith('.energy') || problem.path.endsWith('.cooldown') || problem.path.endsWith('.hitlag'))
-        if (!deferrable) { issues.push(...problems); requests.push(reject(node, request)); break }
+        if (!deferrable) {
+          if (node.optional === true) { skipOptional('optional-skipped'); break }
+          issues.push(...problems); requests.push(reject(node, request)); break
+        }
         const next = Math.max(readyFrame(node.actorId, spec, request), hitlagUntil)
         if (!Number.isFinite(next) || next > input.measurementEndFrame || attempt++ > 64) {
+          if (node.optional === true) { skipOptional('optional-skipped'); break }
           add('invalid', `steps.${node.id}.deadlock`, `ASAP 在测量窗口内等不到可用状态，最后请求帧 ${request}`)
           requests.push(reject(node, request))
           break

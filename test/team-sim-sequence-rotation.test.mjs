@@ -103,6 +103,12 @@ const baseFile = (patch = {}) => ({
   const required = { ...optional, sequence: ['bennett.skill', 'bennett.burst'] }
   const strict = S.toRotation(required, pack)
   ok('不带 optional 的爆发排不进去时轴报错，不静默跳过', strict.status !== 'ok')
+
+  // 充能足够时，同一个 optional 爆发应当真的被排进轴（不是永远被跳过）。
+  const charged = S.toRotation({ ...optional, loop: true, energyRecharge: { bennett: 10 } }, pack)
+  ok('充能足够时 optional 爆发会被排进轴', charged.status === 'ok' &&
+    charged.rotation.steps.some(step => step.kind === 'action' && step.actionId === 'bennett.burst'),
+    JSON.stringify(charged.issues?.slice(0, 2)))
 }
 
 {
@@ -119,6 +125,30 @@ const baseFile = (patch = {}) => ({
     const converted = S.toRotation(file, merged.pack)
     ok(`${name}：能转成可执行的轴`, converted.status === 'ok', JSON.stringify(converted.issues?.slice(0, 2)))
   }
+}
+
+{
+  // 充能效率（2026-11-02）：轴里给 energyRecharge，产球能量按倍率放大；爆发能不能放出来就靠它。
+  const pack = teamPack()
+  const file = baseFile({ sequence: ['bennett.skill', 'bennett.normal-1'], actors: [{ actorId: 'bennett', energy: 0, energyMax: 60 }] })
+  const plain = S.toRotation(file, pack)
+  const boosted = S.toRotation({ ...file, energyRecharge: { bennett: 3 } }, pack)
+  ok('轴里的 energyRecharge 会传进 RotationSpec', boosted.status === 'ok' && boosted.rotation?.energyRecharge?.bennett === 3)
+  const runWith = (rotation) => K.simulateTimeline({
+    scheduler: rotation.scheduler,
+    steps: rotation.steps,
+    actions: pack.actions,
+    actors: rotation.actors,
+    activeActorId: rotation.activeActorId,
+    frameTier: rotation.frameTier,
+    measurementEndFrame: rotation.measurementEndFrame,
+    energyRecharge: rotation.energyRecharge
+  })
+  const a = runWith(plain.rotation)
+  const b = runWith(boosted.rotation)
+  const energy = (t) => t.actors.find(x => x.actorId === 'bennett')?.energy ?? 0
+  ok('不写充能时产球按 1 倍结算', energy(a) > 0)
+  ok('充能 3 倍时能量按 3 倍放大', Math.abs(energy(b) - energy(a) * 3) < 1e-9, `${energy(a)} → ${energy(b)}`)
 }
 
 report()

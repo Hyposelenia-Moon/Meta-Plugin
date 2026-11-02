@@ -13,7 +13,8 @@
     "xiangling.burst：能量取 EnergyMax=80；gcsim 的 ConsumeEnergy(24) 里 24 是扣能延迟帧数，不是耗能量；内核起手扣能，延迟未建模",
     "xiangling.burst：冷却 20*60=1200 帧，SetCDWithDelay(action.ActionBurst, 20*60, 18)",
     "xiangling.burst：旋火轮（召唤物）未建模：施放后 56 帧起持续 10 秒（C4 为 14 秒）、每 73 帧一跳，10 级 201.6%；C6 的 15% 火伤加成也未计入",
-    "xiangling.burst：倍率 ← miao talentData.q 一段/二段/三段挥舞伤害[9] = 129.6/158.4/197.28%，与 gcsim pyronadoInitial lv10 的 1.296/1.584/1.9728 一致"
+    "xiangling.burst：倍率 ← miao talentData.q 一段/二段/三段挥舞伤害[9] = 129.6/158.4/197.28%，与 gcsim pyronadoInitial lv10 的 1.296/1.584/1.9728 一致",
+    "锅巴产球为近似：gcsim guoba.go 每次锅巴攻击 1 颗 Pyro（1s ICD），本模型按固定帧挂 3 颗，不建模锅巴本体与命中次数"
   ],
   "actions": {
     "xiangling.skill": {
@@ -26,7 +27,28 @@
       },
       "hits": [],
       "cooldownFrames": 720,
-      "cooldownId": "skill"
+      "cooldownId": "skill",
+      "delayedParticles": [
+        {
+          "atFrame": 60,
+          "count": 1,
+          "element": "pyro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 138,
+          "count": 1,
+          "element": "pyro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 216,
+          "count": 1,
+          "element": "pyro",
+          "travelFrames": 100
+        }
+      ],
+      "mechanism": "锅巴产球（近似）：锅巴按 1 秒 ICD 产 3 颗火元素粒子，挂在施放动作后 60/138/216 帧"
     },
     "xiangling.burst": {
       "id": "xiangling.burst",

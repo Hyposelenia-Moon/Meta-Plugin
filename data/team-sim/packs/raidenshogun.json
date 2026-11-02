@@ -123,7 +123,46 @@
         }
       ],
       "cooldownFrames": 600,
-      "cooldownId": "skill"
+      "cooldownId": "skill",
+      "delayedParticles": [
+        {
+          "atFrame": 60,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 110,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 160,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 210,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 260,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        },
+        {
+          "atFrame": 310,
+          "count": 1,
+          "element": "electro",
+          "travelFrames": 100
+        }
+      ],
+      "mechanism": "雷眼产球（近似）：协同攻击 0.8 秒 ICD，每颗 1 点雷元素粒子；本模型按施放后 6 颗近似，不建模协同攻击本体"
     },
     "raidenshogun.burst": {
       "id": "raidenshogun.burst",

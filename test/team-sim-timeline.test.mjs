@@ -425,3 +425,33 @@ assert.ok(validateActionSpec(overflowSpec).some(issue => issue.path.endsWith('.h
 assert.equal(validateActionSpec({ ...overflowSpec, hits: [{ ...overflowSpec.hits[0], delayed: true }] }).length, 0)
 assert.ok(validateActionSpec({ ...overflowSpec, hits: [{ ...overflowSpec.hits[0], delayed: 'yes' }] }).some(issue => issue.path.endsWith('.delayed')), 'delayed 必须是布尔值')
 
+// 延迟产球（2026-11-02）：召唤物在动作结束后产球，允许 atFrame 超出动作时长，且不会被下一个动作取消。
+{
+  const summon = {
+    id: 'itto.summon', actorId: 'itto', kind: 'skill', timing: { type: 'frames', frames: 20 }, hits: [],
+    delayedParticles: [{ atFrame: 40, count: 2, element: 'geo', travelFrames: 0 }]
+  }
+  assert.equal(validateActionSpec(summon).length, 0, '延迟产球允许超出动作时长')
+  const beyond = { ...summon, particles: [{ atFrame: 40, count: 2, element: 'geo', travelFrames: 0 }] }
+  assert.ok(validateActionSpec(beyond).some(issue => issue.path.endsWith('.particles.0.atFrame')), '普通产球仍不许越界')
+  assert.ok(validateActionSpec({ ...summon, delayedParticles: [{ atFrame: -1, count: 1, element: 'geo', travelFrames: 0 }] }).some(issue => issue.path.endsWith('.delayedParticles.0.atFrame')), '延迟产球帧必须非负')
+
+  // 第一个动作在 0 帧，20 帧结束；第二个动作 30 帧开始。粒子在 40 帧到账，不该被第二个动作取消。
+  const sharedRun = simulateTimeline({
+    ...base,
+    actions: { ...actions, 'itto.summon': summon },
+    actors: [{ actorId: 'itto', energy: 0, energyMax: 60 }, { actorId: 'gorou', energy: 0, energyMax: 80 }],
+    steps: [
+      { id: 'a', kind: 'action', actorId: 'itto', actionId: 'itto.summon', atFrame: 0 },
+      { id: 'a2', kind: 'action', actorId: 'itto', actionId: 'itto.normal-1', atFrame: 30 }
+    ]
+  })
+  assert.equal(sharedRun.status, 'simulated', JSON.stringify(sharedRun.issues))
+  const energyEvents = sharedRun.events.filter(event => event.kind === 'particle')
+  assert.equal(energyEvents.length, 1)
+  assert.equal(energyEvents[0].frame, 40)
+  // 产球按队伍共享：两名角色都按自己的倍率回能（缺省 1×）。
+  assert.equal(sharedRun.actors.find(a => a.actorId === 'itto').energy, 2)
+  assert.equal(sharedRun.actors.find(a => a.actorId === 'gorou').energy, 2)
+}
+

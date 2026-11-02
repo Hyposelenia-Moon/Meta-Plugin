@@ -167,6 +167,8 @@ export interface RotationFile {
   frameTierId?: string
   /** 顺序轴可选：把 sequence 循环到测量窗口结束（DPS 才有意义），缺省只跑一遍 */
   loop?: boolean
+  /** 顺序轴可选：各角色充能效率（倍率），缺省 1.0；爆发能不能攒出来主要看这个 */
+  energyRecharge?: Record<string, number>
   /** 录制轴必需 */
   keymap?: RecordingKeymap
   /** 录制轴必需 */
@@ -259,7 +261,6 @@ function sequenceToRotation (file: RotationFile, pack: DataPack): { status: 'ok'
 
   const actions = pack.actions ?? {}
   const steps: TimelineStep[] = []
-  const optionalIds = new Set<string>()
   let index = 0
   let currentActor = ''
   for (const raw of file.sequence ?? []) {
@@ -279,8 +280,8 @@ function sequenceToRotation (file: RotationFile, pack: DataPack): { status: 'ok'
     }
     if (currentActor && currentActor !== actorId) steps.push({ id: `switch-${index}`, kind: 'switch', actorId })
     const stepId = `step-${index}`
-    if (typeof raw !== 'string' && raw.optional === true) optionalIds.add(stepId)
-    steps.push({ id: stepId, kind: 'action', actorId, actionId })
+    const optional = typeof raw !== 'string' && raw.optional === true
+    steps.push({ id: stepId, kind: 'action', actorId, actionId, ...(optional ? { optional: true } : {}) })
     currentActor = actorId
     index += 1
   }
@@ -292,9 +293,8 @@ function sequenceToRotation (file: RotationFile, pack: DataPack): { status: 'ok'
   const actors = actorInitOf(file, pack, steps)
   const firstActor = steps.find(step => step.kind === 'action' || step.kind === 'switch')?.actorId
   const activeActorId = file.actors?.[0]?.actorId ?? firstActor ?? actors[0].actorId
-  // 可选步骤（典型是「初始 0 能量下放不出来」的爆发）：排不进去就丢掉这一步，不整份轴判死。
-  const pruned = pruneOptional(steps, optionalIds, pack, file, tier, actors, activeActorId)
-  const expanded = file.loop === true ? loopSteps(pruned, file, pack, tier, actors, activeActorId) : pruned
+  // optional 步骤交给内核的 ASAP 调度器处理：攒不够能量就跳过这一次、继续往下排（见 timeline.ts）。
+  const expanded = file.loop === true ? loopSteps(steps, file, pack, tier, actors, activeActorId) : steps
   const rotation: RotationSpec = {
     id: file.id,
     scheduler: 'asap-sequence',
@@ -302,7 +302,8 @@ function sequenceToRotation (file: RotationFile, pack: DataPack): { status: 'ok'
     measurementEndFrame: file.measurementEndFrame,
     steps: expanded,
     actors,
-    activeActorId
+    activeActorId,
+    ...(file.energyRecharge ? { energyRecharge: file.energyRecharge } : {})
   }
   const checked = validateRotation(rotation, pack)
   const all = [...issues, ...checked]
@@ -329,22 +330,39 @@ function freezeSequenceFrames (rotation: RotationSpec, pack: DataPack): { status
   })
   if (dry.issues.length) return { status: 'invalid', issues: dry.issues }
   const frameOf = new Map<string, number>()
+  const skipped = new Set<string>()
   for (const request of dry.requests) {
     if (request.actualFrame !== null) frameOf.set(request.stepId, request.actualFrame)
+    else if (request.reason === 'optional-skipped') skipped.add(request.stepId)
   }
+  // 被跳过的 optional 动作连同它前面的换人一起从固定轴里删掉，否则固定轴里会留下「换了人却没动作」。
+  const dropped = new Set<number>()
+  rotation.steps.forEach((step, index) => {
+    if (step.kind === 'action' && skipped.has(step.id)) dropped.add(index)
+  })
+  rotation.steps.forEach((step, index) => {
+    if (step.kind === 'switch' && dropped.has(index + 1)) dropped.add(index)
+  })
   /*
    * 换人步骤不进 `requests`（它不产生动作请求），但固定轴要求每步都有帧。
    * 空跑的时间线会把每次换人的实际帧记进 events（phase=state、kind=switch），按出现顺序对上即可；
    * 万一事件对不上（理论上不会），退回「下一个动作的实际帧」。
    */
   const switchFrames = dry.events.filter(event => event.phase === 'state' && event.kind === 'switch').map(event => event.frame)
+  // 先按出现顺序把所有换人步骤对上事件帧（包括稍后会被删掉的），再放进固定轴，避免删步骤后帧错位。
+  const switchFrameOf = new Map<number, number>()
   let switchCursor = 0
+  rotation.steps.forEach((step, index) => {
+    if (step.kind !== 'switch') return
+    if (switchCursor < switchFrames.length) switchFrameOf.set(index, switchFrames[switchCursor++])
+  })
   const actionFrames = rotation.steps
     .map((step, index) => ({ step, index }))
     .filter(item => item.step.kind === 'action' && frameOf.has(item.step.id))
     .map(item => ({ index: item.index, frame: frameOf.get(item.step.id) as number }))
   const frameForSwitch = (index: number): number | null => {
-    if (switchCursor < switchFrames.length) return switchFrames[switchCursor++]
+    const exact = switchFrameOf.get(index)
+    if (exact !== undefined) return exact
     const next = actionFrames.find(item => item.index > index)
     if (next) return next.frame
     const prev = [...actionFrames].reverse().find(item => item.index < index)
@@ -352,6 +370,7 @@ function freezeSequenceFrames (rotation: RotationSpec, pack: DataPack): { status
   }
   const frozen: TimelineStep[] = []
   rotation.steps.forEach((step, index) => {
+    if (dropped.has(index)) return
     if (step.kind === 'wait') { frozen.push(step); return }
     const atFrame = step.kind === 'switch' ? frameForSwitch(index) : frameOf.get(step.id)
     if (atFrame === undefined || atFrame === null) {
@@ -359,47 +378,29 @@ function freezeSequenceFrames (rotation: RotationSpec, pack: DataPack): { status
     }
     frozen.push({ ...step, atFrame })
   })
-  const missing = rotation.steps.filter(step => step.kind !== 'wait').length - frozen.filter(step => step.kind !== 'wait').length
+  const expected = rotation.steps.filter((step, index) => step.kind !== 'wait' && !dropped.has(index)).length
+  const missing = expected - frozen.filter(step => step.kind !== 'wait').length
   if (missing > 0) return { status: 'invalid', issues: [{ code: 'invalid', path: 'steps', message: `有 ${missing} 个步骤没有排到执行帧，无法固化成固定轴` }] }
-  const fixed: RotationSpec = { ...rotation, scheduler: 'fixed', steps: frozen }
+  /*
+   * 删过步骤后，固定轴里可能出现「目标是当前前台角色」的冗余换人（例如被删掉的爆发前后各有一个换人）。
+   * 固定调度会把它当错误（目标已经是前台角色），所以这里按实际前台重排一次：冗余换人直接去掉。
+   */
+  const normalized: TimelineStep[] = []
+  let current = rotation.activeActorId
+  for (const step of frozen) {
+    if (step.kind === 'switch') {
+      if (step.actorId === current) continue
+      current = step.actorId
+      normalized.push(step)
+      continue
+    }
+    if (step.kind === 'action') current = step.actorId
+    normalized.push(step)
+  }
+  const fixed: RotationSpec = { ...rotation, scheduler: 'fixed', steps: normalized }
   const issues = validateRotation(fixed, pack)
   if (issues.length) return { status: issues.some(x => x.code === 'unsupported') ? 'unsupported' : 'invalid', rotation: fixed, issues }
   return { status: 'ok', rotation: fixed, issues: [] }
-}
-
-/**
- * 可选步骤的兜底：某一步在窗口内排不出来（典型是初始 0 能量下的爆发）时把它丢掉，
- * 而不是整份轴判死。只有作者显式写 `optional: true` 的步骤才会被丢；其它步骤照旧报错。
- */
-function pruneOptional (
-  steps: TimelineStep[],
-  optionalIds: Set<string>,
-  pack: DataPack,
-  file: RotationFile,
-  tier: FrameTier,
-  actors: ActorInit[],
-  activeActorId: string
-): TimelineStep[] {
-  if (!optionalIds.size) return steps
-  let current = steps
-  for (let guard = 0; guard < 20; guard += 1) {
-    const dry = simulateTimeline({
-      scheduler: 'asap-sequence',
-      steps: current,
-      actions: pack.actions ?? {},
-      actors,
-      activeActorId,
-      frameTier: tier,
-      measurementEndFrame: file.measurementEndFrame
-    })
-    if (!dry.issues.length) break
-    const dead = dry.issues.find(issue => /^steps\..+\.deadlock$/.test(issue.path))
-    const id = dead ? /^steps\.(.+)\.deadlock$/.exec(dead.path)?.[1] : undefined
-    if (!id || !optionalIds.has(id)) break
-    optionalIds.delete(id)
-    current = current.filter(step => step.id !== id)
-  }
-  return current
 }
 
 /**
