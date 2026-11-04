@@ -79,7 +79,46 @@ const specOf = (charId, name, weaponId, effectId) => {
   assert.equal(spec.trigger, 'cast-skill')
   assert.equal(spec.stats.normalDmg, 0.5)
   assert.equal(spec.durationFrames, 600)
-  assert.ok(audit.unmodeled, '能量扣减未建模，必须披露')
+  assert.equal(spec.energyCost, 15, '追忆之注连施放战技要扣 15 点能量')
+  assert.ok(audit.unmodeled, '持续期间不再触发未建模，必须披露')
+}
+
+// ---------- 1b2. 追忆之注连：能量不足时不触发 ----------
+{
+  const effects = {
+    'artifact-set:400179:4pc': {
+      id: 'artifact-set:400179:4pc', target: 'self',
+      stats: { normalDmg: 0.5, chargedDmg: 0.5, plungeDmg: 0.5 },
+      durationFrames: 600, trigger: 'cast-skill', stacking: 'refresh', energyCost: 15
+    }
+  }
+  const actions = {
+    'a0.skill': {
+      id: 'a0.skill', actorId: 'actor:0', kind: 'skill',
+      timing: { type: 'frames', frames: 40 },
+      hits: [{ atFrame: 10, motionValue: 1, scaling: 'atk', element: 'physical', canCrit: true }]
+    }
+  }
+  const runWith = (energy) => simulateTimeline({
+    scheduler: 'fixed',
+    steps: [{ id: 's1', kind: 'action', actorId: 'actor:0', actionId: 'a0.skill', atFrame: 0 }],
+    actions,
+    actors: [{ actorId: 'actor:0', energy, energyMax: 80 }],
+    activeActorId: 'actor:0',
+    frameTier: FRAME_TIERS['fps-60'],
+    measurementEndFrame: 150,
+    effects,
+    effectTriggers: [{ effectId: 'artifact-set:400179:4pc', actorId: 'actor:0', on: 'cast-skill' }]
+  })
+  const rich = runWith(20)
+  assert.equal(rich.status, 'simulated', JSON.stringify(rich.issues))
+  assert.equal(rich.triggers.length, 1, '能量足够时触发')
+  assert.equal(rich.actors.find(a => a.actorId === 'actor:0').energy, 5, '扣掉 15 点能量')
+  const poor = runWith(10)
+  assert.equal(poor.triggers.length, 0, '能量不足时不能触发')
+  const skipped = poor.events.find(e => e.detail?.skipped === 'energy')
+  assert.ok(skipped, '要留下 skipped: energy 记录')
+  assert.equal(poor.actors.find(a => a.actorId === 'actor:0').energy, 10, '能量不足时不扣')
 }
 
 // ---------- 1c. 苍白之火与黄金剧团 ----------

@@ -95,6 +95,11 @@ export interface EffectSpec {
    * 没写的来源按 1 层算。
    */
   stacksPerTrigger?: Partial<Record<EffectTriggerKind, number>>
+  /**
+   * 触发时消耗的能量（追忆之注连：施放战技时若能量 ≥15 则流失 15 点）。
+   * 只对 `cast-skill` / `cast-burst` 有意义；能量不足时本次不触发，并记 `skipped: energy`。
+   */
+  energyCost?: number
 }
 
 export interface TriggerRecord {
@@ -190,6 +195,10 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
       else if (!allTriggers.includes(kind as EffectTriggerKind)) add('invalid', `${p}.stacksPerTrigger.${kind}`, `来源 ${kind} 不在这个效果的触发列表里`)
       else if (!isInteger(amount) || amount <= 0) add('invalid', `${p}.stacksPerTrigger.${kind}`, '每层数必须是正整数')
     }
+  }
+  if (spec.energyCost !== undefined) {
+    if (!isInteger(spec.energyCost) || spec.energyCost <= 0) add('invalid', `${p}.energyCost`, '触发消耗必须是正整数能量')
+    else if (!allTriggers.some(kind => kind === 'cast-skill' || kind === 'cast-burst')) add('invalid', `${p}.energyCost`, '消耗能量只适用于起手触发（cast-skill / cast-burst）')
   }
   return issues
 }

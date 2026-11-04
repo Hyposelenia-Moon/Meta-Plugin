@@ -225,7 +225,7 @@ export interface TimelineHit {
   activeEffects: string[]
 }
 
-export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'energy-restore' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger' | 'effect-tick'
+export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'energy-restore' | 'trigger-cost' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger' | 'effect-tick'
 
 export interface TimelineEvent {
   frame: number
@@ -785,6 +785,16 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     if (castTrigger) {
       for (const item of effectTriggers) {
         if (item.actorId !== step.actorId || item.on !== castTrigger) continue
+        const castSpec = effectRuntime.specOf(item.effectId)
+        const cost = Number(castSpec?.energyCost) || 0
+        if (cost > 0) {
+          if (!actor || actor.energy < cost) {
+            record(frame, 'state', 'trigger', step.actorId, spec.id, { effectId: item.effectId, skipped: 'energy', required: cost, current: actor?.energy ?? 0 })
+            continue
+          }
+          actor.energy -= cost
+          record(frame, 'energy', 'trigger-cost', step.actorId, spec.id, { effectId: item.effectId, amount: cost, remaining: actor.energy })
+        }
         const fired = effectRuntime.trigger(item.effectId, frame, step.actorId)
         if (!fired) continue
         triggers.push(fired)
