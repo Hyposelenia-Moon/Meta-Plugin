@@ -111,6 +111,15 @@ export interface EffectSpec {
     everyFrames?: number
     times?: number
   }
+  /**
+   * 命中时附加的固定基础伤害（来歆余响：普通攻击命中时按攻击力的 70% 加一段伤害）。
+   * 数值 = `scaling` 对应的面板 × `ratio`，加进本发命中的基伤后再走防御/抗性/增伤/暴击。
+   * 只能挂在命中类触发上；概率型效果由数据侧折算成期望值，内核不掷骰。
+   */
+  flatDamage?: {
+    scaling: 'atk' | 'def' | 'hp' | 'mastery'
+    ratio: number
+  }
 }
 
 export interface TriggerRecord {
@@ -158,7 +167,7 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
         else if (!isFiniteNumber(value)) add('invalid', `${p}.stats.${stat}`, '面板增量必须是有限数值')
       }
     }
-  } else if ((spec.target === 'self' || spec.target === 'team') && !spec.energyRestore) {
+  } else if ((spec.target === 'self' || spec.target === 'team') && !spec.energyRestore && !spec.flatDamage) {
     add('missing', `${p}.stats`, '作用于己方的效果必须给面板加成')
   }
 
@@ -222,6 +231,13 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
       if (r.times !== undefined && (!isInteger(r.times) || r.times <= 0)) add('invalid', `${p}.energyRestore.times`, '回能次数必须是正整数')
       if (r.everyFrames !== undefined && r.times === undefined) add('missing', `${p}.energyRestore.times`, '按间隔回能必须给次数')
       if (r.times !== undefined && r.everyFrames === undefined) add('missing', `${p}.energyRestore.everyFrames`, '多次回能必须给间隔')
+    }
+    if (spec.flatDamage !== undefined) {
+      const f = spec.flatDamage
+      if (!f || typeof f !== 'object' || Array.isArray(f)) add('invalid', `${p}.flatDamage`, '固定值伤害必须是对象')
+      if (f && !['atk', 'def', 'hp', 'mastery'].includes(String(f.scaling))) add('unsupported', `${p}.flatDamage.scaling`, `未知折算属性 ${String(f.scaling)}`)
+      if (f && (!isFiniteNumber(f.ratio) || f.ratio <= 0)) add('invalid', `${p}.flatDamage.ratio`, '固定值伤害倍率必须是正数')
+      if (f && !allTriggers.some(kind => HIT_TRIGGER_KINDS.includes(kind))) add('invalid', `${p}.flatDamage`, '固定值伤害只能挂在命中类触发上')
     }
   }
   return issues

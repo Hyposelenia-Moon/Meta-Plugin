@@ -1,7 +1,7 @@
 import type { Failure, Issue, OrdinaryDamageResult, OrdinaryHit, PermanentStats } from './types.js'
 import { calculateOrdinaryHit, resistanceMultiplier, TARGET_PRESETS } from './formula.js'
 import { applyPanelModifiers, type EnemyModifiers, type PanelBase, type PanelModifiers, type ReactionBonus } from './effects.js'
-import type { ReactionDeclaration, TimelineHit, TimelineResult } from './timeline.js'
+import type { FlatBaseBonus, ReactionDeclaration, TimelineHit, TimelineResult } from './timeline.js'
 import type { MechanismPlan, StatWindow, EnemyWindow } from './mechanisms.js'
 import {
   isReactiveKind,
@@ -109,7 +109,8 @@ function damageBonusFor (element: TimelineHit['element'], stats: PermanentStats,
   return base + Number(stats[DAMAGE_KIND_BONUS[kind]] ?? 0)
 }
 
-function statFor(scaling: TimelineHit['scaling'], stats: PermanentStats): number {
+function statFor(scaling: TimelineHit['scaling'] | 'mastery', stats: PermanentStats): number {
+  if (scaling === 'mastery') return stats.mastery
   return scaling === 'atk' ? stats.atk : scaling === 'hp' ? stats.hp : stats.def
 }
 
@@ -243,6 +244,8 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     enemy: EnemyModifiers
     /** 效果表提供的反应加成（专用加成、提升乘区、反应系数乘区），按加法叠加。 */
     reactionBonus?: ReactionBonus
+    /** 命中当帧由效果附加的固定基础伤害（来歆余响）。 */
+    flatBase?: FlatBaseBonus[]
     effects: string[]
     reaction?: ReactionDeclaration
     path: string
@@ -257,6 +260,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       return [{ code: 'missing', path: `contexts.${options.actorId}.base`, message: '面板增量含 atkPct / hpPct / defPct，但上下文没有提供基础面板 base，无法折算' }]
     }
     const stats = applyPanelModifiers(context.stats, options.stats, context.base)
+    const flatBase = (options.flatBase ?? []).reduce((sum, flat) => sum + statFor(flat.scaling, stats) * flat.ratio, 0)
     const defenseReduction = context.debuffs.defenseReduction + options.enemy.defenseReduction
     const defenseIgnore = context.debuffs.defenseIgnore + options.enemy.defenseIgnore
     const resistanceReduction = context.debuffs.resistanceReduction + options.enemy.resistanceReduction
@@ -267,7 +271,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       source: context.source,
       targetId: preset.id,
       scaling: [{ stat: statFor(options.scaling, stats), multiplier: options.motionValue }],
-      additiveBase: 0,
+      additiveBase: flatBase,
       damageBonus: damageBonusFor(options.element, stats, damageKindOf(options.actionId)),
       canCrit: options.canCrit,
       crit: context.crit,
@@ -409,6 +413,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       stats,
       enemy,
       effects: activeIds(plan, hit.actorId, hit.frame, hit.activeEffects),
+      ...(hit.flatBase ? { flatBase: hit.flatBase } : {}),
       reaction: hit.reaction,
       reactionBonus: modifiers.reaction,
       path: `hits.${index}`

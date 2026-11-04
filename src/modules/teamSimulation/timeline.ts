@@ -225,6 +225,15 @@ export interface TimelineHit {
   modifiers: { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
   /** 该命中结算时「在场」的效果 id（快照早于本发携带的触发，所以自己不吃自己的加成）。 */
   activeEffects: string[]
+  /** 命中当帧由效果附加的固定基础伤害（来歆余响的「幽谷祝祀」）：按属性折算后加进基伤。 */
+  flatBase?: FlatBaseBonus[]
+}
+
+/** 固定值基础伤害：`stat × ratio` 直接加进这一发的基伤。 */
+export interface FlatBaseBonus {
+  effectId: string
+  scaling: 'atk' | 'def' | 'hp' | 'mastery'
+  ratio: number
 }
 
 export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'energy-restore' | 'trigger-cost' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger' | 'effect-tick'
@@ -655,7 +664,31 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         ? { ...declaredReaction, count: effectRuntime.stacksAt(declaredReaction.countFrom, item.actorId, queued.frame) }
         : declaredReaction
       const activeEffects = effectRuntime.activeAt(item.actorId, queued.frame)
-      hits.push({ frame: queued.frame, actorId: item.actorId, actionId: item.actionId, hitIndex: item.hitIndex, motionValue: item.hit.motionValue, scaling: item.hit.scaling, element: item.hit.element, canCrit: item.hit.canCrit, triggerIds: item.hit.triggerIds ?? [], reaction, modifiers, activeEffects })
+      const hitKind = actions[item.actionId]?.kind
+      const matchesHitKind = (on: EffectTriggerKind) => on === 'hit' ||
+        (on === 'skill-hit' && hitKind === 'skill') ||
+        (on === 'normal-hit' && hitKind === 'normal') ||
+        (on === 'charged-hit' && hitKind === 'charged') ||
+        (on === 'plunge-hit' && hitKind === 'plunge') ||
+        (on === 'geo-hit' && item.hit.element === 'geo')
+      /*
+       * 固定值伤害（来歆余响）必须在同一发命中里结算，所以先于 `hits.push` 触发；
+       * 这类效果没有面板加成，触发只用来记事件与显示，伤害走 `flatBase`。
+       */
+      const flatBase: FlatBaseBonus[] = []
+      const consumed = new Set<string>()
+      for (const entry of effectTriggers) {
+        if (entry.actorId !== item.actorId) continue
+        const flat = effectRuntime.specOf(entry.effectId)?.flatDamage
+        if (!flat || !matchesHitKind(entry.on)) continue
+        const fired = effectRuntime.trigger(entry.effectId, queued.frame, item.actorId)
+        if (!fired) continue
+        triggers.push(fired)
+        consumed.add(entry.effectId)
+        record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: entry.on })
+        flatBase.push({ effectId: entry.effectId, scaling: flat.scaling, ratio: flat.ratio })
+      }
+      hits.push({ frame: queued.frame, actorId: item.actorId, actionId: item.actionId, hitIndex: item.hitIndex, motionValue: item.hit.motionValue, scaling: item.hit.scaling, element: item.hit.element, canCrit: item.hit.canCrit, triggerIds: item.hit.triggerIds ?? [], reaction, modifiers, activeEffects, ...(flatBase.length ? { flatBase } : {}) })
       record(queued.frame, 'hit', 'hit', item.actorId, item.actionId, { hitIndex: item.hitIndex, motionValue: item.hit.motionValue, element: item.hit.element })
       for (const [index, effectId] of (item.hit.triggerIds ?? []).entries()) {
         if (!effectRuntime.has(effectId)) { add('unsupported', `actions.${item.actionId}.hits.${item.hitIndex}.triggerIds.${index}`, `触发标记 ${effectId} 在效果表里没有登记，无法兑现`); continue }
@@ -670,16 +703,10 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
        * 与 `triggerIds` 一样在本发结算之后激活，不影响本次命中。
        */
       {
-        const hitKind = actions[item.actionId]?.kind
         for (const entry of effectTriggers) {
           if (entry.actorId !== item.actorId) continue
-          const matches = entry.on === 'hit' ||
-            (entry.on === 'skill-hit' && hitKind === 'skill') ||
-            (entry.on === 'normal-hit' && hitKind === 'normal') ||
-            (entry.on === 'charged-hit' && hitKind === 'charged') ||
-            (entry.on === 'plunge-hit' && hitKind === 'plunge') ||
-            (entry.on === 'geo-hit' && item.hit.element === 'geo')
-          if (!matches) continue
+          if (consumed.has(entry.effectId)) continue
+          if (!matchesHitKind(entry.on)) continue
           const spec = effectRuntime.specOf(entry.effectId)
           const icd = Number(spec?.icdFrames) || 0
           const key = `${entry.effectId}@${entry.actorId}`

@@ -383,6 +383,18 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
     },
     note: '4 件套：获得元素微粒或晶球时，为队伍恢复 3 点元素能量，每 3 秒至多一次',
     unmodeled: '4 件套「只对队伍中的弓箭与法器角色生效」需要按武器类型过滤，当前对全队生效'
+  },
+  '400204': {
+    effect: {
+      id: 'artifact-set:400204:4pc',
+      target: 'self',
+      durationFrames: 3,
+      trigger: 'normal-hit',
+      stacking: 'refresh',
+      flatDamage: { scaling: 'atk', ratio: 0.7 * 0.5020362 }
+    },
+    note: '4 件套：普通攻击命中时 36% 概率追加一段「幽谷祝祀」，伤害为攻击力的 70%；未触发时下次概率 +20%（第 5 次必触发）。按期望折算为每次普攻 +攻击力的 35.1%',
+    unmodeled: '36% 概率与 +20% 递增按期望折算（平均每 1.99 次普攻触发一次）；「0.2 秒内至多判定一次」未按时间窗去重'
   }
 }
 
