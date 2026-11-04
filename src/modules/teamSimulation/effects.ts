@@ -90,6 +90,11 @@ export interface EffectSpec {
   icdFrames?: number
   /** 后台计时间隔（帧）：`off-field-tick` 必填，3 秒 = 180 帧。 */
   tickFrames?: number
+  /**
+   * 按触发来源给不同层数（长夜之誓：下落 +1、重击 +2、战技 +2）。
+   * 没写的来源按 1 层算。
+   */
+  stacksPerTrigger?: Partial<Record<EffectTriggerKind, number>>
 }
 
 export interface TriggerRecord {
@@ -177,6 +182,15 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
   } else if (spec.maxStacks !== undefined) {
     add('invalid', `${p}.maxStacks`, '只有叠层策略才需要层数上限，其余策略写上限会被静默忽略')
   }
+  if (spec.stacksPerTrigger !== undefined) {
+    if (!isInteger(spec.maxStacks) || spec.stacking !== 'stack') add('invalid', `${p}.stacksPerTrigger`, '按来源给层数只对叠层策略有意义')
+    else if (!spec.stacksPerTrigger || typeof spec.stacksPerTrigger !== 'object' || Array.isArray(spec.stacksPerTrigger)) add('invalid', `${p}.stacksPerTrigger`, '按来源给层数必须是对象')
+    else for (const [kind, amount] of Object.entries(spec.stacksPerTrigger)) {
+      if (!EFFECT_TRIGGER_KINDS.includes(kind as EffectTriggerKind)) add('unsupported', `${p}.stacksPerTrigger.${kind}`, `未知触发时机 ${kind}`)
+      else if (!allTriggers.includes(kind as EffectTriggerKind)) add('invalid', `${p}.stacksPerTrigger.${kind}`, `来源 ${kind} 不在这个效果的触发列表里`)
+      else if (!isInteger(amount) || amount <= 0) add('invalid', `${p}.stacksPerTrigger.${kind}`, '每层数必须是正整数')
+    }
+  }
   return issues
 }
 
@@ -203,7 +217,7 @@ export interface EffectRuntime {
   /** 取效果定义（触发冷却、计时间隔等在时间轴侧读取）。 */
   specOf(effectId: string): EffectSpec | undefined
   /** 在 `frame` 帧由 `actorId` 触发，返回本次实际生效的记录；叠层已满或 ignore 命中时返回 undefined。 */
-  trigger(effectId: string, frame: number, actorId: string): TriggerRecord | undefined
+  trigger(effectId: string, frame: number, actorId: string, amount?: number): TriggerRecord | undefined
   /** 该角色在该帧实际吃的面板增量、全局敌人减益与反应加成。 */
   modifiersAt(actorId: string, frame: number): { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
   /**
@@ -239,20 +253,22 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
   return {
     has: effectId => Object.prototype.hasOwnProperty.call(table, effectId),
     specOf: effectId => table[effectId],
-    trigger(effectId, frame, actorId) {
+    trigger(effectId, frame, actorId, amount = 1) {
       const spec = table[effectId]
       if (!spec) return undefined
       const key = entryKey(spec, actorId)
       const expiresAt = expiryOf(spec, frame)
       const existing = entries.get(key)
       const policy: StackingPolicy = spec.stacking ?? 'refresh'
+      const gain = Math.max(1, Math.trunc(amount))
+      const cap = spec.maxStacks ?? 1
       // 旧记录已经到期就按新状态重来：否则叠层会带着上一轮的层数与起点继续累，层数封顶后永远回不到 1。
       if (existing && frame >= existing.expiresAt) entries.delete(key)
       const live = entries.get(key)
       if (live) {
         if (policy === 'ignore') return undefined
         if (policy === 'stack') {
-          live.stacks = Math.min(spec.maxStacks ?? 1, live.stacks + 1)
+          live.stacks = Math.min(cap, live.stacks + gain)
           live.expiresAt = expiresAt
         } else {
           live.stacks = 1
@@ -262,9 +278,9 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
         triggers.push(record)
         return record
       }
-      const entry: Entry = { spec, key, actorId: spec.target === 'self' ? actorId : undefined, stacks: 1, startedAt: frame, expiresAt }
+      const entry: Entry = { spec, key, actorId: spec.target === 'self' ? actorId : undefined, stacks: Math.min(cap, gain), startedAt: frame, expiresAt }
       entries.set(key, entry)
-      const record: TriggerRecord = { frame, actorId, effectId, stacks: 1, startsAt: frame, expiresAt }
+      const record: TriggerRecord = { frame, actorId, effectId, stacks: entry.stacks, startsAt: frame, expiresAt }
       triggers.push(record)
       return record
     },

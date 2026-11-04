@@ -669,7 +669,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
           const key = `${entry.effectId}@${entry.actorId}`
           const last = hitTriggerAt.get(key)
           if (last !== undefined && queued.frame - last < icd) continue
-          const fired = effectRuntime.trigger(entry.effectId, queued.frame, entry.actorId)
+          const fired = effectRuntime.trigger(entry.effectId, queued.frame, entry.actorId, spec?.stacksPerTrigger?.[entry.on] ?? 1)
           if (!fired) continue
           if (icd > 0) hitTriggerAt.set(key, queued.frame)
           triggers.push(fired)

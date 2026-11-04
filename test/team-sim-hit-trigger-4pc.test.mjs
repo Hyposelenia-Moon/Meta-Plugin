@@ -54,6 +54,79 @@ const specOf = (charId, name, weaponId, effectId) => {
   assert.equal(spec.stats.atkPct, 0.07)
 }
 
+{
+  const { spec, audit } = specOf('10000023', '香菱', '13407', 'artifact-set:400341:4pc')
+  assert.equal(spec.trigger, 'plunge-hit')
+  assert.deepEqual(spec.extraTriggers, ['charged-hit', 'skill-hit'])
+  assert.equal(spec.stats.plungeDmg, 0.15)
+  assert.equal(spec.maxStacks, 5)
+  assert.equal(spec.icdFrames, 60)
+  assert.deepEqual(spec.stacksPerTrigger, { 'plunge-hit': 1, 'charged-hit': 2, 'skill-hit': 2 })
+  assert.equal(audit.status, 'verified-static')
+  assert.ok(audit.unmodeled, '每层独立计时按整池刷新近似，必须披露')
+}
+
+{
+  const { spec, audit } = specOf('10000023', '香菱', '13407', 'artifact-set:400391:4pc')
+  assert.equal(spec.trigger, 'hit')
+  assert.equal(spec.stats.atkPct, 0.25)
+  assert.equal(spec.durationFrames, 360)
+  assert.ok(audit.unmodeled, '魔女课业升级未建模，必须披露')
+}
+
+{
+  const { spec, audit } = specOf('10000023', '香菱', '13407', 'artifact-set:400179:4pc')
+  assert.equal(spec.trigger, 'cast-skill')
+  assert.equal(spec.stats.normalDmg, 0.5)
+  assert.equal(spec.durationFrames, 600)
+  assert.ok(audit.unmodeled, '能量扣减未建模，必须披露')
+}
+
+// ---------- 1b. 长夜之誓：按来源给层数、共用 1 秒冷却 ----------
+{
+  const effects = {
+    'artifact-set:400341:4pc': {
+      id: 'artifact-set:400341:4pc', target: 'self',
+      stats: { plungeDmg: 0.15 }, durationFrames: 360,
+      trigger: 'plunge-hit', extraTriggers: ['charged-hit', 'skill-hit'],
+      stacking: 'stack', maxStacks: 5, icdFrames: 60,
+      stacksPerTrigger: { 'plunge-hit': 1, 'charged-hit': 2, 'skill-hit': 2 }
+    }
+  }
+  const mk = (id, kind, atFrame) => ({
+    id, actorId: 'actor:0', kind,
+    timing: { type: 'frames', frames: 30 },
+    hits: [{ atFrame, motionValue: 1, scaling: 'atk', element: 'physical', canCrit: true }]
+  })
+  const actions = {
+    'a0.charged': mk('a0.charged', 'charged', 6),
+    'a0.skill': mk('a0.skill', 'skill', 6),
+    'a0.plunge': mk('a0.plunge', 'plunge', 6)
+  }
+  const run = simulateTimeline({
+    scheduler: 'fixed',
+    steps: [
+      { id: 's1', kind: 'action', actorId: 'actor:0', actionId: 'a0.charged', atFrame: 0 },
+      { id: 's2', kind: 'action', actorId: 'actor:0', actionId: 'a0.skill', atFrame: 30 },
+      { id: 's3', kind: 'action', actorId: 'actor:0', actionId: 'a0.plunge', atFrame: 80 }
+    ],
+    actions,
+    actors: [{ actorId: 'actor:0', energy: 0, energyMax: 60 }],
+    activeActorId: 'actor:0',
+    frameTier: FRAME_TIERS['fps-60'],
+    measurementEndFrame: 300,
+    effects,
+    effectTriggers: [
+      { effectId: 'artifact-set:400341:4pc', actorId: 'actor:0', on: 'charged-hit' },
+      { effectId: 'artifact-set:400341:4pc', actorId: 'actor:0', on: 'skill-hit' },
+      { effectId: 'artifact-set:400341:4pc', actorId: 'actor:0', on: 'plunge-hit' }
+    ]
+  })
+  assert.equal(run.status, 'simulated', JSON.stringify(run.issues))
+  const fired = run.triggers.filter(t => t.effectId === 'artifact-set:400341:4pc')
+  assert.deepEqual(fired.map(t => [t.frame, t.stacks]), [[6, 2], [86, 3]], '重击 +2、战技在冷却内不再叠、下落 +1')
+}
+
 // ---------- 2. 时间轴：重击命中触发沙上楼阁 ----------
 {
   const effects = {
