@@ -8,13 +8,14 @@
 import type { Issue, PermanentStats } from './types.js'
 
 /**
- * 面板键：只有这些键可以加到结算面板上，`hpPct` 这类构筑期百分比不在其中。
+ * 面板键：只有这些键可以加到结算面板上。
+ * `atkPct / hpPct / defPct` 是按**基础面板**（角色+武器白值）折算的百分比加成，结算时由 `applyPanelModifiers` 换算；
  * `normalDmg`…`burstDmg` 是技能类型伤害加成（4 件套等静态效果直接加进 A 乘区）。
  */
-export const PANEL_STAT_KEYS = ['hp', 'atk', 'def', 'mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro', 'normalDmg', 'chargedDmg', 'plungeDmg', 'skillDmg', 'burstDmg'] as const
+export const PANEL_STAT_KEYS = ['hp', 'atk', 'def', 'mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro', 'normalDmg', 'chargedDmg', 'plungeDmg', 'skillDmg', 'burstDmg', 'atkPct', 'hpPct', 'defPct'] as const
 export type PanelStatKey = typeof PANEL_STAT_KEYS[number]
 
-/** 面板增量必须与 `PermanentStats` 的键一一对应，类型上防止有人把构筑期百分比当面板加成。 */
+/** 面板增量：最终面板值或按白值折算的百分比（pct 类需要调用方提供 base）。 */
 export type PanelModifiers = Partial<Record<PanelStatKey, number>>
 
 export interface EnemyModifiers {
@@ -43,8 +44,26 @@ export const NO_REACTION_BONUS: ReactionBonus = { fypct: 0, elevated: 0, kNum: 0
 export type EffectTarget = 'self' | 'team' | 'enemy'
 export type StackingPolicy = 'refresh' | 'stack' | 'ignore'
 
-/** 动作起手触发的效果时机（4 件套「施放战技/爆发后」一类）。 */
-export type EffectTriggerKind = 'cast-skill' | 'cast-burst'
+/**
+ * 效果触发时机：动作起手（施放战技/爆发）、命中、岩元素伤害命中、后台自动计时。
+ *
+ * - `hit`：装备者任意命中（水仙之梦「镜中水仙」这类多来源共用池）；
+ * - `normal-hit` / `charged-hit` / `plunge-hit` / `skill-hit`：按动作类型命中触发；
+ * - `geo-hit`：命中元素为岩时触发（华馆「魄力」）；
+ * - `off-field-tick`：角色不在场时每 `tickFrames` 帧触发一次（华馆后台叠层）。
+ * 命中类触发都可配 `icdFrames` 限制触发间隔。
+ */
+export type EffectTriggerKind =
+  | 'cast-skill' | 'cast-burst'
+  | 'hit' | 'normal-hit' | 'charged-hit' | 'plunge-hit' | 'skill-hit' | 'geo-hit'
+  | 'particle' | 'off-field-tick'
+
+/** 允许配 `icdFrames` 的命中类触发 */
+export const HIT_TRIGGER_KINDS: ReadonlyArray<EffectTriggerKind> = ['hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit']
+
+export const EFFECT_TRIGGER_KINDS: ReadonlyArray<EffectTriggerKind> = [
+  'cast-skill', 'cast-burst', 'hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit', 'particle', 'off-field-tick'
+]
 
 /**
  * 效果定义。`self` 与 `team` 加面板，`enemy` 减抗减防；两者互斥，避免「一个效果既加面板又减抗」这种口径不清的写法。
@@ -65,6 +84,42 @@ export interface EffectSpec {
   reactionBonus?: ReactionBonus
   /** 触发时机；给定时不再常驻，只在对应动作起手被激活。 */
   trigger?: EffectTriggerKind
+  /** 同一效果除主触发外还接受哪些触发（华馆：岩伤命中 + 后台计时共用同一个叠层池）。 */
+  extraTriggers?: EffectTriggerKind[]
+  /** 触发冷却（帧）：`geo-hit` 一类高频触发用，0.3 秒 = 18 帧。 */
+  icdFrames?: number
+  /** 后台计时间隔（帧）：`off-field-tick` 必填，3 秒 = 180 帧。 */
+  tickFrames?: number
+  /**
+   * 按触发来源给不同层数（长夜之誓：下落 +1、重击 +2、战技 +2）。
+   * 没写的来源按 1 层算。
+   */
+  stacksPerTrigger?: Partial<Record<EffectTriggerKind, number>>
+  /**
+   * 触发时消耗的能量（追忆之注连：施放战技时若能量 ≥15 则流失 15 点）。
+   * 只对 `cast-skill` / `cast-burst` 有意义；能量不足时本次不触发，并记 `skipped: energy`。
+   */
+  energyCost?: number
+  /**
+   * 触发后回能（流放者：施放爆发后每 2 秒给全队回 2 点）。
+   * `everyFrames + times` 表示按间隔补发几次；不写间隔就立刻补一次。
+   */
+  energyRestore?: {
+    amount: number
+    target: 'team' | 'self'
+    excludeSelf?: boolean
+    everyFrames?: number
+    times?: number
+  }
+  /**
+   * 命中时附加的固定基础伤害（来歆余响：普通攻击命中时按攻击力的 70% 加一段伤害）。
+   * 数值 = `scaling` 对应的面板 × `ratio`，加进本发命中的基伤后再走防御/抗性/增伤/暴击。
+   * 只能挂在命中类触发上；概率型效果由数据侧折算成期望值，内核不掷骰。
+   */
+  flatDamage?: {
+    scaling: 'atk' | 'def' | 'hp' | 'mastery'
+    ratio: number
+  }
 }
 
 export interface TriggerRecord {
@@ -112,7 +167,7 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
         else if (!isFiniteNumber(value)) add('invalid', `${p}.stats.${stat}`, '面板增量必须是有限数值')
       }
     }
-  } else if (spec.target === 'self' || spec.target === 'team') {
+  } else if ((spec.target === 'self' || spec.target === 'team') && !spec.energyRestore && !spec.flatDamage) {
     add('missing', `${p}.stats`, '作用于己方的效果必须给面板加成')
   }
 
@@ -133,12 +188,57 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
 
   if (spec.durationFrames !== undefined && (!isInteger(spec.durationFrames) || spec.durationFrames <= 0)) add('invalid', `${p}.durationFrames`, '持续帧数必须是正整数；要一直有效就省略这个字段')
   if (spec.stacking !== undefined && !['refresh', 'stack', 'ignore'].includes(spec.stacking)) add('unsupported', `${p}.stacking`, `未知叠加策略 ${String(spec.stacking)}`)
-  if (spec.trigger !== undefined && spec.trigger !== 'cast-skill' && spec.trigger !== 'cast-burst') add('unsupported', `${p}.trigger`, `未知触发时机 ${String(spec.trigger)}`)
+  if (spec.trigger !== undefined && !EFFECT_TRIGGER_KINDS.includes(spec.trigger)) add('unsupported', `${p}.trigger`, `未知触发时机 ${String(spec.trigger)}`)
   if (spec.trigger !== undefined && spec.durationFrames === undefined) add('missing', `${p}.durationFrames`, '触发式效果必须给持续时间：常驻到窗口结束的那套写法只适用于开局即生效的效果')
+  if (spec.icdFrames !== undefined && (!isInteger(spec.icdFrames) || spec.icdFrames < 0)) add('invalid', `${p}.icdFrames`, '触发冷却必须是非负整数帧')
+  if (spec.tickFrames !== undefined && (!isInteger(spec.tickFrames) || spec.tickFrames <= 0)) add('invalid', `${p}.tickFrames`, '计时间隔必须是正整数帧')
+  if (spec.extraTriggers !== undefined) {
+    if (!Array.isArray(spec.extraTriggers) || spec.extraTriggers.length === 0) add('invalid', `${p}.extraTriggers`, '附加触发必须是非空数组')
+    else for (const [index, kind] of spec.extraTriggers.entries()) {
+      if (!EFFECT_TRIGGER_KINDS.includes(kind)) add('unsupported', `${p}.extraTriggers.${index}`, `未知触发时机 ${String(kind)}`)
+    }
+  }
+  const allTriggers = [spec.trigger, ...(spec.extraTriggers ?? [])].filter((kind): kind is EffectTriggerKind => Boolean(kind))
+  if (allTriggers.includes('off-field-tick') && spec.tickFrames === undefined) add('missing', `${p}.tickFrames`, '后台计时触发必须给计时间隔')
+  if (!allTriggers.includes('off-field-tick') && spec.tickFrames !== undefined) add('invalid', `${p}.tickFrames`, '只有后台计时触发才需要计时间隔')
+  if (!allTriggers.some(kind => HIT_TRIGGER_KINDS.includes(kind)) && !allTriggers.includes('particle') && spec.icdFrames !== undefined) add('invalid', `${p}.icdFrames`, '只有命中类与产球触发才需要触发冷却')
   if (spec.stacking === 'stack') {
     if (!isInteger(spec.maxStacks) || spec.maxStacks <= 0) add('invalid', `${p}.maxStacks`, '叠层策略必须给出正整数层数上限')
   } else if (spec.maxStacks !== undefined) {
     add('invalid', `${p}.maxStacks`, '只有叠层策略才需要层数上限，其余策略写上限会被静默忽略')
+  }
+  if (spec.stacksPerTrigger !== undefined) {
+    if (!isInteger(spec.maxStacks) || spec.stacking !== 'stack') add('invalid', `${p}.stacksPerTrigger`, '按来源给层数只对叠层策略有意义')
+    else if (!spec.stacksPerTrigger || typeof spec.stacksPerTrigger !== 'object' || Array.isArray(spec.stacksPerTrigger)) add('invalid', `${p}.stacksPerTrigger`, '按来源给层数必须是对象')
+    else for (const [kind, amount] of Object.entries(spec.stacksPerTrigger)) {
+      if (!EFFECT_TRIGGER_KINDS.includes(kind as EffectTriggerKind)) add('unsupported', `${p}.stacksPerTrigger.${kind}`, `未知触发时机 ${kind}`)
+      else if (!allTriggers.includes(kind as EffectTriggerKind)) add('invalid', `${p}.stacksPerTrigger.${kind}`, `来源 ${kind} 不在这个效果的触发列表里`)
+      else if (!isInteger(amount) || amount <= 0) add('invalid', `${p}.stacksPerTrigger.${kind}`, '每层数必须是正整数')
+    }
+  }
+  if (spec.energyCost !== undefined) {
+    if (!isInteger(spec.energyCost) || spec.energyCost <= 0) add('invalid', `${p}.energyCost`, '触发消耗必须是正整数能量')
+    else if (!allTriggers.some(kind => kind === 'cast-skill' || kind === 'cast-burst')) add('invalid', `${p}.energyCost`, '消耗能量只适用于起手触发（cast-skill / cast-burst）')
+  }
+  if (spec.energyRestore !== undefined) {
+    const r = spec.energyRestore
+    if (!r || typeof r !== 'object' || Array.isArray(r)) add('invalid', `${p}.energyRestore`, '回能必须是对象')
+    else {
+      if (!isFiniteNumber(r.amount) || r.amount <= 0) add('invalid', `${p}.energyRestore.amount`, '回能量必须是正数')
+      if (r.target !== 'team' && r.target !== 'self') add('unsupported', `${p}.energyRestore.target`, `未知回能对象 ${String(r.target)}`)
+      if (r.excludeSelf !== undefined && typeof r.excludeSelf !== 'boolean') add('invalid', `${p}.energyRestore.excludeSelf`, 'excludeSelf 必须是布尔值')
+      if (r.everyFrames !== undefined && (!isInteger(r.everyFrames) || r.everyFrames <= 0)) add('invalid', `${p}.energyRestore.everyFrames`, '回能间隔必须是正整数帧')
+      if (r.times !== undefined && (!isInteger(r.times) || r.times <= 0)) add('invalid', `${p}.energyRestore.times`, '回能次数必须是正整数')
+      if (r.everyFrames !== undefined && r.times === undefined) add('missing', `${p}.energyRestore.times`, '按间隔回能必须给次数')
+      if (r.times !== undefined && r.everyFrames === undefined) add('missing', `${p}.energyRestore.everyFrames`, '多次回能必须给间隔')
+    }
+    if (spec.flatDamage !== undefined) {
+      const f = spec.flatDamage
+      if (!f || typeof f !== 'object' || Array.isArray(f)) add('invalid', `${p}.flatDamage`, '固定值伤害必须是对象')
+      if (f && !['atk', 'def', 'hp', 'mastery'].includes(String(f.scaling))) add('unsupported', `${p}.flatDamage.scaling`, `未知折算属性 ${String(f.scaling)}`)
+      if (f && (!isFiniteNumber(f.ratio) || f.ratio <= 0)) add('invalid', `${p}.flatDamage.ratio`, '固定值伤害倍率必须是正数')
+      if (f && !allTriggers.some(kind => HIT_TRIGGER_KINDS.includes(kind))) add('invalid', `${p}.flatDamage`, '固定值伤害只能挂在命中类触发上')
+    }
   }
   return issues
 }
@@ -163,8 +263,10 @@ interface Entry {
 export interface EffectRuntime {
   /** 效果是否登记在表里；未登记时由调用方报 unsupported，而不是在这里静默忽略。 */
   has(effectId: string): boolean
+  /** 取效果定义（触发冷却、计时间隔等在时间轴侧读取）。 */
+  specOf(effectId: string): EffectSpec | undefined
   /** 在 `frame` 帧由 `actorId` 触发，返回本次实际生效的记录；叠层已满或 ignore 命中时返回 undefined。 */
-  trigger(effectId: string, frame: number, actorId: string): TriggerRecord | undefined
+  trigger(effectId: string, frame: number, actorId: string, amount?: number): TriggerRecord | undefined
   /** 该角色在该帧实际吃的面板增量、全局敌人减益与反应加成。 */
   modifiersAt(actorId: string, frame: number): { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
   /**
@@ -199,20 +301,23 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
 
   return {
     has: effectId => Object.prototype.hasOwnProperty.call(table, effectId),
-    trigger(effectId, frame, actorId) {
+    specOf: effectId => table[effectId],
+    trigger(effectId, frame, actorId, amount = 1) {
       const spec = table[effectId]
       if (!spec) return undefined
       const key = entryKey(spec, actorId)
       const expiresAt = expiryOf(spec, frame)
       const existing = entries.get(key)
       const policy: StackingPolicy = spec.stacking ?? 'refresh'
+      const gain = Math.max(1, Math.trunc(amount))
+      const cap = spec.maxStacks ?? 1
       // 旧记录已经到期就按新状态重来：否则叠层会带着上一轮的层数与起点继续累，层数封顶后永远回不到 1。
       if (existing && frame >= existing.expiresAt) entries.delete(key)
       const live = entries.get(key)
       if (live) {
         if (policy === 'ignore') return undefined
         if (policy === 'stack') {
-          live.stacks = Math.min(spec.maxStacks ?? 1, live.stacks + 1)
+          live.stacks = Math.min(cap, live.stacks + gain)
           live.expiresAt = expiresAt
         } else {
           live.stacks = 1
@@ -222,9 +327,9 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
         triggers.push(record)
         return record
       }
-      const entry: Entry = { spec, key, actorId: spec.target === 'self' ? actorId : undefined, stacks: 1, startedAt: frame, expiresAt }
+      const entry: Entry = { spec, key, actorId: spec.target === 'self' ? actorId : undefined, stacks: Math.min(cap, gain), startedAt: frame, expiresAt }
       entries.set(key, entry)
-      const record: TriggerRecord = { frame, actorId, effectId, stacks: 1, startsAt: frame, expiresAt }
+      const record: TriggerRecord = { frame, actorId, effectId, stacks: entry.stacks, startsAt: frame, expiresAt }
       triggers.push(record)
       return record
     },
@@ -291,13 +396,27 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
   }
 }
 
-/** 把面板增量加到一个已算好的面板上，返回新对象；不改调用方那份。 */
-export function applyPanelModifiers(stats: PermanentStats, modifiers: PanelModifiers | undefined): PermanentStats {
+/** 基础面板（角色+武器白值）：`atkPct` 一类百分比按它折算；不给就说明调用方没建模这部分。 */
+export interface PanelBase {
+  hp: number
+  atk: number
+  def: number
+}
+
+/**
+ * 把面板增量加到一个已算好的面板上，返回新对象；不改调用方那份。
+ *
+ * `atkPct / hpPct / defPct` 按 `base` 折算成点数；`base` 缺省时这三项记 0，
+ * 但调用方（hitDamage）会先校验、缺 base 直接报错，不会静默少算。
+ */
+export function applyPanelModifiers(stats: PermanentStats, modifiers: PanelModifiers | undefined, base?: PanelBase): PermanentStats {
   if (!modifiers) return { ...stats }
   const merged: PermanentStats = { ...stats }
   for (const [key, value] of Object.entries(modifiers)) {
-    const stat = key as PanelStatKey
-    merged[stat] += value
+    if (key === 'atkPct') { merged.atk += (base?.atk ?? 0) * value; continue }
+    if (key === 'hpPct') { merged.hp += (base?.hp ?? 0) * value; continue }
+    if (key === 'defPct') { merged.def += (base?.def ?? 0) * value; continue }
+    merged[key as Exclude<PanelStatKey, 'atkPct' | 'hpPct' | 'defPct'>] += value
   }
   return merged
 }

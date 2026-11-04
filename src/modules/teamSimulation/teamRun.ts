@@ -1,5 +1,5 @@
 import type { CharacterBuild, Failure, Issue, PermanentData } from './types.js'
-import type { EffectSpec } from './effects.js'
+import type { EffectSpec, EffectTriggerKind } from './effects.js'
 import { buildPermanentStats, validateCharacterBuild, type PermanentDataExpectation } from './build.js'
 import { simulateTimeline, type TimelineResult } from './timeline.js'
 import { calculateTimelineDamage, type CritPolicy, type DamageContext, type DamageDebuffs, type TimelineDamageResult } from './hitDamage.js'
@@ -166,6 +166,8 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
     contexts[build.actorId] = {
       level: build.level,
       stats: permanent.stats,
+      // 白值：atkPct/hpPct/defPct 一类百分比加成的折算基准（武器白值含在 atk 里）
+      base: { hp: permanent.base.hp, atk: permanent.base.atk, def: permanent.base.def },
       targetPresetId: input.targetPresetId,
       crit: input.crit,
       gameVersion: permanent.gameVersion,
@@ -208,13 +210,14 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   const equippedSets = new Set<string>()
   for (const build of Object.values(builds)) for (const artifact of build.artifacts) equippedSets.add(artifact.setId)
   const effects: Record<string, EffectSpec> = { ...(packResult.pack.effects ?? {}) }
-  const effectTriggers: Array<{ effectId: string; actorId: string; on: 'cast-skill' | 'cast-burst' }> = []
+  const effectTriggers: Array<{ effectId: string; actorId: string; on: EffectTriggerKind }> = []
   for (const [actorId, data] of Object.entries(permanentByActor)) {
     for (const [effectId, spec] of Object.entries(data.runtimeEffects ?? {})) {
       const setId = /^artifact-set:([^:]+):/.exec(effectId)?.[1]
       if (!setId || !equippedSets.has(setId)) continue
       effects[effectId] = spec
       effectTriggers.push({ effectId, actorId, on: spec.trigger })
+      for (const extra of spec.extraTriggers ?? []) effectTriggers.push({ effectId, actorId, on: extra })
     }
   }
   const timeline = simulateTimeline({

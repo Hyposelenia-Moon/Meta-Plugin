@@ -1,7 +1,7 @@
 import type { Failure, Issue, OrdinaryDamageResult, OrdinaryHit, PermanentStats } from './types.js'
 import { calculateOrdinaryHit, resistanceMultiplier, TARGET_PRESETS } from './formula.js'
-import { applyPanelModifiers, type EnemyModifiers, type PanelModifiers, type ReactionBonus } from './effects.js'
-import type { ReactionDeclaration, TimelineHit, TimelineResult } from './timeline.js'
+import { applyPanelModifiers, type EnemyModifiers, type PanelBase, type PanelModifiers, type ReactionBonus } from './effects.js'
+import type { FlatBaseBonus, ReactionDeclaration, TimelineHit, TimelineResult } from './timeline.js'
 import type { MechanismPlan, StatWindow, EnemyWindow } from './mechanisms.js'
 import {
   isReactiveKind,
@@ -31,6 +31,11 @@ export interface DamageContext {
   /** 角色等级，参与防御区计算；必须与算面板时用的等级一致。 */
   level: number
   stats: PermanentStats
+  /**
+   * 基础面板（角色+武器白值）：`atkPct / hpPct / defPct` 一类百分比增量按它折算。
+   * 不提供时只允许面板增量里出现最终值；出现百分比会直接报错，不静默少算。
+   */
+  base?: PanelBase
   /** 只接受 TARGET_PRESETS 里的只读目标口径。 */
   targetPresetId: string
   crit: CritPolicy
@@ -104,7 +109,8 @@ function damageBonusFor (element: TimelineHit['element'], stats: PermanentStats,
   return base + Number(stats[DAMAGE_KIND_BONUS[kind]] ?? 0)
 }
 
-function statFor(scaling: TimelineHit['scaling'], stats: PermanentStats): number {
+function statFor(scaling: TimelineHit['scaling'] | 'mastery', stats: PermanentStats): number {
+  if (scaling === 'mastery') return stats.mastery
   return scaling === 'atk' ? stats.atk : scaling === 'hp' ? stats.hp : stats.def
 }
 
@@ -175,6 +181,14 @@ function validateContext(context: DamageContext | undefined, prefix: string): Is
       else if (debuffs[key] !== 0) add('unsupported', `${prefix}.debuffs.${key}`, 'P1 没有建模常驻队伍减防/减抗，减益必须走机制窗口')
     }
   }
+  if (context.base !== undefined) {
+    if (!context.base || typeof context.base !== 'object') add('invalid', `${prefix}.base`, '基础面板必须是对象')
+    else {
+      for (const key of ['hp', 'atk', 'def'] as const) {
+        if (!isFiniteNumber(context.base[key]) || context.base[key] < 0) add('invalid', `${prefix}.base.${key}`, '基础面板数值必须是非负有限值')
+      }
+    }
+  }
   return issues
 }
 
@@ -230,13 +244,23 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     enemy: EnemyModifiers
     /** 效果表提供的反应加成（专用加成、提升乘区、反应系数乘区），按加法叠加。 */
     reactionBonus?: ReactionBonus
+    /** 命中当帧由效果附加的固定基础伤害（来歆余响）。 */
+    flatBase?: FlatBaseBonus[]
     effects: string[]
     reaction?: ReactionDeclaration
     path: string
   }): Issue[] => {
     const context = contexts[options.actorId]
     if (!context) return [{ code: 'missing', path: `contexts.${options.actorId}`, message: `命中来自 ${options.actorId}，但没有提供该角色的面板` }]
-    const stats = applyPanelModifiers(context.stats, options.stats)
+    const hasPct = ['atkPct', 'hpPct', 'defPct'].some(key => {
+      const value = (options.stats as Record<string, unknown> | undefined)?.[key]
+      return typeof value === 'number' && Math.abs(value) > 1e-12
+    })
+    if (hasPct && !context.base) {
+      return [{ code: 'missing', path: `contexts.${options.actorId}.base`, message: '面板增量含 atkPct / hpPct / defPct，但上下文没有提供基础面板 base，无法折算' }]
+    }
+    const stats = applyPanelModifiers(context.stats, options.stats, context.base)
+    const flatBase = (options.flatBase ?? []).reduce((sum, flat) => sum + statFor(flat.scaling, stats) * flat.ratio, 0)
     const defenseReduction = context.debuffs.defenseReduction + options.enemy.defenseReduction
     const defenseIgnore = context.debuffs.defenseIgnore + options.enemy.defenseIgnore
     const resistanceReduction = context.debuffs.resistanceReduction + options.enemy.resistanceReduction
@@ -247,7 +271,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       source: context.source,
       targetId: preset.id,
       scaling: [{ stat: statFor(options.scaling, stats), multiplier: options.motionValue }],
-      additiveBase: 0,
+      additiveBase: flatBase,
       damageBonus: damageBonusFor(options.element, stats, damageKindOf(options.actionId)),
       canCrit: options.canCrit,
       crit: context.crit,
@@ -389,6 +413,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       stats,
       enemy,
       effects: activeIds(plan, hit.actorId, hit.frame, hit.activeEffects),
+      ...(hit.flatBase ? { flatBase: hit.flatBase } : {}),
       reaction: hit.reaction,
       reactionBonus: modifiers.reaction,
       path: `hits.${index}`

@@ -141,7 +141,7 @@ fs.rmSync(tmp, { recursive: true, force: true })
   ok('面板试算成功', panel.ok === true, JSON.stringify(panel.issues?.slice(0, 2)))
   ok('面板数值符合手算（防御 737.81×1.3、伤害加成 0.288+0.466）',
     Math.abs(panel.stats.def - 959.153) < 1e-3 && Math.abs(panel.stats.geo - 0.754) < 1e-9, JSON.stringify({ def: panel.stats.def, geo: panel.stats.geo }))
-  ok('未建模的套装/天赋如实列出', panel.unmodeled.some(item => item.id.includes('artifact-set:400189:4pc')))
+  ok('华馆 4 件套现已建模，不再出现在未建模列表', !panel.unmodeled.some(item => item.id.includes('artifact-set:400189:4pc')))
 
   const bad = await E.computePanel({
     characterId: '10000030',

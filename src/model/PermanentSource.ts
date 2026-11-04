@@ -16,7 +16,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { botRoot } from '../dir.js'
 import type { PermanentData, StatKey, StatValue } from '../modules/teamSimulation/types.js'
-import type { EffectSpec } from '../modules/teamSimulation/effects.js'
+import type { EffectSpec, EffectTriggerKind } from '../modules/teamSimulation/effects.js'
 
 /**
  * miao 数据根：优先环境变量，其次按 Yunzai 标准安装位置找；开发仓库不在 Yunzai/plugins 下时
@@ -169,7 +169,7 @@ type EffectEntry = PermanentData['effects'][string]
  * `weaponTypes` 为空表示不限武器；有值时按实装武器类型判断，
  * 条件不成立就不加面板，但要写进 `unmodeled` 披露（否则报告会说「已计入」）。
  */
-const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTypes?: string[]; note: string }> = {
+const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTypes?: string[]; note: string; unmodeled?: string }> = {
   '400089': {
     key: 'normalDmg',
     value: 0.35,
@@ -181,6 +181,12 @@ const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTyp
     value: 0.35,
     weaponTypes: ['catalyst', 'bow'],
     note: '4 件套：重击造成的伤害 +35%（法器/弓）'
+  },
+  '400271': {
+    key: 'skillDmg',
+    value: 0.25,
+    note: '4 件套：元素战技造成的伤害 +25%',
+    unmodeled: '4 件套「处于队伍后台时再 +25%，登场后 2 秒移除」需要在场判定，当前只计入常驻的 +25%'
   }
 }
 
@@ -190,7 +196,7 @@ const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTyp
  * 生效时长按 60fps 帧数写（与现有动作包的帧口径一致）；换档位时尚未折算，
  * 与 §「帧数口径」里记录的限制相同。
  */
-const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: 'cast-skill' | 'cast-burst' }; note: string }> = {
+const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: EffectTriggerKind }; note: string, unmodeled?: string }> = {
   '400164': {
     effect: {
       id: 'artifact-set:400164:4pc',
@@ -200,12 +206,223 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: 'ca
       trigger: 'cast-skill'
     },
     note: '4 件套：施放元素战技后 15 秒内普攻与重击伤害 +30%'
+  },
+  '400119': {
+    effect: {
+      id: 'artifact-set:400119:4pc',
+      target: 'team',
+      stats: { atkPct: 0.2 },
+      durationFrames: 720,
+      trigger: 'cast-burst',
+      stacking: 'ignore'
+    },
+    note: '4 件套：施放元素爆发后全队攻击力 +20%，持续 12 秒（同队不叠加）'
+  },
+  '400169': {
+    effect: {
+      id: 'artifact-set:400169:4pc',
+      target: 'team',
+      stats: { atkPct: 0.2 },
+      durationFrames: 180,
+      trigger: 'skill-hit',
+      stacking: 'refresh'
+    },
+    note: '4 件套：元素战技命中敌人后全队攻击力 +20%，持续 3 秒；护盾强效 30% 不影响伤害、未建模'
+  },
+  '400189': {
+    effect: {
+      id: 'artifact-set:400189:4pc',
+      target: 'self',
+      stats: { defPct: 0.06, geo: 0.06 },
+      durationFrames: 360,
+      trigger: 'geo-hit',
+      extraTriggers: ['off-field-tick'],
+      icdFrames: 18,
+      tickFrames: 180,
+      stacking: 'stack',
+      maxStacks: 4
+    },
+    note: '4 件套：岩元素伤害命中或后台每 3 秒获得 1 层「魄力」，每层防御 +6%、岩元素伤害 +6%，最多 4 层，持续 6 秒'
+  },
+  '400159': {
+    effect: {
+      id: 'artifact-set:400159:4pc',
+      target: 'self',
+      stats: { atkPct: 0.08 },
+      durationFrames: 960,
+      trigger: 'cast-burst',
+      stacking: 'refresh'
+    },
+    note: '4 件套：施放元素爆发后攻击力 +8%，持续 16 秒',
+    unmodeled: '4 件套「生命值降低时攻击力再 +10%、最多 4 层」需要生命值变化模型，当前只计入爆发后的 +8%'
+  },
+  '400028': {
+    effect: {
+      id: 'artifact-set:400028:4pc',
+      target: 'self',
+      stats: { normalDmg: 0.25, chargedDmg: 0.25 },
+      durationFrames: 480,
+      trigger: 'cast-skill',
+      stacking: 'refresh'
+    },
+    note: '4 件套：施放元素战技后 8 秒内，普通攻击与重击伤害 +25%'
+  },
+  '400221': {
+    effect: {
+      id: 'artifact-set:400221:4pc',
+      target: 'self',
+      stats: { normalDmg: 0.4, chargedDmg: 0.4, plungeDmg: 0.4 },
+      durationFrames: 900,
+      trigger: 'charged-hit',
+      stacking: 'refresh'
+    },
+    note: '4 件套：重击命中后 15 秒内，普攻/重击/下落伤害 +40%',
+    unmodeled: '4 件套「普通攻击速度 +10%」会改变动作帧与循环节奏，当前帧表按 gcsim 静态帧计算，未提速'
+  },
+  '400291': {
+    effect: {
+      id: 'artifact-set:400291:4pc',
+      target: 'self',
+      stats: { geo: 0.2 },
+      durationFrames: 600,
+      trigger: 'cast-skill',
+      stacking: 'refresh'
+    },
+    note: '4 件套：施放元素战技后 10 秒内岩元素伤害 +20%',
+    unmodeled: '4 件套「处于结晶护盾或月笼附近时效果提高 150%」需要护盾/月笼状态，当前只计入 +20%'
+  },
+  '400241': {
+    effect: {
+      id: 'artifact-set:400241:4pc',
+      target: 'self',
+      stats: { atkPct: 0.07, hydro: 0.04 },
+      durationFrames: 480,
+      trigger: 'hit',
+      stacking: 'stack',
+      maxStacks: 3,
+      icdFrames: 1
+    },
+    note: '4 件套：命中后获得 1 层「镜中水仙」，1/2/3 层攻击力 +7%/16%/25%、水元素伤害 +4%/9%/15%',
+    unmodeled: '4 件套「不同来源的层独立存在」与 2/3 层的非线性增量（+16%/25%）当前按统一 +7%/+4% 叠 3 层近似，偏高或偏低取决于层数分布'
+  },
+  '400341': {
+    effect: {
+      id: 'artifact-set:400341:4pc',
+      target: 'self',
+      stats: { plungeDmg: 0.15 },
+      durationFrames: 360,
+      trigger: 'plunge-hit',
+      extraTriggers: ['charged-hit', 'skill-hit'],
+      stacking: 'stack',
+      maxStacks: 5,
+      icdFrames: 60,
+      stacksPerTrigger: { 'plunge-hit': 1, 'charged-hit': 2, 'skill-hit': 2 }
+    },
+    note: '4 件套：下落/重击/战技命中后获得 1/2/2 层「永照的流辉」，下落攻击伤害 +15%，至多 5 层，6 秒',
+    unmodeled: '4 件套「每层独立计时」当前按整池刷新近似；三个来源共用同一个 1 秒触发冷却'
+  },
+  '400391': {
+    effect: {
+      id: 'artifact-set:400391:4pc',
+      target: 'self',
+      stats: { atkPct: 0.25 },
+      durationFrames: 360,
+      trigger: 'hit',
+      stacking: 'refresh'
+    },
+    note: '4 件套：普攻/重击/战技/爆发命中后获得「风与牧歌的眷怜」：攻击力 +25%，6 秒',
+    unmodeled: '4 件套「完成魔女课业后升级为决意、额外暴击率 +20%」需要魔女课业状态，当前只计入攻击力 +25%'
+  },
+  '400179': {
+    effect: {
+      id: 'artifact-set:400179:4pc',
+      target: 'self',
+      stats: { normalDmg: 0.5, chargedDmg: 0.5, plungeDmg: 0.5 },
+      durationFrames: 600,
+      trigger: 'cast-skill',
+      stacking: 'refresh',
+      energyCost: 15
+    },
+    note: '4 件套：施放战技时若能量 ≥15 则流失 15 点能量，10 秒内普攻/重击/下落伤害 +50%',
+    unmodeled: '4 件套「持续期间不再触发」当前每次施放战技都会重新触发（层数池按刷新处理）'
+  },
+  '400174': {
+    effect: {
+      id: 'artifact-set:400174:4pc',
+      target: 'self',
+      stats: { atkPct: 0.09 },
+      durationFrames: 420,
+      trigger: 'skill-hit',
+      stacking: 'stack',
+      maxStacks: 2,
+      icdFrames: 18
+    },
+    note: '4 件套：元素战技命中后攻击力 +9%，7 秒，至多 2 层',
+    unmodeled: '4 件套「叠满 2 层时 2 件套效果提升 100%」需要在满层时追加物理伤害加成，当前只计入攻击力部分'
+  },
+  '400043': {
+    effect: {
+      id: 'artifact-set:400043:4pc',
+      target: 'team',
+      durationFrames: 480,
+      trigger: 'cast-burst',
+      stacking: 'refresh',
+      energyRestore: { amount: 2, target: 'team', excludeSelf: true, everyFrames: 120, times: 3 }
+    },
+    note: '4 件套：施放爆发后每 2 秒为队伍中除自己外的角色恢复 2 点元素能量，持续 6 秒'
+  },
+  '400058': {
+    effect: {
+      id: 'artifact-set:400058:4pc',
+      target: 'team',
+      durationFrames: 180,
+      trigger: 'particle',
+      stacking: 'refresh',
+      icdFrames: 180,
+      energyRestore: { amount: 3, target: 'team' }
+    },
+    note: '4 件套：获得元素微粒或晶球时，为队伍恢复 3 点元素能量，每 3 秒至多一次',
+    unmodeled: '4 件套「只对队伍中的弓箭与法器角色生效」需要按武器类型过滤，当前对全队生效'
+  },
+  '400204': {
+    effect: {
+      id: 'artifact-set:400204:4pc',
+      target: 'self',
+      durationFrames: 3,
+      trigger: 'normal-hit',
+      stacking: 'refresh',
+      flatDamage: { scaling: 'atk', ratio: 0.7 * 0.5020362 }
+    },
+    note: '4 件套：普通攻击命中时 36% 概率追加一段「幽谷祝祀」，伤害为攻击力的 70%；未触发时下次概率 +20%（第 5 次必触发）。按期望折算为每次普攻 +攻击力的 35.1%',
+    unmodeled: '36% 概率与 +20% 递增按期望折算（平均每 1.99 次普攻触发一次）；「0.2 秒内至多判定一次」未按时间窗去重'
   }
 }
 
-function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' }>, notes: string[] } {
+/**
+ * 转换式 4 件套：数值依赖组装后的面板，无法写成固定 `modifiers`。
+ * 审计条目声明「已建模」，换算在 `buildPermanentStats` 组装完面板后按 `setId` 执行。
+ */
+const CONVERT_FOUR_PIECE: Record<string, { note: string }> = {
+  '400184': { note: '4 件套：元素爆发伤害 + 元素充能效率的 25%，最多 +75%（面板组装时折算）' }
+}
+
+/**
+ * 对输出伤害没有可计算影响的 4 件套（治疗、抗性、拾取/开箱触发）。
+ * 这套内核只算「我方造成的伤害」，既不结算受击也不结算治疗，所以这些效果按「已判定、不参与计算」登记，
+ * 用 `note` 说明原因，不写 `unmodeled`（写了会当成偏低估披露并拦发布闸门）。
+ */
+const NO_DAMAGE_FOUR_PIECE: Record<string, string> = {
+  '400013': '4 件套：按队伍元素种类获得对应抗性；内核不结算受击伤害，不影响输出',
+  '400018': '4 件套：受到某元素伤害后提升该元素抗性；内核不结算受击伤害，不影响输出',
+  '400047': '4 件套：开启宝箱后持续恢复生命值；内核不结算治疗与拾取，不影响输出',
+  '400052': '4 件套：拾取摩拉时恢复生命值；内核不结算治疗与拾取，不影响输出',
+  '400062': '4 件套：施放爆发时恢复生命值；内核不结算治疗，不影响输出',
+  '400084': '4 件套：施放战技或爆发后提升队伍受治疗效果；内核不结算治疗，不影响输出'
+}
+
+function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, runtimeEffects: Record<string, EffectSpec & { trigger: EffectTriggerKind }>, notes: string[] } {
   const effects: Record<string, EffectEntry> = {}
-  const runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' }> = {}
+  const runtimeEffects: Record<string, EffectSpec & { trigger: EffectTriggerKind }> = {}
   const notes: string[] = []
 
   const ascension = ascensionModifier(character)
@@ -254,20 +471,38 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
     if (typeof four === 'string') {
       const staticFour = STATIC_FOUR_PIECE[setId]
       const triggered = TRIGGERED_FOUR_PIECE[setId]
+      const convert = CONVERT_FOUR_PIECE[setId]
+      const noDamage = NO_DAMAGE_FOUR_PIECE[setId]
       const applies = staticFour !== undefined && (!staticFour.weaponTypes || staticFour.weaponTypes.includes(weaponType))
       if (triggered) {
         // 审计条目只声明「运行时生效」，数值与触发时机放在 runtimeEffects 里。
         effects[`artifact-set:${setId}:4pc`] = {
           status: 'verified-static',
           modifiers: [],
-          runtimeRequired: true
+          runtimeRequired: true,
+          ...(triggered.unmodeled ? { unmodeled: triggered.unmodeled } : {})
         }
         runtimeEffects[`artifact-set:${setId}:4pc`] = triggered.effect
+      } else if (convert) {
+        // 数值依赖组装后的面板，buildPermanentStats 里按 setId 换算。
+        effects[`artifact-set:${setId}:4pc`] = {
+          status: 'verified-static',
+          modifiers: [],
+          runtimeRequired: false
+        }
       } else if (staticFour && applies) {
         effects[`artifact-set:${setId}:4pc`] = {
           status: 'verified-static',
           modifiers: [{ key: staticFour.key, value: staticFour.value }],
-          runtimeRequired: false
+          runtimeRequired: false,
+          ...(staticFour.unmodeled ? { unmodeled: staticFour.unmodeled } : {})
+        }
+      } else if (noDamage) {
+        effects[`artifact-set:${setId}:4pc`] = {
+          status: 'verified-static',
+          modifiers: [],
+          runtimeRequired: false,
+          note: noDamage
         }
       } else if (staticFour) {
         effects[`artifact-set:${setId}:4pc`] = {
