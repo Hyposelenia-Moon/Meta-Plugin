@@ -225,6 +225,14 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: 'ca
   }
 }
 
+/**
+ * 转换式 4 件套：数值依赖组装后的面板，无法写成固定 `modifiers`。
+ * 审计条目声明「已建模」，换算在 `buildPermanentStats` 组装完面板后按 `setId` 执行。
+ */
+const CONVERT_FOUR_PIECE: Record<string, { note: string }> = {
+  '400184': { note: '4 件套：元素爆发伤害 + 元素充能效率的 25%，最多 +75%（面板组装时折算）' }
+}
+
 function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' | 'skill-hit' }>, notes: string[] } {
   const effects: Record<string, EffectEntry> = {}
   const runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' | 'skill-hit' }> = {}
@@ -276,6 +284,7 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
     if (typeof four === 'string') {
       const staticFour = STATIC_FOUR_PIECE[setId]
       const triggered = TRIGGERED_FOUR_PIECE[setId]
+      const convert = CONVERT_FOUR_PIECE[setId]
       const applies = staticFour !== undefined && (!staticFour.weaponTypes || staticFour.weaponTypes.includes(weaponType))
       if (triggered) {
         // 审计条目只声明「运行时生效」，数值与触发时机放在 runtimeEffects 里。
@@ -285,6 +294,13 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
           runtimeRequired: true
         }
         runtimeEffects[`artifact-set:${setId}:4pc`] = triggered.effect
+      } else if (convert) {
+        // 数值依赖组装后的面板，buildPermanentStats 里按 setId 换算。
+        effects[`artifact-set:${setId}:4pc`] = {
+          status: 'verified-static',
+          modifiers: [],
+          runtimeRequired: false
+        }
       } else if (staticFour && applies) {
         effects[`artifact-set:${setId}:4pc`] = {
           status: 'verified-static',

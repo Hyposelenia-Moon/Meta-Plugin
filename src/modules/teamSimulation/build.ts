@@ -244,5 +244,14 @@ export function buildPermanentStats(input: unknown, dataInput: unknown, expected
   if (!Object.values(stats).every(Number.isFinite)) return failure([{ code: 'invalid', path: 'stats', message: '属性累计溢出为非有限数值' }])
   const setCounts: Record<string, number> = Object.create(null)
   for (const a of build.artifacts) setCounts[a.setId] = (setCounts[a.setId] || 0) + 1
+  /*
+   * 转换式 4 件套（2026-11-02 切片 4）：绝缘之旗印 400184，
+   * 元素爆发伤害 + 元素充能效率的 25%，最多 +75%。依赖组装后的充能效率，所以放在这里折算。
+   */
+  if ((setCounts['400184'] || 0) >= 4) {
+    const bonus = Math.min(0.25 * stats.recharge, 0.75)
+    stats.burstDmg = (stats.burstDmg ?? 0) + bonus
+    trace.push({ source: 'artifact-set:400184:4pc', key: 'burstDmg', value: bonus })
+  }
   return { status: 'permanent-ready', scope: 'permanent-stats', simulationReady: false, stats, base, setCounts, runtimeEffects: effectEntries.filter(([, e]) => e.runtimeRequired).map(([id]) => id), unmodeled, trace, gameVersion: d.gameVersion, bundleId: d.bundleId }
 }
