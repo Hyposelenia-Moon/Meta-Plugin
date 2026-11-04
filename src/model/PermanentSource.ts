@@ -16,7 +16,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { botRoot } from '../dir.js'
 import type { PermanentData, StatKey, StatValue } from '../modules/teamSimulation/types.js'
-import type { EffectSpec } from '../modules/teamSimulation/effects.js'
+import type { EffectSpec, EffectTriggerKind } from '../modules/teamSimulation/effects.js'
 
 /**
  * miao 数据根：优先环境变量，其次按 Yunzai 标准安装位置找；开发仓库不在 Yunzai/plugins 下时
@@ -190,7 +190,7 @@ const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTyp
  * 生效时长按 60fps 帧数写（与现有动作包的帧口径一致）；换档位时尚未折算，
  * 与 §「帧数口径」里记录的限制相同。
  */
-const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: 'cast-skill' | 'cast-burst' | 'skill-hit' }; note: string }> = {
+const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: EffectTriggerKind }; note: string, unmodeled?: string }> = {
   '400164': {
     effect: {
       id: 'artifact-set:400164:4pc',
@@ -222,6 +222,33 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: 'ca
       stacking: 'refresh'
     },
     note: '4 件套：元素战技命中敌人后全队攻击力 +20%，持续 3 秒；护盾强效 30% 不影响伤害、未建模'
+  },
+  '400189': {
+    effect: {
+      id: 'artifact-set:400189:4pc',
+      target: 'self',
+      stats: { defPct: 0.06, geo: 0.06 },
+      durationFrames: 360,
+      trigger: 'geo-hit',
+      extraTriggers: ['off-field-tick'],
+      icdFrames: 18,
+      tickFrames: 180,
+      stacking: 'stack',
+      maxStacks: 4
+    },
+    note: '4 件套：岩元素伤害命中或后台每 3 秒获得 1 层「魄力」，每层防御 +6%、岩元素伤害 +6%，最多 4 层，持续 6 秒'
+  },
+  '400159': {
+    effect: {
+      id: 'artifact-set:400159:4pc',
+      target: 'self',
+      stats: { atkPct: 0.08 },
+      durationFrames: 960,
+      trigger: 'cast-burst',
+      stacking: 'refresh'
+    },
+    note: '4 件套：施放元素爆发后攻击力 +8%，持续 16 秒',
+    unmodeled: '4 件套「生命值降低时攻击力再 +10%、最多 4 层」需要生命值变化模型，当前只计入爆发后的 +8%'
   }
 }
 
@@ -233,9 +260,9 @@ const CONVERT_FOUR_PIECE: Record<string, { note: string }> = {
   '400184': { note: '4 件套：元素爆发伤害 + 元素充能效率的 25%，最多 +75%（面板组装时折算）' }
 }
 
-function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' | 'skill-hit' }>, notes: string[] } {
+function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, runtimeEffects: Record<string, EffectSpec & { trigger: EffectTriggerKind }>, notes: string[] } {
   const effects: Record<string, EffectEntry> = {}
-  const runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' | 'skill-hit' }> = {}
+  const runtimeEffects: Record<string, EffectSpec & { trigger: EffectTriggerKind }> = {}
   const notes: string[] = []
 
   const ascension = ascensionModifier(character)
@@ -291,7 +318,8 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
         effects[`artifact-set:${setId}:4pc`] = {
           status: 'verified-static',
           modifiers: [],
-          runtimeRequired: true
+          runtimeRequired: true,
+          ...(triggered.unmodeled ? { unmodeled: triggered.unmodeled } : {})
         }
         runtimeEffects[`artifact-set:${setId}:4pc`] = triggered.effect
       } else if (convert) {

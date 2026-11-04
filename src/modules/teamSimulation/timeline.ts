@@ -7,7 +7,7 @@
  * 现实时间与游戏计时器时间不一样，给默认值等于把前提藏起来。
  */
 import type { Issue } from './types.js'
-import { createEffectRuntime, NO_ENEMY_MODIFIERS, type ActiveEffectState, type EffectSpec, type EnemyModifiers, type PanelModifiers, type ReactionBonus, type TriggerRecord } from './effects.js'
+import { createEffectRuntime, NO_ENEMY_MODIFIERS, type ActiveEffectState, type EffectSpec, type EffectTriggerKind, type EnemyModifiers, type PanelModifiers, type ReactionBonus, type TriggerRecord } from './effects.js'
 import { describeMismatch, describeSpecialMismatch, isReactiveKind, isSpecialKind, isStatefulKind, statefulReason, type ReactionElement } from './reactions.js'
 
 /** 数据编帧用的标称帧率。60 档位上一帧的真实时长是 16.667ms，不是整数毫秒。 */
@@ -201,10 +201,10 @@ export interface TimelineInput {
   /** 效果表：命中段的 `triggerIds` 按这张表结算，未登记的一律拒绝。 */
   effects?: Record<string, EffectSpec>
   /**
-   * 动作起手触发的效果（4 件套「施放战技/爆发后」）：角色起手对应类型的动作时激活。
+   * 条件触发：动作起手（施放战技/爆发）、战技命中、岩元素命中、后台计时。
    * 只列真正穿在身上的套装，别把全库套装都塞进来。
    */
-  effectTriggers?: Array<{ effectId: string; actorId: string; on: 'cast-skill' | 'cast-burst' | 'skill-hit' }>
+  effectTriggers?: Array<{ effectId: string; actorId: string; on: EffectTriggerKind }>
 }
 
 export interface TimelineHit {
@@ -225,7 +225,7 @@ export interface TimelineHit {
   activeEffects: string[]
 }
 
-export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'energy-restore' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger'
+export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'energy-restore' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger' | 'effect-tick'
 
 export interface TimelineEvent {
   frame: number
@@ -470,6 +470,8 @@ type QueueItem =
   | { kind: 'particle'; frame: number; actorId: string; actionId: string; particle: ParticleSpec }
   | { kind: 'energy-restore'; frame: number; actorId: string; actionId: string; restore: EnergyRestoreSpec }
   | { kind: 'action-end'; frame: number; actorId: string; actionId: string }
+  /** 后台计时触发：角色不在场时按间隔叠层（华馆「不在场上时每 3 秒获得 1 层」）。 */
+  | { kind: 'effect-tick'; frame: number; actorId: string; effectId: string }
 
 interface QueuedItem { frame: number; phase: EventPhase; sequence: number; item: QueueItem }
 
@@ -482,6 +484,7 @@ const phaseOf = (kind: QueueItem['kind']): EventPhase => {
     case 'particle': return 'energy'
     case 'energy-restore': return 'energy'
     case 'action-end': return 'state'
+    case 'effect-tick': return 'state'
   }
 }
 
@@ -523,7 +526,9 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     if (typeof item.effectId !== 'string' || !item.effectId) add('missing', `${p}.effectId`, '触发项必须指出效果 id')
     else if (!effectRuntime.has(item.effectId)) add('unsupported', `${p}.effectId`, `触发效果 ${item.effectId} 在效果表里没有登记`)
     if (!actors.has(item.actorId)) add('missing', `${p}.actorId`, `触发角色 ${String(item.actorId)} 不在本队`)
-    if (item.on !== 'cast-skill' && item.on !== 'cast-burst' && item.on !== 'skill-hit') add('unsupported', `${p}.on`, `未知触发时机 ${String(item.on)}`)
+    if (item.on !== 'cast-skill' && item.on !== 'cast-burst' && item.on !== 'skill-hit' && item.on !== 'geo-hit' && item.on !== 'off-field-tick') add('unsupported', `${p}.on`, `未知触发时机 ${String(item.on)}`)
+    else if (item.on === 'geo-hit' && !effectRuntime.specOf(item.effectId)?.icdFrames) add('missing', `${p}.on`, '岩元素命中触发必须给 icdFrames（触发冷却），否则会按每一段命中无上限叠层')
+    else if (item.on === 'off-field-tick' && !effectRuntime.specOf(item.effectId)?.tickFrames) add('missing', `${p}.on`, '后台计时触发必须给 tickFrames（计时间隔）')
   }
 
   const durationCache = new Map<ActionSpec, ResolvedTiming>()
@@ -558,6 +563,8 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   /** 累计卡肉帧数与冻结期的结束帧（现实帧口径）。 */
   let hitlagWindows: { from: number; to: number }[] = []
   let hitlagUntil = -1
+  /** 效果 × 角色的上一次岩元素触发帧（`geo-hit` 的 ICD 用）。 */
+  const geoTriggerAt = new Map<string, number>()
   const push = (item: QueueItem) => {
     const phase = phaseOf(item.kind)
     queue.push({ frame: item.frame, phase, sequence: sequence++, item })
@@ -566,6 +573,18 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const record = (frame: number, phase: EventPhase, kind: TimelineEventKind, actorId?: string, actionId?: string, detail?: Record<string, unknown>) => {
     events.push({ frame, phase, sequence: sequence++, kind, ...(actorId ? { actorId } : {}), ...(actionId ? { actionId } : {}), ...(detail ? { detail } : {}) })
   }
+  /*
+   * 后台计时触发（华馆）：先按间隔把 tick 排进队列，处理时再判断角色当时在不在场。
+   * 排进队列而不是在推进帧时直接算，原因是 ASAP 会反复试探候选帧，直接算会把同一次 tick 结算多遍。
+   */
+  for (const entry of effectTriggers) {
+    if (entry.on !== 'off-field-tick') continue
+    const interval = Number(effectRuntime.specOf(entry.effectId)?.tickFrames) || 0
+    if (interval <= 0) continue
+    for (let frame = interval; frame <= input.measurementEndFrame; frame += interval) {
+      push({ kind: 'effect-tick', frame, actorId: entry.actorId, effectId: entry.effectId })
+    }
+  }
   /**
    * 新动作开始时取消上一个动作尚未发生的命中与收尾。
    * 产球**不取消**：粒子已经发出（或召唤物会在之后产出），换人/接下一个动作不会让它消失，
@@ -573,7 +592,8 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
    */
   const cancelPending = (frame: number) => {
     queue = queue.filter(queued => queued.frame <= frame || queued.item.kind === 'action-start' ||
-      queued.item.kind === 'particle' || queued.item.kind === 'energy-restore' || (queued.item.kind === 'hit' && queued.item.hit.delayed === true))
+      queued.item.kind === 'particle' || queued.item.kind === 'energy-restore' || queued.item.kind === 'effect-tick' ||
+      (queued.item.kind === 'hit' && queued.item.hit.delayed === true))
   }
   /**
    * 卡肉：`[atFrame, atFrame + frames)` 内游戏时钟冻结。做法是把排在这之后的一切整体顺延同样帧数——
@@ -639,7 +659,38 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
           record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: 'skill-hit' })
         }
       }
+      /*
+       * 岩元素命中触发（华馆「魄力」）：按 `icdFrames` 限制同效果同角色的触发间隔；
+       * 与 `skill-hit` 一样在本发结算之后激活，不影响本次命中。
+       */
+      if (item.hit.element === 'geo') {
+        for (const entry of effectTriggers) {
+          if (entry.actorId !== item.actorId || entry.on !== 'geo-hit') continue
+          const spec = effectRuntime.specOf(entry.effectId)
+          const icd = Number(spec?.icdFrames) || 0
+          const key = `${entry.effectId}@${entry.actorId}`
+          const last = geoTriggerAt.get(key)
+          if (last !== undefined && queued.frame - last < icd) continue
+          const fired = effectRuntime.trigger(entry.effectId, queued.frame, entry.actorId)
+          if (!fired) continue
+          geoTriggerAt.set(key, queued.frame)
+          triggers.push(fired)
+          record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: 'geo-hit' })
+        }
+      }
       applyHitlag(queued.frame, item.hit.hitlagFrames ?? 0)
+      return
+    }
+    if (item.kind === 'effect-tick') {
+      // 后台计时（华馆）：角色此刻不在场才叠层；在场时这次 tick 不产生任何效果。
+      if (item.actorId === activeActorId) {
+        record(queued.frame, 'state', 'effect-tick', item.actorId, undefined, { effectId: item.effectId, skipped: 'on-field' })
+        return
+      }
+      const fired = effectRuntime.trigger(item.effectId, queued.frame, item.actorId)
+      if (!fired) return
+      triggers.push(fired)
+      record(queued.frame, 'trigger', 'trigger', item.actorId, undefined, { effectId: item.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: 'off-field-tick' })
       return
     }
     if (item.kind === 'particle') {

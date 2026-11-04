@@ -44,8 +44,13 @@ export const NO_REACTION_BONUS: ReactionBonus = { fypct: 0, elevated: 0, kNum: 0
 export type EffectTarget = 'self' | 'team' | 'enemy'
 export type StackingPolicy = 'refresh' | 'stack' | 'ignore'
 
-/** 效果触发时机：动作起手（施放战技/爆发）或战技命中。 */
-export type EffectTriggerKind = 'cast-skill' | 'cast-burst' | 'skill-hit'
+/**
+ * 效果触发时机：动作起手（施放战技/爆发）、战技命中、岩元素伤害命中、后台自动计时。
+ *
+ * - `geo-hit`：命中元素为岩时触发（华馆「魄力」），可配 `icdFrames` 限制触发间隔；
+ * - `off-field-tick`：角色不在场时每 `tickFrames` 帧触发一次（华馆后台叠层）。
+ */
+export type EffectTriggerKind = 'cast-skill' | 'cast-burst' | 'skill-hit' | 'geo-hit' | 'off-field-tick'
 
 /**
  * 效果定义。`self` 与 `team` 加面板，`enemy` 减抗减防；两者互斥，避免「一个效果既加面板又减抗」这种口径不清的写法。
@@ -66,6 +71,12 @@ export interface EffectSpec {
   reactionBonus?: ReactionBonus
   /** 触发时机；给定时不再常驻，只在对应动作起手被激活。 */
   trigger?: EffectTriggerKind
+  /** 同一效果除主触发外还接受哪些触发（华馆：岩伤命中 + 后台计时共用同一个叠层池）。 */
+  extraTriggers?: EffectTriggerKind[]
+  /** 触发冷却（帧）：`geo-hit` 一类高频触发用，0.3 秒 = 18 帧。 */
+  icdFrames?: number
+  /** 后台计时间隔（帧）：`off-field-tick` 必填，3 秒 = 180 帧。 */
+  tickFrames?: number
 }
 
 export interface TriggerRecord {
@@ -134,8 +145,20 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
 
   if (spec.durationFrames !== undefined && (!isInteger(spec.durationFrames) || spec.durationFrames <= 0)) add('invalid', `${p}.durationFrames`, '持续帧数必须是正整数；要一直有效就省略这个字段')
   if (spec.stacking !== undefined && !['refresh', 'stack', 'ignore'].includes(spec.stacking)) add('unsupported', `${p}.stacking`, `未知叠加策略 ${String(spec.stacking)}`)
-  if (spec.trigger !== undefined && !['cast-skill', 'cast-burst', 'skill-hit'].includes(spec.trigger)) add('unsupported', `${p}.trigger`, `未知触发时机 ${String(spec.trigger)}`)
+  if (spec.trigger !== undefined && !['cast-skill', 'cast-burst', 'skill-hit', 'geo-hit', 'off-field-tick'].includes(spec.trigger)) add('unsupported', `${p}.trigger`, `未知触发时机 ${String(spec.trigger)}`)
   if (spec.trigger !== undefined && spec.durationFrames === undefined) add('missing', `${p}.durationFrames`, '触发式效果必须给持续时间：常驻到窗口结束的那套写法只适用于开局即生效的效果')
+  if (spec.icdFrames !== undefined && (!isInteger(spec.icdFrames) || spec.icdFrames < 0)) add('invalid', `${p}.icdFrames`, '触发冷却必须是非负整数帧')
+  if (spec.tickFrames !== undefined && (!isInteger(spec.tickFrames) || spec.tickFrames <= 0)) add('invalid', `${p}.tickFrames`, '计时间隔必须是正整数帧')
+  if (spec.extraTriggers !== undefined) {
+    if (!Array.isArray(spec.extraTriggers) || spec.extraTriggers.length === 0) add('invalid', `${p}.extraTriggers`, '附加触发必须是非空数组')
+    else for (const [index, kind] of spec.extraTriggers.entries()) {
+      if (!['cast-skill', 'cast-burst', 'skill-hit', 'geo-hit', 'off-field-tick'].includes(kind)) add('unsupported', `${p}.extraTriggers.${index}`, `未知触发时机 ${String(kind)}`)
+    }
+  }
+  const allTriggers = [spec.trigger, ...(spec.extraTriggers ?? [])].filter(Boolean)
+  if (allTriggers.includes('off-field-tick') && spec.tickFrames === undefined) add('missing', `${p}.tickFrames`, '后台计时触发必须给计时间隔')
+  if (!allTriggers.includes('off-field-tick') && spec.tickFrames !== undefined) add('invalid', `${p}.tickFrames`, '只有后台计时触发才需要计时间隔')
+  if (!allTriggers.includes('geo-hit') && spec.icdFrames !== undefined) add('invalid', `${p}.icdFrames`, '只有岩元素命中触发才需要触发冷却')
   if (spec.stacking === 'stack') {
     if (!isInteger(spec.maxStacks) || spec.maxStacks <= 0) add('invalid', `${p}.maxStacks`, '叠层策略必须给出正整数层数上限')
   } else if (spec.maxStacks !== undefined) {
@@ -164,6 +187,8 @@ interface Entry {
 export interface EffectRuntime {
   /** 效果是否登记在表里；未登记时由调用方报 unsupported，而不是在这里静默忽略。 */
   has(effectId: string): boolean
+  /** 取效果定义（触发冷却、计时间隔等在时间轴侧读取）。 */
+  specOf(effectId: string): EffectSpec | undefined
   /** 在 `frame` 帧由 `actorId` 触发，返回本次实际生效的记录；叠层已满或 ignore 命中时返回 undefined。 */
   trigger(effectId: string, frame: number, actorId: string): TriggerRecord | undefined
   /** 该角色在该帧实际吃的面板增量、全局敌人减益与反应加成。 */
@@ -200,6 +225,7 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
 
   return {
     has: effectId => Object.prototype.hasOwnProperty.call(table, effectId),
+    specOf: effectId => table[effectId],
     trigger(effectId, frame, actorId) {
       const spec = table[effectId]
       if (!spec) return undefined
