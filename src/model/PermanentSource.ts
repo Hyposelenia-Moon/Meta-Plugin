@@ -169,7 +169,7 @@ type EffectEntry = PermanentData['effects'][string]
  * `weaponTypes` 为空表示不限武器；有值时按实装武器类型判断，
  * 条件不成立就不加面板，但要写进 `unmodeled` 披露（否则报告会说「已计入」）。
  */
-const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTypes?: string[]; note: string }> = {
+const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTypes?: string[]; note: string; unmodeled?: string }> = {
   '400089': {
     key: 'normalDmg',
     value: 0.35,
@@ -181,6 +181,12 @@ const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTyp
     value: 0.35,
     weaponTypes: ['catalyst', 'bow'],
     note: '4 件套：重击造成的伤害 +35%（法器/弓）'
+  },
+  '400271': {
+    key: 'skillDmg',
+    value: 0.25,
+    note: '4 件套：元素战技造成的伤害 +25%',
+    unmodeled: '4 件套「处于队伍后台时再 +25%，登场后 2 秒移除」需要在场判定，当前只计入常驻的 +25%'
   }
 }
 
@@ -338,6 +344,20 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
     },
     note: '4 件套：施放战技后 10 秒内普攻/重击/下落伤害 +50%',
     unmodeled: '4 件套「若能量 ≥15 则流失 15 点能量、持续期间不再触发」需要能量扣减通道，当前不校验能量也不扣能量'
+  },
+  '400174': {
+    effect: {
+      id: 'artifact-set:400174:4pc',
+      target: 'self',
+      stats: { atkPct: 0.09 },
+      durationFrames: 420,
+      trigger: 'skill-hit',
+      stacking: 'stack',
+      maxStacks: 2,
+      icdFrames: 18
+    },
+    note: '4 件套：元素战技命中后攻击力 +9%，7 秒，至多 2 层',
+    unmodeled: '4 件套「叠满 2 层时 2 件套效果提升 100%」需要在满层时追加物理伤害加成，当前只计入攻击力部分'
   }
 }
 
@@ -347,6 +367,20 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
  */
 const CONVERT_FOUR_PIECE: Record<string, { note: string }> = {
   '400184': { note: '4 件套：元素爆发伤害 + 元素充能效率的 25%，最多 +75%（面板组装时折算）' }
+}
+
+/**
+ * 对输出伤害没有可计算影响的 4 件套（治疗、抗性、拾取/开箱触发）。
+ * 这套内核只算「我方造成的伤害」，既不结算受击也不结算治疗，所以这些效果按「已判定、不参与计算」登记，
+ * 用 `note` 说明原因，不写 `unmodeled`（写了会当成偏低估披露并拦发布闸门）。
+ */
+const NO_DAMAGE_FOUR_PIECE: Record<string, string> = {
+  '400013': '4 件套：按队伍元素种类获得对应抗性；内核不结算受击伤害，不影响输出',
+  '400018': '4 件套：受到某元素伤害后提升该元素抗性；内核不结算受击伤害，不影响输出',
+  '400047': '4 件套：开启宝箱后持续恢复生命值；内核不结算治疗与拾取，不影响输出',
+  '400052': '4 件套：拾取摩拉时恢复生命值；内核不结算治疗与拾取，不影响输出',
+  '400062': '4 件套：施放爆发时恢复生命值；内核不结算治疗，不影响输出',
+  '400084': '4 件套：施放战技或爆发后提升队伍受治疗效果；内核不结算治疗，不影响输出'
 }
 
 function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, runtimeEffects: Record<string, EffectSpec & { trigger: EffectTriggerKind }>, notes: string[] } {
@@ -401,6 +435,7 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
       const staticFour = STATIC_FOUR_PIECE[setId]
       const triggered = TRIGGERED_FOUR_PIECE[setId]
       const convert = CONVERT_FOUR_PIECE[setId]
+      const noDamage = NO_DAMAGE_FOUR_PIECE[setId]
       const applies = staticFour !== undefined && (!staticFour.weaponTypes || staticFour.weaponTypes.includes(weaponType))
       if (triggered) {
         // 审计条目只声明「运行时生效」，数值与触发时机放在 runtimeEffects 里。
@@ -422,7 +457,15 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
         effects[`artifact-set:${setId}:4pc`] = {
           status: 'verified-static',
           modifiers: [{ key: staticFour.key, value: staticFour.value }],
-          runtimeRequired: false
+          runtimeRequired: false,
+          ...(staticFour.unmodeled ? { unmodeled: staticFour.unmodeled } : {})
+        }
+      } else if (noDamage) {
+        effects[`artifact-set:${setId}:4pc`] = {
+          status: 'verified-static',
+          modifiers: [],
+          runtimeRequired: false,
+          note: noDamage
         }
       } else if (staticFour) {
         effects[`artifact-set:${setId}:4pc`] = {

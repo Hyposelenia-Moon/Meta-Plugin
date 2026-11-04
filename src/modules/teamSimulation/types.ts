@@ -77,6 +77,11 @@ export interface PermanentData {
      * 结果会被当成偏低估披露，发布闸门照拦。
      */
     unmodeled?: string
+    /**
+     * 审计说明：该效果已判定「对输出伤害没有可计算的影响」时写在这里，
+     * 与 `unmodeled` 区分——`note` 不参与计算、也不触发偏低估披露。
+     */
+    note?: string
   }>
   /**
    * 运行时触发效果（4 件套「施放战技/爆发后」一类）：`trigger` 必填，

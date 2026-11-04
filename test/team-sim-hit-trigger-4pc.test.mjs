@@ -82,6 +82,38 @@ const specOf = (charId, name, weaponId, effectId) => {
   assert.ok(audit.unmodeled, '能量扣减未建模，必须披露')
 }
 
+// ---------- 1c. 苍白之火与黄金剧团 ----------
+{
+  const { spec, audit } = specOf('10000023', '香菱', '13407', 'artifact-set:400174:4pc')
+  assert.equal(spec.trigger, 'skill-hit')
+  assert.equal(spec.stats.atkPct, 0.09)
+  assert.equal(spec.maxStacks, 2)
+  assert.equal(spec.icdFrames, 18)
+  assert.ok(audit.unmodeled, '满层时 2 件套翻倍未建模，必须披露')
+}
+
+{
+  const runtime = buildRuntimePermanent({ characterId: '10000023', name: '香菱', weaponId: '13407', refinement: 1 })
+  assert.equal(runtime.ok, true)
+  const audit = runtime.data.effects['artifact-set:400271:4pc']
+  assert.ok(audit, '黄金剧团 4 件套应有审计条目')
+  assert.equal(audit.status, 'verified-static')
+  assert.deepEqual(audit.modifiers, [{ key: 'skillDmg', value: 0.25 }])
+  assert.ok(audit.unmodeled, '后台再 +25% 未建模，必须披露')
+}
+
+// ---------- 1d. 无伤害影响类：只登记不计算，不写 unmodeled ----------
+for (const [setId, keyword] of [['400013', '抗性'], ['400018', '抗性'], ['400047', '恢复'], ['400052', '摩拉'], ['400062', '恢复'], ['400084', '治疗']]) {
+  const runtime = buildRuntimePermanent({ characterId: '10000023', name: '香菱', weaponId: '13407', refinement: 1 })
+  assert.equal(runtime.ok, true)
+  const audit = runtime.data.effects[`artifact-set:${setId}:4pc`]
+  assert.ok(audit, `${setId} 应有审计条目`)
+  assert.equal(audit.status, 'verified-static')
+  assert.deepEqual(audit.modifiers, [])
+  assert.equal(audit.unmodeled, undefined, '已判定无伤害影响，不能写 unmodeled')
+  assert.ok(String(audit.note ?? '').includes(keyword), `${setId} 的 note 要说明为什么不影响输出`)
+}
+
 // ---------- 1b. 长夜之誓：按来源给层数、共用 1 秒冷却 ----------
 {
   const effects = {

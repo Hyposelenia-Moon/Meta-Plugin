@@ -210,6 +210,7 @@ export function buildPermanentStats(input: unknown, dataInput: unknown, expected
       else if (effect.status === 'unsupported') add(issues, 'invalid', `permanentData.effects.${source.id}.unmodeled`, 'unsupported 已经整体不支持，不能再声明未建模部分')
       else unmodeled.push({ id: source.id, reason: effect.unmodeled.trim() })
     }
+    if (effect.note !== undefined && (typeof effect.note !== 'string' || !effect.note.trim())) add(issues, 'invalid', `permanentData.effects.${source.id}.note`, 'note 必须是非空字符串')
     effectEntries.push([source.id, effect])
   }
   if (issues.length) return failure(issues)
