@@ -198,6 +198,80 @@ for (const [setId, keyword] of [['400013', '抗性'], ['400018', '抗性'], ['40
   assert.deepEqual(fired.map(t => [t.frame, t.stacks]), [[6, 2], [86, 3]], '重击 +2、战技在冷却内不再叠、下落 +1')
 }
 
+// ---------- 1e. 流放者：爆发后按间隔给队友回能 ----------
+{
+  const effects = {
+    'artifact-set:400043:4pc': {
+      id: 'artifact-set:400043:4pc', target: 'team',
+      durationFrames: 480, trigger: 'cast-burst', stacking: 'refresh',
+      energyRestore: { amount: 2, target: 'team', excludeSelf: true, everyFrames: 120, times: 3 }
+    }
+  }
+  const actions = {
+    'a0.burst': {
+      id: 'a0.burst', actorId: 'actor:0', kind: 'burst',
+      timing: { type: 'frames', frames: 60 },
+      hits: [{ atFrame: 20, motionValue: 1, scaling: 'atk', element: 'physical', canCrit: true }]
+    }
+  }
+  const run = simulateTimeline({
+    scheduler: 'fixed',
+    steps: [{ id: 's1', kind: 'action', actorId: 'actor:0', actionId: 'a0.burst', atFrame: 0 }],
+    actions,
+    actors: [{ actorId: 'actor:0', energy: 0, energyMax: 80 }, { actorId: 'actor:1', energy: 0, energyMax: 80 }],
+    activeActorId: 'actor:0',
+    frameTier: FRAME_TIERS['fps-60'],
+    measurementEndFrame: 500,
+    effects,
+    effectTriggers: [{ effectId: 'artifact-set:400043:4pc', actorId: 'actor:0', on: 'cast-burst' }]
+  })
+  assert.equal(run.status, 'simulated', JSON.stringify(run.issues))
+  const restored = run.events.filter(e => e.kind === 'energy-restore')
+  assert.deepEqual(restored.map(e => e.frame), [120, 240, 360], '每 2 秒回一次，共 3 次')
+  assert.equal(restored.every(e => e.detail.gain['actor:0'] === undefined), true, '不给自己回能')
+  assert.equal(run.actors.find(a => a.actorId === 'actor:1').energy, 6)
+  assert.equal(run.actors.find(a => a.actorId === 'actor:0').energy, 0)
+}
+
+// ---------- 1f. 学士：产球回能受 3 秒 ICD 限制 ----------
+{
+  const effects = {
+    'artifact-set:400058:4pc': {
+      id: 'artifact-set:400058:4pc', target: 'team',
+      durationFrames: 180, trigger: 'particle', stacking: 'refresh', icdFrames: 180,
+      energyRestore: { amount: 3, target: 'team' }
+    }
+  }
+  const actions = {
+    'a0.skill': {
+      id: 'a0.skill', actorId: 'actor:0', kind: 'skill',
+      timing: { type: 'frames', frames: 400 },
+      hits: [{ atFrame: 10, motionValue: 1, scaling: 'atk', element: 'hydro', canCrit: true }],
+      particles: [
+        { atFrame: 20, count: 1, element: 'hydro', travelFrames: 0 },
+        { atFrame: 120, count: 1, element: 'hydro', travelFrames: 0 }
+      ]
+    }
+  }
+  const run = simulateTimeline({
+    scheduler: 'fixed',
+    steps: [{ id: 's1', kind: 'action', actorId: 'actor:0', actionId: 'a0.skill', atFrame: 0 }],
+    actions,
+    actors: [{ actorId: 'actor:0', energy: 0, energyMax: 80 }, { actorId: 'actor:1', energy: 0, energyMax: 80 }],
+    activeActorId: 'actor:0',
+    frameTier: FRAME_TIERS['fps-60'],
+    measurementEndFrame: 400,
+    effects,
+    effectTriggers: [{ effectId: 'artifact-set:400058:4pc', actorId: 'actor:0', on: 'particle' }]
+  })
+  assert.equal(run.status, 'simulated', JSON.stringify(run.issues))
+  const restored = run.events.filter(e => e.kind === 'energy-restore')
+  assert.deepEqual(restored.map(e => e.frame), [20], '第二次产球在 3 秒 ICD 内，不再回能')
+  assert.equal(restored[0].detail.gain['actor:1'], 3)
+  // 产球是全队共享的：actor:1 先吃到两颗微粒的 2 点，再加学士的 3 点。
+  assert.equal(run.actors.find(a => a.actorId === 'actor:1').energy, 5)
+}
+
 // ---------- 2. 时间轴：重击命中触发沙上楼阁 ----------
 {
   const effects = {

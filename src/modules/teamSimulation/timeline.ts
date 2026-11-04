@@ -132,6 +132,8 @@ export interface EnergyRestoreSpec {
   amount: number
   /** 缺省 team：全队每人各加 amount；self 只加施放者 */
   target?: 'team' | 'self'
+  /** 流放者：全队回能但不给自己 */
+  excludeSelf?: boolean
   /** 雷神 A4：按施放者充能效率超过 100% 的部分放大（每 1% 加 0.6%） */
   rechargeScaling?: boolean
 }
@@ -575,6 +577,20 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const record = (frame: number, phase: EventPhase, kind: TimelineEventKind, actorId?: string, actionId?: string, detail?: Record<string, unknown>) => {
     events.push({ frame, phase, sequence: sequence++, kind, ...(actorId ? { actorId } : {}), ...(actionId ? { actionId } : {}), ...(detail ? { detail } : {}) })
   }
+  /**
+   * 触发成功后按效果声明回能（流放者/学士）：立刻一次，或按间隔补发几次。
+   * 排进队列而不是直接加，保证与粒子到达、动作结算的顺序一致。
+   */
+  const scheduleEffectEnergy = (effectId: string, frame: number, actorId: string, actionId?: string) => {
+    const restore = effectRuntime.specOf(effectId)?.energyRestore
+    if (!restore) return
+    const offsets = restore.everyFrames !== undefined && restore.times !== undefined
+      ? Array.from({ length: restore.times }, (_, i) => restore.everyFrames! * (i + 1))
+      : [0]
+    for (const offset of offsets) {
+      push({ kind: 'energy-restore', frame: frame + offset, actorId, actionId: actionId ?? '', restore: { atFrame: offset, amount: restore.amount, target: restore.target, excludeSelf: restore.excludeSelf } })
+    }
+  }
   /*
    * 后台计时触发（华馆）：先按间隔把 tick 排进队列，处理时再判断角色当时在不在场。
    * 排进队列而不是在推进帧时直接算，原因是 ASAP 会反复试探候选帧，直接算会把同一次 tick 结算多遍。
@@ -674,6 +690,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
           if (icd > 0) hitTriggerAt.set(key, queued.frame)
           triggers.push(fired)
           record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: entry.on })
+          scheduleEffectEnergy(entry.effectId, queued.frame, entry.actorId, item.actionId)
         }
       }
       applyHitlag(queued.frame, item.hit.hitlagFrames ?? 0)
@@ -704,6 +721,21 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         actor.energy = Math.min(actor.energyMax, actor.energy + gain)
       }
       record(queued.frame, 'energy', 'particle', item.actorId, item.actionId, { count: item.particle.count, element: item.particle.element, gain: gains })
+      // 产球触发（学士）：获得元素微粒/晶球后回能；`icdFrames` 限制同效果的触发间隔。
+      for (const entry of effectTriggers) {
+        if (entry.on !== 'particle' || entry.actorId !== item.actorId) continue
+        const particleSpec = effectRuntime.specOf(entry.effectId)
+        const icd = Number(particleSpec?.icdFrames) || 0
+        const key = `${entry.effectId}@${entry.actorId}`
+        const last = hitTriggerAt.get(key)
+        if (last !== undefined && queued.frame - last < icd) continue
+        const fired = effectRuntime.trigger(entry.effectId, queued.frame, entry.actorId)
+        if (!fired) continue
+        if (icd > 0) hitTriggerAt.set(key, queued.frame)
+        triggers.push(fired)
+        record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: 'particle' })
+        scheduleEffectEnergy(entry.effectId, queued.frame, entry.actorId, item.actionId)
+      }
       return
     }
     if (item.kind === 'energy-restore') {
@@ -720,6 +752,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
       const target = restore.target ?? 'team'
       const gains: Record<string, number> = {}
       for (const actor of actors.values()) {
+        if (restore.excludeSelf && actor.actorId === item.actorId) continue
         if (target === 'self' && actor.actorId !== item.actorId) continue
         gains[actor.actorId] = amount
         actor.energy = Math.min(actor.energyMax, actor.energy + amount)
@@ -799,6 +832,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         if (!fired) continue
         triggers.push(fired)
         record(frame, 'trigger', 'trigger', step.actorId, spec.id, { effectId: item.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: 'cast' })
+        scheduleEffectEnergy(item.effectId, frame, step.actorId, spec.id)
       }
     }
     push({ kind: 'action-end', frame: frame + frames, actorId: step.actorId, actionId: spec.id })

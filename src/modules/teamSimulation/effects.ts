@@ -56,13 +56,13 @@ export type StackingPolicy = 'refresh' | 'stack' | 'ignore'
 export type EffectTriggerKind =
   | 'cast-skill' | 'cast-burst'
   | 'hit' | 'normal-hit' | 'charged-hit' | 'plunge-hit' | 'skill-hit' | 'geo-hit'
-  | 'off-field-tick'
+  | 'particle' | 'off-field-tick'
 
 /** 允许配 `icdFrames` 的命中类触发 */
 export const HIT_TRIGGER_KINDS: ReadonlyArray<EffectTriggerKind> = ['hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit']
 
 export const EFFECT_TRIGGER_KINDS: ReadonlyArray<EffectTriggerKind> = [
-  'cast-skill', 'cast-burst', 'hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit', 'off-field-tick'
+  'cast-skill', 'cast-burst', 'hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit', 'particle', 'off-field-tick'
 ]
 
 /**
@@ -100,6 +100,17 @@ export interface EffectSpec {
    * 只对 `cast-skill` / `cast-burst` 有意义；能量不足时本次不触发，并记 `skipped: energy`。
    */
   energyCost?: number
+  /**
+   * 触发后回能（流放者：施放爆发后每 2 秒给全队回 2 点）。
+   * `everyFrames + times` 表示按间隔补发几次；不写间隔就立刻补一次。
+   */
+  energyRestore?: {
+    amount: number
+    target: 'team' | 'self'
+    excludeSelf?: boolean
+    everyFrames?: number
+    times?: number
+  }
 }
 
 export interface TriggerRecord {
@@ -147,7 +158,7 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
         else if (!isFiniteNumber(value)) add('invalid', `${p}.stats.${stat}`, '面板增量必须是有限数值')
       }
     }
-  } else if (spec.target === 'self' || spec.target === 'team') {
+  } else if ((spec.target === 'self' || spec.target === 'team') && !spec.energyRestore) {
     add('missing', `${p}.stats`, '作用于己方的效果必须给面板加成')
   }
 
@@ -181,7 +192,7 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
   const allTriggers = [spec.trigger, ...(spec.extraTriggers ?? [])].filter((kind): kind is EffectTriggerKind => Boolean(kind))
   if (allTriggers.includes('off-field-tick') && spec.tickFrames === undefined) add('missing', `${p}.tickFrames`, '后台计时触发必须给计时间隔')
   if (!allTriggers.includes('off-field-tick') && spec.tickFrames !== undefined) add('invalid', `${p}.tickFrames`, '只有后台计时触发才需要计时间隔')
-  if (!allTriggers.some(kind => HIT_TRIGGER_KINDS.includes(kind)) && spec.icdFrames !== undefined) add('invalid', `${p}.icdFrames`, '只有命中类触发才需要触发冷却')
+  if (!allTriggers.some(kind => HIT_TRIGGER_KINDS.includes(kind)) && !allTriggers.includes('particle') && spec.icdFrames !== undefined) add('invalid', `${p}.icdFrames`, '只有命中类与产球触发才需要触发冷却')
   if (spec.stacking === 'stack') {
     if (!isInteger(spec.maxStacks) || spec.maxStacks <= 0) add('invalid', `${p}.maxStacks`, '叠层策略必须给出正整数层数上限')
   } else if (spec.maxStacks !== undefined) {
@@ -199,6 +210,19 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
   if (spec.energyCost !== undefined) {
     if (!isInteger(spec.energyCost) || spec.energyCost <= 0) add('invalid', `${p}.energyCost`, '触发消耗必须是正整数能量')
     else if (!allTriggers.some(kind => kind === 'cast-skill' || kind === 'cast-burst')) add('invalid', `${p}.energyCost`, '消耗能量只适用于起手触发（cast-skill / cast-burst）')
+  }
+  if (spec.energyRestore !== undefined) {
+    const r = spec.energyRestore
+    if (!r || typeof r !== 'object' || Array.isArray(r)) add('invalid', `${p}.energyRestore`, '回能必须是对象')
+    else {
+      if (!isFiniteNumber(r.amount) || r.amount <= 0) add('invalid', `${p}.energyRestore.amount`, '回能量必须是正数')
+      if (r.target !== 'team' && r.target !== 'self') add('unsupported', `${p}.energyRestore.target`, `未知回能对象 ${String(r.target)}`)
+      if (r.excludeSelf !== undefined && typeof r.excludeSelf !== 'boolean') add('invalid', `${p}.energyRestore.excludeSelf`, 'excludeSelf 必须是布尔值')
+      if (r.everyFrames !== undefined && (!isInteger(r.everyFrames) || r.everyFrames <= 0)) add('invalid', `${p}.energyRestore.everyFrames`, '回能间隔必须是正整数帧')
+      if (r.times !== undefined && (!isInteger(r.times) || r.times <= 0)) add('invalid', `${p}.energyRestore.times`, '回能次数必须是正整数')
+      if (r.everyFrames !== undefined && r.times === undefined) add('missing', `${p}.energyRestore.times`, '按间隔回能必须给次数')
+      if (r.times !== undefined && r.everyFrames === undefined) add('missing', `${p}.energyRestore.everyFrames`, '多次回能必须给间隔')
+    }
   }
   return issues
 }
