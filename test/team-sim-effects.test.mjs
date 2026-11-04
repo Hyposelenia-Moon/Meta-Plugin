@@ -13,7 +13,7 @@ assert.deepEqual(validateEffectSpec(okEffect, 'team-atk'), [])
 const cases = [
   ['team-atk', { ...okEffect, id: 'other' }, 'effects.team-atk.id', 'invalid', 'id 必须与键一致'],
   ['team-atk', { ...okEffect, target: 'both' }, 'effects.team-atk.target', 'unsupported', '未知作用对象'],
-  ['team-atk', { ...okEffect, stats: { atkPct: 0.2 } }, 'effects.team-atk.stats.atkPct', 'unsupported', '构筑期百分比不能当面板加成'],
+  ['team-atk', { ...okEffect, stats: { unknownKey: 1 } }, 'effects.team-atk.stats.unknownKey', 'unsupported', '未知面板键不能当面板加成'],
   ['team-atk', { ...okEffect, stats: {} }, 'effects.team-atk.stats', 'invalid', '空面板加成'],
   ['team-atk', { id: 'team-atk', target: 'self' }, 'effects.team-atk.stats', 'missing', '己方效果必须给面板加成'],
   ['team-atk', { id: 'team-atk', target: 'enemy' }, 'effects.team-atk.enemy', 'missing', '敌人效果必须给减益'],

@@ -8,13 +8,14 @@
 import type { Issue, PermanentStats } from './types.js'
 
 /**
- * 面板键：只有这些键可以加到结算面板上，`hpPct` 这类构筑期百分比不在其中。
+ * 面板键：只有这些键可以加到结算面板上。
+ * `atkPct / hpPct / defPct` 是按**基础面板**（角色+武器白值）折算的百分比加成，结算时由 `applyPanelModifiers` 换算；
  * `normalDmg`…`burstDmg` 是技能类型伤害加成（4 件套等静态效果直接加进 A 乘区）。
  */
-export const PANEL_STAT_KEYS = ['hp', 'atk', 'def', 'mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro', 'normalDmg', 'chargedDmg', 'plungeDmg', 'skillDmg', 'burstDmg'] as const
+export const PANEL_STAT_KEYS = ['hp', 'atk', 'def', 'mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro', 'normalDmg', 'chargedDmg', 'plungeDmg', 'skillDmg', 'burstDmg', 'atkPct', 'hpPct', 'defPct'] as const
 export type PanelStatKey = typeof PANEL_STAT_KEYS[number]
 
-/** 面板增量必须与 `PermanentStats` 的键一一对应，类型上防止有人把构筑期百分比当面板加成。 */
+/** 面板增量：最终面板值或按白值折算的百分比（pct 类需要调用方提供 base）。 */
 export type PanelModifiers = Partial<Record<PanelStatKey, number>>
 
 export interface EnemyModifiers {
@@ -43,8 +44,8 @@ export const NO_REACTION_BONUS: ReactionBonus = { fypct: 0, elevated: 0, kNum: 0
 export type EffectTarget = 'self' | 'team' | 'enemy'
 export type StackingPolicy = 'refresh' | 'stack' | 'ignore'
 
-/** 动作起手触发的效果时机（4 件套「施放战技/爆发后」一类）。 */
-export type EffectTriggerKind = 'cast-skill' | 'cast-burst'
+/** 效果触发时机：动作起手（施放战技/爆发）或战技命中。 */
+export type EffectTriggerKind = 'cast-skill' | 'cast-burst' | 'skill-hit'
 
 /**
  * 效果定义。`self` 与 `team` 加面板，`enemy` 减抗减防；两者互斥，避免「一个效果既加面板又减抗」这种口径不清的写法。
@@ -133,7 +134,7 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
 
   if (spec.durationFrames !== undefined && (!isInteger(spec.durationFrames) || spec.durationFrames <= 0)) add('invalid', `${p}.durationFrames`, '持续帧数必须是正整数；要一直有效就省略这个字段')
   if (spec.stacking !== undefined && !['refresh', 'stack', 'ignore'].includes(spec.stacking)) add('unsupported', `${p}.stacking`, `未知叠加策略 ${String(spec.stacking)}`)
-  if (spec.trigger !== undefined && spec.trigger !== 'cast-skill' && spec.trigger !== 'cast-burst') add('unsupported', `${p}.trigger`, `未知触发时机 ${String(spec.trigger)}`)
+  if (spec.trigger !== undefined && !['cast-skill', 'cast-burst', 'skill-hit'].includes(spec.trigger)) add('unsupported', `${p}.trigger`, `未知触发时机 ${String(spec.trigger)}`)
   if (spec.trigger !== undefined && spec.durationFrames === undefined) add('missing', `${p}.durationFrames`, '触发式效果必须给持续时间：常驻到窗口结束的那套写法只适用于开局即生效的效果')
   if (spec.stacking === 'stack') {
     if (!isInteger(spec.maxStacks) || spec.maxStacks <= 0) add('invalid', `${p}.maxStacks`, '叠层策略必须给出正整数层数上限')
@@ -291,13 +292,27 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
   }
 }
 
-/** 把面板增量加到一个已算好的面板上，返回新对象；不改调用方那份。 */
-export function applyPanelModifiers(stats: PermanentStats, modifiers: PanelModifiers | undefined): PermanentStats {
+/** 基础面板（角色+武器白值）：`atkPct` 一类百分比按它折算；不给就说明调用方没建模这部分。 */
+export interface PanelBase {
+  hp: number
+  atk: number
+  def: number
+}
+
+/**
+ * 把面板增量加到一个已算好的面板上，返回新对象；不改调用方那份。
+ *
+ * `atkPct / hpPct / defPct` 按 `base` 折算成点数；`base` 缺省时这三项记 0，
+ * 但调用方（hitDamage）会先校验、缺 base 直接报错，不会静默少算。
+ */
+export function applyPanelModifiers(stats: PermanentStats, modifiers: PanelModifiers | undefined, base?: PanelBase): PermanentStats {
   if (!modifiers) return { ...stats }
   const merged: PermanentStats = { ...stats }
   for (const [key, value] of Object.entries(modifiers)) {
-    const stat = key as PanelStatKey
-    merged[stat] += value
+    if (key === 'atkPct') { merged.atk += (base?.atk ?? 0) * value; continue }
+    if (key === 'hpPct') { merged.hp += (base?.hp ?? 0) * value; continue }
+    if (key === 'defPct') { merged.def += (base?.def ?? 0) * value; continue }
+    merged[key as Exclude<PanelStatKey, 'atkPct' | 'hpPct' | 'defPct'>] += value
   }
   return merged
 }

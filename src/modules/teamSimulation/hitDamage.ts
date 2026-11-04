@@ -1,6 +1,6 @@
 import type { Failure, Issue, OrdinaryDamageResult, OrdinaryHit, PermanentStats } from './types.js'
 import { calculateOrdinaryHit, resistanceMultiplier, TARGET_PRESETS } from './formula.js'
-import { applyPanelModifiers, type EnemyModifiers, type PanelModifiers, type ReactionBonus } from './effects.js'
+import { applyPanelModifiers, type EnemyModifiers, type PanelBase, type PanelModifiers, type ReactionBonus } from './effects.js'
 import type { ReactionDeclaration, TimelineHit, TimelineResult } from './timeline.js'
 import type { MechanismPlan, StatWindow, EnemyWindow } from './mechanisms.js'
 import {
@@ -31,6 +31,11 @@ export interface DamageContext {
   /** 角色等级，参与防御区计算；必须与算面板时用的等级一致。 */
   level: number
   stats: PermanentStats
+  /**
+   * 基础面板（角色+武器白值）：`atkPct / hpPct / defPct` 一类百分比增量按它折算。
+   * 不提供时只允许面板增量里出现最终值；出现百分比会直接报错，不静默少算。
+   */
+  base?: PanelBase
   /** 只接受 TARGET_PRESETS 里的只读目标口径。 */
   targetPresetId: string
   crit: CritPolicy
@@ -175,6 +180,14 @@ function validateContext(context: DamageContext | undefined, prefix: string): Is
       else if (debuffs[key] !== 0) add('unsupported', `${prefix}.debuffs.${key}`, 'P1 没有建模常驻队伍减防/减抗，减益必须走机制窗口')
     }
   }
+  if (context.base !== undefined) {
+    if (!context.base || typeof context.base !== 'object') add('invalid', `${prefix}.base`, '基础面板必须是对象')
+    else {
+      for (const key of ['hp', 'atk', 'def'] as const) {
+        if (!isFiniteNumber(context.base[key]) || context.base[key] < 0) add('invalid', `${prefix}.base.${key}`, '基础面板数值必须是非负有限值')
+      }
+    }
+  }
   return issues
 }
 
@@ -236,7 +249,14 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
   }): Issue[] => {
     const context = contexts[options.actorId]
     if (!context) return [{ code: 'missing', path: `contexts.${options.actorId}`, message: `命中来自 ${options.actorId}，但没有提供该角色的面板` }]
-    const stats = applyPanelModifiers(context.stats, options.stats)
+    const hasPct = ['atkPct', 'hpPct', 'defPct'].some(key => {
+      const value = (options.stats as Record<string, unknown> | undefined)?.[key]
+      return typeof value === 'number' && Math.abs(value) > 1e-12
+    })
+    if (hasPct && !context.base) {
+      return [{ code: 'missing', path: `contexts.${options.actorId}.base`, message: '面板增量含 atkPct / hpPct / defPct，但上下文没有提供基础面板 base，无法折算' }]
+    }
+    const stats = applyPanelModifiers(context.stats, options.stats, context.base)
     const defenseReduction = context.debuffs.defenseReduction + options.enemy.defenseReduction
     const defenseIgnore = context.debuffs.defenseIgnore + options.enemy.defenseIgnore
     const resistanceReduction = context.debuffs.resistanceReduction + options.enemy.resistanceReduction

@@ -204,7 +204,7 @@ export interface TimelineInput {
    * 动作起手触发的效果（4 件套「施放战技/爆发后」）：角色起手对应类型的动作时激活。
    * 只列真正穿在身上的套装，别把全库套装都塞进来。
    */
-  effectTriggers?: Array<{ effectId: string; actorId: string; on: 'cast-skill' | 'cast-burst' }>
+  effectTriggers?: Array<{ effectId: string; actorId: string; on: 'cast-skill' | 'cast-burst' | 'skill-hit' }>
 }
 
 export interface TimelineHit {
@@ -523,7 +523,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     if (typeof item.effectId !== 'string' || !item.effectId) add('missing', `${p}.effectId`, '触发项必须指出效果 id')
     else if (!effectRuntime.has(item.effectId)) add('unsupported', `${p}.effectId`, `触发效果 ${item.effectId} 在效果表里没有登记`)
     if (!actors.has(item.actorId)) add('missing', `${p}.actorId`, `触发角色 ${String(item.actorId)} 不在本队`)
-    if (item.on !== 'cast-skill' && item.on !== 'cast-burst') add('unsupported', `${p}.on`, `未知触发时机 ${String(item.on)}`)
+    if (item.on !== 'cast-skill' && item.on !== 'cast-burst' && item.on !== 'skill-hit') add('unsupported', `${p}.on`, `未知触发时机 ${String(item.on)}`)
   }
 
   const durationCache = new Map<ActionSpec, ResolvedTiming>()
@@ -625,6 +625,19 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         if (!trigger) continue
         triggers.push(trigger)
         record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId, stacks: trigger.stacks, expiresAt: trigger.expiresAt })
+      }
+      /*
+       * 命中触发的 4 件套（千岩「战技命中敌人后」）：在命中当帧激活，
+       * 沿用「本发先按触发前的状态结算」口径，与 `triggerIds` 一样不影响本次命中。
+       */
+      if (actions[item.actionId]?.kind === 'skill') {
+        for (const entry of effectTriggers) {
+          if (entry.actorId !== item.actorId || entry.on !== 'skill-hit') continue
+          const fired = effectRuntime.trigger(entry.effectId, queued.frame, item.actorId)
+          if (!fired) continue
+          triggers.push(fired)
+          record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: 'skill-hit' })
+        }
       }
       applyHitlag(queued.frame, item.hit.hitlagFrames ?? 0)
       return

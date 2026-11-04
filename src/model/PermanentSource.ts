@@ -190,7 +190,7 @@ const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTyp
  * 生效时长按 60fps 帧数写（与现有动作包的帧口径一致）；换档位时尚未折算，
  * 与 §「帧数口径」里记录的限制相同。
  */
-const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: 'cast-skill' | 'cast-burst' }; note: string }> = {
+const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: 'cast-skill' | 'cast-burst' | 'skill-hit' }; note: string }> = {
   '400164': {
     effect: {
       id: 'artifact-set:400164:4pc',
@@ -200,12 +200,34 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: 'ca
       trigger: 'cast-skill'
     },
     note: '4 件套：施放元素战技后 15 秒内普攻与重击伤害 +30%'
+  },
+  '400119': {
+    effect: {
+      id: 'artifact-set:400119:4pc',
+      target: 'team',
+      stats: { atkPct: 0.2 },
+      durationFrames: 720,
+      trigger: 'cast-burst',
+      stacking: 'ignore'
+    },
+    note: '4 件套：施放元素爆发后全队攻击力 +20%，持续 12 秒（同队不叠加）'
+  },
+  '400169': {
+    effect: {
+      id: 'artifact-set:400169:4pc',
+      target: 'team',
+      stats: { atkPct: 0.2 },
+      durationFrames: 180,
+      trigger: 'skill-hit',
+      stacking: 'refresh'
+    },
+    note: '4 件套：元素战技命中敌人后全队攻击力 +20%，持续 3 秒；护盾强效 30% 不影响伤害、未建模'
   }
 }
 
-function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' }>, notes: string[] } {
+function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' | 'skill-hit' }>, notes: string[] } {
   const effects: Record<string, EffectEntry> = {}
-  const runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' }> = {}
+  const runtimeEffects: Record<string, EffectSpec & { trigger: 'cast-skill' | 'cast-burst' | 'skill-hit' }> = {}
   const notes: string[] = []
 
   const ascension = ascensionModifier(character)
