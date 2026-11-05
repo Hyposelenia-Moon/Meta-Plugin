@@ -11,19 +11,206 @@
       "name": "默认",
       "role": "dps",
       "match": {},
+      "weights": {
+        "artifact": 45,
+        "panel": 0,
+        "weapon": 25,
+        "talent": 25
+      },
       "meta": {
-        "建议等级": "",
+        "建议等级": "90级",
         "定位": "",
         "100级提升": ""
       },
       "v2": {
-        "weapons": [],
-        "artifacts": [],
-        "talents": [],
-        "panels": [],
-        "constellations": [],
-        "teams": []
-      }
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "银昼",
+                "ref": "weapon:银昼"
+              },
+              {
+                "name": "最初的大魔术",
+                "ref": "weapon:最初的大魔术"
+              },
+              {
+                "name": "天空之翼",
+                "ref": "weapon:天空之翼"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "肇史之遗",
+                "ref": "artifact:肇史之遗"
+              },
+              {
+                "name": "影中沉凝的幻灭",
+                "ref": "artifact:影中沉凝的幻灭"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "攻击力"
+              ],
+              "空之杯": [
+                "攻击力"
+              ],
+              "理之冠": [
+                "暴击伤害"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "暴击伤害",
+              "暴击率",
+              "大攻击",
+              "元素充能效率"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "36%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "二命",
+            "index": 2,
+            "text": "全队爆伤，主c大权与擢升"
+          }
+        ],
+        "teams": [
+          {
+            "label": null,
+            "members": [
+              {
+                "name": "安娜丝塔夏",
+                "ref": "character:安娜丝塔夏"
+              },
+              {
+                "name": "达妮卡",
+                "ref": "character:达妮卡"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "米提亚 / 八重神子 / 阿罗夏",
+                "ref": "character:米提亚"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "星超导",
+            "members": [
+              {
+                "name": "桑多涅",
+                "ref": "character:桑多涅"
+              },
+              {
+                "name": "达妮卡",
+                "ref": "character:达妮卡"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "安娜丝塔夏",
+                "ref": "character:安娜丝塔夏"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "星扩散",
+            "members": [
+              {
+                "name": "薇斯纳",
+                "ref": "character:薇斯纳"
+              },
+              {
+                "name": "沃雅妮莎",
+                "ref": "character:沃雅妮莎"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "安娜丝塔夏",
+                "ref": "character:安娜丝塔夏"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      },
+      "topConstellations": []
     }
   ]
 }

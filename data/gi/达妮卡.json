@@ -11,19 +11,200 @@
       "name": "默认",
       "role": "dps",
       "match": {},
+      "weights": {
+        "artifact": 45,
+        "panel": 0,
+        "weapon": 25,
+        "talent": 25
+      },
       "meta": {
-        "建议等级": "",
-        "定位": "",
+        "建议等级": "90级",
+        "定位": "星超导辅助",
         "100级提升": ""
       },
       "v2": {
-        "weapons": [],
-        "artifacts": [],
-        "talents": [],
-        "panels": [],
-        "constellations": [],
-        "teams": []
-      }
+        "weapons": [
+          {
+            "label": null,
+            "tier": 1,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "春潮",
+                "ref": "weapon:春潮"
+              },
+              {
+                "name": "狼的末路",
+                "ref": "weapon:狼的末路"
+              },
+              {
+                "name": "「究极霸王超级魔剑」",
+                "ref": "weapon:「究极霸王超级魔剑」"
+              }
+            ]
+          },
+          {
+            "label": null,
+            "tier": 2,
+            "sep": " > ",
+            "items": [
+              {
+                "name": "天空之傲",
+                "ref": "weapon:天空之傲"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "preferred",
+            "label": "推荐",
+            "sep": " / ",
+            "sets": [
+              {
+                "name": "昔日宗室之仪",
+                "ref": "artifact:昔日宗室之仪"
+              },
+              {
+                "name": "千岩牢固",
+                "ref": "artifact:千岩牢固"
+              }
+            ]
+          },
+          {
+            "kind": "main",
+            "stats": {
+              "时之沙": [
+                "元素充能效率",
+                "攻击力"
+              ],
+              "空之杯": [
+                "攻击力"
+              ],
+              "理之冠": [
+                "攻击力"
+              ]
+            }
+          },
+          {
+            "kind": "sub",
+            "stats": [
+              "大攻击",
+              "元素充能效率",
+              "小攻击"
+            ],
+            "sep": " > "
+          }
+        ],
+        "talents": [
+          {
+            "kind": "priority",
+            "order": [
+              {
+                "name": "A",
+                "level": 1,
+                "ref": "talent:A"
+              },
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ],
+            "raw": "A1 E10 Q10"
+          },
+          {
+            "kind": "crown",
+            "items": [
+              {
+                "name": "E",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:E"
+              },
+              {
+                "name": "Q",
+                "level": 10,
+                "crown": true,
+                "ref": "talent:Q"
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "label": null,
+            "k": "攻击力",
+            "v": "4000"
+          },
+          {
+            "label": null,
+            "k": "元素充能效率",
+            "v": "220%"
+          }
+        ],
+        "constellations": [
+          {
+            "name": "一命",
+            "index": 1,
+            "text": "提升攻击，大幅回能"
+          }
+        ],
+        "teams": [
+          {
+            "label": null,
+            "members": [
+              {
+                "name": "安娜丝塔夏",
+                "ref": "character:安娜丝塔夏"
+              },
+              {
+                "name": "达妮卡",
+                "ref": "character:达妮卡"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "米提亚",
+                "ref": "character:米提亚"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "可选",
+            "members": [
+              {
+                "name": "桑多涅",
+                "ref": "character:桑多涅"
+              },
+              {
+                "name": "达妮卡",
+                "ref": "character:达妮卡"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "安娜丝塔夏",
+                "ref": "character:安娜丝塔夏"
+              }
+            ],
+            "text": ""
+          }
+        ]
+      },
+      "topConstellations": []
     }
   ]
 }
