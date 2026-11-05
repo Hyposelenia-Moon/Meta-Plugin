@@ -12,7 +12,7 @@ import type { Issue, PermanentStats } from './types.js'
  * `atkPct / hpPct / defPct` 是按**基础面板**（角色+武器白值）折算的百分比加成，结算时由 `applyPanelModifiers` 换算；
  * `normalDmg`…`burstDmg` 是技能类型伤害加成（4 件套等静态效果直接加进 A 乘区）。
  */
-export const PANEL_STAT_KEYS = ['hp', 'atk', 'def', 'mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro', 'normalDmg', 'chargedDmg', 'plungeDmg', 'skillDmg', 'burstDmg', 'atkPct', 'hpPct', 'defPct'] as const
+export const PANEL_STAT_KEYS = ['hp', 'atk', 'def', 'mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro', 'normalDmg', 'chargedDmg', 'plungeDmg', 'skillDmg', 'burstDmg', 'normalCpct', 'chargedCpct', 'plungeCpct', 'skillCpct', 'burstCpct', 'atkPct', 'hpPct', 'defPct'] as const
 export type PanelStatKey = typeof PANEL_STAT_KEYS[number]
 
 /** 面板增量：最终面板值或按白值折算的百分比（pct 类需要调用方提供 base）。 */
@@ -58,13 +58,13 @@ export type StackingPolicy = 'refresh' | 'stack' | 'ignore'
 export type EffectTriggerKind =
   | 'cast-skill' | 'cast-burst'
   | 'hit' | 'normal-hit' | 'charged-hit' | 'plunge-hit' | 'skill-hit' | 'geo-hit'
-  | 'particle' | 'off-field-tick' | 'always'
+  | 'particle' | 'off-field-tick' | 'always' | 'energy-zero'
 
 /** 允许配 `icdFrames` 的命中类触发 */
 export const HIT_TRIGGER_KINDS: ReadonlyArray<EffectTriggerKind> = ['hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit']
 
 export const EFFECT_TRIGGER_KINDS: ReadonlyArray<EffectTriggerKind> = [
-  'cast-skill', 'cast-burst', 'hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit', 'particle', 'off-field-tick', 'always'
+  'cast-skill', 'cast-burst', 'hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit', 'particle', 'off-field-tick', 'always', 'energy-zero'
 ]
 
 /**
@@ -196,7 +196,7 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
   if (spec.durationFrames !== undefined && (!isInteger(spec.durationFrames) || spec.durationFrames <= 0)) add('invalid', `${p}.durationFrames`, '持续帧数必须是正整数；要一直有效就省略这个字段')
   if (spec.stacking !== undefined && !['refresh', 'stack', 'ignore'].includes(spec.stacking)) add('unsupported', `${p}.stacking`, `未知叠加策略 ${String(spec.stacking)}`)
   if (spec.trigger !== undefined && !EFFECT_TRIGGER_KINDS.includes(spec.trigger)) add('unsupported', `${p}.trigger`, `未知触发时机 ${String(spec.trigger)}`)
-  if (spec.trigger !== undefined && spec.trigger !== 'always' && spec.durationFrames === undefined) add('missing', `${p}.durationFrames`, '触发式效果必须给持续时间：常驻到窗口结束的那套写法只适用于开局即生效的效果')
+  if (spec.trigger !== undefined && spec.trigger !== 'always' && spec.trigger !== 'energy-zero' && spec.durationFrames === undefined) add('missing', `${p}.durationFrames`, '触发式效果必须给持续时间：常驻到窗口结束的那套写法只适用于开局即生效的效果')
   if (spec.offFieldOnly !== undefined && typeof spec.offFieldOnly !== 'boolean') add('invalid', `${p}.offFieldOnly`, '后台限定必须是布尔值')
   if (spec.trigger === 'always') {
     if (spec.icdFrames !== undefined) add('invalid', `${p}.icdFrames`, '常驻效果没有触发节奏，不需要触发冷却')
@@ -436,7 +436,9 @@ export function applyPanelModifiers(stats: PermanentStats, modifiers: PanelModif
     if (key === 'atkPct') { merged.atk += (base?.atk ?? 0) * value; continue }
     if (key === 'hpPct') { merged.hp += (base?.hp ?? 0) * value; continue }
     if (key === 'defPct') { merged.def += (base?.def ?? 0) * value; continue }
-    merged[key as Exclude<PanelStatKey, 'atkPct' | 'hpPct' | 'defPct'>] += value
+    // 可选键（技能类型加成/暴击）在面板里可能没有初始化，先按 0 起算，避免 undefined + x = NaN。
+    merged[key as Exclude<PanelStatKey, 'atkPct' | 'hpPct' | 'defPct'>] =
+      (merged[key as Exclude<PanelStatKey, 'atkPct' | 'hpPct' | 'defPct'>] ?? 0) + value
   }
   return merged
 }

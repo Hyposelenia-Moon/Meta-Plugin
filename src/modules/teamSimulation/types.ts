@@ -3,7 +3,7 @@ import type { EffectSpec, EffectTriggerKind } from './effects.js'
 
 /** 队伍模拟 P0 契约。百分比为比例（20%=0.2），属性为点数；不接管现有命令。 */
 export const SCHEMA_VERSION = 1 as const
-export type StatKey = 'hp' | 'atk' | 'def' | 'hpPct' | 'atkPct' | 'defPct' | 'mastery' | 'cpct' | 'cdmg' | 'recharge' | 'dmg' | 'phy' | 'heal' | 'pyro' | 'hydro' | 'electro' | 'cryo' | 'anemo' | 'geo' | 'dendro' | 'normalDmg' | 'chargedDmg' | 'plungeDmg' | 'skillDmg' | 'burstDmg'
+export type StatKey = 'hp' | 'atk' | 'def' | 'hpPct' | 'atkPct' | 'defPct' | 'mastery' | 'cpct' | 'cdmg' | 'recharge' | 'dmg' | 'phy' | 'heal' | 'pyro' | 'hydro' | 'electro' | 'cryo' | 'anemo' | 'geo' | 'dendro' | 'normalDmg' | 'chargedDmg' | 'plungeDmg' | 'skillDmg' | 'burstDmg' | 'normalCpct' | 'chargedCpct' | 'plungeCpct' | 'skillCpct' | 'burstCpct'
 export interface StatValue { key: StatKey; value: number }
 export type ArtifactSlot = 'flower' | 'plume' | 'sands' | 'goblet' | 'circlet'
 export interface SourceInfo {
@@ -96,6 +96,8 @@ export interface PermanentStats {
   pyro: number; hydro: number; electro: number; cryo: number; anemo: number; geo: number; dendro: number
   /** 技能类型伤害加成（加算进 A 乘区）：普攻 / 重击 / 下落 / 战技 / 爆发 */
   normalDmg?: number; chargedDmg?: number; plungeDmg?: number; skillDmg?: number; burstDmg?: number
+  /** 技能类型暴击率加成：与 `cpct` 加算后再判暴击 */
+  normalCpct?: number; chargedCpct?: number; plungeCpct?: number; skillCpct?: number; burstCpct?: number
 }
 export type PermanentBuildResult = {
   status: 'permanent-ready'

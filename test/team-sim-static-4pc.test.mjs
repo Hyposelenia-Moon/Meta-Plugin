@@ -39,4 +39,24 @@ if (klee.ok) {
     troupe.modifiers.some(m => m.key === 'chargedDmg' && m.value === 0.35) && !troupe.unmodeled)
 }
 
+if (xiangling.ok) {
+  const brave = xiangling.data.effects['artifact-set:400008:4pc']
+  ok('勇士之心：对高生命敌人伤害 +30% 进面板（木桩恒成立）',
+    brave.modifiers.some(m => m.key === 'dmg' && m.value === 0.3))
+  const flower = xiangling.data.effects['artifact-set:400251:4pc']
+  ok('花海甘露：战技与爆发各 +10% 进面板，受伤部分写未建模',
+    flower.modifiers.some(m => m.key === 'skillDmg' && m.value === 0.1) &&
+    flower.modifiers.some(m => m.key === 'burstDmg' && m.value === 0.1) &&
+    /受击模型/.test(String(flower.unmodeled)))
+  const cinnabar = xiangling.data.effects['artifact-set:400199:4pc']
+  ok('辰砂往生录：爆发触发 +8% 攻击写进运行时效果，生命值降低部分写未建模',
+    cinnabar.runtimeRequired === true &&
+    xiangling.data.runtimeEffects['artifact-set:400199:4pc']?.trigger === 'cast-burst' &&
+    xiangling.data.runtimeEffects['artifact-set:400199:4pc']?.stats?.atkPct === 0.08 &&
+    /生命值变化/.test(String(cinnabar.unmodeled)))
+  const notes = ['400038', '400124', '400311'].map(id => xiangling.data.effects[`artifact-set:${id}:4pc`])
+  ok('击杀类与脱战类套装按「不影响输出」记录说明',
+    notes.every(e => e !== undefined && e.modifiers.length === 0 && /不影响输出|不触发处理/.test(String(e.note))))
+}
+
 report()

@@ -13,6 +13,7 @@
     "xiangling.burst：能量取 EnergyMax=80；gcsim 的 ConsumeEnergy(24) 里 24 是扣能延迟帧数，不是耗能量；内核起手扣能，延迟未建模",
     "xiangling.burst：冷却 20*60=1200 帧，SetCDWithDelay(action.ActionBurst, 20*60, 18)",
     "xiangling.burst：旋火轮（召唤物）未建模：施放后 56 帧起持续 10 秒（C4 为 14 秒）、每 73 帧一跳，10 级 201.6%；C6 的 15% 火伤加成也未计入",
+    "xiangling.burst：前两段挥舞（18/33 帧）与第三段（57 帧）声明为「蒸发」：aura 由数据声明为 hydro（默认队伍里有行秋这类挂水角色），引擎不推断附着，也不模拟附着被消耗后的后续命中；旋火轮各跳不声明反应",
     "xiangling.burst：倍率 ← miao talentData.q 一段/二段/三段挥舞伤害[9] = 129.6/158.4/197.28%，与 gcsim pyronadoInitial lv10 的 1.296/1.584/1.9728 一致",
     "锅巴产球为近似：gcsim guoba.go 每次锅巴攻击 1 颗 Pyro（1s ICD），本模型按固定帧挂 3 颗，不建模锅巴本体与命中次数",
     "旋火轮 9 段按固定帧挂延迟命中；不建模旋火轮绕圈命中次数与元素附着"
@@ -65,14 +66,16 @@
           "motionValue": 1.296,
           "scaling": "atk",
           "element": "pyro",
-          "canCrit": true
+          "canCrit": true,
+          "reaction": { "kind": "vaporize", "aura": "hydro" }
         },
         {
           "atFrame": 33,
           "motionValue": 1.584,
           "scaling": "atk",
           "element": "pyro",
-          "canCrit": true
+          "canCrit": true,
+          "reaction": { "kind": "vaporize", "aura": "hydro" }
         },
         {
           "atFrame": 56,
@@ -87,7 +90,8 @@
           "motionValue": 1.9728,
           "scaling": "atk",
           "element": "pyro",
-          "canCrit": true
+          "canCrit": true,
+          "reaction": { "kind": "vaporize", "aura": "hydro" }
         },
         {
           "atFrame": 129,

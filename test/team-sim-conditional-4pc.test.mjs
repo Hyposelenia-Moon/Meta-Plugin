@@ -3,7 +3,7 @@
  *
  * 1) 永久数据：华馆 400189 写进 runtimeEffects（岩伤命中 + 后台计时两路触发、0.3 秒 ICD、最多 4 层）；
  * 2) 时间轴：岩元素命中叠层、ICD 内不重复叠、后台每 3 秒补层（角色不在场时）；
- * 3) 辰砂 400159：爆发起手 +8% 攻击，生命值降低那部分明确标未建模。
+ * 3) 辰砂 400199：爆发起手 +8% 攻击，生命值降低那部分明确标未建模。
  */
 import assert from 'node:assert/strict'
 import { mod } from './_helper.mjs'
@@ -34,12 +34,12 @@ const { buildRuntimePermanent } = await import(mod('model/PermanentSource.js'))
 {
   const runtime = buildRuntimePermanent({ characterId: '10000023', name: '香菱', weaponId: '13407', refinement: 1 })
   assert.equal(runtime.ok, true)
-  const spec = runtime.data.runtimeEffects?.['artifact-set:400159:4pc']
+  const spec = runtime.data.runtimeEffects?.['artifact-set:400199:4pc']
   assert.ok(spec, '辰砂 4 件套应出现在 runtimeEffects')
   assert.equal(spec.trigger, 'cast-burst')
   assert.equal(spec.stats.atkPct, 0.08)
   assert.equal(spec.durationFrames, 960)
-  const audit = runtime.data.effects['artifact-set:400159:4pc']
+  const audit = runtime.data.effects['artifact-set:400199:4pc']
   assert.equal(audit.runtimeRequired, true)
   assert.match(String(audit.unmodeled ?? ''), /生命值降低/)
 }

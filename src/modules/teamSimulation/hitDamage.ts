@@ -91,6 +91,21 @@ const DAMAGE_KIND_BONUS: Record<DamageKind, keyof PermanentStats> = {
   burst: 'burstDmg'
 }
 
+/** 技能类型暴击率：与 `cpct` 加算（行者之心「重击的暴击率 +30%」这类）。 */
+const DAMAGE_KIND_CRIT: Record<DamageKind, keyof PermanentStats> = {
+  normal: 'normalCpct',
+  charged: 'chargedCpct',
+  plunge: 'plungeCpct',
+  skill: 'skillCpct',
+  burst: 'burstCpct'
+}
+
+function critRateFor (stats: PermanentStats, kind: DamageKind | null): number {
+  const base = Number(stats.cpct ?? 0)
+  if (!kind) return base
+  return base + Number(stats[DAMAGE_KIND_CRIT[kind]] ?? 0)
+}
+
 /** 动作 id 形如 `itto.normal-1` / `itto.charged-1` / `bennett.skill` / `bennett.burst`。 */
 function damageKindOf (actionId: string): DamageKind | null {
   if (/\.normal(?:-|$)/.test(actionId)) return 'normal'
@@ -275,7 +290,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
       damageBonus: damageBonusFor(options.element, stats, damageKindOf(options.actionId)),
       canCrit: options.canCrit,
       crit: context.crit,
-      critRate: stats.cpct,
+      critRate: critRateFor(stats, damageKindOf(options.actionId)),
       critDamage: stats.cdmg,
       attackerLevel: context.level,
       enemyLevel: preset.level,
