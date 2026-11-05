@@ -6,6 +6,7 @@
  * 再结算它携带的触发，所以「给自己上攻击力」的那一下不会吃到自己的加成。
  */
 import type { Issue, PermanentStats } from './types.js'
+import type { ReactiveKind } from './reactions.js'
 
 /**
  * 面板键：只有这些键可以加到结算面板上。
@@ -43,6 +44,8 @@ export interface ReactionBonus {
   elevated?: number
   /** 反应系数乘区：这里按加法叠加，缺省视为 0（最终乘区 = 1 + 合计）。 */
   kNum?: number
+  /** 按反应族的伤害加成（如雷 4 件套一类），剧变反应按 1 + 合计 放大。 */
+  dmg?: Partial<Record<ReactiveKind, number>>
 }
 
 export const NO_REACTION_BONUS: ReactionBonus = { fypct: 0, elevated: 0, kNum: 0 }
@@ -90,6 +93,8 @@ export interface EffectSpec {
   maxStacks?: number
   /** 反应加成：只影响月反应与星烁的结算，不进面板。 */
   reactionBonus?: ReactionBonus
+  /** 按反应族的伤害加成（剧变反应的等级系数按 1 + 合计 放大）。 */
+  reactionDmg?: Partial<Record<ReactiveKind, number>>
   /** 触发时机；给定时不再常驻，只在对应动作起手被激活。 */
   trigger?: EffectTriggerKind
   /** 命中类触发的元素过滤：只在这些元素的命中上触发（深林的记忆一类）。 */
@@ -182,7 +187,7 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
         else if (!isFiniteNumber(value)) add('invalid', `${p}.stats.${stat}`, '面板增量必须是有限数值')
       }
     }
-  } else if ((spec.target === 'self' || spec.target === 'team') && !spec.energyRestore && !spec.flatDamage) {
+  } else if ((spec.target === 'self' || spec.target === 'team') && !spec.energyRestore && !spec.flatDamage && !spec.reactionDmg) {
     add('missing', `${p}.stats`, '作用于己方的效果必须给面板加成')
   }
 
@@ -388,6 +393,13 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
         for (const [key, value] of Object.entries(spec.stats ?? {})) {
           const stat = key as PanelStatKey
           stats[stat] = (stats[stat] ?? 0) + value * entry.stacks
+        }
+        if (spec.reactionDmg) {
+          reaction.dmg = { ...(reaction.dmg ?? {}) }
+          for (const [kind, value] of Object.entries(spec.reactionDmg)) {
+            const key = kind as ReactiveKind
+            reaction.dmg[key] = (reaction.dmg[key] ?? 0) + (value ?? 0) * entry.stacks
+          }
         }
         const bonus = spec.reactionBonus
         if (bonus) {

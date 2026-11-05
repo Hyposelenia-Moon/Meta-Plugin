@@ -357,7 +357,8 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
         // 剧变：不吃防御、不吃增伤、不暴击，只乘抗性区，单独成一段。
         const coefficient = transformativeBase(kind, context.level, stats.mastery)
         if (coefficient === undefined) return [{ code: 'unsupported', path: `${options.path}.reaction`, message: `等级 ${context.level} 不在反应系数表内` }]
-        const reactionDamage = coefficient * resistanceMultiplier(preset.resistance - resistanceReduction)
+        const reactionBonus = options.reactionBonus?.dmg?.[kind] ?? 0
+        const reactionDamage = coefficient * (1 + reactionBonus) * resistanceMultiplier(preset.resistance - resistanceReduction)
         reactionRecord = { kind, damage: reactionDamage }
         reactionRow = {
           frame: options.frame,
