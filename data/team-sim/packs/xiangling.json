@@ -173,14 +173,22 @@
           "motionValue": 1.296,
           "scaling": "atk",
           "element": "pyro",
-          "canCrit": true
+          "canCrit": true,
+          "reaction": {
+            "kind": "vaporize",
+            "aura": "hydro"
+          }
         },
         {
           "atFrame": 33,
           "motionValue": 1.584,
           "scaling": "atk",
           "element": "pyro",
-          "canCrit": true
+          "canCrit": true,
+          "reaction": {
+            "kind": "vaporize",
+            "aura": "hydro"
+          }
         },
         {
           "atFrame": 56,
@@ -195,7 +203,11 @@
           "motionValue": 1.9728,
           "scaling": "atk",
           "element": "pyro",
-          "canCrit": true
+          "canCrit": true,
+          "reaction": {
+            "kind": "vaporize",
+            "aura": "hydro"
+          }
         },
         {
           "atFrame": 129,

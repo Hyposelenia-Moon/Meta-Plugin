@@ -12,7 +12,7 @@ import type { Issue, PermanentStats } from './types.js'
  * `atkPct / hpPct / defPct` 是按**基础面板**（角色+武器白值）折算的百分比加成，结算时由 `applyPanelModifiers` 换算；
  * `normalDmg`…`burstDmg` 是技能类型伤害加成（4 件套等静态效果直接加进 A 乘区）。
  */
-export const PANEL_STAT_KEYS = ['hp', 'atk', 'def', 'mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro', 'normalDmg', 'chargedDmg', 'plungeDmg', 'skillDmg', 'burstDmg', 'atkPct', 'hpPct', 'defPct'] as const
+export const PANEL_STAT_KEYS = ['hp', 'atk', 'def', 'mastery', 'cpct', 'cdmg', 'recharge', 'dmg', 'phy', 'heal', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro', 'normalDmg', 'chargedDmg', 'plungeDmg', 'skillDmg', 'burstDmg', 'normalCpct', 'chargedCpct', 'plungeCpct', 'skillCpct', 'burstCpct', 'atkPct', 'hpPct', 'defPct'] as const
 export type PanelStatKey = typeof PANEL_STAT_KEYS[number]
 
 /** 面板增量：最终面板值或按白值折算的百分比（pct 类需要调用方提供 base）。 */
@@ -50,19 +50,21 @@ export type StackingPolicy = 'refresh' | 'stack' | 'ignore'
  * - `hit`：装备者任意命中（水仙之梦「镜中水仙」这类多来源共用池）；
  * - `normal-hit` / `charged-hit` / `plunge-hit` / `skill-hit`：按动作类型命中触发；
  * - `geo-hit`：命中元素为岩时触发（华馆「魄力」）；
- * - `off-field-tick`：角色不在场时每 `tickFrames` 帧触发一次（华馆后台叠层）。
+ * - `off-field-tick`：角色不在场时每 `tickFrames` 帧触发一次（华馆后台叠层）；
+ * - `always`：开局即生效、持续到窗口结束。配 `offFieldOnly` 就是「只在后台生效」的常驻效果
+ *   （黄金剧团「处于队伍后台时再 +25%」）。
  * 命中类触发都可配 `icdFrames` 限制触发间隔。
  */
 export type EffectTriggerKind =
   | 'cast-skill' | 'cast-burst'
   | 'hit' | 'normal-hit' | 'charged-hit' | 'plunge-hit' | 'skill-hit' | 'geo-hit'
-  | 'particle' | 'off-field-tick'
+  | 'particle' | 'off-field-tick' | 'always' | 'energy-zero'
 
 /** 允许配 `icdFrames` 的命中类触发 */
 export const HIT_TRIGGER_KINDS: ReadonlyArray<EffectTriggerKind> = ['hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit']
 
 export const EFFECT_TRIGGER_KINDS: ReadonlyArray<EffectTriggerKind> = [
-  'cast-skill', 'cast-burst', 'hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit', 'particle', 'off-field-tick'
+  'cast-skill', 'cast-burst', 'hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit', 'particle', 'off-field-tick', 'always', 'energy-zero'
 ]
 
 /**
@@ -84,6 +86,11 @@ export interface EffectSpec {
   reactionBonus?: ReactionBonus
   /** 触发时机；给定时不再常驻，只在对应动作起手被激活。 */
   trigger?: EffectTriggerKind
+  /**
+   * 只在装备者处于队伍后台时计入（黄金剧团 4 件套的后台 +25%）。
+   * 判定发生在命中结算当帧：命中者不是当前前台角色时视为后台。
+   */
+  offFieldOnly?: boolean
   /** 同一效果除主触发外还接受哪些触发（华馆：岩伤命中 + 后台计时共用同一个叠层池）。 */
   extraTriggers?: EffectTriggerKind[]
   /** 触发冷却（帧）：`geo-hit` 一类高频触发用，0.3 秒 = 18 帧。 */
@@ -189,7 +196,16 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
   if (spec.durationFrames !== undefined && (!isInteger(spec.durationFrames) || spec.durationFrames <= 0)) add('invalid', `${p}.durationFrames`, '持续帧数必须是正整数；要一直有效就省略这个字段')
   if (spec.stacking !== undefined && !['refresh', 'stack', 'ignore'].includes(spec.stacking)) add('unsupported', `${p}.stacking`, `未知叠加策略 ${String(spec.stacking)}`)
   if (spec.trigger !== undefined && !EFFECT_TRIGGER_KINDS.includes(spec.trigger)) add('unsupported', `${p}.trigger`, `未知触发时机 ${String(spec.trigger)}`)
-  if (spec.trigger !== undefined && spec.durationFrames === undefined) add('missing', `${p}.durationFrames`, '触发式效果必须给持续时间：常驻到窗口结束的那套写法只适用于开局即生效的效果')
+  if (spec.trigger !== undefined && spec.trigger !== 'always' && spec.trigger !== 'energy-zero' && spec.durationFrames === undefined) add('missing', `${p}.durationFrames`, '触发式效果必须给持续时间：常驻到窗口结束的那套写法只适用于开局即生效的效果')
+  if (spec.offFieldOnly !== undefined && typeof spec.offFieldOnly !== 'boolean') add('invalid', `${p}.offFieldOnly`, '后台限定必须是布尔值')
+  if (spec.trigger === 'always') {
+    if (spec.icdFrames !== undefined) add('invalid', `${p}.icdFrames`, '常驻效果没有触发节奏，不需要触发冷却')
+    if (spec.tickFrames !== undefined) add('invalid', `${p}.tickFrames`, '常驻效果没有计时触发，不需要计时间隔')
+    if (spec.stacksPerTrigger !== undefined) add('invalid', `${p}.stacksPerTrigger`, '常驻效果不按触发叠层')
+    if (spec.energyCost !== undefined) add('invalid', `${p}.energyCost`, '常驻效果不消耗能量')
+    if (spec.energyRestore !== undefined) add('invalid', `${p}.energyRestore`, '常驻效果不按触发回能')
+    if (spec.flatDamage !== undefined) add('invalid', `${p}.flatDamage`, '常驻效果不附加命中伤害')
+  }
   if (spec.icdFrames !== undefined && (!isInteger(spec.icdFrames) || spec.icdFrames < 0)) add('invalid', `${p}.icdFrames`, '触发冷却必须是非负整数帧')
   if (spec.tickFrames !== undefined && (!isInteger(spec.tickFrames) || spec.tickFrames <= 0)) add('invalid', `${p}.tickFrames`, '计时间隔必须是正整数帧')
   if (spec.extraTriggers !== undefined) {
@@ -267,8 +283,11 @@ export interface EffectRuntime {
   specOf(effectId: string): EffectSpec | undefined
   /** 在 `frame` 帧由 `actorId` 触发，返回本次实际生效的记录；叠层已满或 ignore 命中时返回 undefined。 */
   trigger(effectId: string, frame: number, actorId: string, amount?: number): TriggerRecord | undefined
-  /** 该角色在该帧实际吃的面板增量、全局敌人减益与反应加成。 */
-  modifiersAt(actorId: string, frame: number): { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
+  /**
+   * 该角色在该帧实际吃的面板增量、全局敌人减益与反应加成。
+   * `options.offField` 表示该角色当帧是否在后台：`offFieldOnly` 的效果只在后台计入。
+   */
+  modifiersAt(actorId: string, frame: number, options?: { offField?: boolean }): { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
   /**
    * 该效果在该帧的层数；没生效返回 0。
    * 月反应与星烁的叠层计数由这里读，引擎不猜「命中几次就该几层」。
@@ -333,13 +352,14 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
       triggers.push(record)
       return record
     },
-    modifiersAt(actorId, frame) {
+    modifiersAt(actorId, frame, options) {
       const stats: PanelModifiers = {}
       const enemy: EnemyModifiers = { ...NO_ENEMY_MODIFIERS }
       const reaction: ReactionBonus = { ...NO_REACTION_BONUS }
       for (const entry of entries.values()) {
         if (frame >= entry.expiresAt) continue
         const { spec } = entry
+        if (spec.offFieldOnly && !options?.offField) continue
         if (spec.target === 'enemy') {
           const mods = spec.enemy ?? {}
           enemy.resistanceReduction += (mods.resistanceReduction ?? 0) * entry.stacks
@@ -416,7 +436,9 @@ export function applyPanelModifiers(stats: PermanentStats, modifiers: PanelModif
     if (key === 'atkPct') { merged.atk += (base?.atk ?? 0) * value; continue }
     if (key === 'hpPct') { merged.hp += (base?.hp ?? 0) * value; continue }
     if (key === 'defPct') { merged.def += (base?.def ?? 0) * value; continue }
-    merged[key as Exclude<PanelStatKey, 'atkPct' | 'hpPct' | 'defPct'>] += value
+    // 可选键（技能类型加成/暴击）在面板里可能没有初始化，先按 0 起算，避免 undefined + x = NaN。
+    merged[key as Exclude<PanelStatKey, 'atkPct' | 'hpPct' | 'defPct'>] =
+      (merged[key as Exclude<PanelStatKey, 'atkPct' | 'hpPct' | 'defPct'>] ?? 0) + value
   }
   return merged
 }

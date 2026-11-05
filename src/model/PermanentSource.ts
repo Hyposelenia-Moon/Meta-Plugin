@@ -169,7 +169,7 @@ type EffectEntry = PermanentData['effects'][string]
  * `weaponTypes` 为空表示不限武器；有值时按实装武器类型判断，
  * 条件不成立就不加面板，但要写进 `unmodeled` 披露（否则报告会说「已计入」）。
  */
-const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTypes?: string[]; note: string; unmodeled?: string }> = {
+const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; extra?: Array<{ key: StatKey; value: number }>; weaponTypes?: string[]; note: string; unmodeled?: string }> = {
   '400089': {
     key: 'normalDmg',
     value: 0.35,
@@ -185,8 +185,41 @@ const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTyp
   '400271': {
     key: 'skillDmg',
     value: 0.25,
-    note: '4 件套：元素战技造成的伤害 +25%',
-    unmodeled: '4 件套「处于队伍后台时再 +25%，登场后 2 秒移除」需要在场判定，当前只计入常驻的 +25%'
+    note: '4 件套：元素战技造成的伤害 +25%；处于队伍后台时再 +25%（后台部分见 OFF_FIELD_FOUR_PIECE）'
+  },
+  '400003': {
+    key: 'chargedCpct',
+    value: 0.3,
+    note: '4 件套：重击的暴击率 +30%；内核按重击命中的暴击率加算'
+  },
+  '400008': {
+    key: 'dmg',
+    value: 0.3,
+    note: '4 件套：对生命值高于 50% 的敌人造成的伤害 +30%；内核目标是无限血木桩，条件恒成立'
+  },
+  '400251': {
+    key: 'skillDmg',
+    value: 0.1,
+    extra: [{ key: 'burstDmg', value: 0.1 }],
+    note: '4 件套：元素战技与元素爆发造成的伤害 +10%',
+    unmodeled: '4 件套「受到伤害后上述加成提高 80%，至多 5 层」需要受击模型，当前只计入常驻的 +10%'
+  }
+}
+
+/**
+ * 「只在后台生效」的常驻 4 件套（2026-11-05）：黄金剧团的 +25% 只在该角色不站场时计入。
+ * 单独用一个效果 id，避免和审计条目 `artifact-set:<setId>:4pc` 的常驻部分互相覆盖。
+ */
+const OFF_FIELD_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: EffectTriggerKind }; note: string }> = {
+  '400271': {
+    effect: {
+      id: 'artifact-set:400271:4pc-offfield',
+      target: 'self',
+      stats: { skillDmg: 0.25 },
+      trigger: 'always',
+      offFieldOnly: true
+    },
+    note: '处于队伍后台时元素战技伤害再 +25%（登场后不生效）'
   }
 }
 
@@ -244,17 +277,27 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
     },
     note: '4 件套：岩元素伤害命中或后台每 3 秒获得 1 层「魄力」，每层防御 +6%、岩元素伤害 +6%，最多 4 层，持续 6 秒'
   },
-  '400159': {
+  '400199': {
     effect: {
-      id: 'artifact-set:400159:4pc',
+      id: 'artifact-set:400199:4pc',
       target: 'self',
       stats: { atkPct: 0.08 },
       durationFrames: 960,
       trigger: 'cast-burst',
       stacking: 'refresh'
     },
-    note: '4 件套：施放元素爆发后攻击力 +8%，持续 16 秒',
-    unmodeled: '4 件套「生命值降低时攻击力再 +10%、最多 4 层」需要生命值变化模型，当前只计入爆发后的 +8%'
+    note: '4 件套：施放元素爆发后「潜光」攻击力 +8%，持续 16 秒',
+    unmodeled: '4 件套「生命值降低时攻击力再 +10%、最多 4 次」需要生命值变化模型，当前只计入爆发后的 +8%'
+  },
+  '400351': {
+    effect: {
+      id: 'artifact-set:400351:4pc',
+      target: 'self',
+      stats: { normalDmg: 0.6, burstDmg: 0.6 },
+      trigger: 'energy-zero'
+    },
+    note: '4 件套：元素能量为 0 时，普通攻击与元素爆发伤害各 +60%',
+    unmodeled: '普攻命中后使爆发加成失效 6 秒、爆发命中后使普攻加成失效 6 秒，这两段失效窗未建模'
   },
   '400028': {
     effect: {
@@ -417,7 +460,10 @@ const NO_DAMAGE_FOUR_PIECE: Record<string, string> = {
   '400047': '4 件套：开启宝箱后持续恢复生命值；内核不结算治疗与拾取，不影响输出',
   '400052': '4 件套：拾取摩拉时恢复生命值；内核不结算治疗与拾取，不影响输出',
   '400062': '4 件套：施放爆发时恢复生命值；内核不结算治疗，不影响输出',
-  '400084': '4 件套：施放战技或爆发后提升队伍受治疗效果；内核不结算治疗，不影响输出'
+  '400084': '4 件套：施放战技或爆发后提升队伍受治疗效果；内核不结算治疗，不影响输出',
+  '400038': '4 件套：击败敌人时清除战技冷却；内核不结算击杀，不影响输出',
+  '400124': '4 件套：击败敌人后重击伤害 +50% 且不消耗体力；内核不结算击杀与体力，不影响输出',
+  '400311': '4 件套：脱离战斗后伤害 +50%，并在敌人燃烧状态间升降；内核不结算脱战与敌人燃烧状态，按不触发处理'
 }
 
 function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: number, artifactData: ArtifactData, weaponType: string): { effects: PermissionlessEffects, runtimeEffects: Record<string, EffectSpec & { trigger: EffectTriggerKind }>, notes: string[] } {
@@ -491,12 +537,18 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
           runtimeRequired: false
         }
       } else if (staticFour && applies) {
+        const offField = OFF_FIELD_FOUR_PIECE[setId]
         effects[`artifact-set:${setId}:4pc`] = {
           status: 'verified-static',
-          modifiers: [{ key: staticFour.key, value: staticFour.value }],
-          runtimeRequired: false,
-          ...(staticFour.unmodeled ? { unmodeled: staticFour.unmodeled } : {})
+          modifiers: [
+            { key: staticFour.key, value: staticFour.value },
+            ...(staticFour.extra ?? []).map(item => ({ key: item.key, value: item.value }))
+          ],
+          runtimeRequired: offField !== undefined,
+          ...(staticFour.unmodeled ? { unmodeled: staticFour.unmodeled } : {}),
+          ...(offField ? { note: `${staticFour.note}；${offField.note}` } : {})
         }
+        if (offField) runtimeEffects[offField.effect.id] = offField.effect
       } else if (noDamage) {
         effects[`artifact-set:${setId}:4pc`] = {
           status: 'verified-static',
