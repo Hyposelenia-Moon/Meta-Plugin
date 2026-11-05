@@ -745,6 +745,26 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
           scheduleEffectEnergy(entry.effectId, queued.frame, entry.actorId, item.actionId)
         }
       }
+      /*
+       * 反应触发（教官一类）：本发声明的反应结算之后激活，按 `icdFrames` 限制间隔。
+       * 声明在命中上的反应由数据负责，引擎不推断附着，所以这里只认「本发带了反应声明」。
+       */
+      if (reaction && reaction.kind !== 'none') {
+        for (const entry of effectTriggers) {
+          if (entry.actorId !== item.actorId || entry.on !== 'reaction') continue
+          const spec = effectRuntime.specOf(entry.effectId)
+          const icd = Number(spec?.icdFrames) || 0
+          const key = `${entry.effectId}@${entry.actorId}`
+          const last = hitTriggerAt.get(key)
+          if (last !== undefined && queued.frame - last < icd) continue
+          const fired = effectRuntime.trigger(entry.effectId, queued.frame, entry.actorId)
+          if (!fired) continue
+          if (icd > 0) hitTriggerAt.set(key, queued.frame)
+          triggers.push(fired)
+          record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: 'reaction' })
+          scheduleEffectEnergy(entry.effectId, queued.frame, entry.actorId, item.actionId)
+        }
+      }
       applyHitlag(queued.frame, item.hit.hitlagFrames ?? 0)
       return
     }

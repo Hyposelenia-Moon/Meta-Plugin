@@ -58,13 +58,13 @@ export type StackingPolicy = 'refresh' | 'stack' | 'ignore'
 export type EffectTriggerKind =
   | 'cast-skill' | 'cast-burst'
   | 'hit' | 'normal-hit' | 'charged-hit' | 'plunge-hit' | 'skill-hit' | 'geo-hit'
-  | 'particle' | 'off-field-tick' | 'always' | 'energy-zero'
+  | 'particle' | 'reaction' | 'off-field-tick' | 'always' | 'energy-zero'
 
 /** 允许配 `icdFrames` 的命中类触发 */
 export const HIT_TRIGGER_KINDS: ReadonlyArray<EffectTriggerKind> = ['hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit']
 
 export const EFFECT_TRIGGER_KINDS: ReadonlyArray<EffectTriggerKind> = [
-  'cast-skill', 'cast-burst', 'hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit', 'particle', 'off-field-tick', 'always', 'energy-zero'
+  'cast-skill', 'cast-burst', 'hit', 'normal-hit', 'charged-hit', 'plunge-hit', 'skill-hit', 'geo-hit', 'particle', 'reaction', 'off-field-tick', 'always', 'energy-zero'
 ]
 
 /**
@@ -217,7 +217,7 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
   const allTriggers = [spec.trigger, ...(spec.extraTriggers ?? [])].filter((kind): kind is EffectTriggerKind => Boolean(kind))
   if (allTriggers.includes('off-field-tick') && spec.tickFrames === undefined) add('missing', `${p}.tickFrames`, '后台计时触发必须给计时间隔')
   if (!allTriggers.includes('off-field-tick') && spec.tickFrames !== undefined) add('invalid', `${p}.tickFrames`, '只有后台计时触发才需要计时间隔')
-  if (!allTriggers.some(kind => HIT_TRIGGER_KINDS.includes(kind)) && !allTriggers.includes('particle') && spec.icdFrames !== undefined) add('invalid', `${p}.icdFrames`, '只有命中类与产球触发才需要触发冷却')
+  if (!allTriggers.some(kind => HIT_TRIGGER_KINDS.includes(kind)) && !allTriggers.includes('particle') && !allTriggers.includes('reaction') && spec.icdFrames !== undefined) add('invalid', `${p}.icdFrames`, '只有命中类、产球与反应触发才需要触发冷却')
   if (spec.stacking === 'stack') {
     if (!isInteger(spec.maxStacks) || spec.maxStacks <= 0) add('invalid', `${p}.maxStacks`, '叠层策略必须给出正整数层数上限')
   } else if (spec.maxStacks !== undefined) {
