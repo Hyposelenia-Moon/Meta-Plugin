@@ -24,6 +24,22 @@ if (!fs.existsSync(atlasFile)) {
   report()
   process.exit(1)
 }
+
+/* ---------- 0. 找真实图鉴（必须在 import 之前设环境变量：模块级 atlasRes 只构造一次） ---------- */
+const candidates = [
+  process.env.META_ATLAS_DIR,
+  'D:/Program Files/Yunzai/Yunzai/plugins/Atlas-Plugin',
+  path.join(pluginRoot, '..', 'Atlas-Plugin')
+].filter(Boolean)
+const realRoot = candidates.find(dir => {
+  try {
+    return fs.existsSync(path.join(dir, 'tool', 'nanoka-atlas-backend', 'nanoka-atlas-backend', 'data'))
+  } catch {
+    return false
+  }
+})
+if (realRoot) process.env.META_ATLAS_DIR = realRoot
+
 const { AtlasRes } = await import(pathToFileURL(atlasFile).href)
 
 /* ---------- 1. 降级：目录不存在 ---------- */
@@ -42,18 +58,6 @@ ok('Atlas 缺失时 entityOf 返回 null', entity === null)
 ok('Atlas 缺失时 icon 返回 null', icon === null)
 
 /* ---------- 2. 真实图鉴 ---------- */
-const candidates = [
-  process.env.META_ATLAS_DIR,
-  'D:/Program Files/Yunzai/Yunzai/plugins/Atlas-Plugin',
-  path.join(pluginRoot, '..', 'Atlas-Plugin')
-].filter(Boolean)
-const realRoot = candidates.find(dir => {
-  try {
-    return fs.existsSync(path.join(dir, 'tool', 'nanoka-atlas-backend', 'nanoka-atlas-backend', 'data'))
-  } catch {
-    return false
-  }
-})
 
 if (!realRoot) {
   push('跳过：本机没有 Atlas 图鉴后端')
@@ -75,11 +79,23 @@ if (!realRoot) {
 
   ok('未知角色返回 null', atlas.entityOf('character', '并不存在的角色名') === null)
 
+  // 新角色：gallery 里只有 `_Card` / `UI_Gacha_AvatarImg_*` 时也要能取到图
+  const newbie = atlas.icon('character', '安娜丝塔夏')
+  ok('新角色头像回退到 _Card', !!newbie && fs.existsSync(new URL(newbie.rel)))
+
+  // 圣遗物套装：记录按套装 id 命名，套装名只在 affix 里 → 需要索引
+  const relic = atlas.entityOf('artifact', '肇史之遗')
+  ok('圣遗物套装可按名字索引', !!relic && fs.existsSync(relic.file))
+  const relicIcon = atlas.icon('artifact', '肇史之遗')
+  ok('圣遗物套装图标可解析', !!relicIcon && fs.existsSync(new URL(relicIcon.rel)))
+
   // 缓存：第二次读取必须是同一个对象（只读一次 JSON）
   const again = atlas.entityOf('character', '阿贝多')
   ok('实体查询有缓存', again === albedo)
 
   /* ---------- 3. 攻略页接线 ---------- */
+  // subViews → IconResolver 用的是模块级 `atlasRes`，构造时读环境变量，先指到真实图鉴
+  process.env.META_ATLAS_DIR = realRoot
   const subViewsFile = path.join(libDir, 'modules', 'subViews.js')
   const { withIcons } = await import(pathToFileURL(subViewsFile).href)
   // 合成一个最小 view：一条带 `ref` 的行
@@ -99,6 +115,35 @@ if (!realRoot) {
     ok('Atlas 图标是 file:// 绝对地址', String(item.icon).startsWith('file:///'))
   } else {
     ok('miao 图标不带 iconAbsolute', !item.iconAbsolute)
+  }
+
+  // 圣遗物套装行 + 新角色配队：两者 miao 都可能没有，Atlas 必须补上
+  const view2 = {
+    name: '安娜丝塔夏',
+    sections: [
+      {
+        key: 'artifacts',
+        title: '圣遗物推荐',
+        rows: [{ label: '推荐', name: '推荐套装', items: [{ ref: 'artifact:肇史之遗', text: '肇史之遗' }] }]
+      },
+      {
+        key: 'teams',
+        title: '配队',
+        teams: [{ tag: '推荐', members: [{ name: '安娜丝塔夏', ref: 'character:安娜丝塔夏' }] }]
+      }
+    ]
+  }
+  const filled = withIcons(view2, { character: '安娜丝塔夏' })
+  const setItem = filled.sections[0].rows[0].items[0]
+  const teammate = filled.sections[1].teams[0].members[0]
+  ok('圣遗物套装能拿到图标', !!setItem.icon)
+  ok('新角色配队头像能拿到图标', !!teammate.icon)
+  for (const [label, entry] of [['套装', setItem], ['头像', teammate]]) {
+    if (entry.iconSource === 'atlas') {
+      ok(`${label} Atlas 图标带 iconAbsolute`, entry.iconAbsolute === true && String(entry.icon).startsWith('file:///'))
+    } else {
+      ok(`${label} miao 图标不带 iconAbsolute`, !entry.iconAbsolute)
+    }
   }
 }
 

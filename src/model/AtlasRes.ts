@@ -68,6 +68,9 @@ export class AtlasRes {
   /** 实体查询缓存（同一进程内只读一次 JSON） */
   private readonly entityCache = new Map<string, AtlasEntity | null>()
 
+  /** 圣遗物套装索引缓存（套装名 → 记录文件），首次查圣遗物时扫描目录 */
+  private artifactCache: Map<string, { file: string, iconKey: string }> | null = null
+
   constructor (root: string = defaultAtlasRoot()) {
     this.root = root
   }
@@ -180,8 +183,9 @@ export class AtlasRes {
     }
   }
 
-  /** 记录文件定位（图鉴导出的目录结构：角色/武器按星级分目录） */
+  /** 记录文件定位（图鉴导出的目录结构：角色/武器按星级分目录，圣遗物按套装 id 命名） */
   private findRecord (kind: string, name: string): string | null {
+    if (kind === 'artifact') return this.artifactIndex().get(name)?.file ?? null
     const root = this.itemsRoot()
     const dirs = kind === 'character'
       ? ['角色/五星', '角色/四星']
@@ -191,6 +195,41 @@ export class AtlasRes {
       if (fs.existsSync(file)) return file
     }
     return null
+  }
+
+  /**
+   * 圣遗物套装索引：套装名 → 记录文件与图标 key
+   *
+   * 图鉴的圣遗物记录按套装 id 命名（如 `15049.json`），套装名只出现在
+   * `detail.affix[].name` 里，所以先扫一遍目录建索引（67 个文件，只建一次）。
+   */
+  private artifactIndex (): Map<string, { file: string, iconKey: string }> {
+    if (this.artifactCache) return this.artifactCache
+    const index = new Map<string, { file: string, iconKey: string }>()
+    try {
+      const root = path.join(this.itemsRoot(), '圣遗物')
+      for (const dir of fs.readdirSync(root)) {
+        const dirPath = path.join(root, dir)
+        if (!fs.statSync(dirPath).isDirectory()) continue
+        for (const file of fs.readdirSync(dirPath)) {
+          if (!file.endsWith('.json')) continue
+          const full = path.join(dirPath, file)
+          try {
+            const raw = JSON.parse(fs.readFileSync(full, 'utf8')) as {
+              content?: { detail?: { icon?: string, affix?: Array<{ name?: string }> } }
+            }
+            const detail = raw.content?.detail ?? {}
+            const iconKey = String(detail.icon ?? '').trim()
+            for (const affix of detail.affix ?? []) {
+              const setName = String(affix?.name ?? '').trim()
+              if (setName && !index.has(setName)) index.set(setName, { file: full, iconKey })
+            }
+          } catch { /* 单条坏记录不影响索引 */ }
+        }
+      }
+    } catch { /* 没装 Atlas 或没有圣遗物目录 */ }
+    this.artifactCache = index
+    return index
   }
 
   /** 图鉴数据根：`<Atlas 插件>/tool/nanoka-atlas-backend/nanoka-atlas-backend/data/items/简体中文/原神` */
@@ -204,11 +243,23 @@ export class AtlasRes {
       : path.join(this.root, 'tool', 'nanoka-atlas-backend', 'nanoka-atlas-backend')
   }
 
-  /** 图标 key → 本地图片（`gallery/gi/<key>.webp`） */
+  /**
+   * 图标 key → 本地图片（`gallery/gi/<key>.webp`）
+   *
+   * 新角色的 `UI_AvatarIcon_<X>.webp` 往往还没导出，但 `_Card` 与
+   * `UI_Gacha_AvatarImg_<X>` 已有，依次回退，避免头像空着。
+   */
   private iconFileOf (iconKey: string): string | null {
     if (!/^[A-Za-z0-9_]+$/.test(iconKey)) return null
-    const file = path.join(this.backendRoot(), 'gallery', 'gi', `${iconKey}.webp`)
-    return fs.existsSync(file) ? file : null
+    const dir = path.join(this.backendRoot(), 'gallery', 'gi')
+    const candidates = [iconKey, `${iconKey}_Card`]
+    const avatar = /^UI_AvatarIcon_(.+)$/.exec(iconKey)
+    if (avatar) candidates.push(`UI_Gacha_AvatarImg_${avatar[1]}`)
+    for (const key of candidates) {
+      const file = path.join(dir, `${key}.webp`)
+      if (fs.existsSync(file)) return file
+    }
+    return null
   }
 
   /** `QUALITY_ORANGE` / 5 / '5' → 5；`QUALITY_PURPLE` → 4 */
