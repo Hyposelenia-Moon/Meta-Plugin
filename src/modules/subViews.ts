@@ -232,18 +232,18 @@ export function withIcons (view: CodexView, ctx: { character: string }): CodexVi
       /** 单个条目的图标解析（原逻辑原样保留） */
       const resolveItem = (item: Record<string, unknown>): Record<string, unknown> => {
         const icon = iconForRef(String(item.ref ?? ''), { character: ctx.character })
-        if (icon) return { ...item, icon: icon.rel, iconSource: icon.source }
+        if (icon) return { ...item, icon: icon.rel, iconSource: icon.source, iconAbsolute: icon.source === 'atlas' }
         // 天赋三格：攻略数据只给字母（A/E/Q），ref 取不到图标时按**练度页同源规则**再解析一次
         // （`IconResolver.talentIcon()` → `MiaoRes.talentIcon()`：命中 `talentCons` 用命座图标，否则 `icons/talent-{letter}.webp`）
         // 真实数据字段是 `name`（攻略 JSON 的 `v2.talents.order`），模板侧才叫 `text` —— 这里两个都认
         const letter = String((item as { name?: unknown }).name ?? item.text ?? '').trim()
         if (/^[AEQ]$/.test(letter)) {
           const talent = talentIcon(ctx.character, letter)
-          if (talent) return { ...item, icon: talent.rel, iconSource: talent.source }
+          if (talent) return { ...item, icon: talent.rel, iconSource: talent.source, iconAbsolute: talent.source === 'atlas' }
           // A（普攻）槽：面板用角色武器类型的**通用武器图标**（`common/item/atk-*.webp`）
           if (letter === 'A') {
             const atk = attackIcon(ctx.character)
-            if (atk) return { ...item, icon: atk.rel, iconSource: atk.source }
+            if (atk) return { ...item, icon: atk.rel, iconSource: atk.source, iconAbsolute: atk.source === 'atlas' }
           }
         }
         return item
@@ -291,9 +291,10 @@ export function withIcons (view: CodexView, ctx: { character: string }): CodexVi
           const alts = altList.map(alt => {
             if (!alt || typeof alt !== 'object') return alt
             const altIcon = iconForRef(`character:${String((alt as { name?: string }).name ?? '')}`, { character: ctx.character })
-            return altIcon ? { ...alt, icon: altIcon.rel } : alt
+            return altIcon ? { ...alt, icon: altIcon.rel, iconSource: altIcon.source, iconAbsolute: altIcon.source === 'atlas' } : alt
           })
-          return { ...(icon ? { ...member, icon: icon.rel } : member), alts }
+          const base = icon ? { ...member, icon: icon.rel, iconSource: icon.source, iconAbsolute: icon.source === 'atlas' } : member
+          return { ...base, alts }
         })
       }))
     }

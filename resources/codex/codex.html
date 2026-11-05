@@ -628,7 +628,7 @@
             {{each section.teams team}}
             <div class="codex-team">
               {{if team.tag}}<span class="codex-team-tag label-{{team.tag}}">{{team.tag}}</span>{{/if}}
-              <span class="codex-team-main">{{each team.members member}}<span class="codex-team-cell">{{if member.alts && member.alts.length > 1}}{{each member.alts alt}}<span class="codex-team-slot{{if $index > 0}} codex-team-slot--alt{{/if}}">{{if alt.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{alt.icon}}"/></span></span></span>{{else}}<span class="codex-team-name">{{alt.name}}</span>{{/if}}</span>{{if $index < member.alts.length - 1}}<span class="codex-team-altsep">/</span>{{/if}}{{/each}}{{else if member.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{_miao_path}}{{member.icon}}"/>{{if member.constellation}}<span class="avatar-con">{{member.constellation}}</span>{{/if}}</span></span></span>{{else}}<span class="codex-team-name">{{member.name || member.note}}</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}</span>{{/each}}</span>
+              <span class="codex-team-main">{{each team.members member}}<span class="codex-team-cell">{{if member.alts && member.alts.length > 1}}{{each member.alts alt}}<span class="codex-team-slot{{if $index > 0}} codex-team-slot--alt{{/if}}">{{if alt.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{if alt.iconAbsolute}}{{alt.icon}}{{else}}{{_miao_path}}{{alt.icon}}{{/if}}"/></span></span></span>{{else}}<span class="codex-team-name">{{alt.name}}</span>{{/if}}</span>{{if $index < member.alts.length - 1}}<span class="codex-team-altsep">/</span>{{/if}}{{/each}}{{else if member.icon}}<span class="char-list codex-team-list"><span class="char-item"><span class="avatar"><img class="avatar-img" src="{{if member.iconAbsolute}}{{member.icon}}{{else}}{{_miao_path}}{{member.icon}}{{/if}}"/>{{if member.constellation}}<span class="avatar-con">{{member.constellation}}</span>{{/if}}</span></span></span>{{else}}<span class="codex-team-name">{{member.name || member.note}}</span>{{/if}}{{if $index < team.members.length - 1}}<span class="codex-sep">+</span>{{/if}}</span>{{/each}}</span>
               {{each team.members member}}{{if member.note}}<span class="codex-team-note">（{{member.note}}）</span>{{/if}}{{/each}}
               {{if team.text}}<span class="codex-team-note">{{team.text}}</span>{{/if}}
             </div>
@@ -643,7 +643,7 @@
             <div class="codex-talent-item">
               <div class="talent-icon{{if item.crown || item.talentLevel >= 10}} talent-crown{{/if}}">
                 {{if item.icon}}
-                <img src="{{_miao_path}}{{item.icon}}"/>
+                <img src="{{if item.iconAbsolute}}{{item.icon}}{{else}}{{_miao_path}}{{item.icon}}{{/if}}"/>
                 {{else}}
                 <span class="codex-talent-letter">{{item.text}}</span>
                 {{/if}}
@@ -659,7 +659,7 @@
             {{else if row.label}}<div class="codex-row-label"><span class="codex-tier tone-{{row.labelTone}} label-{{row.label}}">{{row.label}}</span></div>{{/if}}
             <div class="codex-row-items">
               {{each row.items item}}
-              <span class="codex-item{{if item.tone === 'sig'}} sig-strict{{/if}}{{if item.tone === 'alt'}} sig-alt{{/if}}">{{if item.icon}}<span class="codex-icon" style="background-image:url({{_miao_path}}{{item.icon}})"></span>{{/if}}<span class="codex-item-text">{{if item.textHtml}}{{@item.textHtml}}{{else}}{{item.text}}{{/if}}</span>{{if item.note}}<span class="codex-note-inline">（{{item.note}}）</span>{{/if}}{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}</span>
+              <span class="codex-item{{if item.tone === 'sig'}} sig-strict{{/if}}{{if item.tone === 'alt'}} sig-alt{{/if}}">{{if item.icon}}<span class="codex-icon" style="background-image:url({{if item.iconAbsolute}}{{item.icon}}{{else}}{{_miao_path}}{{item.icon}}{{/if}})"></span>{{/if}}<span class="codex-item-text">{{if item.textHtml}}{{@item.textHtml}}{{else}}{{item.text}}{{/if}}</span>{{if item.note}}<span class="codex-note-inline">（{{item.note}}）</span>{{/if}}{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}</span>
               {{if row.label === '副词条' && $index % 3 === 2}}<span class="codex-item-break"></span>{{/if}}
               {{/each}}
             </div>
