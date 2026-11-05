@@ -47,6 +47,39 @@ export interface AtlasEntity {
   iconFile?: string
 }
 
+/** 图鉴正文：天赋技能（A/E/Q）、命座、1 级基础值 */
+export interface AtlasCodex {
+  skills: Array<{ letter: 'A' | 'E' | 'Q', name: string, desc: string }>
+  constellations: Array<{ index: number, name: string, desc: string }>
+  base: {
+    hp?: number
+    atk?: number
+    def?: number
+    critRate?: number
+    critDmg?: number
+    mastery?: number
+  }
+}
+
+/** 图鉴富文本 → 纯文本（去颜色/链接标记，换行归一成空格） */
+function plainGameText (value: unknown): string {
+  let text = String(value ?? '')
+  text = text.replace(/<color=[^>]*>/gi, '').replace(/<\/color>/gi, '')
+  text = text.replace(/\{LINK#[^}]*\}/gi, '').replace(/\{\/LINK\}/gi, '')
+  text = text.replace(/<[^>]+>/g, '')
+  return text.replace(/\s+/g, ' ').trim()
+}
+
+/** 数字字段：`0.05` / `'5%'` / 空 → number | undefined */
+function numberOrUndefined (value: unknown): number | undefined {
+  if (value === null || value === undefined || value === '') return undefined
+  const text = String(value).trim()
+  const direct = Number(text)
+  if (Number.isFinite(direct)) return direct
+  const m = text.match(/^(-?\d+(?:\.\d+)?)%$/)
+  return m ? Number(m[1]) / 100 : undefined
+}
+
 /** 图鉴元素名 → 本仓库元素键 */
 const ELEMENT_BY_ATLAS: Record<string, string> = {
   Pyro: 'pyro', Hydro: 'hydro', Electro: 'electro', Cryo: 'cryo',
@@ -67,6 +100,7 @@ export class AtlasRes {
 
   /** 实体查询缓存（同一进程内只读一次 JSON） */
   private readonly entityCache = new Map<string, AtlasEntity | null>()
+  private readonly codexCache = new Map<string, AtlasCodex | null>()
 
   constructor (root: string = defaultAtlasRoot()) {
     this.root = root
@@ -219,6 +253,59 @@ export class AtlasRes {
     if (text === 'QUALITY_BLUE') return 3
     const n = Number(text)
     return Number.isFinite(n) && n >= 1 && n <= 5 ? n : undefined
+  }
+
+  /**
+   * 图鉴正文（天赋技能 / 命座 / 基础属性）
+   *
+   * 攻略数据没写或只写了概括时，用图鉴的官方文本补全。只读、缓存、
+   * 缺字段就少给（调用方按项判断），任何异常返回 null。
+   */
+  codexOf (name: string): AtlasCodex | null {
+    if (this.codexCache.has(name)) return this.codexCache.get(name) ?? null
+    const codex = this.readCodex(name)
+    this.codexCache.set(name, codex)
+    return codex
+  }
+
+  private readCodex (name: string): AtlasCodex | null {
+    const entity = this.entityOf('character', name)
+    if (!entity) return null
+    try {
+      const raw = JSON.parse(fs.readFileSync(entity.file, 'utf8')) as {
+        content?: { detail?: Record<string, unknown> }
+      }
+      const detail = raw.content?.detail ?? {}
+      const letters = ['A', 'E', 'Q'] as const
+      const skills = Array.isArray(detail.skills)
+        ? (detail.skills as Array<Record<string, unknown>>).slice(0, 3).map((skill, i) => ({
+            letter: letters[i] ?? 'A',
+            name: String(skill.name ?? '').trim(),
+            desc: plainGameText(skill.desc)
+          })).filter(skill => !!skill.name || !!skill.desc)
+        : []
+      const constellations = Array.isArray(detail.constellations)
+        ? (detail.constellations as Array<Record<string, unknown>>).map((cons, i) => ({
+            index: i + 1,
+            name: String(cons.name ?? '').trim(),
+            desc: plainGameText(cons.desc)
+          })).filter(cons => !!cons.name || !!cons.desc)
+        : []
+      return {
+        skills,
+        constellations,
+        base: {
+          hp: numberOrUndefined(detail.base_hp),
+          atk: numberOrUndefined(detail.base_atk),
+          def: numberOrUndefined(detail.base_def),
+          critRate: numberOrUndefined(detail.crit_rate),
+          critDmg: numberOrUndefined(detail.crit_dmg),
+          mastery: numberOrUndefined(detail.elemental_mastery)
+        }
+      }
+    } catch {
+      return null
+    }
   }
 
   /** 状态上报 */

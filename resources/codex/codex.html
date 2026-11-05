@@ -183,6 +183,11 @@
     /* 条目图标 / 配队头像（引用 miao 资源，尺寸按数据区比例） */
     .codex-icon { display: inline-block; width: 46px; height: 46px; margin-right: 10px; vertical-align: middle; border-radius: 10px; background-size: cover; background-position: center; }
 
+    /* 图鉴补全（只补缺）：天赋名、命座官方名与描述 */
+    .codex-talent-caption { margin-top: 6px; width: 100px; text-align: center; font-size: 11px; line-height: 1.25; color: #9fb3c8; }
+    .codex-atlas-name { margin-left: 6px; font-size: 13px; color: #c9d6e4; }
+    .codex-atlas-desc { margin-left: 6px; font-size: 13px; color: #8fa3b8; }
+
     /* 天赋：沿用 miao 面板的 .talent-icon 组件（元素环 + 图标 + 等级牌 + 皇冠角标），按数据区比例缩小 */
     .codex-talents { display: flex; gap: 18px; align-items: flex-start; padding: 2px 0; }
     /* 天赋图标：照抄练度页（=`profile-detail.css` 的 `.talent-icon` 几何） */
@@ -649,6 +654,7 @@
                 {{/if}}
                 <strong>{{item.talentLevel}}</strong>
               </div>
+              {{if item.atlasName}}<div class="codex-talent-caption">{{item.atlasName}}</div>{{/if}}
             </div>
             {{/each}}
           </div>
@@ -659,7 +665,7 @@
             {{else if row.label}}<div class="codex-row-label"><span class="codex-tier tone-{{row.labelTone}} label-{{row.label}}">{{row.label}}</span></div>{{/if}}
             <div class="codex-row-items">
               {{each row.items item}}
-              <span class="codex-item{{if item.tone === 'sig'}} sig-strict{{/if}}{{if item.tone === 'alt'}} sig-alt{{/if}}">{{if item.icon}}<span class="codex-icon" style="background-image:url({{if item.iconAbsolute}}{{item.icon}}{{else}}{{_miao_path}}{{item.icon}}{{/if}})"></span>{{/if}}<span class="codex-item-text">{{if item.textHtml}}{{@item.textHtml}}{{else}}{{item.text}}{{/if}}</span>{{if item.note}}<span class="codex-note-inline">（{{item.note}}）</span>{{/if}}{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}</span>
+              <span class="codex-item{{if item.tone === 'sig'}} sig-strict{{/if}}{{if item.tone === 'alt'}} sig-alt{{/if}}">{{if item.icon}}<span class="codex-icon" style="background-image:url({{if item.iconAbsolute}}{{item.icon}}{{else}}{{_miao_path}}{{item.icon}}{{/if}})"></span>{{/if}}<span class="codex-item-text">{{if item.textHtml}}{{@item.textHtml}}{{else}}{{item.text}}{{/if}}{{if item.atlasName}}<span class="codex-atlas-name">{{item.atlasName}}</span>{{/if}}</span>{{if item.note}}<span class="codex-note-inline">（{{item.note}}）</span>{{/if}}{{if item.atlasDesc}}<span class="codex-atlas-desc">{{item.atlasDesc}}</span>{{/if}}{{if item.sepAfter}}<span class="codex-sep">{{item.sepAfter}}</span>{{/if}}</span>
               {{if row.label === '副词条' && $index % 3 === 2}}<span class="codex-item-break"></span>{{/if}}
               {{/each}}
             </div>

@@ -9,6 +9,7 @@
  * 空模块「暂无」）**全部由维护者区负责**，本模块不重复实现、也不改写结果。
  */
 import type { Guide } from '../model/CodexStore.js'
+import type { AtlasCodex } from '../model/AtlasRes.js'
 import { listGuidePresets, selectGuidePreset } from './guidePresets.js'
 import { attackIcon, characterSplash, iconForRef, talentIcon } from '../model/IconResolver.js'
 import { buildCodexPresentation, normalizeMetaValue, type CodexMeta } from '../components/presentation.js'
@@ -215,6 +216,91 @@ export function narrowToSubView (view: CodexView, key: string): CodexView | null
   const section = pickSection(view, key)
   if (!section) return null
   return { ...view, sections: [section] }
+}
+
+/**
+ * 用图鉴正文补全攻略页
+ *
+ * 攻略数据只有概括时（新角色的空档尤其明显），用 Atlas 图鉴的官方文本补：
+ * - 天赋：`A/E/Q` 项补 `atlasName` 与截断后的 `atlasDesc`；
+ * - 命座：按 `index` 补 `atlasName` / `atlasDesc`；
+ * - 面板：攻略面板不足两行时补一行「基础」（图鉴 1 级白值，页面标注来源）。
+ *
+ * **只补不覆盖**：已有 `text` 的条目保留原文，只附加图鉴字段；图鉴缺项时原样返回。
+ */
+export function fillFromAtlas (view: CodexView, codex: AtlasCodex | null): CodexView {
+  if (!codex) return view
+  const clip = (text: string, max: number): string =>
+    text.length > max ? `${text.slice(0, max)}…` : text
+  const talents = new Map(codex.skills.map(skill => [skill.letter, skill]))
+  const cons = new Map(codex.constellations.map(item => [item.index, item]))
+  let changed = false
+
+  const sections = view.sections.map(section => {
+    if (!Array.isArray(section.rows)) return section
+
+    if (section.title === '天赋') {
+      const rows = section.rows.map(row => ({
+        ...row,
+        items: (row.items ?? []).map(item => {
+          const letter = String(item.name ?? '').trim().toUpperCase()
+          const skill = talents.get(letter as 'A' | 'E' | 'Q')
+          if (!skill || (!skill.name && !skill.desc)) return item
+          changed = true
+          return {
+            ...item,
+            atlasName: skill.name,
+            atlasDesc: clip(skill.desc, 60)
+          }
+        })
+      }))
+      return { ...section, rows }
+    }
+
+    if (section.title === '命座') {
+      const rows = section.rows.map(row => ({
+        ...row,
+        items: (row.items ?? []).map(item => {
+          const index = Number(item.index)
+          const hit = Number.isInteger(index) ? cons.get(index) : undefined
+          if (!hit || (!hit.name && !hit.desc)) return item
+          changed = true
+          return {
+            ...item,
+            atlasName: hit.name,
+            atlasDesc: clip(hit.desc, 80)
+          }
+        })
+      }))
+      return { ...section, rows }
+    }
+
+    if (section.title === '面板' && section.rows.length < 2) {
+      const base = codex.base
+      const items = [
+        base.hp !== undefined ? `生命 ${Math.round(base.hp)}` : '',
+        base.atk !== undefined ? `攻击 ${Math.round(base.atk)}` : '',
+        base.def !== undefined ? `防御 ${Math.round(base.def)}` : '',
+        base.critRate !== undefined ? `暴击率 ${round1(base.critRate * 100)}%` : '',
+        base.critDmg !== undefined ? `暴击伤害 ${round1(base.critDmg * 100)}%` : ''
+      ].filter(Boolean)
+      if (!items.length) return section
+      changed = true
+      return {
+        ...section,
+        rows: [...section.rows, { label: '基础', items: items.map(text => ({ text })) }]
+      }
+    }
+
+    return section
+  })
+
+  return changed ? { ...view, sections } : view
+}
+
+/** 一位小数（`91.45` → `91.5`），去掉多余的 `.0` */
+function round1 (value: number): string {
+  return String(Math.round(value * 10) / 10)
 }
 
 /**

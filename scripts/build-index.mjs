@@ -44,6 +44,39 @@ const outFile = path.join(dataDir, '_index.json')
 
 const DEFAULT_BACKEND = 'D:\\文件\\游戏\\原神\\Atlas-Plugin\\tool\\nanoka-atlas-backend\\nanoka-atlas-backend'
 
+/**
+ * 图鉴后端候选目录（按优先级）
+ *
+ * 工作区与机器人区是两份克隆，图鉴插件通常装在机器人区：
+ *   META_ATLAS_BACKEND（直接指后端根）> META_ATLAS_DIR（插件根）
+ *   > 工作区同级的 ../Atlas-Plugin > META_BOT_ROOT/plugins/Atlas-Plugin > 文档默认路径
+ */
+function backendCandidates (explicit) {
+  const list = []
+  if (explicit) list.push(path.resolve(explicit))
+  if (process.env.META_ATLAS_BACKEND) list.push(path.resolve(process.env.META_ATLAS_BACKEND))
+  const pluginRoots = [process.env.META_ATLAS_DIR, path.join(root, '..', 'Atlas-Plugin')]
+  if (process.env.META_BOT_ROOT) pluginRoots.push(path.join(process.env.META_BOT_ROOT, 'plugins', 'Atlas-Plugin'))
+  pluginRoots.push('D:\\Program Files\\Yunzai\\Yunzai\\plugins\\Atlas-Plugin')
+  for (const dir of pluginRoots.filter(Boolean)) {
+    list.push(path.join(dir, 'tool', 'nanoka-atlas-backend', 'nanoka-atlas-backend'))
+  }
+  list.push(DEFAULT_BACKEND)
+  return [...new Set(list)]
+}
+
+/** 找到第一个含 `data/map.json` 的后端目录；都找不到返回 null */
+function resolveBackend (explicit) {
+  for (const dir of backendCandidates(explicit)) {
+    try {
+      if (fs.existsSync(mapFile(dir))) return dir
+    } catch {
+      /* 权限/路径异常都继续试下一个 */
+    }
+  }
+  return null
+}
+
 /** 后端根目录 → data/map.json */
 const mapFile = (backend) => path.join(backend, 'data', 'map.json')
 /** 后端根目录 → data/items/简体中文/原神/圣遗物 */
@@ -134,14 +167,14 @@ function readMapCharacters (backend) {
  * @returns {Array<{name: string, rarity: string, id: string, path: string}>}
  */
 export function readAtlasCharacters (backend = DEFAULT_BACKEND) {
-  const dir = path.resolve(backend)
+  const dir = resolveBackend(backend) ?? path.resolve(backend)
   if (!fs.existsSync(dir)) throw new Error(`找不到图鉴后端目录：${dir}`)
   return readMapCharacters(dir)
 }
 
-/** 图鉴后端目录（编辑器等复用；可用参数或默认值覆盖） */
+/** 图鉴后端目录（编辑器等复用；自动探测，找不到才回落参数） */
 export function atlasBackendDir (backend) {
-  return path.resolve(backend ?? DEFAULT_BACKEND)
+  return resolveBackend(backend) ?? path.resolve(backend ?? DEFAULT_BACKEND)
 }
 
 /** 递归收集某目录下所有 .json（同步、深度优先） */
@@ -297,10 +330,10 @@ function readRefNamesFromData () {
  *            artifactFiles: number, badFiles: string[], added: object, fromFiles: number, wrote: boolean}}
  */
 export function buildIndex (opts = {}) {
-  const backend = path.resolve(opts.backend ?? DEFAULT_BACKEND)
+  const backend = resolveBackend(opts.backend)
   const out = opts.outFile === undefined ? outFile : opts.outFile
-  if (!fs.existsSync(backend) || !fs.statSync(backend).isDirectory()) {
-    throw new Error(`找不到图鉴后端目录：${backend}`)
+  if (!backend) {
+    throw new Error(`找不到图鉴后端（缺 data/map.json）。试过：${backendCandidates(opts.backend).join('；')}`)
   }
 
   const map = readMapNames(backend)
@@ -390,11 +423,11 @@ export function buildIndex (opts = {}) {
 }
 
 function main () {
-  const backend = path.resolve(process.argv[2] ?? DEFAULT_BACKEND)
-  if (!fs.existsSync(backend) || !fs.statSync(backend).isDirectory()) {
-    console.error(`找不到图鉴后端目录：${backend}`)
+  const backend = resolveBackend(process.argv[2])
+  if (!backend) {
+    console.error('找不到图鉴后端（需要后端目录下的 data/map.json）。试过：')
+    for (const dir of backendCandidates(process.argv[2])) console.error(`  ${dir}`)
     console.error('用法：node scripts/build-index.mjs [后端目录]')
-    console.error(`默认：${DEFAULT_BACKEND}`)
     process.exit(1)
   }
   console.log(`图鉴后端：${backend}`)

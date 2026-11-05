@@ -100,6 +100,35 @@ if (!realRoot) {
   } else {
     ok('miao 图标不带 iconAbsolute', !item.iconAbsolute)
   }
+
+  /* ---------- 4. 图鉴正文补全（codexOf + fillFromAtlas） ---------- */
+  const codex = atlas.codexOf('安娜丝塔夏')
+  ok('codexOf 读到天赋 3 条', Array.isArray(codex?.skills) && codex.skills.length === 3)
+  ok('天赋字母顺序 A/E/Q', codex?.skills.map(skill => skill.letter).join(',') === 'A,E,Q')
+  ok('天赋带名字', (codex?.skills?.[0]?.name ?? '').length > 0)
+  ok('命座 6 条', Array.isArray(codex?.constellations) && codex.constellations.length === 6)
+  ok('命座带官方名', (codex?.constellations?.[0]?.name ?? '').length > 0)
+  ok('基础生命 ≈ 991', Math.abs((codex?.base?.hp ?? 0) - 991.4528) < 1e-6)
+  ok('缓存：第二次同一对象', atlas.codexOf('安娜丝塔夏') === codex)
+
+  const { fillFromAtlas } = await import(pathToFileURL(subViewsFile).href)
+  const guide = {
+    name: '安娜丝塔夏',
+    sections: [
+      { key: 'talents', title: '天赋', rows: [{ kind: 'talents', items: [{ name: 'A', talentLevel: 1 }, { name: 'E', talentLevel: 10 }] }] },
+      { key: 'panels', title: '面板', rows: [] },
+      { key: 'constellations', title: '命座', rows: [{ items: [{ index: 2, text: '全队爆伤' }] }] }
+    ]
+  }
+  const filled = fillFromAtlas(guide, codex)
+  const talentItem = filled.sections[0].rows[0].items[0]
+  ok('天赋补上官方名', talentItem.atlasName === codex.skills[0].name)
+  ok('天赋补上描述', (talentItem.atlasDesc ?? '').length > 0)
+  ok('面板补出基础行', filled.sections[1].rows.some(row => row.label === '基础'))
+  const consItem = filled.sections[2].rows[0].items[0]
+  ok('命座保留原文', consItem.text === '全队爆伤')
+  ok('命座补上官方名与描述', (consItem.atlasName ?? '').length > 0 && (consItem.atlasDesc ?? '').length > 0)
+  ok('图鉴为空时不改视图', fillFromAtlas(guide, null) === guide)
 }
 
 report()
