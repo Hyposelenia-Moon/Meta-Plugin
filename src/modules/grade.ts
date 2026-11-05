@@ -1448,7 +1448,7 @@ function gradePresetBuild (targets: GuideTargets, build: BuildSnapshot, opts: Gr
   add('talent', `天赋：${below('talent:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('talent:'))
   add('mainstat', `主词条：${below('artifact:main:').map(r => `${r.name}换「${r.target}」`).join('、')}`, below('artifact:main:'))
   add('artifact:set', `圣遗物：凑攻略推荐套装（${targets.artifact.recommend[0] || targets.artifact.optional[0] || ''}）`, below('artifact:set'))
-  add('artifact:mark', `圣遗物：提升词条评分（当前 ${markText}，套装齐全时 240 分即达标）`, below('artifact:mark'))
+  add('artifact:mark', '圣遗物：提升词条评分', below('artifact:mark'))
   add('panel', `面板：${below('panel:').map(r => `${r.name} ${r.actual}→${r.target}`).join('、')}`, below('panel:'))
   /*
    * 武器建议（2026-11-02 用户反馈：武器已在推荐档内却仍提示「换到推荐档」）：
