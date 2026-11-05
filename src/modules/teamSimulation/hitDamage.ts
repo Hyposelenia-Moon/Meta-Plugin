@@ -157,6 +157,10 @@ function mergedEnemy(base: EnemyModifiers, extra: EnemyModifiers[]): EnemyModifi
     out.resistanceReduction += delta.resistanceReduction
     out.defenseReduction += delta.defenseReduction
     out.defenseIgnore += delta.defenseIgnore
+    for (const [element, amount] of Object.entries(delta.resistanceByElement ?? {})) {
+      const key = element as keyof NonNullable<EnemyModifiers['resistanceByElement']>
+      out.resistanceByElement = { ...(out.resistanceByElement ?? {}), [key]: (out.resistanceByElement?.[key] ?? 0) + (amount ?? 0) }
+    }
   }
   return out
 }
@@ -278,7 +282,7 @@ export function calculateTimelineDamage(input: { timeline: TimelineResult; conte
     const flatBase = (options.flatBase ?? []).reduce((sum, flat) => sum + statFor(flat.scaling, stats) * flat.ratio, 0)
     const defenseReduction = context.debuffs.defenseReduction + options.enemy.defenseReduction
     const defenseIgnore = context.debuffs.defenseIgnore + options.enemy.defenseIgnore
-    const resistanceReduction = context.debuffs.resistanceReduction + options.enemy.resistanceReduction
+    const resistanceReduction = context.debuffs.resistanceReduction + options.enemy.resistanceReduction + (options.enemy.resistanceByElement?.[options.element] ?? 0)
     const spec: OrdinaryHit = {
       kind: 'ordinary',
       reaction: 'none',
