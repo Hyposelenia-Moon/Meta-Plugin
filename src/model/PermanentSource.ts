@@ -427,6 +427,18 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
     note: '4 件套：获得元素微粒或晶球时，为队伍恢复 3 点元素能量，每 3 秒至多一次',
     unmodeled: '4 件套「只对队伍中的弓箭与法器角色生效」需要按武器类型过滤，当前对全队生效'
   },
+  '400209': {
+    effect: {
+      id: 'artifact-set:400209:4pc',
+      target: 'enemy',
+      durationFrames: 480,
+      trigger: 'hit',
+      hitElements: ['dendro'],
+      stacking: 'refresh',
+      enemy: { resistanceByElement: { dendro: 0.3 } }
+    },
+    note: '4 件套：造成草元素伤害后，使敌人草元素抗性降低 30%，持续 8 秒'
+  },
   '400033': {
     effect: {
       id: 'artifact-set:400033:4pc',

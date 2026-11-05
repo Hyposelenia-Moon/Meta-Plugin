@@ -733,6 +733,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
           if (consumed.has(entry.effectId)) continue
           if (!matchesHitKind(entry.on)) continue
           const spec = effectRuntime.specOf(entry.effectId)
+          if (spec?.hitElements && !spec.hitElements.some(element => element === item.hit.element)) continue
           const icd = Number(spec?.icdFrames) || 0
           const key = `${entry.effectId}@${entry.actorId}`
           const last = hitTriggerAt.get(key)

@@ -22,9 +22,15 @@ export interface EnemyModifiers {
   resistanceReduction: number
   defenseReduction: number
   defenseIgnore: number
+  /** 分元素抗性削减：只对该元素的命中生效（翠绿之影、深林的记忆一类）。 */
+  resistanceByElement?: Partial<Record<ElementKey, number>>
 }
 
 export const NO_ENEMY_MODIFIERS: EnemyModifiers = { resistanceReduction: 0, defenseReduction: 0, defenseIgnore: 0 }
+
+/** 分元素抗性削减用的元素键；与命中元素保持一致（不含 clear）。 */
+export const ELEMENT_KEYS = ['physical', 'pyro', 'hydro', 'electro', 'cryo', 'anemo', 'geo', 'dendro'] as const
+export type ElementKey = typeof ELEMENT_KEYS[number]
 
 /**
  * 反应加成：不进面板、只作用于月反应与星烁的结算乘区。
@@ -76,7 +82,7 @@ export interface EffectSpec {
   id: string
   target: EffectTarget
   stats?: PanelModifiers
-  enemy?: { resistanceReduction?: number; defenseReduction?: number; defenseIgnore?: number }
+  enemy?: { resistanceReduction?: number; defenseReduction?: number; defenseIgnore?: number; resistanceByElement?: Partial<Record<ElementKey, number>> }
   durationFrames?: number
   /** 重复触发时的策略，缺省 refresh（刷新到期时刻，不叠层）。 */
   stacking?: StackingPolicy
@@ -86,6 +92,8 @@ export interface EffectSpec {
   reactionBonus?: ReactionBonus
   /** 触发时机；给定时不再常驻，只在对应动作起手被激活。 */
   trigger?: EffectTriggerKind
+  /** 命中类触发的元素过滤：只在这些元素的命中上触发（深林的记忆一类）。 */
+  hitElements?: ElementKey[]
   /**
    * 只在装备者处于队伍后台时计入（黄金剧团 4 件套的后台 +25%）。
    * 判定发生在命中结算当帧：命中者不是当前前台角色时视为后台。
@@ -217,6 +225,11 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
   const allTriggers = [spec.trigger, ...(spec.extraTriggers ?? [])].filter((kind): kind is EffectTriggerKind => Boolean(kind))
   if (allTriggers.includes('off-field-tick') && spec.tickFrames === undefined) add('missing', `${p}.tickFrames`, '后台计时触发必须给计时间隔')
   if (!allTriggers.includes('off-field-tick') && spec.tickFrames !== undefined) add('invalid', `${p}.tickFrames`, '只有后台计时触发才需要计时间隔')
+  if (spec.hitElements !== undefined) {
+    if (!allTriggers.some(kind => HIT_TRIGGER_KINDS.includes(kind))) add('invalid', `${p}.hitElements`, '只有命中类触发才能按元素过滤')
+    else if (!Array.isArray(spec.hitElements) || !spec.hitElements.length) add('invalid', `${p}.hitElements`, '元素过滤必须是非空数组')
+    else for (const element of spec.hitElements) if (!ELEMENT_KEYS.includes(element)) add('unsupported', `${p}.hitElements`, `未知元素 ${String(element)}`)
+  }
   if (!allTriggers.some(kind => HIT_TRIGGER_KINDS.includes(kind)) && !allTriggers.includes('particle') && !allTriggers.includes('reaction') && spec.icdFrames !== undefined) add('invalid', `${p}.icdFrames`, '只有命中类、产球与反应触发才需要触发冷却')
   if (spec.stacking === 'stack') {
     if (!isInteger(spec.maxStacks) || spec.maxStacks <= 0) add('invalid', `${p}.maxStacks`, '叠层策略必须给出正整数层数上限')
@@ -365,6 +378,10 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
           enemy.resistanceReduction += (mods.resistanceReduction ?? 0) * entry.stacks
           enemy.defenseReduction += (mods.defenseReduction ?? 0) * entry.stacks
           enemy.defenseIgnore += (mods.defenseIgnore ?? 0) * entry.stacks
+          for (const [element, amount] of Object.entries(mods.resistanceByElement ?? {})) {
+            const key = element as ElementKey
+            enemy.resistanceByElement = { ...(enemy.resistanceByElement ?? {}), [key]: (enemy.resistanceByElement?.[key] ?? 0) + (amount ?? 0) * entry.stacks }
+          }
           continue
         }
         if (spec.target === 'self' && entry.actorId !== actorId) continue
