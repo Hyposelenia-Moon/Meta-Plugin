@@ -185,8 +185,24 @@ const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; weaponTyp
   '400271': {
     key: 'skillDmg',
     value: 0.25,
-    note: '4 件套：元素战技造成的伤害 +25%',
-    unmodeled: '4 件套「处于队伍后台时再 +25%，登场后 2 秒移除」需要在场判定，当前只计入常驻的 +25%'
+    note: '4 件套：元素战技造成的伤害 +25%；处于队伍后台时再 +25%（后台部分见 OFF_FIELD_FOUR_PIECE）'
+  }
+}
+
+/**
+ * 「只在后台生效」的常驻 4 件套（2026-11-05）：黄金剧团的 +25% 只在该角色不站场时计入。
+ * 单独用一个效果 id，避免和审计条目 `artifact-set:<setId>:4pc` 的常驻部分互相覆盖。
+ */
+const OFF_FIELD_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: EffectTriggerKind }; note: string }> = {
+  '400271': {
+    effect: {
+      id: 'artifact-set:400271:4pc-offfield',
+      target: 'self',
+      stats: { skillDmg: 0.25 },
+      trigger: 'always',
+      offFieldOnly: true
+    },
+    note: '处于队伍后台时元素战技伤害再 +25%（登场后不生效）'
   }
 }
 
@@ -491,12 +507,15 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
           runtimeRequired: false
         }
       } else if (staticFour && applies) {
+        const offField = OFF_FIELD_FOUR_PIECE[setId]
         effects[`artifact-set:${setId}:4pc`] = {
           status: 'verified-static',
           modifiers: [{ key: staticFour.key, value: staticFour.value }],
-          runtimeRequired: false,
-          ...(staticFour.unmodeled ? { unmodeled: staticFour.unmodeled } : {})
+          runtimeRequired: offField !== undefined,
+          ...(staticFour.unmodeled ? { unmodeled: staticFour.unmodeled } : {}),
+          ...(offField ? { note: `${staticFour.note}；${offField.note}` } : {})
         }
+        if (offField) runtimeEffects[offField.effect.id] = offField.effect
       } else if (noDamage) {
         effects[`artifact-set:${setId}:4pc`] = {
           status: 'verified-static',

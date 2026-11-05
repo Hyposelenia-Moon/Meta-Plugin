@@ -138,7 +138,8 @@ const specOf = (charId, name, weaponId, effectId) => {
   assert.ok(audit, '黄金剧团 4 件套应有审计条目')
   assert.equal(audit.status, 'verified-static')
   assert.deepEqual(audit.modifiers, [{ key: 'skillDmg', value: 0.25 }])
-  assert.ok(audit.unmodeled, '后台再 +25% 未建模，必须披露')
+  assert.equal(audit.runtimeRequired, true, '后台 +25% 走运行时效果')
+  assert.equal(audit.unmodeled, undefined, '后台 +25% 已建模（见 team-sim-offfield-4pc）')
 }
 
 // ---------- 1d. 无伤害影响类：只登记不计算，不写 unmodeled ----------

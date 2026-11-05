@@ -543,6 +543,14 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
       if ((spec?.stacking === 'stack') && !spec.icdFrames) add('missing', `${p}.on`, '命中类触发要叠层时必须给 icdFrames（触发冷却），否则会按每一段命中无上限叠层')
     } else if (item.on === 'off-field-tick' && !effectRuntime.specOf(item.effectId)?.tickFrames) add('missing', `${p}.on`, '后台计时触发必须给 tickFrames（计时间隔）')
   }
+  /*
+   * 常驻效果（trigger: 'always'）：开局即生效、持续到窗口结束。
+   * 在校验之后、正式推进之前注册；`offFieldOnly` 的过滤发生在每次命中结算时。
+   */
+  for (const item of effectTriggers) {
+    if (item.on !== 'always') continue
+    effectRuntime.trigger(item.effectId, 0, item.actorId)
+  }
 
   const durationCache = new Map<ActionSpec, ResolvedTiming>()
   const durationOf = (spec: ActionSpec): ResolvedTiming => {
@@ -657,7 +665,8 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const handle = (queued: QueuedItem) => {
     const { item } = queued
     if (item.kind === 'hit') {
-      const modifiers = effectRuntime.modifiersAt(item.actorId, queued.frame)
+      // 后台限定（黄金剧团）：命中者在命中当帧不是前台，就算在后台。
+      const modifiers = effectRuntime.modifiersAt(item.actorId, queued.frame, { offField: item.actorId !== activeActorId })
       // 叠层计数在命中当帧解析：效果先于本发结算，所以读到的是本发之前已经累好的层数。
       const declaredReaction = item.hit.reaction
       const reaction = declaredReaction && declaredReaction.countFrom
