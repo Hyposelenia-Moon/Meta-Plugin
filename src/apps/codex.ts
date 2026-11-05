@@ -35,7 +35,6 @@ import { resolveCharacterMatch } from '../modules/characterResolver.js'
 import { listGuidePresets, selectGuidePreset } from '../modules/guidePresets.js'
 import {
   buildCodexView,
-  fillFromAtlas,
   toPageData,
   viewToText,
   withIcons,
@@ -145,7 +144,6 @@ export class MetaCodex extends plugin {
     }
 
     view = withIcons(view, { character: name })
-    view = fillFromAtlas(view, atlasRes.codexOf(name))
 
     if (opts.module || opts.tier) {
       view = filterView(view, { module: opts.module, tier: opts.tier as never })
