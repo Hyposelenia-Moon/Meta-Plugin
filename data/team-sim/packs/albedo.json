@@ -119,6 +119,7 @@
         {
           "atFrame": 25,
           "count": 1,
+          "chance": 0.67,
           "element": "geo",
           "travelFrames": 0
         }

@@ -117,9 +117,11 @@ for (const row of standard.energy) {
 }
 // 战技一定要产球：产球动作在结算记录里，且落地后有增益。
 const particleRows = standard.timeline.events.filter(e => e.phase === 'energy')
-// 每个产球声明记一条事件，事件里的 count 才是微粒数：阿贝多 1 + 五郎 2 + 一斗 3 = 6。
-assert.equal(particleRows.length, 3)
-assert.equal(particleRows.reduce((sum, row) => sum + row.detail.count, 0), 6)
+// 每个产球声明记一条事件；一斗的 E 按图鉴概率拆成「3 颗 50% + 4 颗 50%」两条，
+// 所以一共 4 条，期望微粒数 = 1×0.67 + 2 + 3×0.5 + 4×0.5 = 6.17。
+assert.equal(particleRows.length, 4)
+const expectedParticles = particleRows.reduce((sum, row) => sum + row.detail.count * (row.detail.chance ?? 1), 0)
+assert.ok(Math.abs(expectedParticles - 6.17) < 1e-9, `期望微粒数 ${expectedParticles}`)
 
 // 诊断口径：给钟离满能量放爆发，验证爆发命中与能量扣减；诊断模式不报 DPS。
 const burstRotation = {

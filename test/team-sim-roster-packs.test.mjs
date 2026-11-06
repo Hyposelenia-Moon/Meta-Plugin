@@ -107,7 +107,7 @@ assert.deepEqual(
 const albedo = geoPack('albedo')
 assert.deepEqual(
   { frames: albedo.actions['albedo.skill'].timing.frames, atFrame: albedo.actions['albedo.skill'].hits[0].atFrame, mv: albedo.actions['albedo.skill'].hits[0].motionValue, particles: albedo.actions['albedo.skill'].particles },
-  { frames: 33, atFrame: 25, mv: 2.3472, particles: [{ atFrame: 25, count: 1, element: 'geo', travelFrames: 0 }] })
+  { frames: 33, atFrame: 25, mv: 2.3472, particles: [{ atFrame: 25, count: 1, chance: 0.67, element: 'geo', travelFrames: 0 }] })
 assert.equal(albedo.actions['albedo.burst'].hits[0].motionValue, 6.6096)
 const gorou = geoPack('gorou')
 assert.deepEqual(

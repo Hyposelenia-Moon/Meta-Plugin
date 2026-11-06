@@ -7,7 +7,7 @@
     "kukishinobu.skill：倍率 1.3628 ← miao e 技能伤害[9]=136.28%；按攻击力结算（gcsim Mult: skill[lv]，skill.go:57），scaling 记 atk",
     "kukishinobu.skill：Element: attributes.Electro（skill.go:55）",
     "kukishinobu.skill：冷却 900 帧 ← skill.go:80 SetCDWithDelay(action.ActionSkill, 15*60, 7)；7 是冷却起始延迟帧，未建模",
-    "kukishinobu.skill：产球 ← skill.go:90-101 particleCB：命中时 45% 概率产 1 颗雷元素微粒，带 0.2s ICD；这里按 1 颗记（期望 0.45 颗，偏乐观），travelFrames 记 0（默认 ParticleDelay=100 未建模）",
+    "kukishinobu.skill：产球 ← skill.go:90-101 particleCB：命中时 45% 概率产 1 颗雷元素微粒，带 0.2s ICD；图鉴给 44%，这里按 `chance: 0.44` 折算（原按 1 颗记偏乐观），travelFrames 记 0（默认 ParticleDelay=100 未建模）",
     "kukishinobu.skill：施放扣当前生命 30%（最多扣到剩 20%，skill.go:32-45）、FlatDmg = 元素精通×0.25（skill.go:58）均未建模",
     "kukishinobu.skill：越祓雷草之轮（持续 720 帧；治疗 5.4% 生命上限+635.61，每 90 帧一跳；每跳雷伤 45.43%）按约定不建模，施放本身有初始伤害故 hits 非空",
     "kukishinobu.burst：命中帧 50/67/84/101/118/135/152 ← burst.go:14 burstStart=50、burst.go:42 interval=2*60/7=17（Go 整除）、burst.go:51 循环；默认分支（当前生命>50%）count=7；生命≤50% 时 12 段（burst.go:38-41）未建模",
@@ -40,6 +40,7 @@
         {
           "atFrame": 11,
           "count": 1,
+          "chance": 0.44,
           "element": "electro",
           "travelFrames": 0
         }
