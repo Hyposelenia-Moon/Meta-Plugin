@@ -15,7 +15,8 @@ const { loadRoster, loadPermanentData } = await import(mod('model/TeamSimStore.j
 const EXPECTED = {
   gameVersion: '7.1',
   bundleId: 'permanent-7.1',
-  source: 'miao meta-gs 7.1（白值/突破/武器副属性）+ 本仓库人工审计（套装与被动）'
+  // 2026-11-06 起永久数据改为运行时现算，source 跟着 PermanentSource 的 SOURCE 走。
+  source: 'miao meta-gs 7.1（白值/突破/武器副属性）+ 运行时按玩家配装生成；套装与被动按本仓库已审计结论披露'
 }
 const HUA_GUAN = '400189' // 华馆梦醒形骸记：2 件套 防御力提高 30%
 
@@ -81,7 +82,9 @@ for (const item of cases) {
   assert.deepEqual(panel.base, { hp: item.base.hp, atk: item.base.atk + item.weaponAtk, def: item.base.def, weaponAtk: item.weaponAtk })
 
   near(panel.stats.def, item.base.def * defMultiplier[item.charId], `${item.name} 防御`)
-  assert.ok(panel.unmodeled.some(row => row.id === `artifact-set:${HUA_GUAN}:4pc`), `${item.name} 应披露华馆 4 件套未建模`)
+  // 华馆 4 件套 2026-11-05 已建模（岩伤命中/后台每 3 秒叠层），不该再出现在未建模列表里。
+  assert.ok(!panel.unmodeled.some(row => row.id === `artifact-set:${HUA_GUAN}:4pc`), `${item.name} 的华馆 4 件套应已建模`)
+  assert.ok(panel.unmodeled.length > 0, `${item.name} 仍有其它未建模项（如固有天赋），应如实披露`)
   assert.ok(panel.unmodeled.every(row => typeof row.reason === 'string' && row.reason.trim().length > 0))
 }
 
