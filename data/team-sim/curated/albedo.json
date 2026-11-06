@@ -4,7 +4,7 @@
   "source": "倍率=miao 天赋 10 级；帧与冷却=gcsim fcc117b（internal/characters/albedo/skill.go:16 命中 25、:19 动画 33；burst.go:15 命中 75、:20 动画 96、:101 冷却 720）",
   "notes": [
     "战技只结算施放那一段直接命中；刹那之花（每 2 秒一次、按防御力结算）未建模",
-    "产球按 gcsim 施放时 1 颗岩元素微粒（skill.go:101，67% 概率触发，这里按期望取 1 颗）；到达延迟未建模（travelFrames=0）：内核在下一个动作开始时取消上一个动作尚未到达的产球，而 gcsim 默认粒子延迟 100 帧；按 100 帧填会让产球永远被取消，只能先按 0 帧记",
+    "产球按 gcsim 施放时 1 颗岩元素微粒（skill.go:101，67% 概率触发；`chance: 0.67` 由内核按期望折算）；到达延迟未建模（travelFrames=0）：内核在下一个动作开始时取消上一个动作尚未到达的产球，而 gcsim 默认粒子延迟 100 帧；按 100 帧填会让产球永远被取消，只能先按 0 帧记",
     "爆发只结算初始爆发伤害；生灭之花 7 段（每段 1.296 倍率、145 帧起、间隔 5 帧，超出 96 帧动作长度）未建模"
   ],
   "actions": {
@@ -17,7 +17,7 @@
         { "atFrame": 25, "motionValue": 2.3472, "scaling": "atk", "element": "geo", "canCrit": true }
       ],
       "particles": [
-        { "atFrame": 25, "count": 1, "element": "geo", "travelFrames": 0 }
+        { "atFrame": 25, "count": 1, "chance": 0.67, "element": "geo", "travelFrames": 0 }
       ],
       "cooldownFrames": 240,
       "cooldownId": "skill"

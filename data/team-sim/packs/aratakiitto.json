@@ -100,6 +100,14 @@
         {
           "atFrame": 18,
           "count": 3,
+          "chance": 0.5,
+          "element": "geo",
+          "travelFrames": 0
+        },
+        {
+          "atFrame": 18,
+          "count": 4,
+          "chance": 0.5,
           "element": "geo",
           "travelFrames": 0
         }

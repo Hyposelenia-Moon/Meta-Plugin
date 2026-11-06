@@ -117,6 +117,11 @@ export interface CancelWindow { fromFrame: number; toFrame: number }
 export interface ParticleSpec {
   atFrame: number
   count: number
+  /**
+   * 产球概率（2026-11-06）：图鉴 `energy[]` 里写着 `67%` 这类概率，内核按期望值折算
+   * （`count × chance`），未提供时按 1（必定掉落）处理。
+   */
+  chance?: number
   /** 2026-11-02：粒子的元素与命中元素同一套，另加 `clear`（无元素） */
   element: HitElement | 'clear'
   /** 粒子飞到收取者所需的帧数；到达时才加能量。 */
@@ -438,6 +443,7 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
         const pp = `${p}.particles.${i}`
         if (!isInteger(particle?.atFrame) || particle.atFrame < 0 || (bound !== null && particle.atFrame >= bound)) add('invalid', `${pp}.atFrame`, '产球帧必须是非负整数且落在动作内')
         if (!isInteger(particle?.count) || particle.count <= 0) add('invalid', `${pp}.count`, '产球数量必须是正整数')
+        if (particle?.chance !== undefined && (!(typeof particle.chance === 'number') || !Number.isFinite(particle.chance) || particle.chance <= 0 || particle.chance > 1)) add('invalid', `${pp}.chance`, '产球概率必须在 (0, 1] 之间（缺省按 1 处理）')
         if (![...HIT_ELEMENTS, 'clear'].includes(particle?.element)) add('unsupported', `${pp}.element`, `未知粒子元素 ${String(particle?.element)}`)
         if (!isInteger(particle?.travelFrames) || particle.travelFrames < 0) add('invalid', `${pp}.travelFrames`, '粒子飞行帧数必须是非负整数')
       })
@@ -451,6 +457,7 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
         // 延迟产球允许超出动作时长（召唤物在动作结束后仍会产球），但仍要与动作起手帧相对、非负。
         if (!isInteger(particle?.atFrame) || particle.atFrame < 0) add('invalid', `${pp}.atFrame`, '延迟产球帧必须是非负整数（可超出动作时长）')
         if (!isInteger(particle?.count) || particle.count <= 0) add('invalid', `${pp}.count`, '产球数量必须是正整数')
+        if (particle?.chance !== undefined && (!(typeof particle.chance === 'number') || !Number.isFinite(particle.chance) || particle.chance <= 0 || particle.chance > 1)) add('invalid', `${pp}.chance`, '产球概率必须在 (0, 1] 之间（缺省按 1 处理）')
         if (![...HIT_ELEMENTS, 'clear'].includes(particle?.element)) add('unsupported', `${pp}.element`, `未知粒子元素 ${String(particle?.element)}`)
         if (!isInteger(particle?.travelFrames) || particle.travelFrames < 0) add('invalid', `${pp}.travelFrames`, '粒子飞行帧数必须是非负整数')
       })
@@ -788,12 +795,13 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
        * 这两点都写进近似说明，不假装比实测更准。
        */
       const gains: Record<string, number> = {}
+      const dropped = item.particle.count * (item.particle.chance ?? 1)
       for (const actor of actors.values()) {
-        const gain = item.particle.count * (recharge[actor.actorId] ?? 1)
+        const gain = dropped * (recharge[actor.actorId] ?? 1)
         gains[actor.actorId] = gain
         actor.energy = Math.min(actor.energyMax, actor.energy + gain)
       }
-      record(queued.frame, 'energy', 'particle', item.actorId, item.actionId, { count: item.particle.count, element: item.particle.element, gain: gains })
+      record(queued.frame, 'energy', 'particle', item.actorId, item.actionId, { count: item.particle.count, chance: item.particle.chance ?? 1, element: item.particle.element, gain: gains })
       // 产球触发（学士）：获得元素微粒/晶球后回能；`icdFrames` 限制同效果的触发间隔。
       for (const entry of effectTriggers) {
         if (entry.on !== 'particle' || entry.actorId !== item.actorId) continue

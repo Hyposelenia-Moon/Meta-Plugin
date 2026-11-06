@@ -100,6 +100,7 @@
         {
           "atFrame": 11,
           "count": 1,
+          "chance": 0.44,
           "element": "electro",
           "travelFrames": 0
         }
