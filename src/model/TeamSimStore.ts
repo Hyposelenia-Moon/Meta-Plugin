@@ -326,7 +326,8 @@ function freezeSequenceFrames (rotation: RotationSpec, pack: DataPack): { status
     actors: rotation.actors,
     activeActorId: rotation.activeActorId,
     frameTier: rotation.frameTier,
-    measurementEndFrame: rotation.measurementEndFrame
+    measurementEndFrame: rotation.measurementEndFrame,
+    energyRecharge: rotation.energyRecharge
   })
   if (dry.issues.length) return { status: 'invalid', issues: dry.issues }
   const frameOf = new Map<string, number>()
@@ -426,12 +427,13 @@ function loopSteps (
     actors,
     activeActorId,
     frameTier: tier,
-    measurementEndFrame: window
+    measurementEndFrame: window,
+    energyRecharge: file.energyRecharge
   })
   const firstActor = steps.find(step => step.kind === 'action')?.actorId
   let best = steps
   let bestEnd = dry(steps).endFrame ?? 0
-  for (let round = 1; round < 50; round += 1) {
+  for (let round = 1; ; round += 1) {
     const lastActor = [...best].reverse().find(step => step.kind === 'action' || step.kind === 'switch')?.actorId
     const next: TimelineStep[] = firstActor && lastActor && lastActor !== firstActor
       ? [{ id: `loop-switch-${round}`, kind: 'switch', actorId: firstActor }]

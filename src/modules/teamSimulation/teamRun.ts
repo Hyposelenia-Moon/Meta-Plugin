@@ -207,14 +207,14 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
    * 永久数据是按角色+武器一次生成的，里面包含全部 63 套的 `runtimeEffects`；
    * 这里用本队实际圣遗物的 setId 过滤，避免「没穿也触发」。
    */
-  const equippedSets = new Set<string>()
-  for (const build of Object.values(builds)) for (const artifact of build.artifacts) equippedSets.add(artifact.setId)
   const effects: Record<string, EffectSpec> = { ...(packResult.pack.effects ?? {}) }
   const effectTriggers: Array<{ effectId: string; actorId: string; on: EffectTriggerKind }> = []
   for (const [actorId, data] of Object.entries(permanentByActor)) {
+    const setCounts = new Map<string, number>()
+    for (const artifact of builds[actorId].artifacts) setCounts.set(artifact.setId, (setCounts.get(artifact.setId) ?? 0) + 1)
     for (const [effectId, spec] of Object.entries(data.runtimeEffects ?? {})) {
       const setId = /^artifact-set:([^:]+):/.exec(effectId)?.[1]
-      if (!setId || !equippedSets.has(setId)) continue
+      if (!setId || (setCounts.get(setId) ?? 0) < 4) continue
       effects[effectId] = spec
       effectTriggers.push({ effectId, actorId, on: spec.trigger })
       for (const extra of spec.extraTriggers ?? []) effectTriggers.push({ effectId, actorId, on: extra })

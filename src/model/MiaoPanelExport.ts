@@ -61,9 +61,9 @@ function setIds (): Map<string, string> {
   return map
 }
 
-/** miao 的数值 → 我们的数值（百分比已是小数；字符串 `5.8%` 转小数） */
-function toNumber (value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) return value
+/** miao 数值型比例词条是百分数；只在导出入口按属性键转成内核小数。 */
+function toNumber (value: unknown, key: string): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return ['hp', 'atk', 'def', 'mastery'].includes(key) ? value : value / 100
   const text = String(value ?? '').trim()
   if (!text) return null
   const pct = text.endsWith('%')
@@ -117,7 +117,7 @@ export async function exportPanelSnapshot (
     const subs: Array<{ key: string, value: number }> = []
     for (const attr of (Array.isArray(ds.attrs) ? ds.attrs : [])) {
       const key = KEY_MAP[String(attr?.key ?? '')] ?? ''
-      const value = toNumber(attr?.value)
+      const value = toNumber(attr?.value, key)
       if (!key || value === null) continue
       subs.push({ key, value })
     }
@@ -128,7 +128,7 @@ export async function exportPanelSnapshot (
       name: String(ds.name ?? ''),
       level: Number(ds.level) || 0,
       mainKey,
-      mainValue: toNumber(ds.main?.value),
+      mainValue: toNumber(ds.main?.value, mainKey),
       subs
     })
   }
