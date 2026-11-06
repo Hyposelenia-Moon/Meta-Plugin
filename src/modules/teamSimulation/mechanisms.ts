@@ -201,6 +201,7 @@ export function planMechanisms(input: MechanismInput): { plan: MechanismPlan; is
   }
   if (issues.length) return { plan: empty, issues }
 
+  const shieldsByActor = new Map<string, EnemyWindow>()
   for (const { frame, tag, actorId } of tagged) {
     if (tag === 'itto-q') {
       const context = contexts[actorId]
@@ -239,13 +240,17 @@ export function planMechanisms(input: MechanismInput): { plan: MechanismPlan; is
       })
     }
     if (tag === 'zhongli-hold-e') {
-      plan.enemyWindows.push({
+      const previous = shieldsByActor.get(actorId)
+      if (previous) previous.toFrame = Math.min(previous.toFrame, frame)
+      const window: EnemyWindow = {
         id: `zhongli-shield:${frame}`,
         fromFrame: frame,
         toFrame: frame + seconds(GEO_MECHANICS.zhongli.shieldSeconds, tier),
         enemy: { resistanceReduction: GEO_MECHANICS.zhongli.resistanceReduction, defenseReduction: 0, defenseIgnore: 0 },
         source: 'zhongli-shield'
-      })
+      }
+      plan.enemyWindows.push(window)
+      shieldsByActor.set(actorId, window)
       plan.checks.push({ id: 'zhongli-shield.uptime', status: 'ok', message: `玉璋护盾 ${GEO_MECHANICS.zhongli.shieldSeconds} 秒内提供 20% 减抗，护盾吸收量与坚璧叠层不参与伤害结算` })
     }
     if (tag === 'albedo-e') {
