@@ -210,7 +210,7 @@ const STATIC_FOUR_PIECE: Record<string, { key: StatKey; value: number; extra?: A
  * 「只在后台生效」的常驻 4 件套（2026-11-05）：黄金剧团的 +25% 只在该角色不站场时计入。
  * 单独用一个效果 id，避免和审计条目 `artifact-set:<setId>:4pc` 的常驻部分互相覆盖。
  */
-const OFF_FIELD_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: EffectTriggerKind }; note: string }> = {
+const OFF_FIELD_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: EffectTriggerKind }; note: string; unmodeled?: string }> = {
   '400271': {
     effect: {
       id: 'artifact-set:400271:4pc-offfield',
@@ -219,7 +219,7 @@ const OFF_FIELD_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
       trigger: 'always',
       offFieldOnly: true
     },
-    note: '处于队伍后台时元素战技伤害再 +25%（登场后不生效）'
+    note: '处于队伍后台时元素战技伤害再 +25%（登场后不生效；官方「登场后 2 秒移除」按登场当帧失效近似）'
   }
 }
 
@@ -407,7 +407,7 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
     effect: {
       id: 'artifact-set:400043:4pc',
       target: 'team',
-      durationFrames: 480,
+      durationFrames: 360,
       trigger: 'cast-burst',
       stacking: 'refresh',
       energyRestore: { amount: 2, target: 'team', excludeSelf: true, everyFrames: 120, times: 3 }
@@ -435,8 +435,8 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
       stacking: 'refresh',
       reactionDmg: { overloaded: 0.4, 'electro-charged': 0.4, superconduct: 0.4 }
     },
-    note: '4 件套：超载、感电、超导、超绽放反应造成的伤害提升 40%，超激化反应的伤害提升提高 20%',
-    unmodeled: '超绽放需要草原核模型、超激化加成走激化通道；当前只把超载/感电/超导的 40% 计入'
+    note: '4 件套：超载、感电、超导、超绽放反应造成的伤害提升 40%，超激化反应的伤害提升提高 20%，月感电与星超导反应伤害提升 20%',
+    unmodeled: '超绽放需要草原核模型、超激化加成走激化通道、月感电/星超导的 20% 与「触发反应后元素战技冷却 -1 秒（0.8 秒一次）」未建模；当前只把超载/感电/超导的 40% 计入'
   },
   '400209': {
     effect: {
