@@ -32,6 +32,11 @@ export interface TeamRunInput {
   mode?: TeamRunMode
   /** 打开后逐关记录耗时（毫秒），用于性能报告；关掉时结果为 null，不引入额外开销。 */
   instrument?: boolean
+  /**
+   * 反应来源：缺省仍按数据包逐条声明；`simulated` 由附着状态机推导。
+   * 切换会改变反应次数，闸门与黄金基线需要重算。
+   */
+  auraMode?: 'declared' | 'simulated'
 }
 
 export interface TeamRunCheck {
@@ -232,7 +237,8 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
     energyRecharge: input.rotation.energyRecharge,
     stateFlags: input.rotation.stateFlags,
     effects,
-    ...(effectTriggers.length ? { effectTriggers } : {})
+    ...(effectTriggers.length ? { effectTriggers } : {}),
+    ...(input.auraMode ? { auraMode: input.auraMode } : {})
   })
   checks.push({ stage: 'timeline', status: timeline.status === 'simulated' ? 'ok' : timeline.status, issues: timeline.issues })
   lap('timeline')

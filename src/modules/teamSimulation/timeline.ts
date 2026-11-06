@@ -8,6 +8,7 @@
  */
 import type { Issue } from './types.js'
 import { createEffectRuntime, NO_ENEMY_MODIFIERS, type ActiveEffectState, type EffectSpec, type EffectTriggerKind, EFFECT_TRIGGER_KINDS, HIT_TRIGGER_KINDS, type EnemyModifiers, type PanelModifiers, type ReactionBonus, type TriggerRecord } from './effects.js'
+import { AuraTracker } from './aura.js'
 import { describeMismatch, describeSpecialMismatch, isReactiveKind, isSpecialKind, isStatefulKind, statefulReason, type ReactionElement } from './reactions.js'
 
 /** 数据编帧用的标称帧率。60 档位上一帧的真实时长是 16.667ms，不是整数毫秒。 */
@@ -109,6 +110,11 @@ export interface HitSpec {
    * 附着量、衰减与 ICD 不在 P1 建模范围内（见数据包文档的反应段）。
    */
   reaction?: ReactionDeclaration
+  /**
+   * 附着元数据：只在 `auraMode: 'simulated'` 时读取。`gauge` 是本次附着量（缺省 1U），
+   * `icd` 逐发覆盖默认规则（普攻/战技 Standard、爆发 Independent）。
+   */
+  attachment?: { gauge?: number; icd?: 'independent' | 'standard' }
 }
 
 /** 可取消窗口：动作起手后这段时间内可以接下一次动作。 */
@@ -212,6 +218,11 @@ export interface TimelineInput {
    * 只列真正穿在身上的套装，别把全库套装都塞进来。
    */
   effectTriggers?: Array<{ effectId: string; actorId: string; on: EffectTriggerKind }>
+  /**
+   * 反应来源：`declared`（缺省）逐条读命中里的声明；`simulated` 由附着状态机推导，
+   * 命中里的声明被忽略。切换模式会改变反应次数，基线需要重算。
+   */
+  auraMode?: 'declared' | 'simulated'
 }
 
 export interface TimelineHit {
@@ -226,6 +237,11 @@ export interface TimelineHit {
   triggerIds: string[]
   /** 数据声明的元素反应；ura 是命中瞬间目标身上的附着。 */
   reaction?: ReactionDeclaration
+  /**
+   * 附着元数据：只在 `auraMode: 'simulated'` 时读取。`gauge` 是本次附着量（缺省 1U），
+   * `icd` 逐发覆盖默认规则（普攻/战技 Standard、爆发 Independent）。
+   */
+  attachment?: { gauge?: number; icd?: 'independent' | 'standard' }
   /** 该命中结算时实际生效的修饰：面板增量与全局敌人减益。触发先于伤害之外的效果不影响这一发。 */
   modifiers: { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
   /** 该命中结算时「在场」的效果 id（快照早于本发携带的触发，所以自己不吃自己的加成）。 */
@@ -534,6 +550,13 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   // 效果运行时按帧累积状态：命中结算时先取当帧修饰，再结算这一发携带的触发，所以触发不会反过来加强自己。
   const effectRuntime = createEffectRuntime(input?.effects ?? {}, [...actors.keys()], isInteger(input?.measurementEndFrame) ? input.measurementEndFrame : 0)
   /*
+   * 附着状态机（auraMode: 'simulated'）：缺省关闭，仍按数据包逐条声明结算反应。
+   * 打开后由命中元素与目标当帧附着推导反应，命中里写的 reaction 不再参与。
+   */
+  const auraMode = input?.auraMode ?? 'declared'
+  if (auraMode !== 'declared' && auraMode !== 'simulated') add('invalid', 'auraMode', 'auraMode 只能是 declared 或 simulated')
+  const auraTracker = auraMode === 'simulated' ? new AuraTracker() : undefined
+  /*
    * 动作起手触发（4 件套触发式）：声明必须能兑现——效果要在效果表里登记、角色要在 actors 里，
    * 否则直接报错，不静默跳过（跳过会让「说触发了其实没触发」变成隐形低估）。
    */
@@ -692,9 +715,23 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
       }
       // 叠层计数在命中当帧解析：效果先于本发结算，所以读到的是本发之前已经累好的层数。
       const declaredReaction = item.hit.reaction
-      const reaction = declaredReaction && declaredReaction.countFrom
+      let reaction = declaredReaction && declaredReaction.countFrom
         ? { ...declaredReaction, count: effectRuntime.stacksAt(declaredReaction.countFrom, item.actorId, queued.frame) }
         : declaredReaction
+      if (auraTracker) {
+        /*
+         * 附着推导：爆发按 Independent，其余按 Standard（每 3 次或 2.5 秒一次）；
+         * 附着量缺省 1U。没有附着或 ICD 拦截时不产生反应，伤害照常结算。
+         */
+        const applied = auraTracker.apply({
+          frame: queued.frame,
+          actorId: item.actorId,
+          element: item.hit.element,
+          gauge: item.hit.attachment?.gauge,
+          icd: item.hit.attachment?.icd ?? (actions[item.actionId]?.kind === 'burst' ? 'independent' : 'standard')
+        })
+        reaction = applied.reaction ? { kind: applied.reaction.kind, aura: applied.reaction.aura } : undefined
+      }
       const activeEffects = effectRuntime.activeAt(item.actorId, queued.frame)
       const hitKind = actions[item.actionId]?.kind
       const matchesHitKind = (on: EffectTriggerKind) => on === 'hit' ||
