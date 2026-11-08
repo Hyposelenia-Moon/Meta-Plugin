@@ -132,7 +132,7 @@ export const REACTION_COEFFICIENT: Readonly<Record<number, number>> = {
   100: 1674.088,
 }
 
-/** 增幅反应的精通系数：2.78 × EM / (EM + 1400)。 */
+/** 增幅反应的精通系数：25/9 × EM / (EM + 1400)（游戏内写作 2.78，内核与 miao 一致取分数）。 */
 const AMPLIFY_EM = 25 / 9
 /** 剧变反应的精通系数：16 × EM / (EM + 2000)。 */
 const TRANSFORM_EM = 16
@@ -271,7 +271,7 @@ export function reactionCoefficient(level: number): number | undefined {
   return REACTION_COEFFICIENT[level]
 }
 
-/** 增幅反应的总倍率：反应倍率 × (1 + 2.78EM/(EM+1400))。 */
+/** 增幅反应的总倍率：反应倍率 × (1 + (25/9)EM/(EM+1400))，游戏内常写作 2.78。 */
 export function amplifyingFactor(
   kind: ReactiveKind,
   trigger: ReactionElement,

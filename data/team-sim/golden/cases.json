@@ -1,22 +1,63 @@
 {
   "schemaVersion": 1,
-  "note": "发布闸门的黄金集：单发直伤、固定 90 级攻击者 / 110 级目标、crit 取期望值。期望值全部手算，推导写在每个用例的 source 里；来源不可考的用例不计入闸门（见 src/modules/teamSimulation/metrics.ts 的注释）。实跑值由 scripts/audit-golden.mjs 写入同目录 actuals.json。",
+  "gameVersion": "7.1",
+  "note": "发布闸门的黄金集：固定 90 级攻击者，期望值全部手算，推导写在每个用例的 source 里；来源不可考的用例不计入闸门（见 src/modules/teamSimulation/metrics.ts 的注释）。实跑值由 scripts/audit-golden.mjs 写入同目录 actuals.json。mode=ordinary 走 calculateOrdinaryHit（单发直伤，直伤 + 增幅/激化乘区）；mode=timeline 走 simulateTimeline + calculateTimelineDamage（直伤一行 + 反应一段，反应段单独结算）。",
+  "defaults": {
+    "timelineStats": {
+      "hp": 0,
+      "atk": 1000,
+      "def": 0,
+      "mastery": 0,
+      "cpct": 0,
+      "cdmg": 0,
+      "recharge": 1,
+      "dmg": 0,
+      "phy": 0,
+      "heal": 0,
+      "pyro": 0,
+      "hydro": 0,
+      "electro": 0,
+      "cryo": 0,
+      "anemo": 0,
+      "geo": 0,
+      "dendro": 0
+    },
+    "timelineHit": {
+      "atFrame": 5,
+      "motionValue": 1,
+      "scaling": "atk",
+      "canCrit": false
+    },
+    "timelineTarget": "dummy-lv100"
+  },
   "formula": {
     "damage": "base × (1 + damageBonus) × crit × defense × resistance",
     "base": "Σ(stat × multiplier) + additiveBase",
     "crit": "canCrit 为 false 或 crit=non-critical 时取 1；critical 时 1+critDamage；expected 时 1+min(1,max(0,critRate))×critDamage",
     "defense": "(attackerLevel+100) / ((attackerLevel+100) + (enemyLevel+100) × (1−min(0.9,defenseReduction)) × (1−defenseIgnore))",
-    "resistance": "effective = resistance − resistanceReduction；< 0 时 1−effective/2，≥ 0.75 时 1/(1+4×effective)，其余 1−effective"
+    "resistance": "effective = resistance − resistanceReduction；< 0 时 1−effective/2，≥ 0.75 时 1/(1+4×effective)，其余 1−effective",
+    "amplifying": "增幅：倍率（蒸发 1.5 / 融火 2.0）× (1 + (25/9)×EM/(EM+1400))，乘在基础伤害上。25/9≈2.78 是游戏内该常数的精确分数形式（与 miao 一致）",
+    "transformative": "剧变：90 级系数 1446.852 × 反应倍率 × (1 + 16×EM/(EM+2000)) × 抗性区，单独成段",
+    "lunar": "月反应：90 级系数 1446.852 × 倍率 × (1 + 6×EM/(EM+2000)) × 抗性区，单独成段（见 docs/队伍模拟-P3-月反应与星烁.md）",
+    "stellar": "星烁：90 级系数 1446.852 × 计数倍率 × (1 + 6×EM/(EM+2000)) × 抗性区，单独成段"
   },
   "cases": [
     {
       "id": "g01-atk1000-mv1-flat",
+      "mode": "ordinary",
       "source": "手算：ATK 1000 × 倍率 1.0 = 1000；防御 (90+100)/((90+100)+(110+100)) = 190/400 = 0.475；抗性 10%−0% → 0.9；期望暴击 1；1000×1×0.475×0.9 = 427.5",
       "kind": "hand-calculated",
-      "expected": { "total": 427.5 },
-      "tolerance": 1e-6,
+      "expected": {
+        "total": 427.5
+      },
+      "tolerance": 0.000001,
       "scenario": {
-        "scaling": [{ "stat": 1000, "multiplier": 1 }],
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
         "additiveBase": 0,
         "damageBonus": 0,
         "crit": "expected",
@@ -35,12 +76,20 @@
     },
     {
       "id": "g02-dmgbonus-50",
+      "mode": "ordinary",
       "source": "手算：同 g01 的基础与目标，增伤 +50% → 1000×1.5×0.475×0.9 = 641.25",
       "kind": "hand-calculated",
-      "expected": { "total": 641.25 },
-      "tolerance": 1e-6,
+      "expected": {
+        "total": 641.25
+      },
+      "tolerance": 0.000001,
       "scenario": {
-        "scaling": [{ "stat": 1000, "multiplier": 1 }],
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
         "additiveBase": 0,
         "damageBonus": 0.5,
         "crit": "expected",
@@ -59,12 +108,20 @@
     },
     {
       "id": "g03-crit-60-50",
+      "mode": "ordinary",
       "source": "手算：同 g01，暴击率 60% × 暴伤 50% → 期望暴击 1+0.6×0.5 = 1.3；1000×1×1.3×0.475×0.9 = 555.75",
       "kind": "hand-calculated",
-      "expected": { "total": 555.75 },
-      "tolerance": 1e-6,
+      "expected": {
+        "total": 555.75
+      },
+      "tolerance": 0.000001,
       "scenario": {
-        "scaling": [{ "stat": 1000, "multiplier": 1 }],
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
         "additiveBase": 0,
         "damageBonus": 0,
         "crit": "expected",
@@ -83,12 +140,20 @@
     },
     {
       "id": "g04-crit-100-200",
+      "mode": "ordinary",
       "source": "手算：同 g01，暴击率 100% × 暴伤 200% → 期望暴击 3；1000×1×3×0.475×0.9 = 1282.5",
       "kind": "hand-calculated",
-      "expected": { "total": 1282.5 },
-      "tolerance": 1e-6,
+      "expected": {
+        "total": 1282.5
+      },
+      "tolerance": 0.000001,
       "scenario": {
-        "scaling": [{ "stat": 1000, "multiplier": 1 }],
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
         "additiveBase": 0,
         "damageBonus": 0,
         "crit": "expected",
@@ -107,12 +172,20 @@
     },
     {
       "id": "g05-atk2000-mv2-dmgbonus-100",
+      "mode": "ordinary",
       "source": "手算：2000×2.0 = 4000，增伤 +100% → 8000；8000×0.475×0.9 = 3420",
       "kind": "hand-calculated",
-      "expected": { "total": 3420 },
-      "tolerance": 1e-6,
+      "expected": {
+        "total": 3420
+      },
+      "tolerance": 0.000001,
       "scenario": {
-        "scaling": [{ "stat": 2000, "multiplier": 2 }],
+        "scaling": [
+          {
+            "stat": 2000,
+            "multiplier": 2
+          }
+        ],
         "additiveBase": 0,
         "damageBonus": 1,
         "crit": "expected",
@@ -131,12 +204,20 @@
     },
     {
       "id": "g06-res-shred-30",
+      "mode": "ordinary",
       "source": "手算：同 g01，减抗 30% → 有效抗性 10%−30% = −20%；负抗按 1−(−0.2)/2 = 1.1；1000×1.1×0.475 = 522.5",
       "kind": "hand-calculated",
-      "expected": { "total": 522.5 },
-      "tolerance": 1e-6,
+      "expected": {
+        "total": 522.5
+      },
+      "tolerance": 0.000001,
       "scenario": {
-        "scaling": [{ "stat": 1000, "multiplier": 1 }],
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
         "additiveBase": 0,
         "damageBonus": 0,
         "crit": "expected",
@@ -155,12 +236,20 @@
     },
     {
       "id": "g07-def-shred-40",
+      "mode": "ordinary",
       "source": "手算：同 g01，减防 40% → 防御区 190/(190+210×0.6) = 190/316 = 0.6012658228；1000×0.6012658×0.9 = 541.1392405",
       "kind": "hand-calculated",
-      "expected": { "total": 541.1392405063291 },
-      "tolerance": 1e-6,
+      "expected": {
+        "total": 541.1392405063291
+      },
+      "tolerance": 0.000001,
       "scenario": {
-        "scaling": [{ "stat": 1000, "multiplier": 1 }],
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
         "additiveBase": 0,
         "damageBonus": 0,
         "crit": "expected",
@@ -179,12 +268,20 @@
     },
     {
       "id": "g08-def-ignore-50",
+      "mode": "ordinary",
       "source": "手算：同 g01，无视防御 50% → 防御区 190/(190+210×0.5) = 190/295 = 0.6440677966；1000×0.6440678×0.9 = 579.6610169",
       "kind": "hand-calculated",
-      "expected": { "total": 579.6610169491525 },
-      "tolerance": 1e-6,
+      "expected": {
+        "total": 579.6610169491526
+      },
+      "tolerance": 0.000001,
       "scenario": {
-        "scaling": [{ "stat": 1000, "multiplier": 1 }],
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
         "additiveBase": 0,
         "damageBonus": 0,
         "crit": "expected",
@@ -203,12 +300,20 @@
     },
     {
       "id": "g09-additive-base-300",
+      "mode": "ordinary",
       "source": "手算：1200×0.9 + 300 = 1380；1380×0.475×0.9 = 589.95",
       "kind": "hand-calculated",
-      "expected": { "total": 589.95 },
-      "tolerance": 1e-6,
+      "expected": {
+        "total": 589.95
+      },
+      "tolerance": 0.000001,
       "scenario": {
-        "scaling": [{ "stat": 1200, "multiplier": 0.9 }],
+        "scaling": [
+          {
+            "stat": 1200,
+            "multiplier": 0.9
+          }
+        ],
         "additiveBase": 300,
         "damageBonus": 0,
         "crit": "expected",
@@ -227,12 +332,20 @@
     },
     {
       "id": "g10-res-shred-50-negative",
+      "mode": "ordinary",
       "source": "手算：同 g01，减抗 50% → 有效抗性 −40%；1−(−0.4)/2 = 1.2；1000×1.2×0.475 = 570。负抗不截断，验证 1−r/2 分支",
       "kind": "hand-calculated",
-      "expected": { "total": 570 },
-      "tolerance": 1e-6,
+      "expected": {
+        "total": 570
+      },
+      "tolerance": 0.000001,
       "scenario": {
-        "scaling": [{ "stat": 1000, "multiplier": 1 }],
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
         "additiveBase": 0,
         "damageBonus": 0,
         "crit": "expected",
@@ -247,6 +360,199 @@
         "resistanceReduction": 0.5,
         "reaction": "none",
         "targetId": "ruin-guard-lv110"
+      }
+    },
+    {
+      "id": "g11-vaporize-15-em0",
+      "mode": "ordinary",
+      "source": "手算：蒸发（火打水）1.5 × 精通系数 (1 + 2.78×0/1400) = 1.5；基础 1000×1.5 = 1500，增伤 +10% → 1650；1650×0.475×0.9 = 705.375",
+      "kind": "hand-calculated",
+      "expected": {
+        "total": 705.375
+      },
+      "tolerance": 0.000001,
+      "scenario": {
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
+        "additiveBase": 0,
+        "damageBonus": 0.1,
+        "crit": "expected",
+        "canCrit": true,
+        "critRate": 0,
+        "critDamage": 0,
+        "attackerLevel": 90,
+        "enemyLevel": 110,
+        "defenseReduction": 0,
+        "defenseIgnore": 0,
+        "resistance": 0.1,
+        "resistanceReduction": 0,
+        "reaction": "vaporize",
+        "element": "pyro",
+        "aura": "hydro",
+        "mastery": 0,
+        "targetId": "ruin-guard-lv110"
+      }
+    },
+    {
+      "id": "g12-vaporize-20-em200",
+      "mode": "ordinary",
+      "source": "手算：蒸发（水打火）2.0 × 精通系数 (1 + (25/9)×200/(200+1400)) = 2×(1+0.3472222) = 2.6944444；1000×2.6944444×0.475×0.9 = 1151.875。注：增幅精通常数游戏内写作 2.78，miao 与内核用精确分数 25/9",
+      "kind": "hand-calculated",
+      "expected": {
+        "total": 1151.875
+      },
+      "tolerance": 0.000001,
+      "scenario": {
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
+        "additiveBase": 0,
+        "damageBonus": 0,
+        "crit": "expected",
+        "canCrit": true,
+        "critRate": 0,
+        "critDamage": 0,
+        "attackerLevel": 90,
+        "enemyLevel": 110,
+        "defenseReduction": 0,
+        "defenseIgnore": 0,
+        "resistance": 0.1,
+        "resistanceReduction": 0,
+        "reaction": "vaporize",
+        "element": "hydro",
+        "aura": "pyro",
+        "mastery": 200,
+        "targetId": "ruin-guard-lv110"
+      }
+    },
+    {
+      "id": "g13-melt-20-em800",
+      "mode": "ordinary",
+      "source": "手算：融化（火打冰）2.0 × 精通系数 (1 + (25/9)×800/(800+1400)) = 2×(1+1.0101010) = 4.0202020；1000×4.0202020×0.475×0.9 = 1718.6363636。注：常数取 25/9（游戏内写作 2.78）",
+      "kind": "hand-calculated",
+      "expected": {
+        "total": 1718.6363636363637
+      },
+      "tolerance": 0.000001,
+      "scenario": {
+        "scaling": [
+          {
+            "stat": 1000,
+            "multiplier": 1
+          }
+        ],
+        "additiveBase": 0,
+        "damageBonus": 0,
+        "crit": "expected",
+        "canCrit": true,
+        "critRate": 0,
+        "critDamage": 0,
+        "attackerLevel": 90,
+        "enemyLevel": 110,
+        "defenseReduction": 0,
+        "defenseIgnore": 0,
+        "resistance": 0.1,
+        "resistanceReduction": 0,
+        "reaction": "melt",
+        "element": "pyro",
+        "aura": "cryo",
+        "mastery": 800,
+        "targetId": "ruin-guard-lv110"
+      }
+    },
+    {
+      "id": "g14-electrocharged-em200",
+      "mode": "timeline",
+      "source": "手算（dummy-lv100）：直伤 1000×1×(190/390)×0.9 = 438.4615385；剧变段 90 级系数 1446.852 × 感电倍率 2 × (1+16×200/(200+2000)) = 1446.852×2×2.4545455 = 7102.728；乘抗性 0.9 → 6392.4552；合计 6830.9167385",
+      "kind": "hand-calculated",
+      "expected": {
+        "total": 6830.916738461539
+      },
+      "tolerance": 0.000001,
+      "scenario": {
+        "hit": {
+          "element": "electro",
+          "reaction": {
+            "kind": "electro-charged",
+            "aura": "hydro"
+          }
+        },
+        "stats": {
+          "mastery": 200
+        }
+      }
+    },
+    {
+      "id": "g15-overloaded-em0",
+      "mode": "timeline",
+      "source": "手算（dummy-lv100）：直伤 438.4615385；超载段 1446.852 × 2.75 × (1+0) = 3978.843；×0.9 = 3580.9587；合计 4019.4202385",
+      "kind": "hand-calculated",
+      "expected": {
+        "total": 4019.4202384615387
+      },
+      "tolerance": 0.000001,
+      "scenario": {
+        "hit": {
+          "element": "pyro",
+          "reaction": {
+            "kind": "overloaded",
+            "aura": "electro"
+          }
+        },
+        "stats": {
+          "mastery": 0
+        }
+      }
+    },
+    {
+      "id": "g16-lunarcharged-em100",
+      "mode": "timeline",
+      "source": "手算（dummy-lv100）：直伤 438.4615385；月感电段 1446.852 × 3 × (1+6×100/(100+2000)) = 1446.852×3×1.2857143 = 5580.7148；×0.9 = 5022.6434；合计 5461.1049099",
+      "kind": "hand-calculated",
+      "expected": {
+        "total": 5461.104909890109
+      },
+      "tolerance": 0.000001,
+      "scenario": {
+        "hit": {
+          "element": "hydro",
+          "reaction": {
+            "kind": "lunar-charged",
+            "aura": "electro"
+          }
+        },
+        "stats": {
+          "mastery": 100
+        }
+      }
+    },
+    {
+      "id": "g17-stellarconduct-count12",
+      "mode": "timeline",
+      "source": "手算（dummy-lv100）：直伤 438.4615385；星超导段 1446.852 × 1.95（12 层）× (1+0) = 2821.3614；×0.9 = 2539.22526；合计 2977.6867985",
+      "kind": "hand-calculated",
+      "expected": {
+        "total": 2977.6867984615387
+      },
+      "tolerance": 0.000001,
+      "scenario": {
+        "hit": {
+          "element": "cryo",
+          "reaction": {
+            "kind": "stellar-conduct",
+            "aura": "electro"
+          }
+        },
+        "stats": {
+          "mastery": 0
+        }
       }
     }
   ]

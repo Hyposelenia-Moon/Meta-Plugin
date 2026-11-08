@@ -3,10 +3,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { mod } from './_helper.mjs'
 
-const { calculateOrdinaryHit } = await import(mod('modules/teamSimulation/formula.js'))
 const { GOLDEN_THRESHOLDS, evaluateGolden, validateGoldenCases } = await import(mod('modules/teamSimulation/metrics.js'))
 const { evaluateReleaseGate } = await import(mod('modules/teamSimulation/gate.js'))
 const { loadGoldenSet } = await import(mod('model/GoldenSet.js'))
+const { auditGolden } = await import('../scripts/audit-golden.mjs')
 
 const root = path.resolve(import.meta.dirname, '..')
 const readJson = (...parts) => JSON.parse(fs.readFileSync(path.join(root, ...parts), 'utf8'))
@@ -14,7 +14,7 @@ const casesRaw = readJson('data', 'team-sim', 'golden', 'cases.json')
 const cases = casesRaw.cases
 const actualsRaw = readJson('data', 'team-sim', 'golden', 'actuals.json')
 
-// 1. 用例本身可采信：够 10 例、全部手算、来源与推导非空、期望值为正
+// 1. 用例本身可采信：够 10 例、全部手算、来源与推导非空、期望值为正、scenario 可复算
 assert.ok(Array.isArray(cases) && cases.length >= 10, `黄金集至少 10 例，实际 ${cases?.length}`)
 assert.deepEqual(validateGoldenCases(cases), [], '黄金集用例必须能通过 validateGoldenCases')
 for (const item of cases) {
@@ -22,36 +22,39 @@ for (const item of cases) {
   assert.ok(item.source.includes('手算'), `${item.id} 的 source 必须写出手算推导`)
   assert.ok(item.expected.total > 0, `${item.id} 的期望值必须为正`)
   assert.ok(typeof item.tolerance === 'number' && item.tolerance > 0, `${item.id} 必须自带容差`)
-  assert.ok(item.scenario && Array.isArray(item.scenario.scaling) && item.scenario.scaling.length, `${item.id} 必须带可复算的 scenario`)
+  const mode = item.mode ?? 'ordinary'
+  assert.ok(mode === 'ordinary' || mode === 'timeline', `${item.id} 的 mode 只能是 ordinary 或 timeline`)
+  if (mode === 'ordinary') {
+    assert.ok(Array.isArray(item.scenario?.scaling) && item.scenario.scaling.length, `${item.id} 必须带可复算的 scenario.scaling`)
+  } else {
+    assert.ok(typeof item.scenario?.hit?.element === 'string', `${item.id} 的 timeline 用例必须声明命中元素`)
+    assert.ok(typeof item.scenario?.hit?.reaction?.kind === 'string', `${item.id} 的 timeline 用例必须声明反应类型`)
+    assert.ok(typeof item.scenario?.hit?.reaction?.aura === 'string', `${item.id} 的 timeline 用例必须声明附着元素`)
+  }
 }
 
 // 2. 引擎实跑值与手算值一致（这才是黄金集的意义：拿外部算出来的数字卡引擎）
-const recomputed = cases.map(item => {
-  const result = calculateOrdinaryHit({
-    kind: 'ordinary',
-    gameVersion: casesRaw.gameVersion ?? '7.1',
-    source: `golden:${item.id}`,
-    canCrit: true,
-    ...item.scenario
-  })
-  assert.equal(result.status, 'calculated', `${item.id} 的实跑必须算出结果`)
-  const error = Math.abs(result.damage - item.expected.total) / item.expected.total
-  assert.ok(error <= item.tolerance, `${item.id} 实跑 ${result.damage} 与手算 ${item.expected.total} 相差 ${(error * 100).toFixed(6)}%`)
-  return { id: item.id, total: Number(result.damage.toFixed(6)) }
-})
+const audit = await auditGolden({ root })
+assert.deepEqual(audit.issues, [], `黄金集用例必须能跑通：${JSON.stringify(audit.issues)}`)
+assert.equal(audit.actuals.length, cases.length, '实跑条数必须与用例一致')
+for (const [index, actual] of audit.actuals.entries()) {
+  const expected = cases[index].expected.total
+  const tolerance = cases[index].tolerance
+  const error = Math.abs(actual.total - expected) / expected
+  assert.ok(error <= tolerance, `${actual.id} 实跑 ${actual.total} 与手算 ${expected} 相差 ${(error * 100).toFixed(6)}%`)
+}
 
 // 3. 入库的 actuals.json 与重算结果同步，防止有人只改一边
 assert.equal(actualsRaw.actuals.length, cases.length, 'actuals 数量必须与 cases 一致')
 for (const [index, actual] of actualsRaw.actuals.entries()) {
   assert.equal(actual.id, cases[index].id, `第 ${index + 1} 条 actual 的 id 必须与 cases 同序`)
-  assert.ok(Math.abs(actual.total - recomputed[index].total) <= 1e-6, `${actual.id} 的入库实跑值与重算值不一致`)
+  assert.ok(Math.abs(actual.total - audit.actuals[index].total) <= 1e-6, `${actual.id} 的入库实跑值与重算值不一致`)
 }
 
-// 4. 十例达标；改动期望值必须被拦
-const report = evaluateGolden(cases, actualsRaw.actuals)
-assert.equal(report.gate, 'pass', `黄金集应达标：${report.reason}`)
-assert.equal(report.counted, cases.length)
-assert.ok(report.max !== null && report.max <= GOLDEN_THRESHOLDS.singleMax)
+// 4. 达标；改动期望值必须被拦
+assert.equal(audit.report.gate, 'pass', `黄金集应达标：${audit.report.reason}`)
+assert.equal(audit.report.counted, cases.length)
+assert.ok(audit.report.max !== null && audit.report.max <= GOLDEN_THRESHOLDS.singleMax)
 
 const drifted = cases.map((item, index) => index === 0
   ? { ...item, expected: { total: item.expected.total * 1.05 } }

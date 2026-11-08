@@ -41,6 +41,34 @@
     {
       "id": "g10-res-shred-50-negative",
       "total": 570
+    },
+    {
+      "id": "g11-vaporize-15-em0",
+      "total": 705.375
+    },
+    {
+      "id": "g12-vaporize-20-em200",
+      "total": 1151.875
+    },
+    {
+      "id": "g13-melt-20-em800",
+      "total": 1718.636364
+    },
+    {
+      "id": "g14-electrocharged-em200",
+      "total": 6830.916738
+    },
+    {
+      "id": "g15-overloaded-em0",
+      "total": 4019.420238
+    },
+    {
+      "id": "g16-lunarcharged-em100",
+      "total": 5461.10491
+    },
+    {
+      "id": "g17-stellarconduct-count12",
+      "total": 2977.686798
     }
   ]
 }

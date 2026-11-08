@@ -5,6 +5,10 @@
  *   - 期望值是**手算**的（推导写在用例的 source 里），不能由引擎自己生成；
  *   - 实跑值必须能被任何人复跑核对，所以固定成文件入库，测试再比对文件与重算结果是否一致。
  *
+ * 两种用例：
+ *   - `mode: 'ordinary'`：单发直伤，走 `calculateOrdinaryHit`（含增幅/激化乘区）；
+ *   - `mode: 'timeline'`：直伤一行 + 反应一段，走 `simulateTimeline` + `calculateTimelineDamage`。
+ *
  * 只读 data/，只写 `data/team-sim/golden/actuals.json`（该文件是发布闸门的输入，入库）。
  */
 import fs from 'node:fs'
@@ -15,6 +19,65 @@ const CASES_REL = 'data/team-sim/golden/cases.json'
 const ACTUALS_REL = 'data/team-sim/golden/actuals.json'
 
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'))
+
+const ordinaryDamage = (K, item, gameVersion) => {
+  const result = K.calculateOrdinaryHit({
+    kind: 'ordinary',
+    gameVersion,
+    source: `golden:${item.id}`,
+    canCrit: true,
+    ...item.scenario
+  })
+  if (!result || result.status !== 'calculated') {
+    throw new Error(`${item.id} 的实跑没有算出结果：${JSON.stringify(result?.issues ?? result)}`)
+  }
+  return result.damage
+}
+
+const timelineDamage = async (root, item, defaults) => {
+  const base = pathToFileURL(path.join(root, 'lib/modules/teamSimulation')).href
+  const K = await import(`${base}/index.js`)
+  const HD = await import(`${base}/hitDamage.js`)
+  const hit = { ...defaults.hit, ...item.scenario.hit }
+  const stats = { ...defaults.stats, ...item.scenario.stats }
+  const targetPresetId = item.scenario.targetPresetId ?? defaults.target
+  const actionId = 'golden.action'
+  const pack = {
+    [actionId]: {
+      id: actionId,
+      actorId: 'golden',
+      kind: 'skill',
+      timing: { type: 'frames', frames: 40 },
+      hits: [{ atFrame: hit.atFrame, motionValue: hit.motionValue, scaling: hit.scaling, element: hit.element, canCrit: hit.canCrit, ...(hit.reaction ? { reaction: hit.reaction } : {}) }]
+    }
+  }
+  const timeline = K.simulateTimeline({
+    scheduler: 'fixed',
+    frameTier: K.FRAME_TIERS['fps-60'],
+    actions: pack,
+    actors: [{ actorId: 'golden', energy: 0, energyMax: 60 }],
+    activeActorId: 'golden',
+    measurementEndFrame: 120,
+    steps: [{ id: 'golden-step', kind: 'action', actorId: 'golden', actionId, atFrame: 0 }]
+  })
+  if (timeline.status !== 'simulated') throw new Error(`${item.id} 的轴没有跑起来：${JSON.stringify(timeline.issues ?? timeline.status)}`)
+  const out = HD.calculateTimelineDamage({
+    timeline,
+    contexts: {
+      golden: {
+        level: 90,
+        targetPresetId,
+        crit: 'expected',
+        gameVersion: '7.1',
+        source: `golden:${item.id}`,
+        stats,
+        debuffs: { defenseReduction: 0, defenseIgnore: 0, resistanceReduction: 0 }
+      }
+    }
+  })
+  if (out.status !== 'calculated') throw new Error(`${item.id} 的结算失败：${JSON.stringify(out.issues ?? out.status)}`)
+  return out.total
+}
 
 /**
  * @param {{ root?: string }} [options]
@@ -27,22 +90,22 @@ export async function auditGolden (options = {}) {
   const raw = readJson(path.join(root, CASES_REL))
   const cases = Array.isArray(raw?.cases) ? raw.cases : []
   const gameVersion = typeof raw?.gameVersion === 'string' ? raw.gameVersion : '7.1'
+  const defaults = {
+    stats: raw?.defaults?.timelineStats ?? {},
+    hit: { atFrame: 5, motionValue: 1, scaling: 'atk', canCrit: false, ...(raw?.defaults?.timelineHit ?? {}) },
+    target: raw?.defaults?.timelineTarget ?? 'dummy-lv100'
+  }
   const issues = K.validateGoldenCases(cases)
 
-  const actuals = cases.map(item => {
-    const result = K.calculateOrdinaryHit({
-      kind: 'ordinary',
-      gameVersion,
-      source: `golden:${item.id}`,
-      canCrit: true,
-      ...item.scenario
-    })
-    if (!result || result.status !== 'calculated') {
-      throw new Error(`${item.id} 的实跑没有算出结果：${JSON.stringify(result?.issues ?? result)}`)
-    }
+  const actuals = []
+  for (const item of cases) {
+    const mode = item.mode ?? 'ordinary'
+    const damage = mode === 'timeline'
+      ? await timelineDamage(root, item, defaults)
+      : ordinaryDamage(K, item, gameVersion)
     /* 存 6 位小数：够闸门判误差，又不会因为浮点尾数天天改文件。 */
-    return { id: item.id, total: Number(result.damage.toFixed(6)) }
-  })
+    actuals.push({ id: item.id, total: Number(damage.toFixed(6)) })
+  }
 
   const report = K.evaluateGolden(cases, actuals)
   return { cases, actuals, report, issues }
