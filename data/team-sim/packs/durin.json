@@ -100,7 +100,11 @@
           "motionValue": 1.9008,
           "scaling": "atk",
           "element": "pyro",
-          "canCrit": true
+          "canCrit": true,
+          "attachment": {
+            "gauge": 1,
+            "icd": "independent"
+          }
         }
       ],
       "particles": [

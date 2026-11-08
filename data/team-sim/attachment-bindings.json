@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "source": "scripts/attachment-candidates.mjs 自动配对（技能族 + 元素 + 次数唯一匹配）",
+  "policy": "只收 damageParam 有值、gauge 能换算成单位数的候选；icd 按候选的 icdRule 换算（仅 Independent 视为独立，其余按 standard）。这些是候选不是定论，人工核对后可改或删。",
+  "bindings": {
+    "aratakiitto.skill": {
+      "gauge": 1,
+      "icd": "independent",
+      "evidence": "荒泷一斗 skill geo x1：命中盒 Damage_Ratio（Tag: Elemental_Art (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "bennett.burst": {
+      "gauge": 2,
+      "icd": "independent",
+      "evidence": "班尼特 burst pyro x1：命中盒 Burst_DMG（Tag: Elemental_Burst (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "chevreuse.burst": {
+      "gauge": 2,
+      "icd": "independent",
+      "evidence": "夏沃蕾 burst pyro x1：命中盒 Burst_Damage1（Tag: Elemental_Burst (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "citlali.skill": {
+      "gauge": 1,
+      "icd": "independent",
+      "evidence": "茜特菈莉 skill cryo x1：命中盒 Art_Damage（Tag: Elemental_Art (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "durin.skill": {
+      "gauge": 1,
+      "icd": "independent",
+      "evidence": "杜林 skill pyro x1：命中盒 EleA_White_DamagePercentage（Tag: Elemental_Art (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "escoffier.burst": {
+      "gauge": 2,
+      "icd": "independent",
+      "evidence": "爱可菲 burst cryo x1：命中盒 ElementalBurst_Damage（Tag: Elemental_Burst (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "flins.skill": {
+      "gauge": 1,
+      "icd": "independent",
+      "evidence": "菲林斯 skill electro x1：命中盒 Damage（Tag: Elemental_Art (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "iansan.skill": {
+      "gauge": 1,
+      "icd": "independent",
+      "evidence": "伊安珊 skill electro x1：命中盒 ElementalArt_Ratio（Tag: Elemental_Art (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "iansan.burst": {
+      "gauge": 1,
+      "icd": "independent",
+      "evidence": "伊安珊 burst electro x1：命中盒 Burst_DmgRatio（Tag: Elemental_Burst (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "kamisatoayato.skill": {
+      "gauge": 1,
+      "icd": "independent",
+      "evidence": "神里绫人 skill hydro x1：命中盒 ArtGadget_Damage（Tag: Elemental_Art (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "mavuika.burst": {
+      "gauge": 1,
+      "icd": "independent",
+      "evidence": "玛薇卡 burst pyro x1：命中盒 ElemenetalBurst_DamagePercentage（Tag: Elemental_Burst (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "shenhe.skill": {
+      "gauge": 2,
+      "icd": "independent",
+      "evidence": "申鹤 skill cryo x1：命中盒 Elemental_Art_H_Damage（Tag: Elemental_Art (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    },
+    "xilonen.skill": {
+      "gauge": 1,
+      "icd": "independent",
+      "evidence": "希诺宁 skill geo x1：命中盒 Elemental_Art_Damage（Tag: Elemental_Art (!)），技能族+元素+次数唯一匹配，自动配对未经人工核对"
+    }
+  }
+}

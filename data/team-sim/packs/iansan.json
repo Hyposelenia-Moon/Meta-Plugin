@@ -74,7 +74,11 @@
           "motionValue": 5.1552,
           "scaling": "atk",
           "element": "electro",
-          "canCrit": true
+          "canCrit": true,
+          "attachment": {
+            "gauge": 1,
+            "icd": "independent"
+          }
         }
       ],
       "particles": [
@@ -102,7 +106,11 @@
           "motionValue": 7.7472,
           "scaling": "atk",
           "element": "electro",
-          "canCrit": true
+          "canCrit": true,
+          "attachment": {
+            "gauge": 1,
+            "icd": "independent"
+          }
         }
       ],
       "energyCost": 70,

@@ -18,6 +18,7 @@ const OUT_DIR = "data/team-sim/packs"
 const OUT_REPORT = "out/roster-packs-report.json"
 /** 人工核对过的动作覆盖（战技/爆发/重击），与自动生成的普攻合并成同一份包。 */
 const CURATED_DIR = "data/team-sim/curated"
+const BINDINGS_PATH = "data/team-sim/attachment-bindings.json"
 
 const GAME_VERSION = "7.1"
 const GCSIM_COMMIT = "fcc117b31ce45010ded40e48e6adcc2676306015"
@@ -28,6 +29,7 @@ const NUMERALS = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 
 const round4 = (value) => Math.round(value * 10000) / 10000
 
 const readJson = (p) => JSON.parse(fs.readFileSync(p, "utf8"))
+const bindings = fs.existsSync("data/team-sim/attachment-bindings.json") ? readJson("data/team-sim/attachment-bindings.json") : null
 
 /** 天赋里的「N 段伤害」行：只接受「一段伤害」这种纯名称；段数与 gcsim 命中段对不上就不绑。 */
 function normalRows(talentData) {
@@ -205,11 +207,25 @@ for (const character of targets) {
     if (Array.isArray(curated?.notes)) approximate.push(...curated.notes)
   }
 
+  // 附着绑定：候选配对表（scripts/attachment-candidates.mjs 产出）里确认过的动作，按命中整段补 attachment。
+  // 只补「附着量 + ICD 规则」这两个字段，不改倍率、元素和帧；文件不存在就整段跳过。
+  let boundCount = 0
+  if (bindings && typeof bindings.bindings === "object") {
+    for (const [id, entry] of Object.entries(bindings.bindings)) {
+      const action = actions[id]
+      if (!action) continue
+      const attachment = { ...(entry.gauge !== undefined ? { gauge: entry.gauge } : {}), icd: entry.icd }
+      action.hits = action.hits.map(hit => ({ ...hit, attachment }))
+      boundCount++
+    }
+  }
+
   const pack = { schemaVersion: 1, gameVersion: GAME_VERSION, source: SOURCE, actions }
   fs.mkdirSync(OUT_DIR, { recursive: true })
   fs.writeFileSync(path.join(OUT_DIR, `${key}.json`), JSON.stringify(pack, null, 2) + "\n", "utf8")
   report.packs++
   report.actions += Object.keys(actions).length
+  report.attachmentBindings = (report.attachmentBindings ?? 0) + boundCount
   if (curatedCount) report.curated += curatedCount
   report.partial.push({ key, notes: approximate })
 }

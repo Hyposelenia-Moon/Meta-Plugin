@@ -109,7 +109,11 @@
           "motionValue": 10.6704,
           "scaling": "atk",
           "element": "cryo",
-          "canCrit": true
+          "canCrit": true,
+          "attachment": {
+            "gauge": 2,
+            "icd": "independent"
+          }
         }
       ],
       "energyCost": 60,

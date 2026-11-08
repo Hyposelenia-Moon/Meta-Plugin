@@ -93,7 +93,11 @@
           "motionValue": 5.5296,
           "scaling": "atk",
           "element": "geo",
-          "canCrit": true
+          "canCrit": true,
+          "attachment": {
+            "gauge": 1,
+            "icd": "independent"
+          }
         }
       ],
       "particles": [
