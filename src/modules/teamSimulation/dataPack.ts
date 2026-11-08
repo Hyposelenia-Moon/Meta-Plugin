@@ -1,5 +1,5 @@
 import type { Issue } from './types.js'
-import { validateActionSpec, type ActionSpec } from './timeline.js'
+import { FRAME_TIERS, validateActionSpec, type ActionSpec, type CancelWindow, type ParticleSpec } from './timeline.js'
 import { validateEffects, type EffectSpec } from './effects.js'
 
 /**
@@ -109,4 +109,57 @@ export function combineDataPacks(inputs: unknown[]): DataPackResult {
     ...(Object.keys(effects).length ? { effects } : {}),
   }
   return { status: 'ok', pack: merged, issues: [] }
+}
+
+/** 动作包帧表的记录口径：全部按 60fps（`fps-60` 档）记录，换档时按比例折算。 */
+const DATA_PACK_FPS_TIER = 'fps-60'
+
+/**
+ * 把动作包从 60fps 口径折算到目标帧率档。
+ *
+ * 动作包里的帧全部来自 gcsim 的 60fps 口径（`frames.InitNormalCancelSlice` 等），
+ * 轴的 `frameTierId` 换成别的档位时，如果直接把 60fps 的帧数塞进 217 档的窗口，
+ * 动作会被人为拉长/压缩。这里只做帧数换算，不改变任何语义字段。
+ *
+ * 目标档位等于记录口径或未登记时原样返回——档位写错由 `validateRotation` 报错，不在这里吞。
+ */
+export function convertPackToFrameTier (pack: DataPack, tierId: string | undefined): DataPack {
+  const targetId = tierId ?? DATA_PACK_FPS_TIER
+  if (targetId === DATA_PACK_FPS_TIER) return pack
+  const from = FRAME_TIERS[DATA_PACK_FPS_TIER]
+  const to = FRAME_TIERS[targetId]
+  if (from === undefined || to === undefined) return pack
+  const factor = to.fps / from.fps
+  const frame = (value: number): number => Math.max(0, Math.round(value * factor))
+  const duration = (value: number): number => Math.max(1, Math.round(value * factor))
+  const particle = (spec: ParticleSpec): ParticleSpec => ({
+    ...spec,
+    atFrame: frame(spec.atFrame),
+    ...(spec.travelFrames !== undefined ? { travelFrames: frame(spec.travelFrames) } : {})
+  })
+  const window = (spec: CancelWindow): CancelWindow => ({ fromFrame: frame(spec.fromFrame), toFrame: frame(spec.toFrame) })
+  const action = (spec: ActionSpec): ActionSpec => ({
+    ...spec,
+    timing: spec.timing.type === 'frames'
+      ? { type: 'frames', frames: duration(spec.timing.frames) }
+      : { type: 'response', k: duration(spec.timing.k), bMs: spec.timing.bMs },
+    hits: spec.hits.map(hit => ({ ...hit, atFrame: frame(hit.atFrame) })),
+    ...(spec.cancelWindows ? { cancelWindows: spec.cancelWindows.map(window) } : {}),
+    ...(spec.particles ? { particles: spec.particles.map(particle) } : {}),
+    ...(spec.delayedParticles ? { delayedParticles: spec.delayedParticles.map(particle) } : {}),
+    ...(spec.energyRestore
+      ? {
+          energyRestore: spec.energyRestore.map(restore => ({ ...restore, atFrame: frame(restore.atFrame) }))
+        }
+      : {}),
+    ...(spec.heal ? { heal: { ...spec.heal, atFrame: frame(spec.heal.atFrame) } } : {}),
+    ...(spec.bond ? { bond: { ...spec.bond, atFrame: frame(spec.bond.atFrame) } } : {}),
+    ...(spec.nightsoulConsume ? { nightsoulConsume: { ...spec.nightsoulConsume, atFrame: frame(spec.nightsoulConsume.atFrame) } } : {}),
+    ...(spec.shardPickup ? { shardPickup: { ...spec.shardPickup, atFrame: frame(spec.shardPickup.atFrame) } } : {}),
+    ...(spec.cooldownFrames !== undefined ? { cooldownFrames: duration(spec.cooldownFrames) } : {})
+  })
+  return {
+    ...pack,
+    actions: Object.fromEntries(Object.entries(pack.actions).map(([id, spec]) => [id, action(spec)]))
+  }
 }

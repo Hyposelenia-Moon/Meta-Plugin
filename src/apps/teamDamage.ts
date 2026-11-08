@@ -13,6 +13,7 @@ import { COMMANDS, RULES } from '../components/constants.js'
 import { parseTeamArgs, rotationHelpText } from '../modules/teamDamage.js'
 import { readTeamBuilds } from '../model/TeamBuildAdapter.js'
 import { findRotation, loadPermanentData, loadRoster, loadTeamPack, toRotation } from '../model/TeamSimStore.js'
+import { convertPackToFrameTier } from '../modules/teamSimulation/index.js'
 import {
   DPS_STANDARD,
   FRAME_TIERS,
@@ -125,7 +126,9 @@ export class MetaTeamDamage extends plugin {
       await e.reply(`[Meta] ${help}${found.issues.length ? `\n${issueLines(found.issues)}` : ''}`)
       return true
     }
-    const converted = toRotation(found.rotationFile, team.pack)
+    // 动作包按 60fps 记录：轴换成别的帧率档时先折算，再交给校验与结算
+    const pack = convertPackToFrameTier(team.pack, found.rotationFile.frameTierId)
+    const converted = toRotation(found.rotationFile, pack)
     if (!converted.rotation || converted.status !== 'ok') {
       await e.reply(`[Meta] 轴不可用（${converted.status}）：\n${issueLines(converted.issues)}`)
       return true
@@ -148,7 +151,7 @@ export class MetaTeamDamage extends plugin {
     const first = members[0].permanentData
     const expected = { gameVersion: first.gameVersion, bundleId: first.bundleId, source: first.source }
     const run = simulateTeam({
-      pack: team.pack,
+      pack,
       rotation: converted.rotation,
       members,
       expected,

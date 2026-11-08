@@ -83,7 +83,9 @@ export async function validateFile (file) {
     return { ok: false, issues: merged.issues ?? [{ code: 'unsupported', path: 'pack', message: '数据包合成失败' }] }
   }
   const S = await import(libUrl('model/TeamSimStore.js'))
-  const converted = S.toRotation(file, merged.pack)
+  const K = await import(libUrl('modules/teamSimulation/index.js'))
+  const pack = K.convertPackToFrameTier(merged.pack, file.frameTierId)
+  const converted = S.toRotation(file, pack)
   if (converted.status !== 'ok') return { ok: false, issues: converted.issues }
   return {
     ok: true,
@@ -196,14 +198,15 @@ export async function simulatePanel (input) {
   const keys = members.map(member => member.build.actorId)
   const merged = await composePack(keys)
   if (merged.status !== 'ok') return { ok: false, issues: merged.issues ?? [] }
-  const converted = S.toRotation(rotation, merged.pack)
+  const pack = K.convertPackToFrameTier(merged.pack, rotation.frameTierId)
+  const converted = S.toRotation(rotation, pack)
   if (converted.status !== 'ok') return { ok: false, issues: converted.issues, stage: 'rotation' }
   const first = members[0].permanentData
   const expected = { gameVersion: first.gameVersion, bundleId: first.bundleId, source: first.source }
   const crit = input?.crit === 'critical' || input?.crit === 'non-critical' ? input.crit : 'expected'
   const run = K.simulateTeam({
     mode: 'dps-standard',
-    pack: merged.pack,
+    pack,
     rotation: converted.rotation,
     members,
     expected,
