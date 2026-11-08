@@ -38,7 +38,8 @@ const timelineDamage = async (root, item, defaults) => {
   const base = pathToFileURL(path.join(root, 'lib/modules/teamSimulation')).href
   const K = await import(`${base}/index.js`)
   const HD = await import(`${base}/hitDamage.js`)
-  const hit = { ...defaults.hit, ...item.scenario.hit }
+  const declared = Array.isArray(item.scenario.hits) ? item.scenario.hits : [item.scenario.hit]
+  const hits = declared.map(hit => ({ ...defaults.hit, ...hit }))
   const stats = { ...defaults.stats, ...item.scenario.stats }
   const targetPresetId = item.scenario.targetPresetId ?? defaults.target
   const actionId = 'golden.action'
@@ -48,7 +49,14 @@ const timelineDamage = async (root, item, defaults) => {
       actorId: 'golden',
       kind: 'skill',
       timing: { type: 'frames', frames: 40 },
-      hits: [{ atFrame: hit.atFrame, motionValue: hit.motionValue, scaling: hit.scaling, element: hit.element, canCrit: hit.canCrit, ...(hit.reaction ? { reaction: hit.reaction } : {}) }]
+      hits: hits.map(hit => ({
+        atFrame: hit.atFrame,
+        motionValue: hit.motionValue,
+        scaling: hit.scaling,
+        element: hit.element,
+        canCrit: hit.canCrit,
+        ...(hit.reaction ? { reaction: hit.reaction } : {})
+      }))
     }
   }
   const timeline = K.simulateTimeline({

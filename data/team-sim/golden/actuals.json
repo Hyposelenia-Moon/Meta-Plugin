@@ -69,6 +69,18 @@
     {
       "id": "g17-stellarconduct-count12",
       "total": 2977.686798
+    },
+    {
+      "id": "g18-multihit-direct-vaporize",
+      "total": 2210.576923
+    },
+    {
+      "id": "g19-multihit-transform-extra-row",
+      "total": 7269.378277
+    },
+    {
+      "id": "g20-multihit-per-hit-crit",
+      "total": 1096.153846
     }
   ]
 }

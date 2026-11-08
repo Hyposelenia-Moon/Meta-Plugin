@@ -27,9 +27,11 @@ for (const item of cases) {
   if (mode === 'ordinary') {
     assert.ok(Array.isArray(item.scenario?.scaling) && item.scenario.scaling.length, `${item.id} 必须带可复算的 scenario.scaling`)
   } else {
-    assert.ok(typeof item.scenario?.hit?.element === 'string', `${item.id} 的 timeline 用例必须声明命中元素`)
-    assert.ok(typeof item.scenario?.hit?.reaction?.kind === 'string', `${item.id} 的 timeline 用例必须声明反应类型`)
-    assert.ok(typeof item.scenario?.hit?.reaction?.aura === 'string', `${item.id} 的 timeline 用例必须声明附着元素`)
+    const hits = Array.isArray(item.scenario?.hits) ? item.scenario.hits : [item.scenario?.hit]
+    assert.ok(hits.length > 0, `${item.id} 的 timeline 用例必须至少声明一段命中`)
+    assert.ok(hits.every(hit => typeof hit?.element === 'string'), `${item.id} 的每段命中必须声明元素`)
+    const reacted = hits.filter(hit => hit?.reaction)
+    assert.ok(reacted.every(hit => typeof hit.reaction.kind === 'string' && typeof hit.reaction.aura === 'string'), `${item.id} 的反应必须声明 kind 与 aura`)
   }
 }
 

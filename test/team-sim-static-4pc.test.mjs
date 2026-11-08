@@ -22,10 +22,13 @@ if (xiangling.ok) {
   const troupe = xiangling.data.effects['artifact-set:400099:4pc']
   ok('乐团 4 件套对长柄不生效：不加面板且写未建模原因',
     troupe.modifiers.length === 0 && /不满足触发条件/.test(String(troupe.unmodeled)))
-  ok('已建模的绝缘/华馆不再报未建模，其余 4 件套仍未建模（以行者之心 400003 为例）',
+  const honed = xiangling.data.effects['artifact-set:400003:4pc']
+  ok('已建模的绝缘/华馆/行者之心不再报未建模，其余仍带「未建模」披露的套装照旧写明（以如雷 400109 为例）',
     !String(xiangling.data.effects['artifact-set:400184:4pc']?.unmodeled ?? '').includes('未建模') &&
     !String(xiangling.data.effects['artifact-set:400189:4pc']?.unmodeled ?? '').includes('未建模') &&
-    /未建模/.test(String(xiangling.data.effects['artifact-set:400003:4pc']?.unmodeled)))
+    !String(honed?.unmodeled ?? '').includes('未建模') &&
+    honed?.modifiers?.some(m => m.key === 'chargedCpct' && m.value === 0.3) === true &&
+    /未建模/.test(String(xiangling.data.effects['artifact-set:400109:4pc']?.unmodeled)))
 }
 
 const klee = buildRuntimePermanent({ characterId: '10000029', name: '可莉', weaponId: '14514', refinement: 1 })

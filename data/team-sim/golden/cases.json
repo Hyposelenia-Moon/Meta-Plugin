@@ -39,7 +39,8 @@
     "amplifying": "增幅：倍率（蒸发 1.5 / 融火 2.0）× (1 + (25/9)×EM/(EM+1400))，乘在基础伤害上。25/9≈2.78 是游戏内该常数的精确分数形式（与 miao 一致）",
     "transformative": "剧变：90 级系数 1446.852 × 反应倍率 × (1 + 16×EM/(EM+2000)) × 抗性区，单独成段",
     "lunar": "月反应：90 级系数 1446.852 × 倍率 × (1 + 6×EM/(EM+2000)) × 抗性区，单独成段（见 docs/队伍模拟-P3-月反应与星烁.md）",
-    "stellar": "星烁：90 级系数 1446.852 × 计数倍率 × (1 + 6×EM/(EM+2000)) × 抗性区，单独成段"
+    "stellar": "星烁：90 级系数 1446.852 × 计数倍率 × (1 + 6×EM/(EM+2000)) × 抗性区，单独成段",
+    "multihit": "多段用例：每段独立结算（各自的倍率、暴击、反应），总伤是各行之和；剧变反应另起一行且不参与直伤乘区"
   },
   "cases": [
     {
@@ -554,6 +555,102 @@
           "mastery": 0
         }
       }
+    },
+    {
+      "id": "g18-multihit-direct-vaporize",
+      "kind": "hand-calculated",
+      "mode": "timeline",
+      "scenario": {
+        "hits": [
+          {
+            "atFrame": 5,
+            "motionValue": 1,
+            "element": "physical",
+            "canCrit": false
+          },
+          {
+            "atFrame": 12,
+            "motionValue": 2,
+            "element": "pyro",
+            "canCrit": false,
+            "reaction": {
+              "kind": "vaporize",
+              "aura": "hydro"
+            }
+          }
+        ],
+        "stats": {
+          "mastery": 200
+        }
+      },
+      "expected": {
+        "total": 2210.5769230769
+      },
+      "tolerance": 0.000001,
+      "source": "手算：同一动作两段。直伤段 1000×1.0×防御区 0.487179487×抗性 0.9 = 438.461538；第二段 1000×2.0×蒸发倍率 2.0208333（火打水 1.5 × EM200 精通增益）= 1772.115385；合计 2210.576923。验证多段命中逐行累加，且反应倍率只乘在声明了反应的那一段"
+    },
+    {
+      "id": "g19-multihit-transform-extra-row",
+      "kind": "hand-calculated",
+      "mode": "timeline",
+      "scenario": {
+        "hits": [
+          {
+            "atFrame": 5,
+            "motionValue": 1,
+            "element": "physical",
+            "canCrit": false
+          },
+          {
+            "atFrame": 12,
+            "motionValue": 1,
+            "element": "electro",
+            "canCrit": false,
+            "reaction": {
+              "kind": "electro-charged",
+              "aura": "hydro"
+            }
+          }
+        ],
+        "stats": {
+          "mastery": 200
+        }
+      },
+      "expected": {
+        "total": 7269.378276923078
+      },
+      "tolerance": 0.000001,
+      "source": "手算：直伤两段 438.461538×2 = 876.923077；感电是独立的一段 1446.852×2×(1+16×200/2200)×0.9 = 6392.455201；合计 7269.378277。验证剧变反应另起一行、不吃增伤与暴击、不乘在直伤段上"
+    },
+    {
+      "id": "g20-multihit-per-hit-crit",
+      "kind": "hand-calculated",
+      "mode": "timeline",
+      "scenario": {
+        "hits": [
+          {
+            "atFrame": 5,
+            "motionValue": 1,
+            "element": "physical",
+            "canCrit": true
+          },
+          {
+            "atFrame": 9,
+            "motionValue": 1,
+            "element": "physical",
+            "canCrit": false
+          }
+        ],
+        "stats": {
+          "cpct": 0.5,
+          "cdmg": 1
+        }
+      },
+      "expected": {
+        "total": 1096.1538461538462
+      },
+      "tolerance": 0.000001,
+      "source": "手算：第一段可暴击，期望暴击 0.5×100% → 438.461538×1.5 = 657.692308；第二段不可暴击 438.461538；合计 1096.153846。验证暴击期望按段判定，不是整段一刀切"
     }
   ]
 }
