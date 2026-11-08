@@ -3,6 +3,16 @@ import type { TeamRunResult } from './teamRun.js'
 /** 只做投影与排版：把一轮编排的结果摊平成能直接读的摘要，不改任何计算。 */
 const round1 = (value: number): number => Math.round(value * 10) / 10
 
+/**
+ * 这些反应在游戏里不是「命中当帧一次性结算」：感电按秒跳、绽放要等草原核爆炸、燃烧持续跳伤。
+ * 内核目前都按一次即时结算，出现时必须进近似项，否则报告会让人误以为是实测口径。
+ */
+const APPROXIMATE_REACTION_KINDS: Record<string, string> = {
+  'electro-charged': '按命中当帧一次性结算，未建模每秒跳伤',
+  bloom: '按命中当帧结算，未建模草原核的延迟与范围',
+  burning: '按命中当帧结算，未建模持续跳伤'
+}
+
 export interface TeamRunReport {
   status: TeamRunResult['status']
   /** 运行口径：dps-standard 才能报 DPS。 */
@@ -108,7 +118,11 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
       gameMs: timeline.timing.gameMs,
       realMs: timeline.timing.realMs
     },
-    approximateItems: [...(timeline.approximateItems ?? []), ...(plan?.approximate ?? [])],
+    approximateItems: [
+      ...(timeline.approximateItems ?? []),
+      ...(plan?.approximate ?? []),
+      ...[...reactions.keys()].filter(kind => kind in APPROXIMATE_REACTION_KINDS).map(kind => `反应 ${kind}：${APPROXIMATE_REACTION_KINDS[kind]}`)
+    ],
     unmodeled: result.unmodeled ?? [],
     hits: damage.rows.length,
     total: damage.total,

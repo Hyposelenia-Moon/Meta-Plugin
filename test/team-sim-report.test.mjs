@@ -37,6 +37,24 @@ const calculated = {
   issues: []
 }
 
+// 转化类反应（感电）是即时近似的，必须出现在近似项里，而不是只报一个数字。
+const withReaction = {
+  ...calculated,
+  scope: 'team-run-with-reaction',
+  damage: {
+    ...calculated.damage,
+    rows: [
+      { frame: 6, actorId: 'itto', actionId: 'itto.normal-1', damage: 4000 },
+      { frame: 18, actorId: 'itto', actionId: 'itto.normal-1', damage: 5000, reaction: { kind: 'electro-charged', hits: 1, damage: 900 } },
+      { frame: 39, actorId: 'albedo', actionId: 'albedo.skill', damage: 3000 }
+    ]
+  }
+}
+const reactionReport = buildTeamRunReport(withReaction)
+assert.ok(reactionReport.reactions.some(item => item.kind === 'electro-charged'))
+assert.ok(reactionReport.approximateItems.some(item => item.includes('反应 electro-charged') && item.includes('跳伤')))
+assert.ok(formatTeamRunReport(reactionReport).some(line => line.startsWith('近似项：') && line.includes('electro-charged')))
+
 const report = buildTeamRunReport(calculated)
 assert.equal(report.status, 'calculated')
 assert.equal(report.simulationReady, false)
