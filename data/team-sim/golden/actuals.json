@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "note": "由 scripts/audit-golden.mjs 从 cases.json 的 scenario 重算写入；期望值见 cases.json，勿手改本文件。",
+  "actuals": [
+    {
+      "id": "g01-atk1000-mv1-flat",
+      "total": 427.5
+    },
+    {
+      "id": "g02-dmgbonus-50",
+      "total": 641.25
+    },
+    {
+      "id": "g03-crit-60-50",
+      "total": 555.75
+    },
+    {
+      "id": "g04-crit-100-200",
+      "total": 1282.5
+    },
+    {
+      "id": "g05-atk2000-mv2-dmgbonus-100",
+      "total": 3420
+    },
+    {
+      "id": "g06-res-shred-30",
+      "total": 522.5
+    },
+    {
+      "id": "g07-def-shred-40",
+      "total": 541.139241
+    },
+    {
+      "id": "g08-def-ignore-50",
+      "total": 579.661017
+    },
+    {
+      "id": "g09-additive-base-300",
+      "total": 589.95
+    },
+    {
+      "id": "g10-res-shred-50-negative",
+      "total": 570
+    }
+  ]
+}

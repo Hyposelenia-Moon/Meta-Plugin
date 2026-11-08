@@ -13,6 +13,7 @@ import { COMMANDS, RULES } from '../components/constants.js'
 import { parseTeamArgs, rotationHelpText } from '../modules/teamDamage.js'
 import { readTeamBuilds } from '../model/TeamBuildAdapter.js'
 import { findRotation, loadPermanentData, loadRoster, loadTeamPack, toRotation } from '../model/TeamSimStore.js'
+import { loadGoldenSet } from '../model/GoldenSet.js'
 import { deriveMoonPhase } from '../model/MoonPhase.js'
 import { convertPackToFrameTier } from '../modules/teamSimulation/index.js'
 import {
@@ -175,7 +176,9 @@ export class MetaTeamDamage extends plugin {
      * 2026-11-02 用户定：发布闸门先接成**警告**——数字照给，但没过的关必须写在结果里。
      * 等数据补齐后再改成硬拦截（blocked 时不出数字）。
      */
-    const gate = evaluateReleaseGate({ result: run })
+    /* 黄金集是闸门的「外部对照」：读不到就是证据不足，读到了才谈得上达标与否。 */
+    const golden = loadGoldenSet()
+    const gate = evaluateReleaseGate(golden ? { result: run, golden } : { result: run })
     const gateLines = gate.status === 'pass'
       ? []
       : [
