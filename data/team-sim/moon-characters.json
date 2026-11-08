@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "identity": "miao 角色天赋文本含「月兆·满辉|初辉」",
+    "rule": "队伍中 1 位月兆角色 → 初辉；2 位及以上 → 满辉",
+    "ruleUrl": "https://www.9game.cn/yuanshen/11379142.html",
+    "note": "满辉下非月兆角色施放元素战技/爆发给全队月曜反应伤害加成（20 秒、最高 36%）尚未建模，细则与月曜伤害模型一起补。"
+  },
+  "counts": {
+    "characters": 9
+  },
+  "characters": [
+    {
+      "charId": "10000119",
+      "cn": "菈乌玛",
+      "element": "dendro",
+      "status": "mapped",
+      "evidence": "月兆·满辉：队伍中附近的所有角色造成的月绽放反应伤害提升40%。"
+    },
+    {
+      "charId": "10000120",
+      "cn": "菲林斯",
+      "element": "electro",
+      "status": "mapped",
+      "evidence": "月兆·满辉：若附近存在雷暴云，还会额外造成一次视为月感电反应伤害的雷元素范围伤害。"
+    },
+    {
+      "charId": "10000121",
+      "cn": "爱诺",
+      "element": "hydro",
+      "status": "mapped",
+      "evidence": "月兆·满辉：上述反应造成的伤害额外提升20%。"
+    },
+    {
+      "charId": "10000122",
+      "cn": "奈芙尔",
+      "element": "dendro",
+      "status": "no-gcsim",
+      "evidence": "月兆·满辉：奈芙尔造成的月绽放反应伤害擢升15%。"
+    },
+    {
+      "charId": "10000124",
+      "cn": "雅珂达",
+      "element": "anemo",
+      "status": "mapped",
+      "evidence": "月兆·满辉：呼噜噜秘藏瓶装满时，雅珂达不会立刻清空呼噜噜秘藏瓶，而是会在接下来的一段时间内，持续消耗瓶中装填的元素，并间歇性向附近的敌人发射软绒绒猫猫球，造成呼"
+    },
+    {
+      "charId": "10000125",
+      "cn": "哥伦比娅",
+      "element": "hydro",
+      "status": "mapped",
+      "evidence": "月兆·满辉：引力涟漪会造成范围更大的水元素范围伤害。"
+    },
+    {
+      "charId": "10000126",
+      "cn": "兹白",
+      "element": "geo",
+      "status": "mapped",
+      "evidence": "月兆·满辉：处于「月转时隙」模式下时，兹白进行普通攻击时，第四段攻击将额外造成一次岩元素伤害，该伤害视为月结晶反应伤害。"
+    },
+    {
+      "charId": "10000127",
+      "cn": "叶洛亚",
+      "element": "geo",
+      "status": "mapped",
+      "evidence": "月兆·满辉：处于「执灯之誓」效果影响下的角色，元素精通提升80点。"
+    },
+    {
+      "charId": "10000130",
+      "cn": "莉奈娅",
+      "element": "geo",
+      "status": "no-gcsim",
+      "evidence": "月兆·满辉：露米在超厉害形态下使用加力重锤时，或在究极厉害形态下使用百万吨重锤时，会触发一次月笼谐奏，且本次月笼谐奏视为队伍中所有元素类型为水元素与岩元素的角色"
+    }
+  ]
+}

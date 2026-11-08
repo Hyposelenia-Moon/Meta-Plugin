@@ -13,6 +13,7 @@ import { COMMANDS, RULES } from '../components/constants.js'
 import { parseTeamArgs, rotationHelpText } from '../modules/teamDamage.js'
 import { readTeamBuilds } from '../model/TeamBuildAdapter.js'
 import { findRotation, loadPermanentData, loadRoster, loadTeamPack, toRotation } from '../model/TeamSimStore.js'
+import { deriveMoonPhase } from '../model/MoonPhase.js'
 import { convertPackToFrameTier } from '../modules/teamSimulation/index.js'
 import {
   DPS_STANDARD,
@@ -150,6 +151,8 @@ export class MetaTeamDamage extends plugin {
     // 5. 结算：标准口径（110 级小宝 / 10% 抗 / 120 秒 / 0 初始能量），暴击取期望
     const first = members[0].permanentData
     const expected = { gameVersion: first.gameVersion, bundleId: first.bundleId, source: first.source }
+    // 月相按队伍里月兆角色的数量派生（1 位 → 初辉、2 位及以上 → 满辉）
+    const moonPhase = deriveMoonPhase(builds.map(build => build.characterId))
     const run = simulateTeam({
       pack,
       rotation: converted.rotation,
@@ -157,7 +160,8 @@ export class MetaTeamDamage extends plugin {
       expected,
       targetPresetId: DPS_STANDARD.targetId,
       crit: 'expected',
-      debuffs: { defenseReduction: 0, defenseIgnore: 0, resistanceReduction: 0 }
+      debuffs: { defenseReduction: 0, defenseIgnore: 0, resistanceReduction: 0 },
+      ...(moonPhase ? { moonPhase } : {})
     })
 
     if (run.status !== 'calculated') {

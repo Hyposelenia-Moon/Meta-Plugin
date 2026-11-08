@@ -38,6 +38,11 @@ export interface TeamRunInput {
    * 切换会改变反应次数，闸门与黄金基线需要重算。
    */
   auraMode?: 'declared' | 'simulated'
+  /**
+   * 月相：由队伍里月兆角色的数量派生（1 位 → 初辉、2 位及以上 → 满辉），不在轴里手写。
+   * 缺省视为没有月兆角色，`requiresMoonPhase` 的效果一律不生效。
+   */
+  moonPhase?: 'initial' | 'full'
 }
 
 export interface TeamRunCheck {
@@ -54,6 +59,8 @@ export type TeamRunResult = {
   checks: TeamRunCheck[]
   /** 两侧版本必须一致才跑；结果里再透出一次，方便核对用到的是哪份数据。 */
   versions: { pack: string; panels: string }
+  /** 月相：由队伍里月兆角色的数量派生；没有月兆角色时不出现。 */
+  moonPhase?: 'initial' | 'full'
   timeline: TimelineResult
   damage: TimelineDamageResult
   plan: MechanismPlan
@@ -92,6 +99,9 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
   const mode: TeamRunMode = input.mode ?? 'dps-standard'
   if (mode !== 'dps-standard' && mode !== 'diagnostic') {
     return fail('unsupported', checks, [{ code: 'unsupported', path: 'mode', message: `未知运行模式 ${String(mode)}` }])
+  }
+  if (input.moonPhase !== undefined && input.moonPhase !== 'initial' && input.moonPhase !== 'full') {
+    return fail('unsupported', checks, [{ code: 'unsupported', path: 'moonPhase', message: `月相只能是 initial 或 full，收到 ${String(input.moonPhase)}` }])
   }
 
   const timings: Record<string, number> = {}
@@ -248,6 +258,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
     effects,
     ...(effectTriggers.length ? { effectTriggers } : {}),
     ...(input.auraMode ? { auraMode: input.auraMode } : {}),
+    ...(input.moonPhase ? { moonPhase: input.moonPhase } : {}),
     ...(Object.keys(elements).length ? { elements } : {})
   })
   checks.push({ stage: 'timeline', status: timeline.status === 'simulated' ? 'ok' : timeline.status, issues: timeline.issues })
@@ -267,6 +278,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
     mode,
     checks,
     versions: { pack: packResult.pack.gameVersion, panels: panelsVersion },
+    ...(input.moonPhase ? { moonPhase: input.moonPhase } : {}),
     timeline,
     damage,
     plan,

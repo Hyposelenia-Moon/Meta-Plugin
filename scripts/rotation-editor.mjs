@@ -204,6 +204,8 @@ export async function simulatePanel (input) {
   const first = members[0].permanentData
   const expected = { gameVersion: first.gameVersion, bundleId: first.bundleId, source: first.source }
   const crit = input?.crit === 'critical' || input?.crit === 'non-critical' ? input.crit : 'expected'
+  const M = await import(libUrl('model/MoonPhase.js'))
+  const moonPhase = M.deriveMoonPhase(members.map(member => member.build.characterId))
   const run = K.simulateTeam({
     mode: 'dps-standard',
     pack,
@@ -213,7 +215,8 @@ export async function simulatePanel (input) {
     targetPresetId: 'ruin-guard-lv110',
     crit,
     // 常驻减益内核还没建模（会直接判 unsupported），这里固定为 0，等机制窗口支持后再开放
-    debuffs: { defenseReduction: 0, defenseIgnore: 0, resistanceReduction: 0 }
+    debuffs: { defenseReduction: 0, defenseIgnore: 0, resistanceReduction: 0 },
+    ...(moonPhase ? { moonPhase } : {})
   })
   if (run.status !== 'calculated') return { ok: false, status: run.status, issues: run.issues ?? [], stage: 'simulate' }
   const report = K.buildTeamRunReport(run)

@@ -607,8 +607,8 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
       requiresMoonPhase: 'full',
       stats: { cpct: 0.3 }
     }],
-    note: '4 件套（月兆初辉）：触发月曜反应后暴击率 +15%，持续 4 秒',
-    unmodeled: '同上；月曜反应本身未由附着状态机产生，需数据声明'
+    note: '4 件套：触发月曜反应后暴击率 +15%（初辉）/ +30%（满辉），持续 4 秒；月相由队伍里月兆角色数量派生（1 位初辉 / 2 位满辉）',
+    unmodeled: '同上；月曜反应本身未由附着状态机产生，需数据声明；满辉下非月兆角色 E/Q 的全队月曜反应伤害加成（20 秒、最高 36%）未建模'
   },
   '400371': {
     effect: {
@@ -629,7 +629,7 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
       durationFrames: 480,
       stats: { mastery: 120 }
     }],
-    note: '4 件套（月兆初辉）：造成元素伤害后全队精通 +60，持续 8 秒',
+    note: '4 件套：造成元素伤害后全队精通 +60（初辉）/ +120（满辉），持续 8 秒；月相由队伍里月兆角色数量派生（1 位初辉 / 2 位满辉）',
     unmodeled: '「月辉明光」每多一种使月曜伤害 +10% 未建模'
   },
   '400381': {
@@ -651,8 +651,8 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
       requiresMoonPhase: 'full',
       reactionDmg: { 'lunar-bloom': 0.4, 'lunar-charged': 0.4, 'lunar-crystallize': 0.4 }
     }],
-    note: '4 件套（后台、月兆初辉）：月曜反应伤害 +20%',
-    unmodeled: '满辉档按参数表 0.4 取值（原文「进一步提升 40%」有歧义）；「登场 3 秒后移除」未建模'
+    note: '4 件套（后台）：月曜反应伤害 +20%（初辉）/ +40%（满辉）；月相由队伍里月兆角色数量派生（1 位初辉 / 2 位满辉）',
+    unmodeled: '满辉档按参数表 0.4 取值（原文「进一步提升 40%」有歧义）；「登场 3 秒后移除」未建模；满辉下非月兆角色 E/Q 的全队月曜反应伤害加成（20 秒、最高 36%）未建模'
   },
   '400401': {
     effect: {

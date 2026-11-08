@@ -39,6 +39,8 @@ export interface TeamRunReport {
   effectUsage: { id: string; hits: number; total: number }[]
   /** 反应汇总：`hits` 是吃到该反应的伤害段数，`total` 是这些段里反应贡献的部分。 */
   reactions: { kind: string; hits: number; total: number }[]
+  /** 月相：由队伍里月兆角色的数量派生；没有月兆角色时为 null。 */
+  moonPhase: 'initial' | 'full' | null
   /** 每个角色的起手能量、窗口结束能量与上限。 */
   energy: { actorId: string; start: number; end: number; max: number }[]
   /** 逐关耗时（毫秒）；未开 instrument 时为 null。 */
@@ -68,6 +70,7 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
     triggers: [],
     effectUsage: [],
     reactions: [],
+    moonPhase: null,
     energy: [],
     timings: null,
     problems
@@ -131,6 +134,7 @@ export function buildTeamRunReport(result: TeamRunResult): TeamRunReport {
     triggers: [...triggers.entries()].map(([effectId, count]) => ({ effectId, count })),
     effectUsage: [...effectUsage.values()].sort((a, b) => b.total - a.total || a.id.localeCompare(b.id)),
     reactions: [...reactions.values()].sort((a, b) => b.total - a.total || a.kind.localeCompare(b.kind)),
+    moonPhase: result.moonPhase ?? null,
     energy: result.energy,
     timings: result.timings
   }
@@ -142,6 +146,7 @@ export function formatTeamRunReport(report: TeamRunReport): string[] {
   lines.push(`关：${report.stages.map(stage => `${stage.stage}=${stage.status}`).join(' · ')}`)
   if (report.versions) lines.push(`版本：数据包 ${report.versions.pack} / 面板 ${report.versions.panels}`)
   if (report.target) lines.push(`目标：${report.target.id}（Lv${report.target.level}、抗性 ${report.target.resistance}） · 口径 ${report.mode}`)
+  if (report.moonPhase) lines.push(`月相：${report.moonPhase === 'full' ? '满辉' : '初辉'}（按队伍里月兆角色数量派生）`)
   if (report.window) {
     const { endFrame, tierId, tickMs, gameMs, realMs } = report.window
     lines.push(`窗口：动作结束于第 ${endFrame} 帧 · ${tierId}（${tickMs}ms/帧）· 游戏 ${gameMs}ms · 现实 ${round1(realMs)}ms`)
