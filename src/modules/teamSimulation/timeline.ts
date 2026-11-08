@@ -700,6 +700,8 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const auraMode = input?.auraMode ?? 'declared'
   if (auraMode !== 'declared' && auraMode !== 'simulated') add('invalid', 'auraMode', 'auraMode 只能是 declared 或 simulated')
   const auraTracker = auraMode === 'simulated' ? new AuraTracker(input?.frameTier?.timerTickMs) : undefined
+  // 动作包目前没有附着元数据时，只能按「1U + Standard」近似；次数必须披露，不能静默当实测。
+  let attachmentDefaults = 0
   /*
    * 动作起手触发（4 件套触发式）：声明必须能兑现——效果要在效果表里登记、角色要在 actors 里，
    * 否则直接报错，不静默跳过（跳过会让「说触发了其实没触发」变成隐形低估）。
@@ -874,6 +876,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
          * 附着推导：爆发按 Independent，其余按 Standard（每 3 次或 2.5 秒一次）；
          * 附着量缺省 1U。没有附着或 ICD 拦截时不产生反应，伤害照常结算。
          */
+        if (item.hit.attachment?.gauge === undefined && item.hit.attachment?.icd === undefined && item.hit.element !== 'physical') attachmentDefaults += 1
         const applied = auraTracker.apply({
           frame: queued.frame,
           actorId: item.actorId,
@@ -1325,6 +1328,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   }
   while (queue.length) handle(queue.shift() as QueuedItem)
   if (hitlagWindows.length) approximateItems.push('hitlag 时长来自数据、未经实测校准：受影响的收尾、冷却与效果到期都按数据顺延')
+  if (attachmentDefaults > 0) approximateItems.push(`attachment:default:${attachmentDefaults}`)
 
   return finish(issues.length ? 'invalid' : 'simulated')
 

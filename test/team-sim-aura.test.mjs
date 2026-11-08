@@ -114,6 +114,30 @@ const { FRAME_TIERS, simulateTimeline } = await import(mod('modules/teamSimulati
   assert.equal(simulated.hits[1].reaction?.kind, 'vaporize', '第二发火伤触发蒸发')
   assert.equal(simulated.hits[1].reaction?.aura, 'hydro')
 
+  // 动作包没有附着元数据时，1U/Standard 只是近似，必须进 approximateItems。
+  assert.ok(simulated.approximateItems.some(item => item.startsWith('attachment:default:')), '缺省附着要披露')
+  const explicit = simulateTimeline({
+    scheduler: 'fixed',
+    steps: [{ id: 's1', kind: 'action', actorId: 'actor:0', actionId: 'a0.skill', atFrame: 0 }],
+    actions: {
+      'a0.skill': {
+        id: 'a0.skill', actorId: 'actor:0', kind: 'skill',
+        timing: { type: 'frames', frames: 120 },
+        hits: [
+          { atFrame: 10, motionValue: 1, scaling: 'atk', element: 'hydro', canCrit: true, attachment: { gauge: 1, icd: 'standard' } },
+          { atFrame: 60, motionValue: 1, scaling: 'atk', element: 'pyro', canCrit: true, attachment: { gauge: 1, icd: 'standard' } }
+        ]
+      }
+    },
+    actors: [{ actorId: 'actor:0', energy: 0, energyMax: 80 }],
+    activeActorId: 'actor:0',
+    frameTier: FRAME_TIERS['fps-60'],
+    measurementEndFrame: 200,
+    auraMode: 'simulated'
+  })
+  assert.equal(explicit.status, 'simulated', JSON.stringify(explicit.issues))
+  assert.ok(!explicit.approximateItems.some(item => item.startsWith('attachment:default:')), '显式附着不再披露近似')
+
   const declared = make(undefined)
   assert.equal(declared.status, 'simulated', JSON.stringify(declared.issues))
   assert.equal(declared.hits[1].reaction, undefined, '缺省 declared 模式不推导反应')
