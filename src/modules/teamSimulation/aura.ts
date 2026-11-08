@@ -16,12 +16,14 @@ export const AURA_ELEMENTS = ['physical', 'pyro', 'hydro', 'electro', 'cryo', 'a
 
 export type AuraElement = (typeof AURA_ELEMENTS)[number]
 
-/** 附着量衰减：0.1 单位/秒，60fps 下约 0.00167/帧。数据未区分元素时先按同一速率。 */
-export const AURA_DECAY_PER_FRAME = 0.1 / 60
+/** 附着量衰减：0.1 单位/游戏秒。数据未区分元素时先按同一速率。 */
+export const AURA_DECAY_PER_SECOND = 0.1
+export const AURA_DECAY_PER_FRAME = AURA_DECAY_PER_SECOND / 60
 
 /** Standard ICD：每 3 次命中或 2.5 秒内只结算一次附着。 */
 export const STANDARD_ICD_HITS = 3
-export const STANDARD_ICD_FRAMES = 150
+export const STANDARD_ICD_MS = 2500
+export const STANDARD_ICD_FRAMES = STANDARD_ICD_MS * 60 / 1000
 
 /** 反应类型（与 reactions.ts 的 `ReactionKind` 子集一致，只列本模块会产出的）。 */
 export type AuraReactionKind =
@@ -45,7 +47,7 @@ export interface AuraApplyInput {
   frame: number
   actorId: string
   element: AuraElement
-  /** 本次附着量，缺省 1U。物理/岩不产生附着。 */
+  /** 本次附着量，缺省 1U。0U、物理/岩不附着；风只触发扩散，不留存风附着。 */
   gauge?: number
   /** 逐发覆盖 ICD：`independent` 每次必附着；`standard` 走 3 次/2.5 秒。 */
   icd?: 'independent' | 'standard'
@@ -75,7 +77,7 @@ function transformativeReaction(attacker: AuraElement, defender: AuraElement): A
   if (pair.has('pyro') && pair.has('electro')) return 'overloaded'
   if (pair.has('hydro') && pair.has('electro')) return 'electro-charged'
   if (pair.has('cryo') && pair.has('electro')) return 'superconduct'
-  if (pair.has('anemo') && (pair.has('pyro') || pair.has('hydro') || pair.has('electro') || pair.has('cryo'))) return 'swirl'
+  if (attacker === 'anemo' && (defender === 'pyro' || defender === 'hydro' || defender === 'electro' || defender === 'cryo')) return 'swirl'
   if (pair.has('hydro') && pair.has('dendro')) return 'bloom'
   if (pair.has('pyro') && pair.has('dendro')) return 'burning'
   return undefined
@@ -87,6 +89,8 @@ function transformativeReaction(attacker: AuraElement, defender: AuraElement): A
 export class AuraTracker {
   private aura: AuraState | null = null
   private readonly hits = new Map<string, { count: number; lastFrame: number }>()
+
+  constructor(private readonly gameMsPerFrame = 1000 / 60) {}
 
   /** 当前附着（已按帧衰减到 `frame`），供调试与断言使用。 */
   stateAt(frame: number): AuraState | null {
@@ -104,7 +108,7 @@ export class AuraTracker {
     const key = `${input.actorId}:${input.element}`
     const record = this.hits.get(key) ?? { count: 0, lastFrame: input.frame }
     // 过了 2.5 秒窗口就重新计数；Standard 是「每 3 次放行一次」，即第 1、4、7 次命中。
-    if (input.frame - record.lastFrame >= STANDARD_ICD_FRAMES) {
+    if ((input.frame - record.lastFrame) * this.gameMsPerFrame >= STANDARD_ICD_MS) {
       record.count = 0
       record.lastFrame = input.frame
     }
@@ -116,18 +120,18 @@ export class AuraTracker {
 
   private decayTo(aura: AuraState, frame: number): AuraState {
     const elapsed = Math.max(0, frame - aura.atFrame)
-    return { ...aura, gauge: Math.max(0, aura.gauge - elapsed * AURA_DECAY_PER_FRAME), atFrame: frame }
+    return { ...aura, gauge: Math.max(0, aura.gauge - elapsed * this.gameMsPerFrame * AURA_DECAY_PER_SECOND / 1000), atFrame: frame }
   }
 
   /**
    * 施加一次命中：先补衰减，再判反应。
    * - 无附着：直接挂上。
    * - 同元素：刷新到较大值。
-   * - 异元素：增幅消耗 0.5，剧变消耗全部；岩/物理不参与附着。
+   * - 异元素：增幅消耗 0.5，剧变消耗全部；岩/物理不参与附着，风不留存附着。
    */
   apply(input: AuraApplyInput): AuraApplyResult {
     const gauge = input.gauge ?? 1
-    if (input.element === 'physical' || input.element === 'geo') {
+    if (gauge === 0 || input.element === 'physical' || input.element === 'geo') {
       return { aura: this.stateAt(input.frame), attached: false }
     }
     const current = this.aura ? this.decayTo(this.aura, input.frame) : null
@@ -135,6 +139,7 @@ export class AuraTracker {
 
     if (!alive) {
       if (!this.icdAllows(input)) return { aura: null, attached: false }
+      if (input.element === 'anemo') return { aura: null, attached: false }
       this.aura = { element: input.element, gauge, atFrame: input.frame }
       return { aura: this.aura, attached: true }
     }
@@ -151,6 +156,7 @@ export class AuraTracker {
     if (!amplifying && !transformative) {
       // 两者不成反应：新附着覆盖旧附着（岩/物理已在上面排除）。
       if (!this.icdAllows(input)) return { aura: alive, attached: false }
+      if (input.element === 'anemo') return { aura: alive, attached: false }
       this.aura = { element: input.element, gauge, atFrame: input.frame }
       return { aura: this.aura, attached: true }
     }
