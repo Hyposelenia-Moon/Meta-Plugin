@@ -566,7 +566,16 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
       elementDmg: { value: 0.12, from: 'reaction-aura' }
     },
     note: '4 件套：触发元素反应后，全队相关元素伤害 +12%，持续 15 秒',
-    unmodeled: '「夜魂加持下 +28%、持续 20 秒」需要夜魂状态，未建模'
+    extraEffects: [{
+      id: 'artifact-set:400321:4pc-nightsoul',
+      target: 'team',
+      trigger: 'reaction',
+      stacking: 'refresh',
+      durationFrames: 1200,
+      requiresNightsoul: true,
+      elementDmg: { value: 0.16, from: 'reaction-aura' }
+    }],
+    unmodeled: '夜魂加持档按「12% + 追加 16% = 28%、持续 20 秒」建模，需要调用方声明 nightsoul；「夜魂加持」本身的内核推导未实现'
   },
   '400331': {
     effect: {

@@ -228,6 +228,10 @@ export interface TimelineInput {
    * 内核不模拟护盾吸收与破碎，只把这个状态原样传给效果过滤。
    */
   shielded?: Record<string, boolean>
+  /** 夜魂加持状态，按角色声明；烬城的 +28% 档用它。内核不推导夜魂条。 */
+  nightsoul?: Record<string, boolean>
+  /** 魔女课业是否完成（天之美赐）；全局状态，由调用方声明。 */
+  witchLesson?: boolean
   /**
    * 角色自身元素（法器以外的附魔态不推断），供「按自身元素定向加伤」的效果使用。
    * 缺省时这类效果按不满足处理。
@@ -612,7 +616,9 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const hpRatioOf = (actorId: string) => hpRatios.get(actorId) ?? 1
   // 护盾状态：调用方声明，缺省无盾。
   const shielded = input?.shielded ?? {}
+  const nightsoul = input?.nightsoul ?? {}
   const shieldedOf = (actorId: string) => shielded[actorId] === true
+  const nightsoulOf = (actorId: string) => nightsoul[actorId] === true
   /**
    * 元素定向增伤（悠古的磐岩 / 烬城勇者绘卷 / 天之美赐）：触发时确定元素并记到期帧，
    * 命中当帧按元素取用。与面板的"全元素增伤"分开，避免把定向加成摊到所有元素上。
@@ -625,9 +631,25 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
    * 触发时登记副作用：元素定向增伤 / 元素定向减抗 / 按队伍元素计数给面板。
    * 三者的「元素」都来自触发当帧（反应光环、晶片元素、装备者元素），到期帧 = 触发帧 + durationFrames。
    */
+  /**
+   * 侧通道（元素定向增伤/减抗、队伍元素计数）与面板聚合共用同一套条件：
+   * 条件不满足时既不登记侧通道，也不加到面板。否则像烬城的夜魂档会在没有夜魂时也生效。
+   */
+  const sideEffectAllowed = (spec: NonNullable<ReturnType<typeof effectRuntime.specOf>>, actorId: string, element: ElementKey | undefined): boolean => {
+    if (spec.requiresShield && !shieldedOf(actorId)) return false
+    if (spec.requiresNightsoul && !nightsoulOf(actorId)) return false
+    if (spec.requiresWitchLesson && input.witchLesson !== true) return false
+    if (spec.requiresMoonPhase && (input.moonPhase ?? 'initial') !== spec.requiresMoonPhase) return false
+    if (spec.requiresEnemyAura && !(element && spec.requiresEnemyAura.includes(element))) return false
+    const ratio = hpRatioOf(actorId)
+    if (spec.requiresHpBelow !== undefined && !(ratio < spec.requiresHpBelow)) return false
+    if (spec.requiresHpAbove !== undefined && !(ratio > spec.requiresHpAbove)) return false
+    return true
+  }
   const noteTriggerSideEffects = (effectId: string, actorId: string, frame: number, element: ElementKey | undefined): void => {
     const spec = effectRuntime.specOf(effectId)
     if (!spec) return
+    if (!sideEffectAllowed(spec, actorId, element)) return
     const duration = spec.durationFrames
     if (!duration) return
     const team = spec.target === 'team'
@@ -849,7 +871,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         ? auraTracker.stateAt(queued.frame)?.element ?? null
         : (item.hit.reaction?.aura as ElementKey | undefined) ?? null
       // 后台限定（黄金剧团）：命中者在命中当帧不是前台，就算在后台。
-      const modifiers = effectRuntime.modifiersAt(item.actorId, queued.frame, { offField: item.actorId !== activeActorId, enemyAura, hpRatio: hpRatioOf(item.actorId), healingTotal: teamHealingTotal, hasShield: shieldedOf(item.actorId), moonPhase: input.moonPhase })
+      const modifiers = effectRuntime.modifiersAt(item.actorId, queued.frame, { offField: item.actorId !== activeActorId, enemyAura, hpRatio: hpRatioOf(item.actorId), healingTotal: teamHealingTotal, hasShield: shieldedOf(item.actorId), moonPhase: input.moonPhase, nightsoul: nightsoulOf(item.actorId), witchLesson: input.witchLesson === true })
       /*
        * 能量为零时才生效的按发条件（深廊终曲）：直接在命中当帧读角色能量，
        * 不注册成持续效果——它的开关是能量状态，不是时间窗。
@@ -1093,7 +1115,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     }
     if (item.kind === 'bubble') {
       // 泡沫伤害按固定值结算：不吃面板增伤与暴击，但走防御与抗性（物理）。
-      const snapshot = effectRuntime.modifiersAt(item.actorId, queued.frame, { offField: item.actorId !== activeActorId, hpRatio: hpRatioOf(item.actorId), healingTotal: teamHealingTotal, hasShield: shieldedOf(item.actorId), moonPhase: input.moonPhase })
+      const snapshot = effectRuntime.modifiersAt(item.actorId, queued.frame, { offField: item.actorId !== activeActorId, hpRatio: hpRatioOf(item.actorId), healingTotal: teamHealingTotal, hasShield: shieldedOf(item.actorId), moonPhase: input.moonPhase, nightsoul: nightsoulOf(item.actorId), witchLesson: input.witchLesson === true })
       hits.push({
         frame: queued.frame,
         actorId: item.actorId,

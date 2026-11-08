@@ -130,6 +130,10 @@ export interface EffectSpec {
    * 护盾状态由调用方按帧声明（`shielded`），内核不模拟护盾吸收与破碎。
    */
   requiresShield?: boolean
+  /** 只在「夜魂加持」状态下计入（烬城的 +28% 档）。状态由调用方声明，内核不推导夜魂条。 */
+  requiresNightsoul?: boolean
+  /** 只在「魔女课业」完成后计入（天之美赐）。状态由调用方声明。 */
+  requiresWitchLesson?: boolean
   /**
    * 只在指定月相下计入（纺月/晨星/穹境：月兆初辉与满辉的数值不同）。
    * 月相由调用方声明，缺省 `initial`。
@@ -319,6 +323,8 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
     if (!isFiniteNumber(value) || value <= 0 || value > 1) add('invalid', `${p}.${key}`, '生命值比例必须是 (0, 1] 的有限数')
   }
   if (spec.requiresShield !== undefined && typeof spec.requiresShield !== 'boolean') add('invalid', `${p}.requiresShield`, '护盾条件必须是布尔值')
+  if (spec.requiresNightsoul !== undefined && typeof spec.requiresNightsoul !== 'boolean') add('invalid', `${p}.requiresNightsoul`, '夜魂条件必须是布尔值')
+  if (spec.requiresWitchLesson !== undefined && typeof spec.requiresWitchLesson !== 'boolean') add('invalid', `${p}.requiresWitchLesson`, '魔女课业条件必须是布尔值')
   if (spec.reactionKinds !== undefined) {
     if (!Array.isArray(spec.reactionKinds) || !spec.reactionKinds.length) add('invalid', `${p}.reactionKinds`, '反应族过滤必须是非空数组')
     else for (const kind of spec.reactionKinds) if (!(kind in REACTIONS) && !isSpecialKind(kind)) add('unsupported', `${p}.reactionKinds`, `未知反应族 ${String(kind)}`)
@@ -444,7 +450,7 @@ export interface EffectRuntime {
    * `options.enemyAura` 表示敌人当帧附着的元素：`requiresEnemyAura` 的效果按它过滤。
    * `options.healingTotal` 是截至该帧的累计治疗量：`healRecord` 的效果按它折算增伤。
    */
-  modifiersAt(actorId: string, frame: number, options?: { offField?: boolean; enemyAura?: ElementKey | null; hpRatio?: number; healingTotal?: number; hasShield?: boolean; moonPhase?: 'initial' | 'full' }): { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
+  modifiersAt(actorId: string, frame: number, options?: { offField?: boolean; enemyAura?: ElementKey | null; hpRatio?: number; healingTotal?: number; hasShield?: boolean; moonPhase?: 'initial' | 'full'; nightsoul?: boolean; witchLesson?: boolean }): { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
   /**
    * 该效果在该帧的层数；没生效返回 0。
    * 月反应与星烁的叠层计数由这里读，引擎不猜「命中几次就该几层」。
@@ -524,6 +530,8 @@ export function createEffectRuntime(effects: Record<string, EffectSpec> | undefi
         if (spec.requiresHpAbove !== undefined && !((options?.hpRatio ?? 1) > spec.requiresHpAbove)) continue
         // 护盾条件（逆飞的流星）：护盾状态由调用方按帧声明，缺省按无盾处理。
         if (spec.requiresShield && !options?.hasShield) continue
+  if (spec.requiresNightsoul && !options?.nightsoul) continue
+  if (spec.requiresWitchLesson && !options?.witchLesson) continue
     if (spec.requiresMoonPhase && (options?.moonPhase ?? 'initial') !== spec.requiresMoonPhase) continue
         if (spec.target === 'enemy') {
           const mods = spec.enemy ?? {}
