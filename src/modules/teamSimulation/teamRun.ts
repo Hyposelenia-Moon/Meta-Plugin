@@ -2,6 +2,7 @@ import type { CharacterBuild, Failure, Issue, PermanentData } from './types.js'
 import type { EffectSpec, EffectTriggerKind } from './effects.js'
 import { buildPermanentStats, validateCharacterBuild, type PermanentDataExpectation } from './build.js'
 import { simulateTimeline, type TimelineResult } from './timeline.js'
+import { ELEMENT_KEYS, type ElementKey } from './effects.js'
 import { calculateTimelineDamage, type CritPolicy, type DamageContext, type DamageDebuffs, type TimelineDamageResult } from './hitDamage.js'
 import { validateDataPack, type DataPack } from './dataPack.js'
 import { validateRotation, type RotationSpec } from './rotation.js'
@@ -225,6 +226,14 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
       for (const extra of spec.extraTriggers ?? []) effectTriggers.push({ effectId, actorId, on: extra })
     }
   }
+  /*
+   * 角色自身元素：给「按自身元素定向加伤」的效果（天之美赐）用。
+   * 名录里 elem 是英文键，构建后落在 build.element；不在合法元素表里的忽略。
+   */
+  const elements: Record<string, ElementKey> = {}
+  for (const [actorId, build] of Object.entries(builds)) {
+    if (build.element !== 'physical' && (ELEMENT_KEYS as readonly string[]).includes(build.element)) elements[actorId] = build.element as ElementKey
+  }
   const timeline = simulateTimeline({
     scheduler: input.rotation.scheduler,
     steps: input.rotation.steps,
@@ -238,7 +247,8 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
     stateFlags: input.rotation.stateFlags,
     effects,
     ...(effectTriggers.length ? { effectTriggers } : {}),
-    ...(input.auraMode ? { auraMode: input.auraMode } : {})
+    ...(input.auraMode ? { auraMode: input.auraMode } : {}),
+    ...(Object.keys(elements).length ? { elements } : {})
   })
   checks.push({ stage: 'timeline', status: timeline.status === 'simulated' ? 'ok' : timeline.status, issues: timeline.issues })
   lap('timeline')

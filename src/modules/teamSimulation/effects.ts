@@ -140,6 +140,19 @@ export interface EffectSpec {
    * 存的是「元素 + 数值 + 到期帧」，命中当帧按元素取用。
    */
   elementDmg?: { value: number; from: 'reaction-aura' | 'wearer-element' | 'shard-element' }
+  /**
+   * 元素定向减抗（翠绿之影）：触发时确定元素，只降低该元素的敌人抗性。
+   * 与 `elementDmg` 同样按「触发当帧定元素 + 到期帧」取用。
+   */
+  resistanceShred?: { value: number; from: 'reaction-aura' | 'wearer-element' | 'shard-element' }
+  /**
+   * 按队伍元素构成给面板加成（饰金之梦：同元素队友每个 +14% 攻击、异元素队友每个 +50 精通）。
+   * 触发当帧用 `elements` 计算一次，之后按到期帧生效；没有 `elements` 时按 0 计。
+   */
+  scalesWithTeamElements?: {
+    same: { stat: 'atkPct'; value: number }
+    different: { stat: 'mastery'; value: number }
+  }
   /** 同一效果除主触发外还接受哪些触发（华馆：岩伤命中 + 后台计时共用同一个叠层池）。 */
   extraTriggers?: EffectTriggerKind[]
   /** 触发冷却（帧）：`geo-hit` 一类高频触发用，0.3 秒 = 18 帧。 */
@@ -244,7 +257,7 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
         else if (!isFiniteNumber(value)) add('invalid', `${p}.stats.${stat}`, '面板增量必须是有限数值')
       }
     }
-  } else if ((spec.target === 'self' || spec.target === 'team') && !spec.energyRestore && !spec.flatDamage && !spec.reactionDmg && !spec.healRecord && !spec.healBubble) {
+  } else if ((spec.target === 'self' || spec.target === 'team') && !spec.energyRestore && !spec.flatDamage && !spec.reactionDmg && !spec.healRecord && !spec.healBubble && !spec.elementDmg && !spec.resistanceShred && !spec.scalesWithTeamElements) {
     add('missing', `${p}.stats`, '作用于己方的效果必须给面板加成')
   }
 
@@ -311,6 +324,22 @@ export function validateEffectSpec(effect: unknown, key: string): Issue[] {
     else for (const kind of spec.reactionKinds) if (!(kind in REACTIONS) && !isSpecialKind(kind)) add('unsupported', `${p}.reactionKinds`, `未知反应族 ${String(kind)}`)
   }
   if (spec.requiresMoonPhase !== undefined && spec.requiresMoonPhase !== 'initial' && spec.requiresMoonPhase !== 'full') add('unsupported', `${p}.requiresMoonPhase`, '月相只能是 initial 或 full')
+  if (spec.resistanceShred !== undefined) {
+    const s = spec.resistanceShred
+    if (!s || typeof s !== 'object' || Array.isArray(s)) add('invalid', `${p}.resistanceShred`, '元素定向减抗必须是对象')
+    else {
+      if (!isFiniteNumber(s.value) || s.value <= 0) add('invalid', `${p}.resistanceShred.value`, '减抗数值必须是正有限数')
+      if (!['reaction-aura', 'wearer-element', 'shard-element'].includes(String(s.from))) add('unsupported', `${p}.resistanceShred.from`, '减抗元素来源只能是 reaction-aura / wearer-element / shard-element')
+    }
+  }
+  if (spec.scalesWithTeamElements !== undefined) {
+    const s = spec.scalesWithTeamElements
+    if (!s || typeof s !== 'object' || Array.isArray(s)) add('invalid', `${p}.scalesWithTeamElements`, '队伍元素计数必须是对象')
+    else {
+      if (!isFiniteNumber(s.same?.value) || s.same.value <= 0) add('invalid', `${p}.scalesWithTeamElements.same.value`, '同元素队友加成必须是正有限数')
+      if (!isFiniteNumber(s.different?.value) || s.different.value <= 0) add('invalid', `${p}.scalesWithTeamElements.different.value`, '异元素队友加成必须是正有限数')
+    }
+  }
   if (spec.elementDmg !== undefined) {
     if (!spec.elementDmg || typeof spec.elementDmg !== 'object') add('invalid', `${p}.elementDmg`, '元素动态增伤必须是对象')
     else {

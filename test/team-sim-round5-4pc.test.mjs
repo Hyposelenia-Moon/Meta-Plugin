@@ -88,7 +88,9 @@ const normalHit = (extra = {}) => ({
   assert.deepEqual(runtime['artifact-set:400421:4pc'].reactionKinds, ['stellar-swirl'])
   assert.equal(runtime['artifact-set:400361:4pc'].requiresMoonPhase, 'initial')
   assert.equal(runtime['artifact-set:400361:4pc-full'].requiresMoonPhase, 'full')
-  assert.ok(result.data.effects['artifact-set:400094:4pc'].unmodeled?.includes('抗性'))
+  // 翠绿的减抗已由运行时效果（400094:4pc-shred）承接，审计条目只剩口径说明。
+  assert.equal(result.data.runtimeEffects['artifact-set:400094:4pc-shred'].trigger, 'reaction')
+  assert.deepEqual(result.data.runtimeEffects['artifact-set:400094:4pc-shred'].resistanceShred, { value: 0.4, from: 'reaction-aura' })
 }
 
 // ---------- 2. 黑曜秘典：夜魂消耗后暴击率 +40% ----------

@@ -228,6 +228,11 @@ export interface TimelineInput {
    * 内核不模拟护盾吸收与破碎，只把这个状态原样传给效果过滤。
    */
   shielded?: Record<string, boolean>
+  /**
+   * 角色自身元素（法器以外的附魔态不推断），供「按自身元素定向加伤」的效果使用。
+   * 缺省时这类效果按不满足处理。
+   */
+  elements?: Record<string, ElementKey>
   /** 月相：纺月/晨星/穹境的初辉（initial）与满辉（full）数值不同，缺省 initial。 */
   moonPhase?: 'initial' | 'full'
   /** 元素充能效率：粒子到达时按此倍率回能。数据给出，内核不猜。 */
@@ -608,6 +613,73 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   // 护盾状态：调用方声明，缺省无盾。
   const shielded = input?.shielded ?? {}
   const shieldedOf = (actorId: string) => shielded[actorId] === true
+  /**
+   * 元素定向增伤（悠古的磐岩 / 烬城勇者绘卷 / 天之美赐）：触发时确定元素并记到期帧，
+   * 命中当帧按元素取用。与面板的"全元素增伤"分开，避免把定向加成摊到所有元素上。
+   */
+  interface ElementBuff { actorId: string; team: boolean; element: ElementKey; value: number; untilFrame: number }
+  const elementBuffs: ElementBuff[] = []
+  const shredBuffs: ElementBuff[] = []
+  const scalingBuffs: Array<{ actorId: string; team: boolean; stats: Record<string, number>; untilFrame: number }> = []
+  /**
+   * 触发时登记副作用：元素定向增伤 / 元素定向减抗 / 按队伍元素计数给面板。
+   * 三者的「元素」都来自触发当帧（反应光环、晶片元素、装备者元素），到期帧 = 触发帧 + durationFrames。
+   */
+  const noteTriggerSideEffects = (effectId: string, actorId: string, frame: number, element: ElementKey | undefined): void => {
+    const spec = effectRuntime.specOf(effectId)
+    if (!spec) return
+    const duration = spec.durationFrames
+    if (!duration) return
+    const team = spec.target === 'team'
+    const untilFrame = frame + duration
+    if (spec.elementDmg && element) elementBuffs.push({ actorId, team, element, value: spec.elementDmg.value, untilFrame })
+    if (spec.resistanceShred && element) shredBuffs.push({ actorId, team, element, value: spec.resistanceShred.value, untilFrame })
+    if (spec.scalesWithTeamElements) {
+      const own = input.elements?.[actorId]
+      const stats: Record<string, number> = {}
+      if (own) {
+        let same = 0
+        let different = 0
+        for (const [otherId, otherElement] of Object.entries(input.elements ?? {})) {
+          if (otherId === actorId) continue
+          if (otherElement === own) same += 1
+          else different += 1
+        }
+        if (same > 0) stats[spec.scalesWithTeamElements.same.stat] = same * spec.scalesWithTeamElements.same.value
+        if (different > 0) stats[spec.scalesWithTeamElements.different.stat] = different * spec.scalesWithTeamElements.different.value
+      }
+      if (Object.keys(stats).length) scalingBuffs.push({ actorId, team, stats, untilFrame })
+    }
+  }
+  const elementDmgFor = (actorId: string, frame: number, element: ElementKey): number => {
+    let total = 0
+    for (const buff of elementBuffs) {
+      if (buff.untilFrame <= frame) continue
+      if (buff.element !== element) continue
+      if (!buff.team && buff.actorId !== actorId) continue
+      total += buff.value
+    }
+    return total
+  }
+  const resistanceShredFor = (actorId: string, frame: number, element: ElementKey): number => {
+    let total = 0
+    for (const buff of shredBuffs) {
+      if (buff.untilFrame <= frame) continue
+      if (buff.element !== element) continue
+      if (!buff.team && buff.actorId !== actorId) continue
+      total += buff.value
+    }
+    return total
+  }
+  const teamScalingFor = (actorId: string, frame: number): Record<string, number> => {
+    const merged: Record<string, number> = {}
+    for (const buff of scalingBuffs) {
+      if (buff.untilFrame <= frame) continue
+      if (!buff.team && buff.actorId !== actorId) continue
+      for (const [key, value] of Object.entries(buff.stats)) merged[key] = (merged[key] ?? 0) + value
+    }
+    return merged
+  }
   // 队伍累计治疗量（昔时之歌）与海染泡沫的触发帧记录。
   let teamHealingTotal = 0
   const bubbleAt = new Map<string, number>()
@@ -811,6 +883,30 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         })
         reaction = applied.reaction ? { kind: applied.reaction.kind, aura: applied.reaction.aura } : undefined
       }
+      /*
+       * 元素定向增伤 / 减抗（磐岩、烬城、天之美赐、翠绿之影）按命中元素取用；
+       * 队伍元素计数（饰金）按触发时算好的面板增量合并。物理命中不参与元素定向。
+       */
+      if (item.hit.element !== 'physical') {
+        const elementKey = item.hit.element
+        const elementBonus = elementDmgFor(item.actorId, queued.frame, elementKey)
+        if (elementBonus > 0) modifiers.stats = { ...modifiers.stats, [elementKey]: (Number(modifiers.stats[elementKey] ?? 0)) + elementBonus }
+        const shred = resistanceShredFor(item.actorId, queued.frame, elementKey)
+        if (shred > 0) {
+          const byElement = { ...(modifiers.enemy.resistanceByElement ?? {}) }
+          byElement[elementKey] = (byElement[elementKey] ?? 0) + shred
+          modifiers.enemy = { ...modifiers.enemy, resistanceByElement: byElement }
+        }
+      }
+      const teamScaling = teamScalingFor(item.actorId, queued.frame)
+      if (Object.keys(teamScaling).length) {
+        const mergedStats = { ...modifiers.stats }
+        for (const [key, value] of Object.entries(teamScaling)) {
+          const stat = key as keyof typeof mergedStats
+          mergedStats[stat] = (Number(mergedStats[stat] ?? 0)) + value
+        }
+        modifiers.stats = mergedStats
+      }
       const activeEffects = effectRuntime.activeAt(item.actorId, queued.frame)
       const hitKind = actions[item.actionId]?.kind
       const matchesHitKind = (on: EffectTriggerKind) => on === 'hit' ||
@@ -887,6 +983,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
           if (icd > 0) hitTriggerAt.set(key, queued.frame)
           triggers.push(fired)
           record(queued.frame, 'trigger', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: 'reaction' })
+        noteTriggerSideEffects(entry.effectId, item.actorId, queued.frame, (reaction.aura as ElementKey | undefined) ?? (item.hit.element === 'physical' ? undefined : item.hit.element))
           scheduleEffectEnergy(entry.effectId, queued.frame, entry.actorId, item.actionId)
         }
       }
@@ -1043,6 +1140,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         const triggered = effectRuntime.trigger(entry.effectId, queued.frame, item.actorId)
         if (!triggered) continue
         record(queued.frame, 'state', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: triggered.stacks, source: 'shard-pickup' })
+        noteTriggerSideEffects(entry.effectId, item.actorId, queued.frame, item.element)
       }
       return
     }
@@ -1118,6 +1216,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         if (!fired) continue
         triggers.push(fired)
         record(frame, 'trigger', 'trigger', step.actorId, spec.id, { effectId: item.effectId, stacks: fired.stacks, expiresAt: fired.expiresAt, source: 'cast' })
+        noteTriggerSideEffects(item.effectId, step.actorId, frame, input.elements?.[step.actorId])
         scheduleEffectEnergy(item.effectId, frame, step.actorId, spec.id)
       }
     }
