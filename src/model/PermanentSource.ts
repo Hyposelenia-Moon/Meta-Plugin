@@ -229,7 +229,7 @@ const OFF_FIELD_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
  * 生效时长按 60fps 帧数写（与现有动作包的帧口径一致）；换档位时尚未折算，
  * 与 §「帧数口径」里记录的限制相同。
  */
-const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: EffectTriggerKind }; note: string, unmodeled?: string }> = {
+const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: EffectTriggerKind }; extraEffects?: Array<EffectSpec & { trigger: EffectTriggerKind }>; note: string, unmodeled?: string }> = {
   '400164': {
     effect: {
       id: 'artifact-set:400164:4pc',
@@ -438,6 +438,310 @@ const TRIGGERED_FOUR_PIECE: Record<string, { effect: EffectSpec & { trigger: Eff
     note: '4 件套：超载、感电、超导、超绽放反应造成的伤害提升 40%，超激化反应的伤害提升提高 20%，月感电与星超导反应伤害提升 20%',
     unmodeled: '超绽放需要草原核模型、超激化加成走激化通道、月感电/星超导的 20% 与「触发反应后元素战技冷却 -1 秒（0.8 秒一次）」未建模；当前只把超载/感电/超导的 40% 计入'
   },
+  '400114': {
+    effect: {
+      id: 'artifact-set:400114:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      reactionDmg: { overloaded: 0.4, burning: 0.4 }
+    },
+    note: '4 件套：超载、燃烧、烈绽放反应造成的伤害提升 40%，蒸发、融化反应的加成系数提高 15%；施放元素战技后 10 秒内 2 件套效果提高 50%，最多叠加 3 次',
+    unmodeled: '蒸发/融化「加成系数 +15%」是反应乘区的加法，当前 amplifying 通道未接；烈绽放/超绽放需要草原核模型；「战技后 2 件套提高 50%、最多 3 层」的叠层未建模；当前只计入超载/燃烧的 40%'
+  },
+  '400231': {
+    effect: {
+      id: 'artifact-set:400231:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      reactionDmg: { bloom: 0.4 }
+    },
+    note: '4 件套：绽放、超绽放、烈绽放反应造成的伤害提升 40%，月绽放反应伤害提升 10%；触发上述反应后加成提升 25%，持续 10 秒，最多 4 层',
+    unmodeled: '超绽放/烈绽放需要草原核模型，月绽放走专用通道；「触发后 +25%、最多 4 层」的叠层未建模；当前只计入绽放的 40%'
+  },
+  '400411': {
+    effect: {
+      id: 'artifact-set:400411:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      reactionDmg: { superconduct: 0.8 }
+    },
+    note: '4 件套：超导反应造成的伤害提升 80%，星超导反应伤害提升 40%；攻击处于超导或星超导影响下的敌人时暴击率提高 16%',
+    unmodeled: '星超导的 40% 与「对超导/星超导目标暴击率 +16%」需要敌人反应状态，未建模；当前只计入超导的 80%'
+  },
+  '400069': {
+    effect: {
+      id: 'artifact-set:400069:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      requiresEnemyAura: ['cryo'],
+      stats: { cpct: 0.2 }
+    },
+    note: '4 件套：攻击处于冰元素影响下的敌人时暴击率 +20%，若敌人处于冻结状态则再 +20%',
+    unmodeled: '「敌人处于冻结状态时再 +20%」需要冻结状态模型；当前只计入冰附着下的 +20% 暴击率'
+  },
+  '400159': {
+    effect: {
+      id: 'artifact-set:400159:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      requiresShield: true,
+      stats: { normalDmg: 0.4, chargedDmg: 0.4 }
+    },
+    note: '4 件套：处于护盾庇护下时，普通攻击与重击伤害 +40%',
+    unmodeled: '护盾状态由轴/调用方声明（shielded），内核不模拟护盾吸收、破碎与来源'
+  },
+  '400301': {
+    effect: {
+      id: 'artifact-set:400301:4pc',
+      target: 'self',
+      trigger: 'bond-change',
+      stacking: 'stack',
+      maxStacks: 3,
+      durationFrames: 360,
+      stats: { dmg: 0.18 }
+    },
+    note: '4 件套：生命之契数值提升或降低时，造成伤害 +18%，持续 6 秒、至多 3 层',
+    unmodeled: '生命之契的数值模型未建模；只由轴里的 bond 事件驱动，不按实际生命之契数值折算'
+  },
+  '400094': {
+    effect: {
+      id: 'artifact-set:400094:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      reactionDmg: { swirl: 0.6, 'stellar-swirl': 0.2 }
+    },
+    note: '4 件套：扩散反应伤害 +60%、星扩散 +20%',
+    unmodeled: '「按扩散元素降低敌人 40% 对应元素抗性、持续 10 秒」需要按敌人附着元素动态减抗，当前未建模'
+  },
+  '400154': {
+    effect: {
+      id: 'artifact-set:400154:4pc',
+      target: 'team',
+      trigger: 'shard-pickup',
+      stacking: 'refresh',
+      durationFrames: 600,
+      stats: { dmg: 0.35 }
+    },
+    note: '4 件套：获得结晶晶片或触发月结晶后，全队获得 35% 对应元素伤害加成，持续 10 秒',
+    unmodeled: '加成应只作用于晶片对应元素；当前按全元素增伤近似，元素动态通道后续接入'
+  },
+  '400214': {
+    effect: {
+      id: 'artifact-set:400214:4pc',
+      target: 'self',
+      trigger: 'reaction',
+      stacking: 'refresh',
+      durationFrames: 480,
+      icdFrames: 480,
+      stats: { atkPct: 0.14, mastery: 50 }
+    },
+    note: '4 件套：触发元素反应后 8 秒，按队伍元素构成给攻击力或精通',
+    unmodeled: '按「1 个同元素队友 + 1 个异元素队友」近似（+14% 攻击、+50 精通）；同/异元素计数与 3 个上限未按实际队伍计算'
+  },
+  '400321': {
+    effect: {
+      id: 'artifact-set:400321:4pc',
+      target: 'team',
+      trigger: 'reaction',
+      stacking: 'refresh',
+      durationFrames: 900,
+      stats: { dmg: 0.12 }
+    },
+    note: '4 件套：触发元素反应后，全队相关元素伤害 +12%，持续 15 秒',
+    unmodeled: '加成应只作用于反应相关元素；「夜魂加持下 +28%、持续 20 秒」需要夜魂状态，均未建模'
+  },
+  '400331': {
+    effect: {
+      id: 'artifact-set:400331:4pc',
+      target: 'self',
+      trigger: 'nightsoul-consume',
+      stacking: 'refresh',
+      durationFrames: 360,
+      icdFrames: 60,
+      stats: { cpct: 0.4 }
+    },
+    note: '4 件套：在场上消耗 1 点夜魂值后，暴击率 +40%，持续 6 秒',
+    unmodeled: '夜魂值资源本身不建模，只认轴里声明的 nightsoulConsume 事件'
+  },
+  '400361': {
+    effect: {
+      id: 'artifact-set:400361:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      requiresMoonPhase: 'initial',
+      stats: { cpct: 0.15 }
+    },
+    extraEffects: [{
+      id: 'artifact-set:400361:4pc-full',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      requiresMoonPhase: 'full',
+      stats: { cpct: 0.3 }
+    }],
+    note: '4 件套（月兆初辉）：触发月曜反应后暴击率 +15%，持续 4 秒',
+    unmodeled: '同上；月曜反应本身未由附着状态机产生，需数据声明'
+  },
+  '400371': {
+    effect: {
+      id: 'artifact-set:400371:4pc',
+      target: 'team',
+      trigger: 'hit',
+      stacking: 'refresh',
+      requiresMoonPhase: 'initial',
+      durationFrames: 480,
+      stats: { mastery: 60 }
+    },
+    extraEffects: [{
+      id: 'artifact-set:400371:4pc-full',
+      target: 'team',
+      trigger: 'hit',
+      stacking: 'refresh',
+      requiresMoonPhase: 'full',
+      durationFrames: 480,
+      stats: { mastery: 120 }
+    }],
+    note: '4 件套（月兆初辉）：造成元素伤害后全队精通 +60，持续 8 秒',
+    unmodeled: '「月辉明光」每多一种使月曜伤害 +10% 未建模'
+  },
+  '400381': {
+    effect: {
+      id: 'artifact-set:400381:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      offFieldOnly: true,
+      requiresMoonPhase: 'initial',
+      reactionDmg: { 'lunar-bloom': 0.2, 'lunar-charged': 0.2, 'lunar-crystallize': 0.2 }
+    },
+    extraEffects: [{
+      id: 'artifact-set:400381:4pc-full',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      offFieldOnly: true,
+      requiresMoonPhase: 'full',
+      reactionDmg: { 'lunar-bloom': 0.4, 'lunar-charged': 0.4, 'lunar-crystallize': 0.4 }
+    }],
+    note: '4 件套（后台、月兆初辉）：月曜反应伤害 +20%',
+    unmodeled: '满辉档按参数表 0.4 取值（原文「进一步提升 40%」有歧义）；「登场 3 秒后移除」未建模'
+  },
+  '400401': {
+    effect: {
+      id: 'artifact-set:400401:4pc',
+      target: 'team',
+      trigger: 'cast-skill',
+      stacking: 'refresh',
+      durationFrames: 1200,
+      stats: { dmg: 0.2 }
+    },
+    note: '4 件套：完成魔女的课业后，施放元素战技使全队获得 20% 对应元素伤害加成，持续 20 秒',
+    unmodeled: '「需完成魔女的课业」与「按元素类型」未建模，当前按全元素增伤近似；魔导·秘仪升级档未计入'
+  },
+  '400421': {
+    effect: {
+      id: 'artifact-set:400421:4pc',
+      target: 'self',
+      trigger: 'reaction',
+      stacking: 'refresh',
+      durationFrames: 600,
+      reactionKinds: ['stellar-swirl'],
+      stats: { cpct: 0.16 },
+      reactionDmg: { 'stellar-swirl': 0.4 }
+    },
+    note: '4 件套：触发星扩散后，暴击率 +16%、星扩散反应伤害 +40%，持续 10 秒',
+    unmodeled: '星扩散反应需数据声明（附着状态机不产生星反应）'
+  },
+  '400431': {
+    effect: {
+      id: 'artifact-set:400431:4pc',
+      target: 'team',
+      trigger: 'reaction',
+      stacking: 'refresh',
+      durationFrames: 720,
+      reactionKinds: ['stellar-vortex'],
+      stats: { atkPct: 0.12 },
+      reactionDmg: { 'stellar-vortex': 0.5 }
+    },
+    note: '4 件套：触发星烁反应或造成星烁伤害后，攻击力 +12%、全队星烁反应伤害 +50%，持续 12 秒',
+    unmodeled: '星烁反应需数据声明；「同名套装不叠加」按同队只登记一次处理'
+  },
+  '400281': {
+    effect: {
+      id: 'artifact-set:400281:4pc',
+      target: 'team',
+      trigger: 'always',
+      stacking: 'refresh',
+      healRecord: { perHeal: 1000, ratio: 0.03, max: 0.15 }
+    },
+    note: '4 件套：记录队伍中所有角色的治疗量，每记录 1000 点治疗量使队伍造成的伤害 +3%，至多 +15%',
+    unmodeled: '治疗量只统计轴里声明的 heal 事件；记录窗口与战斗时长同长（原效果上限也是 15%）'
+  },
+  '400194': {
+    effect: {
+      id: 'artifact-set:400194:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      healBubble: { ratio: 0.9, delayFrames: 180, icdFrames: 210 }
+    },
+    note: '4 件套：治疗时产生持续 3 秒的海染泡沫，3 秒后爆炸，对周围敌人造成相当于治疗量 90% 的伤害',
+    unmodeled: '泡沫伤害按单体结算、不吃增伤与暴击，只走防御与抗性；「对周围敌人」的范围伤害未建模'
+  },
+  '400074': {
+    effect: {
+      id: 'artifact-set:400074:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      requiresEnemyAura: ['electro'],
+      stats: { dmg: 0.35 }
+    },
+    note: '4 件套：对处于雷元素影响下的敌人，造成的伤害提高 35%'
+  },
+  '400079': {
+    effect: {
+      id: 'artifact-set:400079:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      requiresEnemyAura: ['pyro'],
+      stats: { dmg: 0.35 }
+    },
+    note: '4 件套：对处于火元素影响下的敌人，造成的伤害提高 35%'
+  },
+  '400023': {
+    effect: {
+      id: 'artifact-set:400023:4pc',
+      target: 'self',
+      trigger: 'always',
+      stacking: 'refresh',
+      requiresHpBelow: 0.7,
+      stats: { cpct: 0.24 }
+    },
+    note: '4 件套：生命值低于 70% 时，暴击率提升 24%',
+    unmodeled: '生命值比例由轴里的 hpRatios 给出，内核不模拟敌人伤害；不给时按满血处理、这条不计入'
+  },
+  '400261': {
+    effect: {
+      id: 'artifact-set:400261:4pc',
+      target: 'self',
+      trigger: 'hp-change',
+      stacking: 'stack',
+      maxStacks: 3,
+      durationFrames: 300,
+      stats: { cpct: 0.12 }
+    },
+    note: '4 件套：生命值提升或降低时暴击率提升 12%，持续 5 秒，最多 3 层',
+    unmodeled: '内核只把治疗事件当作生命值变化来源；受击掉血不模拟，掉血触发依赖数据给的治疗/变化事件'
+  },
   '400209': {
     effect: {
       id: 'artifact-set:400209:4pc',
@@ -564,6 +868,7 @@ function buildEffects (character: MiaoCharacter, weapon: MiaoWeapon, refine: num
           ...(triggered.unmodeled ? { unmodeled: triggered.unmodeled } : {})
         }
         runtimeEffects[`artifact-set:${setId}:4pc`] = triggered.effect
+        for (const variant of triggered.extraEffects ?? []) runtimeEffects[variant.id] = variant
       } else if (convert) {
         // 数值依赖组装后的面板，buildPermanentStats 里按 setId 换算。
         effects[`artifact-set:${setId}:4pc`] = {

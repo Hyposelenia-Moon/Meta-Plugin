@@ -7,7 +7,7 @@
  * 现实时间与游戏计时器时间不一样，给默认值等于把前提藏起来。
  */
 import type { Issue } from './types.js'
-import { createEffectRuntime, NO_ENEMY_MODIFIERS, type ActiveEffectState, type EffectSpec, type EffectTriggerKind, EFFECT_TRIGGER_KINDS, HIT_TRIGGER_KINDS, type EnemyModifiers, type PanelModifiers, type ReactionBonus, type TriggerRecord } from './effects.js'
+import { createEffectRuntime, NO_ENEMY_MODIFIERS, type ActiveEffectState, type EffectSpec, type EffectTriggerKind, EFFECT_TRIGGER_KINDS, HIT_TRIGGER_KINDS, type EnemyModifiers, type PanelModifiers, type ReactionBonus, type TriggerRecord, type ElementKey, ELEMENT_KEYS } from './effects.js'
 import { AuraTracker } from './aura.js'
 import { describeMismatch, describeSpecialMismatch, isReactiveKind, isSpecialKind, isStatefulKind, statefulReason, type ReactionElement } from './reactions.js'
 
@@ -176,6 +176,20 @@ export interface ActionSpec {
    * `atFrame` 相对动作起手，允许超过动作时长；事件不会被下一个动作取消。
    */
   energyRestore?: EnergyRestoreSpec[]
+  /**
+   * 治疗事件（2026-11-08）：在指定帧产生固定治疗量。
+   * 治疗量由数据给出（内核不猜角色面板），只用于「治疗记录 / 生命值变化」类套装的判定。
+   */
+  heal?: { atFrame: number; amount: number }
+  /**
+   * 生命之契变化事件（2026-11-08）：在指定帧产生一次数值变化（正为增加、负为降低）。
+   * 只用于「生命之契变化」类套装的触发判定，内核不按它折算治疗或伤害。
+   */
+  bond?: { atFrame: number; delta: number }
+  /** 夜魂值消耗（黑曜秘典）：在指定帧消耗若干夜魂值，触发 `nightsoul-consume`。 */
+  nightsoulConsume?: { atFrame: number; points: number }
+  /** 拾取结晶晶片（磐岩/饰金一类）：在指定帧拾取某元素的晶片，触发 `shard-pickup`。 */
+  shardPickup?: { atFrame: number; element: ElementKey }
   energyCost?: number
   cooldownFrames?: number
   cooldownId?: string
@@ -207,6 +221,15 @@ export interface TimelineInput {
   measurementEndFrame: number
   /** 切人动画占用的帧数；数据决定，0 表示同帧可行动。 */
   switchFrames?: number
+  /** 各角色开局的当前生命值比例（0, 1]，缺省 1；内核不模拟敌人伤害。 */
+  hpRatios?: Record<string, number>
+  /**
+   * 各角色是否处于护盾庇护下（逆飞的流星一类），由调用方声明。
+   * 内核不模拟护盾吸收与破碎，只把这个状态原样传给效果过滤。
+   */
+  shielded?: Record<string, boolean>
+  /** 月相：纺月/晨星/穹境的初辉（initial）与满辉（full）数值不同，缺省 initial。 */
+  moonPhase?: 'initial' | 'full'
   /** 元素充能效率：粒子到达时按此倍率回能。数据给出，内核不猜。 */
   energyRecharge?: Record<string, number>
   /** 已满足的状态标记，用于 `requires` 门槛。 */
@@ -248,6 +271,11 @@ export interface TimelineHit {
   activeEffects: string[]
   /** 命中当帧由效果附加的固定基础伤害（来歆余响的「幽谷祝祀」）：按属性折算后加进基伤。 */
   flatBase?: FlatBaseBonus[]
+  /**
+   * 固定伤害（海染泡沫）：不按面板折算、不吃增伤与暴击，直接加进基伤后走防御与抗性。
+   * 与 `flatBase` 分开是因为它连「属性 × 倍率」这一步都不经过。
+   */
+  fixedDamage?: number
 }
 
 /** 固定值基础伤害：`stat × ratio` 直接加进这一发的基伤。 */
@@ -257,7 +285,7 @@ export interface FlatBaseBonus {
   ratio: number
 }
 
-export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'energy-restore' | 'trigger-cost' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger' | 'effect-tick'
+export type TimelineEventKind = 'action-start' | 'hit' | 'particle' | 'energy-restore' | 'trigger-cost' | 'action-end' | 'switch' | 'wait' | 'rejected' | 'trigger' | 'effect-tick' | 'heal' | 'bubble' | 'bond' | 'nightsoul' | 'shard'
 
 export interface TimelineEvent {
   frame: number
@@ -492,6 +520,22 @@ export function validateActionSpec(spec: ActionSpec): Issue[] {
     }
   }
   if (spec.energyCost !== undefined && (!isFiniteNumber(spec.energyCost) || spec.energyCost < 0)) add('invalid', `${p}.energyCost`, '能量消耗必须是非负有限数值')
+  if (spec.heal !== undefined) {
+    if (!isInteger(spec.heal?.atFrame) || spec.heal.atFrame < 0) add('invalid', `${p}.heal.atFrame`, '治疗帧必须是非负整数')
+    if (!isFiniteNumber(spec.heal?.amount) || spec.heal.amount <= 0) add('invalid', `${p}.heal.amount`, '治疗量必须是正有限数值')
+  }
+  if (spec.bond !== undefined) {
+    if (!isInteger(spec.bond?.atFrame) || spec.bond.atFrame < 0) add('invalid', `${p}.bond.atFrame`, '生命之契变化帧必须是非负整数')
+    if (!isFiniteNumber(spec.bond?.delta) || spec.bond.delta === 0) add('invalid', `${p}.bond.delta`, '生命之契变化量必须是非零有限数值')
+  }
+  if (spec.nightsoulConsume !== undefined) {
+    if (!isInteger(spec.nightsoulConsume?.atFrame) || spec.nightsoulConsume.atFrame < 0) add('invalid', `${p}.nightsoulConsume.atFrame`, '夜魂消耗帧必须是非负整数')
+    if (!isFiniteNumber(spec.nightsoulConsume?.points) || spec.nightsoulConsume.points <= 0) add('invalid', `${p}.nightsoulConsume.points`, '夜魂消耗量必须是正有限数值')
+  }
+  if (spec.shardPickup !== undefined) {
+    if (!isInteger(spec.shardPickup?.atFrame) || spec.shardPickup.atFrame < 0) add('invalid', `${p}.shardPickup.atFrame`, '晶片拾取帧必须是非负整数')
+    if (!ELEMENT_KEYS.includes(spec.shardPickup?.element as ElementKey)) add('unsupported', `${p}.shardPickup.element`, `未知元素 ${String(spec.shardPickup?.element)}`)
+  }
   if (spec.cooldownFrames !== undefined && (!isInteger(spec.cooldownFrames) || spec.cooldownFrames < 0)) add('invalid', `${p}.cooldownFrames`, '冷却帧数必须是非负整数')
   if (spec.requires !== undefined && !Array.isArray(spec.requires)) add('invalid', `${p}.requires`, '门槛标记必须是数组')
   if (spec.mechanism !== undefined && (typeof spec.mechanism !== 'string' || !spec.mechanism.trim())) add('invalid', `${p}.mechanism`, '机制标记必须是非空字符串')
@@ -506,6 +550,16 @@ type QueueItem =
   | { kind: 'action-end'; frame: number; actorId: string; actionId: string }
   /** 后台计时触发：角色不在场时按间隔叠层（华馆「不在场上时每 3 秒获得 1 层」）。 */
   | { kind: 'effect-tick'; frame: number; actorId: string; effectId: string }
+  /** 治疗事件（2026-11-08）：记录治疗量并驱动「生命值变化」类套装。 */
+  | { kind: 'heal'; frame: number; actorId: string; actionId: string; amount: number }
+  /** 海染泡沫爆炸：按治疗量给出一次固定伤害，不吃面板增伤与暴击（海染砗磲）。 */
+  | { kind: 'bubble'; frame: number; actorId: string; actionId: string; effectId: string; amount: number }
+  /** 生命之契变化（谐律异想断章）：数值一变就驱动 `bond-change` 触发。 */
+  | { kind: 'bond'; frame: number; actorId: string; actionId: string; delta: number }
+  /** 夜魂值消耗（黑曜秘典）：驱动 `nightsoul-consume`。 */
+  | { kind: 'nightsoul'; frame: number; actorId: string; actionId: string; points: number }
+  /** 晶片拾取（磐岩/饰金）：驱动 `shard-pickup`，并记下元素供元素动态增伤取用。 */
+  | { kind: 'shard'; frame: number; actorId: string; actionId: string; element: ElementKey }
 
 interface QueuedItem { frame: number; phase: EventPhase; sequence: number; item: QueueItem }
 
@@ -519,6 +573,11 @@ const phaseOf = (kind: QueueItem['kind']): EventPhase => {
     case 'energy-restore': return 'energy'
     case 'action-end': return 'state'
     case 'effect-tick': return 'state'
+    case 'heal': return 'state'
+    case 'bubble': return 'damage'
+    case 'bond': return 'state'
+    case 'nightsoul': return 'state'
+    case 'shard': return 'state'
   }
 }
 
@@ -539,6 +598,19 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   if (input?.switchFrames !== undefined && (!isInteger(input.switchFrames) || input.switchFrames < 0)) add('invalid', 'switchFrames', '切人帧必须是非负整数')
 
   const actors = new Map((input?.actors ?? []).map(a => [a.actorId, { actorId: a.actorId, energy: a.energy, energyMax: a.energyMax, cooldowns: {} as Record<string, number> }]))
+  // 生命值比例：只由调用方给与治疗事件改变；内核不模拟敌人伤害。
+  const hpRatios = new Map<string, number>()
+  for (const [actorId, ratio] of Object.entries(input?.hpRatios ?? {})) {
+    if (!isFiniteNumber(ratio) || ratio <= 0 || ratio > 1) add('invalid', `hpRatios.${actorId}`, '生命值比例必须是 (0, 1] 的有限数')
+    else hpRatios.set(actorId, ratio)
+  }
+  const hpRatioOf = (actorId: string) => hpRatios.get(actorId) ?? 1
+  // 护盾状态：调用方声明，缺省无盾。
+  const shielded = input?.shielded ?? {}
+  const shieldedOf = (actorId: string) => shielded[actorId] === true
+  // 队伍累计治疗量（昔时之歌）与海染泡沫的触发帧记录。
+  let teamHealingTotal = 0
+  const bubbleAt = new Map<string, number>()
   for (const a of actors.values()) {
     if (!isFiniteNumber(a.energy) || a.energy < 0) add('invalid', `actors.${a.actorId}.energy`, '初始能量必须是非负有限数值')
     if (!isFiniteNumber(a.energyMax) || a.energyMax <= 0) add('invalid', `actors.${a.actorId}.energyMax`, '能量上限必须是正有限数值')
@@ -695,8 +767,15 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   const handle = (queued: QueuedItem) => {
     const { item } = queued
     if (item.kind === 'hit') {
+      /*
+       * 敌人当帧附着：`simulated` 读附着状态机（本发还没结算，所以是本发之前的状态），
+       * `declared` 读该命中声明的反应光环。拿不到就是 null，条件类效果按不满足处理。
+       */
+      const enemyAura: ElementKey | null = auraTracker
+        ? auraTracker.stateAt(queued.frame)?.element ?? null
+        : (item.hit.reaction?.aura as ElementKey | undefined) ?? null
       // 后台限定（黄金剧团）：命中者在命中当帧不是前台，就算在后台。
-      const modifiers = effectRuntime.modifiersAt(item.actorId, queued.frame, { offField: item.actorId !== activeActorId })
+      const modifiers = effectRuntime.modifiersAt(item.actorId, queued.frame, { offField: item.actorId !== activeActorId, enemyAura, hpRatio: hpRatioOf(item.actorId), healingTotal: teamHealingTotal, hasShield: shieldedOf(item.actorId), moonPhase: input.moonPhase })
       /*
        * 能量为零时才生效的按发条件（深廊终曲）：直接在命中当帧读角色能量，
        * 不注册成持续效果——它的开关是能量状态，不是时间窗。
@@ -798,6 +877,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         for (const entry of effectTriggers) {
           if (entry.actorId !== item.actorId || entry.on !== 'reaction') continue
           const spec = effectRuntime.specOf(entry.effectId)
+          if (spec?.reactionKinds && !spec.reactionKinds.some(kind => kind === reaction.kind)) continue
           const icd = Number(spec?.icdFrames) || 0
           const key = `${entry.effectId}@${entry.actorId}`
           const last = hitTriggerAt.get(key)
@@ -876,6 +956,94 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
         actor.energy = Math.min(actor.energyMax, actor.energy + amount)
       }
       record(queued.frame, 'energy', 'energy-restore', item.actorId, item.actionId, { amount, scale, target, gain: gains })
+      return
+    }
+    if (item.kind === 'heal') {
+      /*
+       * 治疗事件：只记录治疗量与生命值变化，不结算缺失生命值（内核不模拟敌人伤害）。
+       * 生命值比例按 mount / 10000 粗略回升并封顶 1，用于战狂这类「低于 70%」条件的后续判定。
+       */
+      const before = hpRatioOf(item.actorId)
+      const after = Math.min(1, before + item.amount / 10000)
+      hpRatios.set(item.actorId, after)
+      // 队伍累计治疗量（昔时之歌）：按截至这一帧的总量折算增伤，治疗本身不回退。
+      teamHealingTotal += item.amount
+      record(queued.frame, 'state', 'heal', item.actorId, item.actionId, { amount: item.amount, hpBefore: before, hpAfter: after, healingTotal: teamHealingTotal })
+      // 生命值变化触发（逐影猎人）：治疗造成的变化也算。
+      for (const entry of effectTriggers) {
+        if (entry.on !== 'hp-change' || entry.actorId !== item.actorId) continue
+        const spec = effectRuntime.specOf(entry.effectId)
+        if (!spec) continue
+        const triggered = effectRuntime.trigger(entry.effectId, queued.frame, item.actorId)
+        if (!triggered) continue
+        record(queued.frame, 'state', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: triggered.stacks, source: 'hp-change' })
+      }
+      // 海染泡沫（海染砗磲）：治疗时按「治疗量 × ratio」延迟爆炸；同一套装的泡沫按 icdFrames 去重。
+      for (const entry of effectTriggers) {
+        const spec = effectRuntime.specOf(entry.effectId)
+        const bubble = spec?.healBubble
+        if (!bubble) continue
+        const key = entry.effectId
+        const last = bubbleAt.get(key)
+        if (last !== undefined && bubble.icdFrames !== undefined && queued.frame - last < bubble.icdFrames) continue
+        bubbleAt.set(key, queued.frame)
+        push({ kind: 'bubble', frame: queued.frame + bubble.delayFrames, actorId: item.actorId, actionId: entry.effectId, effectId: entry.effectId, amount: item.amount * bubble.ratio })
+      }
+      return
+    }
+    if (item.kind === 'bubble') {
+      // 泡沫伤害按固定值结算：不吃面板增伤与暴击，但走防御与抗性（物理）。
+      const snapshot = effectRuntime.modifiersAt(item.actorId, queued.frame, { offField: item.actorId !== activeActorId, hpRatio: hpRatioOf(item.actorId), healingTotal: teamHealingTotal, hasShield: shieldedOf(item.actorId), moonPhase: input.moonPhase })
+      hits.push({
+        frame: queued.frame,
+        actorId: item.actorId,
+        actionId: item.effectId,
+        hitIndex: 0,
+        motionValue: 0,
+        scaling: 'atk',
+        element: 'physical',
+        canCrit: false,
+        triggerIds: [],
+        modifiers: { stats: snapshot.stats, enemy: snapshot.enemy, reaction: snapshot.reaction },
+        activeEffects: effectRuntime.activeAt(item.actorId, queued.frame),
+        fixedDamage: item.amount
+      })
+      record(queued.frame, 'damage', 'bubble', item.actorId, item.actionId, { effectId: item.effectId, amount: item.amount })
+      return
+    }
+    if (item.kind === 'bond') {
+      // 生命之契变化（谐律异想断章）：只驱动触发，不改生命值与治疗口径。
+      record(queued.frame, 'state', 'bond', item.actorId, item.actionId, { delta: item.delta })
+      for (const entry of effectTriggers) {
+        if (entry.on !== 'bond-change' || entry.actorId !== item.actorId) continue
+        const spec = effectRuntime.specOf(entry.effectId)
+        if (!spec) continue
+        const triggered = effectRuntime.trigger(entry.effectId, queued.frame, item.actorId)
+        if (!triggered) continue
+        record(queued.frame, 'state', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: triggered.stacks, source: 'bond-change' })
+      }
+      return
+    }
+    if (item.kind === 'nightsoul') {
+      // 夜魂值消耗（黑曜秘典）：只驱动触发，不结算夜魂资源本身。
+      record(queued.frame, 'state', 'nightsoul', item.actorId, item.actionId, { points: item.points })
+      for (const entry of effectTriggers) {
+        if (entry.on !== 'nightsoul-consume' || entry.actorId !== item.actorId) continue
+        const triggered = effectRuntime.trigger(entry.effectId, queued.frame, item.actorId)
+        if (!triggered) continue
+        record(queued.frame, 'state', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: triggered.stacks, source: 'nightsoul-consume' })
+      }
+      return
+    }
+    if (item.kind === 'shard') {
+      // 结晶晶片拾取（磐岩/饰金）：记下元素，驱动 shard-pickup 触发。
+      record(queued.frame, 'state', 'shard', item.actorId, item.actionId, { element: item.element })
+      for (const entry of effectTriggers) {
+        if (entry.on !== 'shard-pickup' || entry.actorId !== item.actorId) continue
+        const triggered = effectRuntime.trigger(entry.effectId, queued.frame, item.actorId)
+        if (!triggered) continue
+        record(queued.frame, 'state', 'trigger', item.actorId, item.actionId, { effectId: entry.effectId, stacks: triggered.stacks, source: 'shard-pickup' })
+      }
       return
     }
     if (item.kind === 'action-end') {
@@ -958,6 +1126,10 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     for (const particle of spec.particles ?? []) push({ kind: 'particle', frame: frame + particle.atFrame + particle.travelFrames, actorId: step.actorId, actionId: spec.id, particle })
     for (const particle of spec.delayedParticles ?? []) push({ kind: 'particle', frame: frame + particle.atFrame + particle.travelFrames, actorId: step.actorId, actionId: spec.id, particle })
     for (const restore of spec.energyRestore ?? []) push({ kind: 'energy-restore', frame: frame + restore.atFrame, actorId: step.actorId, actionId: spec.id, restore })
+    if (spec.heal) push({ kind: 'heal', frame: frame + spec.heal.atFrame, actorId: step.actorId, actionId: spec.id, amount: spec.heal.amount })
+      if (spec.bond) push({ kind: 'bond', frame: frame + spec.bond.atFrame, actorId: step.actorId, actionId: spec.id, delta: spec.bond.delta })
+      if (spec.nightsoulConsume) push({ kind: 'nightsoul', frame: frame + spec.nightsoulConsume.atFrame, actorId: step.actorId, actionId: spec.id, points: spec.nightsoulConsume.points })
+      if (spec.shardPickup) push({ kind: 'shard', frame: frame + spec.shardPickup.atFrame, actorId: step.actorId, actionId: spec.id, element: spec.shardPickup.element })
     const earliestCancel = spec.cancelWindows?.length ? Math.min(...spec.cancelWindows.map(w => w.fromFrame)) : frames
     currentFrame = frame + earliestCancel
     return { stepId: step.id, requestedFrame, actualFrame: frame, ok: true }
