@@ -58,7 +58,11 @@ const toActuals = (value: unknown): GoldenActual[] | undefined => {
     const entry = item as Partial<GoldenActual> | undefined
     if (!entry || typeof entry.id !== 'string' || !entry.id.trim()) return undefined
     if (!isFiniteNumber(entry.total)) return undefined
-    actuals.push({ id: entry.id, total: entry.total })
+    if (entry.perActor !== undefined && (
+      !entry.perActor || typeof entry.perActor !== 'object' || Array.isArray(entry.perActor) ||
+      !Object.values(entry.perActor).every(isFiniteNumber)
+    )) return undefined
+    actuals.push({ id: entry.id, total: entry.total, ...(entry.perActor ? { perActor: entry.perActor } : {}) })
   }
   return actuals
 }

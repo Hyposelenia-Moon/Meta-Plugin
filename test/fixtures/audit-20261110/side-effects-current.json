@@ -1,0 +1,284 @@
+{
+  "one": {
+    "input": {
+      "scheduler": "fixed",
+      "frameTier": {
+        "id": "fps-60",
+        "fps": 60.36144,
+        "timerTickMs": 17,
+        "source": "原神帧率学 计时器型帧率档位表（BV1Z8rLBGEeo）"
+      },
+      "measurementEndFrame": 200,
+      "actions": {
+        "a.skill": {
+          "id": "a.skill",
+          "actorId": "a",
+          "kind": "skill",
+          "timing": {
+            "type": "frames",
+            "frames": 100
+          },
+          "hits": [
+            {
+              "atFrame": 10,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "anemo",
+              "canCrit": false,
+              "reaction": {
+                "kind": "swirl",
+                "aura": "pyro"
+              }
+            },
+            {
+              "atFrame": 60,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "pyro",
+              "canCrit": false
+            }
+          ]
+        }
+      },
+      "actors": [
+        {
+          "actorId": "a",
+          "energy": 0,
+          "energyMax": 60
+        }
+      ],
+      "activeActorId": "a",
+      "effects": {
+        "artifact-set:400094:4pc-shred": {
+          "id": "artifact-set:400094:4pc-shred",
+          "target": "team",
+          "trigger": "reaction",
+          "reactionKinds": [
+            "swirl"
+          ],
+          "stacking": "refresh",
+          "durationFrames": 600,
+          "resistanceShred": {
+            "value": 0.4,
+            "from": "reaction-aura"
+          }
+        }
+      },
+      "effectTriggers": [
+        {
+          "effectId": "artifact-set:400094:4pc-shred",
+          "actorId": "a",
+          "on": "reaction"
+        }
+      ],
+      "steps": [
+        {
+          "id": "skill",
+          "kind": "action",
+          "actorId": "a",
+          "actionId": "a.skill",
+          "atFrame": 0
+        }
+      ]
+    }
+  },
+  "twice": {
+    "input": {
+      "scheduler": "fixed",
+      "frameTier": {
+        "id": "fps-60",
+        "fps": 60.36144,
+        "timerTickMs": 17,
+        "source": "原神帧率学 计时器型帧率档位表（BV1Z8rLBGEeo）"
+      },
+      "measurementEndFrame": 200,
+      "actions": {
+        "a.skill": {
+          "id": "a.skill",
+          "actorId": "a",
+          "kind": "skill",
+          "timing": {
+            "type": "frames",
+            "frames": 100
+          },
+          "hits": [
+            {
+              "atFrame": 10,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "anemo",
+              "canCrit": false,
+              "reaction": {
+                "kind": "swirl",
+                "aura": "pyro"
+              }
+            },
+            {
+              "atFrame": 20,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "anemo",
+              "canCrit": false,
+              "reaction": {
+                "kind": "swirl",
+                "aura": "pyro"
+              }
+            },
+            {
+              "atFrame": 60,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "pyro",
+              "canCrit": false
+            }
+          ]
+        }
+      },
+      "actors": [
+        {
+          "actorId": "a",
+          "energy": 0,
+          "energyMax": 60
+        }
+      ],
+      "activeActorId": "a",
+      "effects": {
+        "artifact-set:400094:4pc-shred": {
+          "id": "artifact-set:400094:4pc-shred",
+          "target": "team",
+          "trigger": "reaction",
+          "reactionKinds": [
+            "swirl"
+          ],
+          "stacking": "refresh",
+          "durationFrames": 600,
+          "resistanceShred": {
+            "value": 0.4,
+            "from": "reaction-aura"
+          }
+        }
+      },
+      "effectTriggers": [
+        {
+          "effectId": "artifact-set:400094:4pc-shred",
+          "actorId": "a",
+          "on": "reaction"
+        }
+      ],
+      "steps": [
+        {
+          "id": "skill",
+          "kind": "action",
+          "actorId": "a",
+          "actionId": "a.skill",
+          "atFrame": 0
+        }
+      ]
+    }
+  },
+  "three": {
+    "input": {
+      "scheduler": "fixed",
+      "frameTier": {
+        "id": "fps-60",
+        "fps": 60.36144,
+        "timerTickMs": 17,
+        "source": "原神帧率学 计时器型帧率档位表（BV1Z8rLBGEeo）"
+      },
+      "measurementEndFrame": 200,
+      "actions": {
+        "a.skill": {
+          "id": "a.skill",
+          "actorId": "a",
+          "kind": "skill",
+          "timing": {
+            "type": "frames",
+            "frames": 100
+          },
+          "hits": [
+            {
+              "atFrame": 10,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "anemo",
+              "canCrit": false,
+              "reaction": {
+                "kind": "swirl",
+                "aura": "pyro"
+              }
+            },
+            {
+              "atFrame": 20,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "anemo",
+              "canCrit": false,
+              "reaction": {
+                "kind": "swirl",
+                "aura": "pyro"
+              }
+            },
+            {
+              "atFrame": 30,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "anemo",
+              "canCrit": false,
+              "reaction": {
+                "kind": "swirl",
+                "aura": "pyro"
+              }
+            },
+            {
+              "atFrame": 60,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "pyro",
+              "canCrit": false
+            }
+          ]
+        }
+      },
+      "actors": [
+        {
+          "actorId": "a",
+          "energy": 0,
+          "energyMax": 60
+        }
+      ],
+      "activeActorId": "a",
+      "effects": {
+        "artifact-set:400094:4pc-shred": {
+          "id": "artifact-set:400094:4pc-shred",
+          "target": "team",
+          "trigger": "reaction",
+          "reactionKinds": [
+            "swirl"
+          ],
+          "stacking": "refresh",
+          "durationFrames": 600,
+          "resistanceShred": {
+            "value": 0.4,
+            "from": "reaction-aura"
+          }
+        }
+      },
+      "effectTriggers": [
+        {
+          "effectId": "artifact-set:400094:4pc-shred",
+          "actorId": "a",
+          "on": "reaction"
+        }
+      ],
+      "steps": [
+        {
+          "id": "skill",
+          "kind": "action",
+          "actorId": "a",
+          "actionId": "a.skill",
+          "atFrame": 0
+        }
+      ]
+    }
+  }
+}

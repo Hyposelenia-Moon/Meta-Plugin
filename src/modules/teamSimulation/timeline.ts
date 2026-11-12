@@ -237,8 +237,8 @@ export interface TimelineInput {
    * 缺省时这类效果按不满足处理。
    */
   elements?: Record<string, ElementKey>
-  /** 月相：纺月/晨星/穹境的初辉（initial）与满辉（full）数值不同，缺省 initial。 */
-  moonPhase?: 'initial' | 'full'
+  /** 月相缺省 initial；队伍入口用 none 表达没有月兆角色。 */
+  moonPhase?: 'none' | 'initial' | 'full'
   /** 元素充能效率：粒子到达时按此倍率回能。数据给出，内核不猜。 */
   energyRecharge?: Record<string, number>
   /** 已满足的状态标记，用于 `requires` 门槛。 */
@@ -624,9 +624,9 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
    * 命中当帧按元素取用。与面板的"全元素增伤"分开，避免把定向加成摊到所有元素上。
    */
   interface ElementBuff { actorId: string; team: boolean; element: ElementKey; value: number; untilFrame: number }
-  const elementBuffs: ElementBuff[] = []
-  const shredBuffs: ElementBuff[] = []
-  const scalingBuffs: Array<{ actorId: string; team: boolean; stats: Record<string, number>; untilFrame: number }> = []
+  const elementBuffs = new Map<string, ElementBuff>()
+  const shredBuffs = new Map<string, ElementBuff>()
+  const scalingBuffs = new Map<string, { actorId: string; team: boolean; stats: Record<string, number>; untilFrame: number }>()
   /**
    * 触发时登记副作用：元素定向增伤 / 元素定向减抗 / 按队伍元素计数给面板。
    * 三者的「元素」都来自触发当帧（反应光环、晶片元素、装备者元素），到期帧 = 触发帧 + durationFrames。
@@ -653,9 +653,11 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
     const duration = spec.durationFrames
     if (!duration) return
     const team = spec.target === 'team'
+    const sourceKey = spec.target === 'self' ? `${effectId}@${actorId}` : effectId
+    const stacks = effectRuntime.stacksAt(effectId, actorId, frame)
     const untilFrame = frame + duration
-    if (spec.elementDmg && element) elementBuffs.push({ actorId, team, element, value: spec.elementDmg.value, untilFrame })
-    if (spec.resistanceShred && element) shredBuffs.push({ actorId, team, element, value: spec.resistanceShred.value, untilFrame })
+    if (spec.elementDmg && element) elementBuffs.set(`${sourceKey}:${element}`, { actorId, team, element, value: spec.elementDmg.value * stacks, untilFrame })
+    if (spec.resistanceShred && element) shredBuffs.set(`${sourceKey}:${element}`, { actorId, team, element, value: spec.resistanceShred.value * stacks, untilFrame })
     if (spec.scalesWithTeamElements) {
       const own = input.elements?.[actorId]
       const stats: Record<string, number> = {}
@@ -667,15 +669,15 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
           if (otherElement === own) same += 1
           else different += 1
         }
-        if (same > 0) stats[spec.scalesWithTeamElements.same.stat] = same * spec.scalesWithTeamElements.same.value
-        if (different > 0) stats[spec.scalesWithTeamElements.different.stat] = different * spec.scalesWithTeamElements.different.value
+        if (same > 0) stats[spec.scalesWithTeamElements.same.stat] = same * spec.scalesWithTeamElements.same.value * stacks
+        if (different > 0) stats[spec.scalesWithTeamElements.different.stat] = different * spec.scalesWithTeamElements.different.value * stacks
       }
-      if (Object.keys(stats).length) scalingBuffs.push({ actorId, team, stats, untilFrame })
+      if (Object.keys(stats).length) scalingBuffs.set(sourceKey, { actorId, team, stats, untilFrame })
     }
   }
   const elementDmgFor = (actorId: string, frame: number, element: ElementKey): number => {
     let total = 0
-    for (const buff of elementBuffs) {
+    for (const buff of elementBuffs.values()) {
       if (buff.untilFrame <= frame) continue
       if (buff.element !== element) continue
       if (!buff.team && buff.actorId !== actorId) continue
@@ -685,7 +687,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   }
   const resistanceShredFor = (actorId: string, frame: number, element: ElementKey): number => {
     let total = 0
-    for (const buff of shredBuffs) {
+    for (const buff of shredBuffs.values()) {
       if (buff.untilFrame <= frame) continue
       if (buff.element !== element) continue
       if (!buff.team && buff.actorId !== actorId) continue
@@ -695,7 +697,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
   }
   const teamScalingFor = (actorId: string, frame: number): Record<string, number> => {
     const merged: Record<string, number> = {}
-    for (const buff of scalingBuffs) {
+    for (const buff of scalingBuffs.values()) {
       if (buff.untilFrame <= frame) continue
       if (!buff.team && buff.actorId !== actorId) continue
       for (const [key, value] of Object.entries(buff.stats)) merged[key] = (merged[key] ?? 0) + value
@@ -825,7 +827,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
    */
   const cancelPending = (frame: number) => {
     queue = queue.filter(queued => queued.frame <= frame || queued.item.kind === 'action-start' ||
-      queued.item.kind === 'particle' || queued.item.kind === 'energy-restore' || queued.item.kind === 'effect-tick' ||
+      queued.item.kind === 'particle' || queued.item.kind === 'energy-restore' || queued.item.kind === 'effect-tick' || queued.item.kind === 'bubble' ||
       (queued.item.kind === 'hit' && queued.item.hit.delayed === true))
   }
   /**
@@ -1102,6 +1104,7 @@ export function simulateTimeline(input: TimelineInput): TimelineResult {
       }
       // 海染泡沫（海染砗磲）：治疗时按「治疗量 × ratio」延迟爆炸；同一套装的泡沫按 icdFrames 去重。
       for (const entry of effectTriggers) {
+        if (entry.actorId !== item.actorId) continue
         const spec = effectRuntime.specOf(entry.effectId)
         const bubble = spec?.healBubble
         if (!bubble) continue

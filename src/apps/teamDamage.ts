@@ -27,6 +27,7 @@ import {
   type CharacterBuild,
   type DataPack,
   type Issue,
+  type RecordingV1,
   type TeamMemberInput
 } from '../modules/teamSimulation/index.js'
 import { moduleGateReply } from '../modules/moduleGate.js'
@@ -129,7 +130,10 @@ export class MetaTeamDamage extends plugin {
       return true
     }
     // 动作包按 60fps 记录：轴换成别的帧率档时先折算，再交给校验与结算
-    const pack = convertPackToFrameTier(team.pack, found.rotationFile.frameTierId)
+    const frameTierId = found.rotationFile.sequence?.length
+      ? found.rotationFile.frameTierId
+      : (found.rotationFile.recording as Partial<RecordingV1> | undefined)?.frameTierId
+    const pack = convertPackToFrameTier(team.pack, frameTierId)
     const converted = toRotation(found.rotationFile, pack)
     if (!converted.rotation || converted.status !== 'ok') {
       await e.reply(`[Meta] 轴不可用（${converted.status}）：\n${issueLines(converted.issues)}`)

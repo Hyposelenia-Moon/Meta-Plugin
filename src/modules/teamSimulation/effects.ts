@@ -450,7 +450,7 @@ export interface EffectRuntime {
    * `options.enemyAura` 表示敌人当帧附着的元素：`requiresEnemyAura` 的效果按它过滤。
    * `options.healingTotal` 是截至该帧的累计治疗量：`healRecord` 的效果按它折算增伤。
    */
-  modifiersAt(actorId: string, frame: number, options?: { offField?: boolean; enemyAura?: ElementKey | null; hpRatio?: number; healingTotal?: number; hasShield?: boolean; moonPhase?: 'initial' | 'full'; nightsoul?: boolean; witchLesson?: boolean }): { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
+  modifiersAt(actorId: string, frame: number, options?: { offField?: boolean; enemyAura?: ElementKey | null; hpRatio?: number; healingTotal?: number; hasShield?: boolean; moonPhase?: 'none' | 'initial' | 'full'; nightsoul?: boolean; witchLesson?: boolean }): { stats: PanelModifiers; enemy: EnemyModifiers; reaction: ReactionBonus }
   /**
    * 该效果在该帧的层数；没生效返回 0。
    * 月反应与星烁的叠层计数由这里读，引擎不猜「命中几次就该几层」。

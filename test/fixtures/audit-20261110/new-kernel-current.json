@@ -1,0 +1,201 @@
+{
+  "healingByTeammate": {
+    "input": {
+      "scheduler": "fixed",
+      "frameTier": {
+        "id": "fps-60",
+        "fps": 60.36144,
+        "timerTickMs": 17,
+        "source": "原神帧率学 计时器型帧率档位表（BV1Z8rLBGEeo）"
+      },
+      "measurementEndFrame": 400,
+      "actors": [
+        {
+          "actorId": "wearer",
+          "energy": 0,
+          "energyMax": 60
+        },
+        {
+          "actorId": "teammate",
+          "energy": 0,
+          "energyMax": 60
+        }
+      ],
+      "activeActorId": "teammate",
+      "actions": {
+        "healer.skill": {
+          "id": "healer.skill",
+          "actorId": "teammate",
+          "kind": "skill",
+          "timing": {
+            "type": "frames",
+            "frames": 400
+          },
+          "heal": {
+            "atFrame": 10,
+            "amount": 1000
+          },
+          "hits": [
+            {
+              "atFrame": 15,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "hydro",
+              "canCrit": false
+            }
+          ]
+        },
+        "healer.normal": {
+          "id": "healer.normal",
+          "actorId": "teammate",
+          "kind": "normal",
+          "timing": {
+            "type": "frames",
+            "frames": 20
+          },
+          "hits": [
+            {
+              "atFrame": 10,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "physical",
+              "canCrit": false
+            }
+          ]
+        }
+      },
+      "effects": {
+        "artifact-set:400194:4pc": {
+          "id": "artifact-set:400194:4pc",
+          "target": "self",
+          "trigger": "always",
+          "stacking": "refresh",
+          "healBubble": {
+            "ratio": 0.9,
+            "delayFrames": 180,
+            "icdFrames": 210
+          }
+        }
+      },
+      "effectTriggers": [
+        {
+          "effectId": "artifact-set:400194:4pc",
+          "actorId": "wearer",
+          "on": "always"
+        }
+      ],
+      "steps": [
+        {
+          "id": "heal",
+          "kind": "action",
+          "actorId": "teammate",
+          "actionId": "healer.skill",
+          "atFrame": 0
+        }
+      ]
+    }
+  },
+  "bubbleAfterNextAction": {
+    "input": {
+      "scheduler": "fixed",
+      "frameTier": {
+        "id": "fps-60",
+        "fps": 60.36144,
+        "timerTickMs": 17,
+        "source": "原神帧率学 计时器型帧率档位表（BV1Z8rLBGEeo）"
+      },
+      "measurementEndFrame": 400,
+      "actors": [
+        {
+          "actorId": "wearer",
+          "energy": 0,
+          "energyMax": 60
+        },
+        {
+          "actorId": "teammate",
+          "energy": 0,
+          "energyMax": 60
+        }
+      ],
+      "activeActorId": "wearer",
+      "actions": {
+        "healer.skill": {
+          "id": "healer.skill",
+          "actorId": "wearer",
+          "kind": "skill",
+          "timing": {
+            "type": "frames",
+            "frames": 20
+          },
+          "heal": {
+            "atFrame": 10,
+            "amount": 1000
+          },
+          "hits": [
+            {
+              "atFrame": 15,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "hydro",
+              "canCrit": false
+            }
+          ]
+        },
+        "healer.normal": {
+          "id": "healer.normal",
+          "actorId": "wearer",
+          "kind": "normal",
+          "timing": {
+            "type": "frames",
+            "frames": 20
+          },
+          "hits": [
+            {
+              "atFrame": 10,
+              "motionValue": 1,
+              "scaling": "atk",
+              "element": "physical",
+              "canCrit": false
+            }
+          ]
+        }
+      },
+      "effects": {
+        "artifact-set:400194:4pc": {
+          "id": "artifact-set:400194:4pc",
+          "target": "self",
+          "trigger": "always",
+          "stacking": "refresh",
+          "healBubble": {
+            "ratio": 0.9,
+            "delayFrames": 180,
+            "icdFrames": 210
+          }
+        }
+      },
+      "effectTriggers": [
+        {
+          "effectId": "artifact-set:400194:4pc",
+          "actorId": "wearer",
+          "on": "always"
+        }
+      ],
+      "steps": [
+        {
+          "id": "heal",
+          "kind": "action",
+          "actorId": "wearer",
+          "actionId": "healer.skill",
+          "atFrame": 0
+        },
+        {
+          "id": "next",
+          "kind": "action",
+          "actorId": "wearer",
+          "actionId": "healer.normal",
+          "atFrame": 30
+        }
+      ]
+    }
+  }
+}

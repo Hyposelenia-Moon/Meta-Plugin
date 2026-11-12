@@ -1,5 +1,5 @@
 import type { TeamRunResult } from './teamRun.js'
-import { evaluateGolden, type GoldenActual, type GoldenCase } from './metrics.js'
+import { evaluateGolden, validateGoldenCases, type GoldenActual, type GoldenCase } from './metrics.js'
 import { gateReactionFamily } from './reactionFamilies.js'
 
 /**
@@ -74,13 +74,18 @@ export function evaluateReleaseGate(input: ReleaseGateInput): ReleaseGateVerdict
   const minimum = Number.isInteger(input.minimumCases) && (input.minimumCases as number) > 0 ? input.minimumCases as number : 10
   const cases = input.golden?.cases ?? []
   const actuals = input.golden?.actuals ?? []
-  if (cases.length < minimum) {
-    checks.push({ id: 'golden', status: 'insufficient-data', detail: `黄金集只有 ${cases.length} 例，差 ${minimum - cases.length} 例（至少 ${minimum} 例合格场景）` })
+  const goldenIssues = validateGoldenCases(cases)
+  if (goldenIssues.length) {
+    checks.push({ id: 'golden', status: 'blocked', detail: `黄金集用例不合法：${goldenIssues.map(issue => `${issue.path} ${issue.message}`).join('；')}` })
   } else {
     const report = evaluateGolden(cases, actuals)
-    checks.push(report.gate === 'pass'
-      ? { id: 'golden', status: 'pass', detail: `黄金集 ${report.counted} 例计入闸门，中位误差 ${report.median === null ? '—' : report.median}` }
-      : { id: 'golden', status: 'blocked', detail: `黄金集未过闸门：${report.reason}` })
+    if (report.counted < minimum) {
+      checks.push({ id: 'golden', status: 'insufficient-data', detail: `黄金集只有 ${report.counted} 例可计入闸门，差 ${minimum - report.counted} 例（至少 ${minimum} 例合格场景）` })
+    } else {
+      checks.push(report.gate === 'pass'
+        ? { id: 'golden', status: 'pass', detail: `黄金集 ${report.counted} 例计入闸门，中位误差 ${report.median === null ? '—' : report.median}` }
+        : { id: 'golden', status: 'blocked', detail: `黄金集未过闸门：${report.reason}` })
+    }
   }
 
   return { status: statusOf(checks), checks, blocking: checks.filter(check => check.status === 'blocked').map(check => check.id) }

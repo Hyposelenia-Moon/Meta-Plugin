@@ -139,5 +139,6 @@ if (invokedDirectly) {
     console.log(`黄金集：${actuals.length} 例，${report.gate}（${report.reason}）`)
     console.log(`  中位误差：${report.median ?? '—'}，最大误差：${report.max ?? '—'}`)
     console.log(`  已写入 ${ACTUALS_REL}`)
+    if (report.gate !== 'pass') process.exitCode = 1
   }
 }

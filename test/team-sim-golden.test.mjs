@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import { mod } from './_helper.mjs'
+import { spawnSync } from 'node:child_process'
+import { pathToFileURL } from 'node:url'
+import { mod, createChecks } from './_helper.mjs'
 
 const { GOLDEN_THRESHOLDS, evaluateGolden, validateGoldenCases } = await import(mod('modules/teamSimulation/metrics.js'))
 const { evaluateReleaseGate } = await import(mod('modules/teamSimulation/gate.js'))
@@ -89,5 +91,92 @@ assert.ok(withGolden.checks.every(check => check.status === 'pass'))
 const withoutGolden = evaluateReleaseGate({ result: base })
 assert.equal(withoutGolden.status, 'insufficient-data')
 assert.equal(withoutGolden.checks.find(check => check.id === 'golden')?.status, 'insufficient-data')
+
+// 7. 发布最低数量按已比对的非占位用例统计，部分实跑仍可展示。
+const checks = createChecks('黄金集发布与CLI回归')
+const release = (items, actuals, minimumCases) => evaluateReleaseGate({
+  result: base, golden: { cases: items, actuals }, ...(minimumCases ? { minimumCases } : {})
+}).checks.find(check => check.id === 'golden')?.status
+const partial = evaluateGolden(cases, actualsRaw.actuals.slice(0, 1))
+checks.push('部分实跑保留一例计数', partial.counted, 1)
+checks.push('部分实跑保留缺失行', partial.rows.filter(row => row.status === 'missing').length, cases.length - 1)
+checks.push('一例实跑未达发布最低数量', release(cases, actualsRaw.actuals.slice(0, 1)), 'insufficient-data')
+checks.push('九例实跑未达发布最低数量', release(cases, actualsRaw.actuals.slice(0, 9)), 'insufficient-data')
+checks.push('没有实跑时证据不足', release(cases, []), 'insufficient-data')
+checks.push('十例真实比对达到默认最低数量', release(cases, actualsRaw.actuals.slice(0, 10)), 'pass')
+checks.push('自定义最低数量仍有效', release(cases, actualsRaw.actuals.slice(0, 2), 2), 'pass')
+checks.push('占位用例全部不计发布数量', release(cases.map(item => ({ ...item, kind: 'synthetic' })), actualsRaw.actuals), 'insufficient-data')
+checks.push('九例有效加占位用例仍不足', release(cases.map((item, index) => index < cases.length - 9 ? { ...item, kind: 'synthetic' } : item), actualsRaw.actuals), 'insufficient-data')
+checks.push('十例有效加占位用例仍通过', release(cases.map((item, index) => index < cases.length - 10 ? { ...item, kind: 'synthetic' } : item), actualsRaw.actuals), 'pass')
+checks.push('未知黄金来源类型被拦', release(cases.map((item, index) => index === 0 ? { ...item, kind: 'unsupported' } : item), actualsRaw.actuals), 'blocked')
+checks.push('缺黄金来源类型被拦', release(cases.map((item, index) => index === 0 ? { ...item, kind: undefined } : item), actualsRaw.actuals), 'blocked')
+checks.push('空来源被拦', release(cases.map((item, index) => index === 0 ? { ...item, source: ' ' } : item), actualsRaw.actuals), 'blocked')
+checks.push('重复用例被拦', release([...cases.slice(0, -1), cases[0]], actualsRaw.actuals), 'blocked')
+checks.push('非法期望值被拦', release(cases.map((item, index) => index === 0 ? { ...item, expected: { total: -1 } } : item), actualsRaw.actuals), 'blocked')
+checks.push('完整黄金集超差被拦', release(drifted, actualsRaw.actuals), 'blocked')
+
+// 8. 文件读取与CLI只在独立临时插件中执行，保留入库数据的原字节。
+const tmpRoot = path.join(root, 'test', '.test-tmp')
+fs.mkdirSync(tmpRoot, { recursive: true })
+const fixture = fs.mkdtempSync(path.join(tmpRoot, 'golden-gates-'))
+try {
+  fs.cpSync(path.join(root, 'lib'), path.join(fixture, 'lib'), { recursive: true })
+  fs.mkdirSync(path.join(fixture, 'scripts'), { recursive: true })
+  fs.copyFileSync(path.join(root, 'scripts', 'audit-golden.mjs'), path.join(fixture, 'scripts', 'audit-golden.mjs'))
+  fs.copyFileSync(path.join(root, 'package.json'), path.join(fixture, 'package.json'))
+  const goldenDir = path.join(fixture, 'data', 'team-sim', 'golden')
+  fs.mkdirSync(goldenDir, { recursive: true })
+  const casesFile = path.join(goldenDir, 'cases.json')
+  const actualsFile = path.join(goldenDir, 'actuals.json')
+  const writeCases = items => fs.writeFileSync(casesFile, JSON.stringify({ ...casesRaw, cases: items }))
+  const writeActuals = actuals => fs.writeFileSync(actualsFile, JSON.stringify({ ...actualsRaw, actuals }))
+  const fixtureGolden = (await import(pathToFileURL(path.join(fixture, 'lib', 'model', 'GoldenSet.js')).href)).loadGoldenSet
+  writeCases(cases)
+  writeActuals(actualsRaw.actuals)
+  checks.push('无分角色字段的旧结果读取保持兼容', fixtureGolden()?.actuals, actualsRaw.actuals)
+  const contributionCases = cases.map(item => ({ ...item, expected: {
+    ...item.expected, perActor: { a: item.expected.total * 0.9, b: item.expected.total * 0.1 }
+  } }))
+  const matchingActuals = actualsRaw.actuals.map(item => ({ ...item, perActor: { a: item.total * 0.9, b: item.total * 0.1 } }))
+  writeCases(contributionCases)
+  writeActuals(matchingActuals)
+  checks.push('读取保留分角色实跑值', fixtureGolden()?.actuals, matchingActuals)
+  checks.push('正确分角色占比发布通过', evaluateReleaseGate({ result: base, golden: fixtureGolden() }).status, 'pass')
+  writeActuals(actualsRaw.actuals.map(item => ({ ...item, perActor: { a: item.total * 0.1, b: item.total * 0.9 } })))
+  checks.push('总伤相同但角色贡献偏差被拦', evaluateReleaseGate({ result: base, golden: fixtureGolden() }).status, 'blocked')
+  for (const [label, perActor] of [
+    ['空值', null], ['字符串', 'invalid'], ['数组', [1, 2]], ['非数值分量', { a: null }]
+  ]) {
+    writeActuals(actualsRaw.actuals.map((item, index) => index === 0 ? { ...item, perActor } : item))
+    checks.push(`非法分角色结果${label}使文件读取失败`, fixtureGolden(), undefined)
+  }
+
+  const cli = items => {
+    writeCases(items)
+    writeActuals([{ id: 'stale', total: -1 }])
+    return spawnSync(process.execPath, [path.join(fixture, 'scripts', 'audit-golden.mjs')], { encoding: 'utf8', timeout: 30000 })
+  }
+  const healthyCli = cli(cases)
+  checks.push('完整健康黄金集CLI成功退出', healthyCli.status, 0)
+  checks.push('健康CLI仍写完整实跑结果', JSON.parse(fs.readFileSync(actualsFile, 'utf8')).actuals, audit.actuals)
+  const failedCli = cli(drifted)
+  checks.push('超差CLI失败退出', failedCli.status, 1)
+  checks.ok('超差CLI保留失败结论', failedCli.stdout.includes('fail'))
+  checks.push('超差CLI仍写诊断实跑结果', JSON.parse(fs.readFileSync(actualsFile, 'utf8')).actuals, audit.actuals)
+  const syntheticCli = cli(cases.map(item => ({ ...item, kind: 'synthetic' })))
+  checks.push('全占位CLI证据不足失败退出', syntheticCli.status, 1)
+  checks.ok('全占位CLI保留证据不足结论', syntheticCli.stdout.includes('insufficient-data'))
+  checks.push('全占位CLI仍写诊断实跑结果', JSON.parse(fs.readFileSync(actualsFile, 'utf8')).actuals, audit.actuals)
+  const emptyCli = cli([])
+  checks.push('空黄金集CLI证据不足失败退出', emptyCli.status, 1)
+  checks.push('空黄金集CLI仍写空实跑结果', JSON.parse(fs.readFileSync(actualsFile, 'utf8')).actuals, [])
+  const invalidCli = cli(cases.map((item, index) => index === 0 ? { ...item, source: '' } : item))
+  checks.push('非法黄金契约CLI失败退出', invalidCli.status, 1)
+  checks.push('非法黄金契约CLI保持原文件处理', JSON.parse(fs.readFileSync(actualsFile, 'utf8')).actuals, [{ id: 'stale', total: -1 }])
+} finally {
+  assert.ok(path.resolve(fixture).startsWith(`${path.resolve(tmpRoot)}${path.sep}`))
+  fs.rmSync(fixture, { recursive: true, force: true })
+}
+assert.equal(checks.report(), 0, '黄金集发布与CLI回归必须全部通过')
 
 console.log('golden ok')

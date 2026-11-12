@@ -258,7 +258,7 @@ export function simulateTeam(input: TeamRunInput): TeamRunResult {
     effects,
     ...(effectTriggers.length ? { effectTriggers } : {}),
     ...(input.auraMode ? { auraMode: input.auraMode } : {}),
-    ...(input.moonPhase ? { moonPhase: input.moonPhase } : {}),
+    moonPhase: input.moonPhase ?? 'none',
     ...(Object.keys(elements).length ? { elements } : {})
   })
   checks.push({ stage: 'timeline', status: timeline.status === 'simulated' ? 'ok' : timeline.status, issues: timeline.issues })
