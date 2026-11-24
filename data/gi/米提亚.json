@@ -11,6 +11,12 @@
       "name": "默认",
       "role": "dps",
       "match": {},
+      "weights": {
+        "artifact": 45,
+        "panel": 0,
+        "weapon": 25,
+        "talent": 25
+      },
       "meta": {
         "建议等级": "90级",
         "定位": "星超导主/副c",
@@ -140,7 +146,23 @@
             ]
           }
         ],
-        "panels": [],
+        "panels": [
+          {
+            "label": null,
+            "k": "元素精通",
+            "v": "800"
+          },
+          {
+            "label": null,
+            "k": "暴击率",
+            "v": "70%"
+          },
+          {
+            "label": null,
+            "k": "暴击伤害",
+            "v": "180%"
+          }
+        ],
         "constellations": [
           {
             "name": "一命",
@@ -155,7 +177,29 @@
         ],
         "teams": [
           {
-            "label": "推荐",
+            "label": "星超导战舰",
+            "members": [
+              {
+                "name": "米提亚",
+                "ref": "character:米提亚"
+              },
+              {
+                "name": "奥黛塔",
+                "ref": "character:奥黛塔"
+              },
+              {
+                "name": "女皇",
+                "ref": "character:女皇"
+              },
+              {
+                "name": "达妮卡",
+                "ref": "character:达妮卡"
+              }
+            ],
+            "text": ""
+          },
+          {
+            "label": "平民",
             "members": [
               {
                 "name": "米提亚",
@@ -175,31 +219,10 @@
               }
             ],
             "text": ""
-          },
-          {
-            "label": "贷款",
-            "members": [
-              {
-                "name": "女皇 / 桑多涅",
-                "ref": "character:女皇"
-              },
-              {
-                "name": "达妮卡",
-                "ref": "character:达妮卡"
-              },
-              {
-                "name": "米提亚",
-                "ref": "character:米提亚"
-              },
-              {
-                "name": "奥黛塔",
-                "ref": "character:奥黛塔"
-              }
-            ],
-            "text": ""
           }
         ]
-      }
+      },
+      "topConstellations": []
     }
   ]
 }
