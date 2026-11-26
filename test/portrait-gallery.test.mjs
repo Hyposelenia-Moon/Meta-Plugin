@@ -88,8 +88,15 @@ export const profileImgSrc = [
   ok('bot 内：5 级相对前缀 + plugins/…（与模板里 miao 资源同深）',
     url.startsWith('../../../../../plugins/ProfileImg-Plugin/resources/gallery/'), url)
   ok('文件名做了 URI 编码且带扩展名', url.endsWith('/' + encodeURIComponent('胡桃_1_a_b.webp')), url)
-  const outside = mod.pageImageUrl('E:/fan-repo/胡桃/胡桃_1_a_b.webp', root)
-  ok('跨盘：file:// 绝对地址', outside.startsWith('file:///E:/'), outside)
+  // bot 外一律回 `file://`。Windows 上是「另一块盘」，POSIX 上没有盘符——
+  // 直接传 `E:/…` 在 Linux 会被当成**相对路径**（cwd 下凭空多出一个 `E:` 目录），
+  // 于是 URL 变成 `file:///…/E%3A/…`，按盘符断言必然失败。
+  const outsideFile = process.platform === 'win32'
+    ? 'E:/fan-repo/胡桃/胡桃_1_a_b.webp'
+    : path.resolve(root, '..', 'fan-repo', '胡桃', '胡桃_1_a_b.webp')
+  const outside = mod.pageImageUrl(outsideFile, root)
+  ok('bot 外：file:// 绝对地址且指向原文件',
+    outside.startsWith('file:///') && decodeURIComponent(outside).endsWith('/fan-repo/胡桃/胡桃_1_a_b.webp'), outside)
 }
 
 // ---------- 4. 取图顺序与降级（本工作区没有 bot / 图库） ----------

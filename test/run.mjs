@@ -27,6 +27,13 @@ for (const f of files) {
 }
 
 console.log(`\n===== 汇总 =====`)
+// GitHub Actions 里额外打一条 annotation：失败套件会直接出现在 Run 页的 Annotations，
+// 不必登录去翻整段 job 日志（匿名调 API 也能读到 `/check-runs/<job>/annotations`）。
+if (failed.length && process.env.GITHUB_ACTIONS === 'true') {
+  for (const f of failed.slice(0, 10)) {
+    console.log(`::error title=回归套件失败：${f}::node test/${f} 退出码非 0，完整输出见本步骤日志`)
+  }
+}
 for (const f of files) console.log(`${failed.includes(f) ? '✗' : '✓'} ${f}`)
 console.log(`套件：${files.length - failed.length}/${files.length} 通过`)
 process.exit(failed.length ? 1 : 0)
