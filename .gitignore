@@ -52,7 +52,9 @@ test/.test-tmp/
 
 # pnpm 锁文件：由 bot 根的工作区统一生成与管理，插件目录自己不该有一份
 # （出现即说明有人在插件内跑过 install；node_modules 同理不入库）
+# npm 的 package-lock.json 同理：CI 用 `npm install` 不落锁文件
 pnpm-lock.yaml
+package-lock.json
 
 # ⚠ 编译产物 lib/ **必须入库**（bot 侧只允许 git pull，见设计文档 §4.1）——不要加进本文件；
 #   `test/lib-fresh.test.mjs` 会检查它是否落后于 src/。

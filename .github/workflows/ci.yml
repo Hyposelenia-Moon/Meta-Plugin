@@ -1,0 +1,77 @@
+name: CI v7
+
+# CI v7 = 单 job、二十分钟内跑完的三步门禁：
+#   ① 编译（tsc）——类型错误直接红；
+#   ② lib/ 入库产物门禁——`pnpm build` 后 lib/ 必须与 src/ 逐字节一致（仓库约定 lib 必须入库）；
+#   ③ 全量回归套件 `node test/run.mjs`——缺 miao/Atlas 等前置的套件自己跳过，不算失败。
+#
+# 名字里的 v7 指官方 action 的主版本（checkout@v7 / setup-node@v7 走 node24 运行时）。
+# 与本地等价的命令：`pnpm build && pnpm test`（本 job 用 npm 装依赖，理由见下）。
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-v7-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# 攻略日期、缓存 TTL、危战开榜等口径都按生产时区算；runner 默认 UTC，
+# 不钉住会让按「今天」取数的套件在 CI 上整体偏 8 小时。
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # 官方 action 一律用 @v7：v7 的工具包以 node24 运行时发布，
+      # 而 @v4 是按 node20 写的——云端 runner 已强制用 node24 执行这些工具包，
+      # 用 @v4 会刷 “Node 20 is deprecated” 警告。
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      # 插件目录**不提交锁文件**（.gitignore 约定：依赖由 bot 根的工作区统一管理），
+      # 所以这里不用 pnpm/action-setup 的 cache，直接按 package.json 解析。
+      - name: 安装依赖
+        run: npm install --no-audit --no-fund
+
+      # 先编译：干净检出时 git 不保留 mtime，lib/ 可能比 src/ 旧，
+      # `test/lib-fresh.test.mjs` 会误判；编译后 mtime 关系恢复，同时验证提交的 lib/ 没过期。
+      - name: 编译并与入库产物比对
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx tsc -p tsconfig.json
+
+          # 只比对 lib/：src 改了却忘记 `pnpm build` + 提交 lib/，这里必须红。
+          status="$(git status --porcelain --untracked-files=all -- lib)"
+          if [ -n "$status" ]; then
+            echo "::error::lib/ 与 src/ 不一致：本地跑 pnpm build 后把 lib/ 一起提交"
+            printf '%s\n' "$status"
+            git --no-pager diff -- lib | head -n 300
+            exit 1
+          fi
+
+      - name: 全量回归套件
+        shell: bash
+        run: |
+          # 不用 `set -e`：套件失败时也要先把摘要写进 Step Summary，再原样退出。
+          set -uo pipefail
+          node test/run.mjs 2>&1 | tee test-report.log
+          code=${PIPESTATUS[0]}
+          {
+            echo '### 套件结果'
+            echo '```'
+            grep -E '^(套件：|✗ )' test-report.log || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$code"

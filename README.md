@@ -67,6 +67,9 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 pnpm build && pnpm test     # 139 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
+CI（`.github/workflows/ci.yml`，CI v7）：`push` / PR 上跑「编译 → `lib/` 入库门禁 → 全量套件」，
+缺 miao / Atlas 的套件自动跳过，不阻断。
+
 详见 [docs/测试.md](./docs/测试.md)。
 
 ## 文档

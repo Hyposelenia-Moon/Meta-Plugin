@@ -209,6 +209,7 @@ pnpm build && pnpm test     # 139 套；任意 cwd 可跑、不发真实网络�
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。
+- **CI（CI v7，`.github/workflows/ci.yml`）**：push / PR 跑 `npm install` → `tsc` → `git status --porcelain -- lib`（lib 入库门禁）→ `node test/run.mjs`；干净检出必须**先编译**再跑套件，否则 git 不保留 mtime 会让 `lib-fresh` 误红（`lib-fresh` 改内容门禁仍列在待办里）。
 - 冻结门禁：`mhydps-parity`（与合并前逐字等价）、`constants-parity`（常量快照）、`codex-parity`（131/131 逐字段）。
 - **行为级契约套件**（用假对象/真实构建器驱动编译产物，不查源码正则）：
   `miao-artis-contract`（`Artis` 实例形状、`sets` 件数）、`miao-damage-rows`（`{ret}` 伤害结果契约与三种失败口径）、
