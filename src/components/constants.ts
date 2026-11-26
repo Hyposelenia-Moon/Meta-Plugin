@@ -128,7 +128,10 @@ export const API_PATH = {
   teams2: '/api/teams2'
 } as const
 
-/** 角色立绘路径（站点自托管，用于渲染角色头像） */
+/**
+ * 角色立绘路径（站点自托管；**第一级来源**，缺图时页面回落到 miao face / Atlas 图标，
+ * 见 `modules/teamView.ts` 的 `faceSrc` 与 `docs/功能与命令.md`「页面头像来源与降级」）
+ */
 export function avatarUrl (characterId: string | number): string {
   return `${SITE_ORIGIN}/charactor/${characterId}.webp`
 }

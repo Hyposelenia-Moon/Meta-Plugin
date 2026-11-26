@@ -12,7 +12,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 - **分层**：`src/apps/`（命令薄壳）→ `src/modules/`（业务与查询）→ `src/model/`（外部适配：miao / mhydps / 本仓库商店 / Atlas 探测）→ `src/components/`（纯函数与常量，零 I/O，套件直接 import 编译产物）。
 - **维护者区**（ESM JS，不参与编译）：`data/`（攻略数据本体 + `_index.json` / `_order.json`）、`scripts/`（Word→JSON→页面流水线、编辑器服务、自检）、`templates/`、`resources/`（页面模板、编辑器前端、字体、背景图）、`tool/`（背景图裁剪与对比度脚本）。
 - **队伍模拟内核边界**：`src/modules/teamSimulation/` 对外只经 `index.ts`；目录内文件只用相对 import 指向本目录，`src/model/TeamBuildAdapter.ts` 是适配层（它依赖内核，内核不反向依赖它）。
-- **常用命令**：`pnpm build`、`pnpm test`（138 套）、`pnpm check`。
+- **常用命令**：`pnpm build`、`pnpm test`（139 套）、`pnpm check`。
 - **数据准备**：主文档 → `node scripts/parse-docx.mjs`；索引 `node scripts/build-index.mjs`；页面 `build-html.mjs` / `build-doc.mjs`。
 
 ### 快速参考
@@ -26,11 +26,20 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 | 练度提升指南 | `Meta练度提升指南`（8000-5） | `#练度查询 胡桃` / `#练度查询 芙宁娜 辅助` | 攻略预设目标 × 当前配装（**不带 UID**）；miao 激活规则匹配预设，各预设独立维度与权重 |
 | 队伍伤害 | `Meta队伍伤害`（8000-5） | `#队伍伤害<N> A B C D [词条…] [UID]` | v3；N = 配置 `teamDamageAxes` 的序号轴（省略 = 1），词条**免前缀**；旧 `轴:`/`词条:` 已废除 |
 | 视频名次（**后缀式**） | 随 `rank` / `raidTiers`（无独立 app） | `#DPS 刻晴 48金视频1` / `#危战 矮灵 n7 视频3` | 原 `#视频` / `#危战视频` 前缀式与 `video` app **已废除**（用户 2026-10-15 定）；「视频名次」模块开关保留，在后缀分发处拦截 |
-| 状态 | `Meta状态`（8000-10） | `#meta状态` | |
+| 状态 | `Meta状态`（8000-10） | `#meta状态` | 含联网开关、头像缓存与「上次补图」结果 |
 | 榜单刷新 | `Meta数据管理`（8000-10，master） | `#榜单刷新` | 仅主人；旧三种写法行为相同，只留一条 |
 
 > 2026-10-15 用户裁定**命令面整体重构**（"指令大乱炖"）：旧 `#DPS…` 族一律废除，只保留 `#DPS` / `#DPS帮助`；
 > 冲突侦察结论与最终命名表见 [docs/功能与命令.md](./docs/功能与命令.md)（`constants-parity` 的偏差 B17 守着旧名不复活）。
+
+> **页面头像来源（2026-11-26）**：`src/modules/teamView.ts` 的 `memberViews()` **只填一个来源** ——
+> `avatar`（站点缓存 `out/avatar/<character_id>.webp`）优先；缺失时填 `faceSrc`（miao `meta-gs/character/<中文名>/imgs/face.webp`
+> → Atlas 图标，均为绝对 `file://`），两者皆空才由模板画 `.avatar-text` 文字。六张页面模板按
+> `{{if c.avatar}}` → `{{else if c.faceSrc}}` → 文字 依次回落（`rank` / `raid` / `char-dps` / `tiers` / `grade` / `team-damage`），
+> **不许**再直接拼 `{{_data_path}}/avatar/…`。`src/apps/grade.ts` 的参考 DPS 行是显式 `map`，新增字段要同步投影。
+> 补图结果进 `AvatarStore.avatarFillStatus()`（`network-off` / `all-cached` / `done` / `no-targets` + 成败张数 + 首条错误），
+> `#meta状态` 据此写「上次补图：…」，失败时 `logger.warn` 不再静默。偏差 B21 由 `test/mhydps-parity.test.mjs` 抹掉 `faceSrc`、
+> 兜底板子由 `test/avatar-fallback.test.mjs` 钉住。
 
 > 本插件业务命令的 priority = `config.priority`（默认 8000）+ 各命令偏移；偏移与文案的唯一来源是 `src/components/constants.ts` 的 `COMMANDS`。
 
@@ -196,7 +205,7 @@ TRSS-Yunzai v3 插件：**原神攻略 · 强度榜单 · 练度查询**。
 ## 测试
 
 ```bash
-pnpm build && pnpm test     # 138 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
+pnpm build && pnpm test     # 139 套；任意 cwd 可跑、不发真实网络、缺前置自动跳过
 ```
 
 - 缺 bot / miao 时渲染类套件自动跳过；设 `META_MIAO_DIR` / `META_ATLAS_DIR` 指向真实资源可启用更严断言。

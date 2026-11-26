@@ -80,8 +80,13 @@ const strip = (r) => {
    *   - `parseRankArgs`：`tagExplicit`（显式/裸词来源）与 `tagBare`（裸词）；
    *   - `queryRank` / `findRankEntry`：`tags`（显式/裸词/生效条件/诊断）。
    * 快照是合并前产物，这里按"抹掉新增键再比"处理，其余字段仍要求**逐字一致**。
+   *
+   * 偏差 B21（2026-11-26）：成员视图新增 `faceSrc`（站点立绘缺失时的本地兜底头像，
+   * 见 `modules/teamView.ts`）。它依赖本机 miao/Atlas 资源是否存在，不属于合并前的口径，
+   * 同样抹掉再比；兜底板子由 `test/avatar-fallback.test.mjs` 专门钉住。
    */
-  const { tags: _tags, ...rest } = JSON.parse(JSON.stringify(r, (k, v) => (k === 'ageMs' ? undefined : v)))
+  const drop = (k, v) => (k === 'ageMs' || k === 'faceSrc' ? undefined : v)
+  const { tags: _tags, ...rest } = JSON.parse(JSON.stringify(r, drop))
   return blankVideo(rest)
 }
 

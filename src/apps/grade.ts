@@ -343,7 +343,7 @@ export class MetaGrade extends plugin {
      * 拿不到整队金数）。每档取"含该角色"的**最高伤害**那条记录；榜单缓存不可用（未联网/无缓存）时这一块不渲染。
      */
     const ownCost = 1 + (Number(profile.build.cons) || 0) + (Number(profile.build.weapon?.rarity) >= 5 ? 1 : 0)
-    const refDps: Array<{ label: string, damageText: string, teamText: string, video: string, chars: Array<{ name: string, avatar: string, constellation: number }> }> = []
+    const refDps: Array<{ label: string, damageText: string, teamText: string, video: string, chars: Array<{ name: string, avatar: string, faceSrc: string, constellation: number }> }> = []
     try {
       const { costBucketOf, costRangeOf, queryCharDps } = await import('../modules/charDpsQuery.js')
       const res = await queryCharDps(targets.charName || charName, {}, { proxy: getProxy(), downloadAvatars: true })
@@ -367,7 +367,7 @@ export class MetaGrade extends plugin {
             damageText: row.damageText || (row.damage ? String(row.damage) : '—'),
             teamText: row.chars.map(c => `${c.name}${c.constellation ? `C${c.constellation}` : ''}`).join(' + '),
             video: row.video || '',
-            chars: (row.chars || []).map(c => ({ name: c.name || '', avatar: c.avatar || '', constellation: Number(c.constellation) || 0 }))
+            chars: (row.chars || []).map(c => ({ name: c.name || '', avatar: c.avatar || '', faceSrc: c.faceSrc || '', constellation: Number(c.constellation) || 0 }))
           })
         }
       }

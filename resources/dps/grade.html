@@ -409,7 +409,7 @@
               {{each r.chars c}}
               <div class="char-item">
                 <div class="avatar">
-                  {{if c.avatar}}<img class="avatar-img" src="{{_data_path}}/avatar/{{c.avatar}}.webp"/>{{else}}<div class="avatar-text">{{if c.name}}{{c.name}}{{else}}?{{/if}}</div>{{/if}}
+                  {{if c.avatar}}<img class="avatar-img" src="{{_data_path}}/avatar/{{c.avatar}}.webp"/>{{else if c.faceSrc}}<img class="avatar-img" src="{{c.faceSrc}}"/>{{else}}<div class="avatar-text">{{if c.name}}{{c.name}}{{else}}?{{/if}}</div>{{/if}}
                   {{if c.constellation}}<span class="avatar-con">{{c.constellation}}</span>{{/if}}
                 </div>
 

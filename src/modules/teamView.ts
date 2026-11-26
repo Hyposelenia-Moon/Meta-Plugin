@@ -3,18 +3,45 @@
  *
  * DPS与危战榜共用的展示口径：成员头像/命座、金数三元组（总/限定/常驻）。
  * 头像只在本地已缓存时才给路径（模板据此决定渲染图片还是文字占位，避免裂图）。
+ *
+ * ⚠ 两级头像来源：`avatar` 是站点立绘（`out/avatar/<id>.webp`，需要联网下载）；
+ *   站点图还没缓存时用 `faceSrc`（miao 本地头像 → Atlas 图标，绝对 `file://` 地址），
+ *   两者都没有才落到模板的文字占位。`faceSrc` 只在 `avatar` 为空时才填，保证来源单选。
  */
 import { findCharacter } from '../model/CharacterIndex.js'
 import { hasAvatar } from '../model/AvatarStore.js'
+import { characterFace } from '../model/IconResolver.js'
+import { miaoFileUrl } from '../model/MiaoRes.js'
 import type { TeamMember } from '../model/TeamStore.js'
 
-/** 成员视图（`avatar` 为空串表示本地还没有这张立绘） */
+/** 成员视图（`avatar` / `faceSrc` 都为空串表示本地没有任何头像） */
 export interface MemberView {
   name: string
   constellation: number
   cText: string
+  /** 站点立绘 id（`out/avatar/<id>.webp`） */
   avatar: string
+  /** 本地兜底头像的绝对 `file://` 地址（站点立绘缺失时用） */
+  faceSrc: string
   rarity: number
+}
+
+/**
+ * 本地兜底头像：miao `imgs/face.webp` → Atlas 图标 → 空串
+ *
+ * miao 的 `rel` 相对 miao resources，要过 `miaoFileUrl()` 换成绝对地址；
+ * Atlas 的 `rel` 本身就已经是 `file://`（`AtlasRes.icon()` 用 `pathToFileURL`）。
+ */
+export function localFaceUrl (name: string): string {
+  const key = String(name ?? '').trim()
+  if (!key) return ''
+  try {
+    const hit = characterFace(key)
+    if (!hit) return ''
+    return hit.source === 'atlas' ? hit.rel : (miaoFileUrl(hit.rel) || '')
+  } catch {
+    return ''
+  }
 }
 
 /** 金数视图 */
@@ -33,11 +60,13 @@ export function memberViews (members: TeamMember[] | undefined): MemberView[] {
     const record = findCharacter(m.charId)
     const id = record?.character_id ? String(record.character_id) : ''
     const constellation = Number(m.constellation) || 0
+    const avatar = id && hasAvatar(id) ? id : ''
     return {
       name: m.charId,
       constellation,
       cText: constellation > 0 ? `C${constellation}` : '',
-      avatar: id && hasAvatar(id) ? id : '',
+      avatar,
+      faceSrc: avatar ? '' : localFaceUrl(m.charId),
       rarity: record?.rarity || 4
     }
   })

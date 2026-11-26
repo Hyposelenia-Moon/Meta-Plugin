@@ -157,7 +157,7 @@
             <div class="char-list mx-refdps-team">
               {{each r.members m}}
               <div class="char-item"><div class="avatar">
-                {{if m.avatar}}<img class="avatar-img" src="{{_data_path}}/avatar/{{m.avatar}}.webp"/>{{else}}<div class="avatar-text">{{m.name}}</div>{{/if}}
+                {{if m.avatar}}<img class="avatar-img" src="{{_data_path}}/avatar/{{m.avatar}}.webp"/>{{else if m.faceSrc}}<img class="avatar-img" src="{{m.faceSrc}}"/>{{else}}<div class="avatar-text">{{m.name}}</div>{{/if}}
                 {{if m.cons}}<span class="avatar-con">{{m.cons}}</span>{{/if}}
               </div></div>
               {{/each}}

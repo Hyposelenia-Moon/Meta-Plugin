@@ -9,8 +9,9 @@
  *   而本仓库的 `data/` 是**入库的攻略数据**，运行时往里写会挡住 bot 侧 `#更新`（设计文档 §13.1 B14）。
  *   目录本身仍从 `TeamStore.dataDir` 派生，故 `META_DATA_DIR` 一样能重定向（套件用）。
  *
- * ⚠ 联网总开关：`networkEnabled` 关闭时**直接跳过下载且不报错**（返回统计里 `downloaded`/`failed`
- *   都是 0）—— 榜单/危战页仍要能出图，只是没有头像。
+ * ⚠ 联网总开关：`networkEnabled` 关闭时**直接跳过下载**（返回统计里 `downloaded`/`failed`
+ *   都是 0），原因记进 `avatarFillStatus()` 由 `#meta状态` 写出；页面侧则改用本地兜底头像
+ *   （`modules/teamView.ts` 的 `faceSrc`），所以关着联网也能看到脸。
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -38,6 +39,35 @@ export interface AvatarStats {
   cached: number
   downloaded: number
   failed: number
+}
+
+/**
+ * 最近一次补图的结果（给 `#meta状态` 用）
+ *
+ * 为什么要记：补图失败的默认表现是"页面只是没有头像"，看不出是没联网、
+ * 站点挂了还是写盘失败 —— 状态页要把这一次的原因显式写出来（不静默）。
+ */
+export interface AvatarFillStatus {
+  /** 记录时间（毫秒） */
+  at: number
+  total: number
+  cached: number
+  downloaded: number
+  failed: number
+  /**
+   * `network-off` 联网开关关闭、`all-cached` 一张不缺、`done` 跑过一轮、`no-targets` 没有要补的 id
+   */
+  reason: 'network-off' | 'all-cached' | 'done' | 'no-targets'
+  /** 首条失败原因（`<id>: <message>`，成功时为空串） */
+  error: string
+}
+
+/** 最近一次补图状态（进程内） */
+let lastFill: AvatarFillStatus | null = null
+
+/** 读取最近一次补图状态（从未补过图时为 null） */
+export function avatarFillStatus (): AvatarFillStatus | null {
+  return lastFill
 }
 
 /** 单张立绘路径 */
@@ -96,15 +126,28 @@ export async function ensureAvatars (
   const concurrency = Math.max(1, Math.min(8, opts.concurrency || 4))
   const timeoutMs = opts.timeoutMs || getDpsTimeoutMs()
 
+  const record = (stat: AvatarStats, reason: AvatarFillStatus['reason'], error = ''): AvatarStats => {
+    lastFill = { at: Date.now(), ...stat, reason, error }
+    return stat
+  }
+
+  if (!uniq.length) return record({ total: 0, cached: 0, downloaded: 0, failed: 0 }, 'no-targets')
+
   // 业务查询联网关闭：不下载、不报错（页面退化成没有头像）；榜单头像属查询类资源，受该开关管辖
   if (!isQueryNetworkEnabled()) {
     logger?.debug?.('[Meta] 联网已关闭，跳过立绘下载（榜单页将不含头像）')
-    return { total: uniq.length, cached: uniq.filter(id => hasAvatar(id)).length, downloaded: 0, failed: 0 }
+    const stat = { total: uniq.length, cached: uniq.filter(id => hasAvatar(id)).length, downloaded: 0, failed: 0 }
+    return record(stat, 'network-off')
   }
 
   let downloaded = 0
   let failed = 0
+  let firstError = ''
   const queue = uniq.filter(id => !hasAvatar(id))
+  if (!queue.length) {
+    const stat = { total: uniq.length, cached: uniq.length, downloaded: 0, failed: 0 }
+    return record(stat, 'all-cached')
+  }
 
   const worker = async (): Promise<void> => {
     while (queue.length) {
@@ -114,18 +157,26 @@ export async function ensureAvatars (
         downloaded++
       } catch (err) {
         failed++
-        logger?.debug?.(`[Meta] 立绘下载失败 ${id}: ${(err as Error)?.message || String(err)}`)
+        const message = (err as Error)?.message || String(err)
+        if (!firstError) firstError = `${id}: ${message}`
+        logger?.debug?.(`[Meta] 立绘下载失败 ${id}: ${message}`)
       }
     }
   }
 
   await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, worker))
 
-  return { total: uniq.length, cached: uniq.filter(id => hasAvatar(id)).length, downloaded, failed }
+  const stat = { total: uniq.length, cached: uniq.filter(id => hasAvatar(id)).length, downloaded, failed }
+  // 失败不再只进 debug：留一条 warn（一次补图只报一条，附带首条原因），状态页也能看到
+  if (failed) {
+    logger?.warn?.(`[Meta] 立绘补图失败 ${failed}/${stat.downloaded + failed} 张，首条：${firstError}`)
+  }
+  return record(stat, 'done', firstError)
 }
 
 /** 清空立绘缓存（测试用） */
 export function resetAvatars (): void {
+  lastFill = null
   try {
     fs.rmSync(avatarDir, { recursive: true, force: true })
   } catch { /* 目录不存在时忽略 */ }
